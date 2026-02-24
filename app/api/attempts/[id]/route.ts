@@ -5,11 +5,12 @@ import { prisma } from "@/app/lib/prisma";
 
 export const runtime = "nodejs";
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+type Ctx = { params: { id: string } | Promise<{ id: string }> };
+
+export async function DELETE(req: Request, context: Ctx) {
   try {
+    const { id } = await Promise.resolve(context.params); // ✅ works in both envs
+
     const session = await getServerSession(authOptions);
     const email = session?.user?.email;
     if (!email) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
@@ -20,31 +21,29 @@ export async function DELETE(
     });
     if (!user) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
 
-    const id = params?.id;
     if (!id) return NextResponse.json({ error: "BAD_REQUEST" }, { status: 400 });
 
-    // Only allow deleting your own attempt
     await prisma.attempt.updateMany({
       where: { id, userId: user.id, deletedAt: null },
       data: { deletedAt: new Date() },
     });
 
     const ip =
-  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-  req.headers.get("x-real-ip") ??
-  null;
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      null;
 
-const userAgent = req.headers.get("user-agent") ?? null;
+    const userAgent = req.headers.get("user-agent") ?? null;
 
-await prisma.auditLog.create({
-  data: {
-    userId: user.id,
-    action: "attempt.deleted",
-    ip,
-    userAgent,
-    meta: { attemptId: id },
-  },
-});
+    await prisma.auditLog.create({
+      data: {
+        userId: user.id,
+        action: "attempt.deleted",
+        ip,
+        userAgent,
+        meta: { attemptId: id },
+      },
+    });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (err: any) {
