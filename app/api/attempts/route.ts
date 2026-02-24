@@ -158,7 +158,7 @@ if (typeof body.jobDesc === "string" && body.jobDesc.length > 12000) {
 }
 
     const result = await prisma.$transaction(
-  async (tx) => {
+  async (tx: any ) => {
     // Lock the user row to prevent concurrent "free attempt" bypass.
 // Prisma doesn't expose FOR UPDATE on findUnique, so use a raw query.
 const rows = await tx.$queryRaw<
