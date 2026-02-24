@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "freeAttemptCap" INTEGER NOT NULL DEFAULT 3,
+ADD COLUMN     "freeAttemptsUsed" INTEGER NOT NULL DEFAULT 0;
