@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useEffect } from "react";
 import { initPosthog, posthog } from "./lib/posthog-client";
 import PostHogPageView from "./lib/PostHogPageView";
+import {Suspense} from "react";
 
 function PostHogIdentify() {
   const { data: session } = useSession();
@@ -28,7 +29,9 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   return (
     <SessionProvider>
-      <PostHogPageView />
+      <Suspense fallback={null}>
+  <PostHogPageView />
+</Suspense>
       <PostHogIdentify />
       {children}
     </SessionProvider>

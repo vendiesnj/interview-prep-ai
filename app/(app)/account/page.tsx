@@ -7,6 +7,7 @@ import ManageBillingButton from "@/app/components/ManageBillingButton";
 import DangerZoneDeleteAccount from "@/app/components/DangerZoneDeleteAccount";
 import BillingSyncOnReturn from "@/app/components/BillingSyncOnReturn";
 import PremiumShell from "../../components/PremiumShell";
+import { Suspense } from "react";
 
 function label(v?: string | null) {
   return v && v.trim().length ? v : "—";
@@ -52,7 +53,10 @@ const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google")
       subtitle="Manage your profile, sign-in methods, and subscription."
     >
       <div style={{ maxWidth: 900 }}>
-        <BillingSyncOnReturn />
+        {/* BillingSyncOnReturn uses useSearchParams(), which requires a Suspense boundary */}
+<Suspense fallback={null}>
+  <BillingSyncOnReturn />
+</Suspense>
 
         <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
           {/* Profile */}

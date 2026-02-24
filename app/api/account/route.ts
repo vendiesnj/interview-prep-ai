@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/app/lib/prisma";
+import type { Prisma } from "@prisma/client";
+
 
 export const runtime = "nodejs";
 
@@ -24,14 +26,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "CONFIRMATION_REQUIRED" }, { status: 400 });
     }
 
-    // Delete in a transaction (order matters for foreign keys)
-    await prisma.$transaction(async (tx) => {
-      await tx.auditLog.deleteMany({ where: { userId: user.id } });
-      await tx.attempt.deleteMany({ where: { userId: user.id } });
-
-      // Optional: also delete processed Stripe event ids? (usually global; keep them)
-      await tx.user.delete({ where: { id: user.id } });
-    });
+await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+  await tx.auditLog.deleteMany({ where: { userId: user.id } });
+  await tx.attempt.deleteMany({ where: { userId: user.id } });
+});
+    
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (err: any) {
