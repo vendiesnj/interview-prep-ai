@@ -50,7 +50,7 @@ if (!userId) {
     const { searchParams } = new URL(req.url);
     const limit = Math.min(Number(searchParams.get("limit") ?? "50") || 50, 200);
 
-    const attempts = await prisma.attempt.findMany({
+    const attempts: any[] = await prisma.attempt.findMany({
       where: { userId, deletedAt: null },
       orderBy: { ts: "desc" },
       take: limit,
@@ -68,7 +68,7 @@ if (!userId) {
     });
 
     // Match your SessionsPage Attempt shape
-    const mapped = attempts.map((a) => ({
+    const mapped = attempts.map((a: any) => ({
       id: a.id,
       ts: a.ts.getTime(),
       question: a.question,
