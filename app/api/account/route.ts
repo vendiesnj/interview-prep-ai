@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "CONFIRMATION_REQUIRED" }, { status: 400 });
     }
 
-await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+await prisma.$transaction(async (tx) => {
   await tx.auditLog.deleteMany({ where: { userId: user.id } });
   await tx.attempt.deleteMany({ where: { userId: user.id } });
 });
