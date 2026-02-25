@@ -32,17 +32,24 @@ async function updateUserByCustomerOrSub(input: {
       ],
     },
     data: {
-      ...(status ? { subscriptionStatus: status } : {}),
-      ...(customerId ? { stripeCustomerId: customerId } : {}),
-      ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
-      ...(priceId ? { stripePriceId: priceId } : {}),
-      // IMPORTANT: store even if null (so we can see truth while testing)
-      currentPeriodEnd: currentPeriodEnd ?? null,
+  ...(status ? { subscriptionStatus: status } : {}),
+  ...(customerId ? { stripeCustomerId: customerId } : {}),
+  ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
+  ...(priceId ? { stripePriceId: priceId } : {}),
+
+  // Only touch currentPeriodEnd if the caller provided it.
+  ...(typeof currentPeriodEnd !== "undefined" ? { currentPeriodEnd } : {}),
+
     },
   });
 }
 
 export async function POST(req: Request) {
+  console.warn("WEBHOOK_HIT", {
+  ts: new Date().toISOString(),
+  path: "/api/billing/webhook",
+  ua: req.headers.get("user-agent"),
+});
   const sig = req.headers.get("stripe-signature");
   if (!sig) return NextResponse.json({ error: "Missing stripe-signature" }, { status: 400 });
 
@@ -89,7 +96,11 @@ export async function POST(req: Request) {
         },
       })
       .catch(() => {});
-    return NextResponse.json({ received: true, ignored: true }, { status: 200 });
+
+
+    const res = NextResponse.json({ received: true }, { status: 200 });
+res.headers.set("x-ipc-webhook", "ok");
+return res;
   }
 
   const eventId = event.id;
@@ -231,19 +242,38 @@ export async function POST(req: Request) {
             ((full as any)?.subscription as string | null) ??
             ((inv.subscription as string | null) ?? null);
 
-          // Use invoice line period end (most reliable for “current period end”)
-          const line0 = (full as any)?.lines?.data?.[0] ?? null;
+          // Use invoice lines to determine current period end.
+// IMPORTANT: lines.data[0] is often NOT the subscription line (could be tax/proration).
+const lines = ((full as any)?.lines?.data ?? []) as any[];
 
-          const periodEndSec: number | null =
-            typeof line0?.period?.end === "number" ? line0.period.end : null;
+// pick the first line that actually has a period end
+const lineWithPeriod =
+  lines.find((l) => typeof l?.period?.end === "number") ?? null;
 
-          const currentPeriodEnd = periodEndSec ? new Date(periodEndSec * 1000) : null;
+let periodEndSec: number | null =
+  typeof lineWithPeriod?.period?.end === "number" ? lineWithPeriod.period.end : null;
 
-          const priceId: string | null =
-            line0?.price?.id ??
-            line0?.plan?.id ?? // older objects
-            null;
+let currentPeriodEnd: Date | null =
+  periodEndSec ? new Date(periodEndSec * 1000) : null;
 
+// Fallback: if invoice line period isn't present, fetch subscription.current_period_end
+if (!currentPeriodEnd && subscriptionId) {
+  try {
+    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    const sec = (sub as any)?.current_period_end;
+    if (typeof sec === "number") {
+      periodEndSec = sec;
+      currentPeriodEnd = new Date(sec * 1000);
+    }
+  } catch {
+    // don't crash webhook; leave null
+  }
+}
+
+const priceId: string | null =
+  lineWithPeriod?.price?.id ??
+  lineWithPeriod?.plan?.id ?? // older objects
+  null;
           const result = await updateUserByCustomerOrSub({
             customerId,
             subscriptionId,
@@ -252,15 +282,15 @@ export async function POST(req: Request) {
             currentPeriodEnd,
           });
 
-          console.log("INVOICE->DB_UPDATE", {
-            matched: result.count,
-            invoiceId,
-            customerId,
-            subscriptionId,
-            priceId,
-            periodEndSec,
-            currentPeriodEndISO: currentPeriodEnd?.toISOString?.() ?? null,
-          });
+          console.warn("INVOICE->DB_UPDATE", JSON.stringify({
+  matched: result.count,
+  invoiceId,
+  customerId,
+  subscriptionId,
+  priceId,
+  periodEndSec,
+  currentPeriodEndISO: currentPeriodEnd?.toISOString?.() ?? null,
+}));
 
           const ph = makePosthogServer();
 
