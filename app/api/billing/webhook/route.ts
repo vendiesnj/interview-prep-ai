@@ -114,12 +114,16 @@ return res;
 
   const eventId = event.id;
 
+console.warn("IDEMPOTENCY_CHECK_START", { eventId });
+
   try {
     // ---- idempotency ----
     const already = await prisma.stripeEvent.findUnique({
       where: { id: eventId },
       select: { id: true },
     });
+
+    console.warn("IDEMPOTENCY_CHECK_DONE", { eventId, already: !!already });
 
     if (already) {
       await prisma.auditLog
@@ -138,6 +142,7 @@ return res;
     await prisma.stripeEvent.create({ data: { id: eventId } });
 
 
+    console.warn("SWITCH_ENTER", { type: event.type });
     console.warn("WEBHOOK_VERSION", { marker: "v3-invoice-enter-added" });
     try {
       switch (event.type) {
