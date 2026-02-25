@@ -89,6 +89,11 @@ export async function POST(req: Request) {
     "invoice.payment_failed",
   ]);
 
+  console.warn("ALLOWED_CHECK", {
+  type: event.type,
+  allowed: allowedTypes.has(event.type),
+});
+
   if (!allowedTypes.has(event.type)) {
     await prisma.auditLog
       .create({
