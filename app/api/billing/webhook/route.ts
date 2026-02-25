@@ -74,6 +74,10 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
+  console.warn("WEBHOOK_EVENT", {
+  id: event.id,
+  type: event.type,
+});
 
   const allowedTypes = new Set([
     "checkout.session.completed",
