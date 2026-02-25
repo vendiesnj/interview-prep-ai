@@ -132,6 +132,8 @@ return res;
 
     await prisma.stripeEvent.create({ data: { id: eventId } });
 
+
+    console.warn("WEBHOOK_VERSION", { marker: "v3-invoice-enter-added" });
     try {
       switch (event.type) {
         case "checkout.session.completed": {

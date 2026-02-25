@@ -7,19 +7,23 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 
+const isProd = process.env.NODE_ENV === "production";
+
 export const authOptions: NextAuthOptions = {
-debug: true,
-logger: {
-  error(code, metadata) {
-    console.error("NEXTAUTH_ERROR", code, metadata);
-  },
-  warn(code) {
-    console.warn("NEXTAUTH_WARN", code);
-  },
-  debug(code, metadata) {
-    console.log("NEXTAUTH_DEBUG", code, metadata);
-  },
-},
+  debug: !isProd,
+  logger: isProd
+    ? undefined
+    : {
+        error(code, metadata) {
+          console.error("NEXTAUTH_ERROR", code, metadata);
+        },
+        warn(code) {
+          console.warn("NEXTAUTH_WARN", code);
+        },
+        debug(code, metadata) {
+          console.log("NEXTAUTH_DEBUG", code, metadata);
+        },
+      },
 
   adapter: PrismaAdapter(prisma),
   session: {
