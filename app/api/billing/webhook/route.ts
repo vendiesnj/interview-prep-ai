@@ -231,6 +231,7 @@ return res;
         case "invoice.paid":
         case "invoice.payment_succeeded": {
           const inv = event.data.object as any;
+          console.warn("INVOICE_CASE_ENTER", { invoiceId: inv?.id });
           const invoiceId = (inv.id as string | null) ?? null;
 
           // THIS is the key: pull full invoice with expanded lines (period.end is the truth)
