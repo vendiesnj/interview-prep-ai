@@ -45,11 +45,6 @@ async function updateUserByCustomerOrSub(input: {
 }
 
 export async function POST(req: Request) {
-  console.warn("WEBHOOK_HIT", {
-  ts: new Date().toISOString(),
-  path: "/api/billing/webhook",
-  ua: req.headers.get("user-agent"),
-});
   const sig = req.headers.get("stripe-signature");
   if (!sig) return NextResponse.json({ error: "Missing stripe-signature" }, { status: 400 });
 
@@ -74,10 +69,7 @@ export async function POST(req: Request) {
       { status: 400 }
     );
   }
-  console.warn("WEBHOOK_EVENT", {
-  id: event.id,
-  type: event.type,
-});
+
 
   const allowedTypes = new Set([
     "checkout.session.completed",
@@ -89,10 +81,6 @@ export async function POST(req: Request) {
     "invoice.payment_failed",
   ]);
 
-  console.warn("ALLOWED_CHECK", {
-  type: event.type,
-  allowed: allowedTypes.has(event.type),
-});
 
   if (!allowedTypes.has(event.type)) {
     await prisma.auditLog
@@ -114,7 +102,7 @@ return res;
 
   const eventId = event.id;
 
-console.warn("IDEMPOTENCY_CHECK_START", { eventId });
+
 
   try {
     // ---- idempotency ----
@@ -123,7 +111,7 @@ console.warn("IDEMPOTENCY_CHECK_START", { eventId });
       select: { id: true },
     });
 
-    console.warn("IDEMPOTENCY_CHECK_DONE", { eventId, already: !!already });
+
 
     if (already) {
       await prisma.auditLog
@@ -142,8 +130,6 @@ console.warn("IDEMPOTENCY_CHECK_START", { eventId });
     await prisma.stripeEvent.create({ data: { id: eventId } });
 
 
-    console.warn("SWITCH_ENTER", { type: event.type });
-    console.warn("WEBHOOK_VERSION", { marker: "v3-invoice-enter-added" });
     try {
       switch (event.type) {
         case "checkout.session.completed": {
@@ -243,7 +229,6 @@ console.warn("IDEMPOTENCY_CHECK_START", { eventId });
         case "invoice.paid":
         case "invoice.payment_succeeded": {
           const inv = event.data.object as any;
-          console.warn("INVOICE_CASE_ENTER", { invoiceId: inv?.id });
           const invoiceId = (inv.id as string | null) ?? null;
 
           // THIS is the key: pull full invoice with expanded lines (period.end is the truth)
@@ -298,16 +283,6 @@ const priceId: string | null =
             priceId,
             currentPeriodEnd,
           });
-
-          console.warn("INVOICE->DB_UPDATE", JSON.stringify({
-  matched: result.count,
-  invoiceId,
-  customerId,
-  subscriptionId,
-  priceId,
-  periodEndSec,
-  currentPeriodEndISO: currentPeriodEnd?.toISOString?.() ?? null,
-}));
 
           const ph = makePosthogServer();
 
