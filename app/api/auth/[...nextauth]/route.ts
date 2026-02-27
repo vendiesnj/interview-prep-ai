@@ -7,6 +7,8 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 
+export const runtime = "nodejs";
+
 const isProd = process.env.NODE_ENV === "production";
 
 export const authOptions: NextAuthOptions = {

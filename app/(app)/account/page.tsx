@@ -47,6 +47,14 @@ const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google")
 
   const hasPassword = Boolean(user.passwordHash);
 
+  const now = new Date();
+
+const isPro =
+  (user.subscriptionStatus === "active" ||
+    user.subscriptionStatus === "trialing") &&
+  (!user.currentPeriodEnd ||
+    new Date(user.currentPeriodEnd) > now);
+
     return (
     <PremiumShell
       title="Account"
@@ -147,15 +155,16 @@ const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google")
                 </div>
               </div>
 
-              <div style={{ marginTop: 12 }}>
-                <UpgradeButton mode="subscription" label="Upgrade to Pro" />
-              </div>
-
-              {user.subscriptionStatus === "active" || user.subscriptionStatus === "trialing" ? (
-                <div style={{ marginTop: 10 }}>
-                  <ManageBillingButton />
-                </div>
-              ) : null}
+              {isPro ? (
+  <div style={{ marginTop: 12 }}>
+    <ManageBillingButton />
+  </div>
+) : (
+  <div style={{ marginTop: 12 }}>
+    <UpgradeButton mode="subscription" label="Upgrade to Pro" />
+  </div>
+)}
+              
             </div>
           </div>
 
