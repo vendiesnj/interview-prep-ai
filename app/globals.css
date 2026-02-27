@@ -35,3 +35,53 @@ select {
   color: inherit;
 }
 
+/* IPC theme variables (wired to profileStore.settings.theme via data-theme) */
+:root {
+  --ipc-shell-bg: radial-gradient(900px 420px at 20% -10%, rgba(99,102,241,0.16), transparent 60%), #05070b;
+  --ipc-fg: #e5e7eb;
+  --ipc-muted: #9ca3af;
+  --ipc-divider: rgba(255,255,255,0.08);
+
+  --ipc-card-border: rgba(255,255,255,0.10);
+  --ipc-card-bg: radial-gradient(800px 280px at 15% -20%, rgba(34,211,238,0.10), transparent 55%), rgba(255,255,255,0.03);
+  --ipc-card-shadow: 0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+
+  --ipc-link: #a5f3fc;
+}
+
+/* Dark theme */
+html[data-theme="dark"] {
+  --ipc-shell-bg: radial-gradient(900px 420px at 20% -10%, rgba(148,163,184,0.12), transparent 60%), #05070b;
+  --ipc-fg: #e5e7eb;
+  --ipc-muted: #9ca3af;
+  --ipc-divider: rgba(255,255,255,0.08);
+
+  --ipc-card-border: rgba(255,255,255,0.10);
+  --ipc-card-bg: rgba(255,255,255,0.03);
+  --ipc-card-shadow: 0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+
+  --ipc-link: #a5f3fc;
+}
+
+/* Light theme */
+html[data-theme="light"] {
+  --ipc-shell-bg: radial-gradient(900px 420px at 20% -10%, rgba(99,102,241,0.10), transparent 60%), #f7fafc;
+  --ipc-fg: #0f172a;
+  --ipc-muted: #475569;
+  --ipc-divider: rgba(2,6,23,0.10);
+
+  --ipc-card-border: rgba(2,6,23,0.10);
+  --ipc-card-bg: rgba(255,255,255,0.85);
+  --ipc-card-shadow: 0 10px 30px rgba(2,6,23,0.10), inset 0 1px 0 rgba(255,255,255,0.70);
+
+  --ipc-link: #0284c7;
+}
+
+/* Use IPC vars for the overall page */
+html, body {
+  margin: 0;
+  background: var(--ipc-shell-bg);
+  color: var(--ipc-fg);
+}
+
+

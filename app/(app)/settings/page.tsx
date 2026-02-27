@@ -86,6 +86,10 @@ export default function SettingsPage() {
         },
       };
       saveProfile(next);
+if (partial.theme) {
+  document.documentElement.dataset.theme = partial.theme as any;
+}
+
       return next;
     });
   }
