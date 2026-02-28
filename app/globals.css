@@ -5,6 +5,33 @@
   --foreground: #171717;
 }
 
+:root {
+  --ipc-bg: #05070b;
+  --ipc-card: rgba(255, 255, 255, 0.03);
+  --ipc-border: rgba(255, 255, 255, 0.10);
+  --ipc-text: #e5e7eb;
+  --ipc-muted: #9ca3af;
+  --ipc-accent: #a5f3fc;
+}
+
+html[data-ipc-theme="dark"] {
+  --ipc-bg: #05070b;
+  --ipc-card: rgba(255, 255, 255, 0.03);
+  --ipc-border: rgba(255, 255, 255, 0.10);
+  --ipc-text: #e5e7eb;
+  --ipc-muted: #9ca3af;
+  --ipc-accent: #a5f3fc;
+}
+
+html[data-ipc-theme="light"] {
+  --ipc-bg: #ffffff;
+  --ipc-card: rgba(0, 0, 0, 0.03);
+  --ipc-border: rgba(0, 0, 0, 0.10);
+  --ipc-text: #0b1020;
+  --ipc-muted: rgba(11, 16, 32, 0.65);
+  --ipc-accent: #2563eb;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -20,8 +47,8 @@
 }
 
 html, body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--ipc-bg);
+  color: var(--ipc-text);
   font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
 }
 
@@ -84,4 +111,31 @@ html, body {
   color: var(--ipc-fg);
 }
 
+/* === IPC theme tokens === */
+:root {
+  --bg: #070a11;
+  --panel: rgba(255, 255, 255, 0.03);
+  --panel-2: rgba(255, 255, 255, 0.04);
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --border: rgba(255, 255, 255, 0.1);
+  --accent: #60a5fa;
+  --accent-2: #a5f3fc;
+}
+
+html[data-theme="light"] {
+  --bg: #ffffff;
+  --panel: rgba(0, 0, 0, 0.03);
+  --panel-2: rgba(0, 0, 0, 0.04);
+  --text: #0b1020;
+  --muted: rgba(11, 16, 32, 0.65);
+  --border: rgba(0, 0, 0, 0.12);
+  --accent: #2563eb;
+  --accent-2: #0891b2;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
 

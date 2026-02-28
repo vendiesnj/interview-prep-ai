@@ -49,7 +49,7 @@ color: "var(--ipc-fg)",
             ) : null}
 
             {subtitle ? (
-              <div style={{ marginTop: 10, fontSize: 15, color: "#9CA3AF", lineHeight: 1.6, maxWidth: 760 }}>
+              <div style={{ marginTop: 10, fontSize: 15, color: "var(--ipc-muted)", lineHeight: 1.6, maxWidth: 760 }}>
                 {subtitle}
               </div>
             ) : null}
@@ -94,7 +94,7 @@ color: "var(--ipc-fg)",
     >
       Terms
     </a>
-    <span style={{ color: "rgba(255,255,255,0.18)" }}>•</span>
+    <span style={{ color: "var(--ipc-link)" }}>•</span>
     <a
       href="/privacy"
       style={{ color: "var(--ipc-link)", fontWeight: 900, textDecoration: "none" }}

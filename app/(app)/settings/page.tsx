@@ -86,6 +86,7 @@ export default function SettingsPage() {
         },
       };
       saveProfile(next);
+      document.documentElement.setAttribute("data-ipc-theme", next.settings.theme ?? "dark");
 if (partial.theme) {
   document.documentElement.dataset.theme = partial.theme as any;
 }

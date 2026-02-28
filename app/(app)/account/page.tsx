@@ -49,11 +49,9 @@ const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google")
 
   const now = new Date();
 
-const isPro =
-  (user.subscriptionStatus === "active" ||
-    user.subscriptionStatus === "trialing") &&
-  (!user.currentPeriodEnd ||
-    new Date(user.currentPeriodEnd) > now);
+  const isPro =
+  user.subscriptionStatus === "active" ||
+  user.subscriptionStatus === "trialing";
 
     return (
     <PremiumShell
@@ -151,7 +149,7 @@ const isPro =
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div style={{ color: "#E5E7EB", fontWeight: 800 }}>Renewal</div>
                 <div style={{ color: "#9CA3AF", fontWeight: 900 }}>
-                  {user.currentPeriodEnd ? new Date(user.currentPeriodEnd).toLocaleDateString() : "—"}
+                  {user.currentPeriodEnd ? user.currentPeriodEnd.toLocaleDateString() : "—"}
                 </div>
               </div>
 
