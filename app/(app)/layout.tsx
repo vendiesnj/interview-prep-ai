@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import SidebarNav from "../components/SidebarNav"; // adjust if your SidebarNav path differs
 import ThemeBoot from "../components/ThemeBoot";
-import ApplyTheme from "@/app/components/ApplyTheme";
+import ApplyTheme from "../components/ApplyTheme";
 
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
