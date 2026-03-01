@@ -1,51 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
 }
 
-generator client {
-  provider   = "prisma-client-js"
-}
-
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-
-  freeAttemptsUsed Int @default(0)
-  freeAttemptCap Int @default(3)
-
-  stripeCustomerId     String?  @unique
-  stripeSubscriptionId String?  @unique
-  stripePriceId        String?
-  subscriptionStatus   String?  // e.g. "active", "trialing", "past_due", "canceled"
+  id                   String    @id @default(cuid())
+  email                String?   @unique
+  passwordHash         String?
+  name                 String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  emailVerified        DateTime?
+  image                String?
   currentPeriodEnd     DateTime?
+  stripeCustomerId     String?   @unique
+  stripePriceId        String?
+  stripeSubscriptionId String?   @unique
+  subscriptionStatus   String?
+  freeAttemptCap       Int       @default(3)
+  freeAttemptsUsed     Int       @default(0)
+  accounts             Account[]
+  attempts             Attempt[]
+  sessions             Session[]
 
-  accounts      Account[]
-  sessions      Session[]
-  attempts Attempt[]
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -55,8 +55,7 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model VerificationToken {
@@ -68,56 +67,61 @@ model VerificationToken {
 }
 
 model Attempt {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Core attempt data
-  ts        DateTime @default(now()) // when the attempt happened (use your entry.ts)
-  question  String
-  transcript String
-  inputMethod String? // "spoken" | "pasted"
-
-  // Optional structured data
-  prosody   Json?
-  feedback  Json?     // store the AI JSON here
-
-  // Convenience scores (easy to query/sort)
+  id                 String    @id @default(cuid())
+  userId             String
+  ts                 DateTime  @default(now())
+  question           String
+  transcript         String
+  inputMethod        String?
+  prosody            Json?
+  feedback           Json?
   score              Int?
   communicationScore Int?
   confidenceScore    Int?
-
-  // Optional app context
-  jobDesc        String?
-  focusGoal      String?
-  audioId        String?
-  durationSeconds Int?
-  wpm            Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  deletedAt DateTime?
+  jobDesc            String?
+  focusGoal          String?
+  audioId            String?
+  durationSeconds    Int?
+  wpm                Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])
+  @@index([userId, deletedAt])
+  @@index([userId, deletedAt, ts(sort: Desc)])
 }
 
 model StripeEvent {
-  id         String   @id          // Stripe event id (evt_...)
-  createdAt  DateTime @default(now())
+  id        String   @id
+  createdAt DateTime @default(now())
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
-
   userId    String?
   action    String
   meta      Json?
-
   ip        String?
   userAgent String?
 
   @@index([userId, createdAt])
   @@index([action, createdAt])
+}
+
+model PasswordResetToken {
+  id            String   @id @default(cuid())
+  userId        String
+  tokenHash     String   @unique
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
 }
