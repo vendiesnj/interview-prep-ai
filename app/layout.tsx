@@ -1,6 +1,6 @@
 // app/layout.tsx
 import type { Metadata } from "next";
-
+import "../app/globals.css";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });

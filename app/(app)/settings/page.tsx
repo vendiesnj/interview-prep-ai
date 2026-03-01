@@ -87,10 +87,7 @@ export default function SettingsPage() {
       };
       saveProfile(next);
       const t = next.settings.theme ?? "dark";
-document.documentElement.setAttribute("data-ipc-theme", t);
 
-// prevent conflicts with any old theme system
-document.documentElement.removeAttribute("data-theme");
       return next;
     });
   }
