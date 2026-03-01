@@ -1,41 +1,8 @@
 @import "tailwindcss";
 
-
-html {
-  background-color: #0f172a;
-  color: #e5e7eb;
-}
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-:root {
-  --ipc-bg: #05070b;
-  --ipc-card: rgba(255, 255, 255, 0.03);
-  --ipc-border: rgba(255, 255, 255, 0.10);
-  --ipc-text: #e5e7eb;
-  --ipc-muted: #9ca3af;
-  --ipc-accent: #a5f3fc;
-}
-
-html[data-ipc-theme="dark"] {
-  --ipc-bg: #05070b;
-  --ipc-card: rgba(255, 255, 255, 0.03);
-  --ipc-border: rgba(255, 255, 255, 0.10);
-  --ipc-text: #e5e7eb;
-  --ipc-muted: #9ca3af;
-  --ipc-accent: #a5f3fc;
-}
-
-html[data-ipc-theme="light"] {
-  --ipc-bg: #ffffff;
-  --ipc-card: rgba(0, 0, 0, 0.03);
-  --ipc-border: rgba(0, 0, 0, 0.10);
-  --ipc-text: #0b1020;
-  --ipc-muted: rgba(11, 16, 32, 0.65);
-  --ipc-accent: #2563eb;
 }
 
 @theme inline {
@@ -53,8 +20,8 @@ html[data-ipc-theme="light"] {
 }
 
 html, body {
-  background: var(--ipc-bg);
-  color: var(--ipc-text);
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
 }
 
@@ -67,58 +34,3 @@ select {
   font: inherit;
   color: inherit;
 }
-
-/* IPC theme variables (wired to profileStore.settings.theme via data-theme) */
-:root {
-  --ipc-shell-bg: radial-gradient(900px 420px at 20% -10%, rgba(99,102,241,0.16), transparent 60%), #05070b;
-  --ipc-fg: #e5e7eb;
-  --ipc-muted: #9ca3af;
-  --ipc-divider: rgba(255,255,255,0.08);
-
-  --ipc-card-border: rgba(255,255,255,0.10);
-  --ipc-card-bg: radial-gradient(800px 280px at 15% -20%, rgba(34,211,238,0.10), transparent 55%), rgba(255,255,255,0.03);
-  --ipc-card-shadow: 0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
-
-  --ipc-link: #a5f3fc;
-}
-
-/* Dark theme */
-html[data-theme="dark"] {
-  --ipc-shell-bg: radial-gradient(900px 420px at 20% -10%, rgba(148,163,184,0.12), transparent 60%), #05070b;
-  --ipc-fg: #e5e7eb;
-  --ipc-muted: #9ca3af;
-  --ipc-divider: rgba(255,255,255,0.08);
-
-  --ipc-card-border: rgba(255,255,255,0.10);
-  --ipc-card-bg: rgba(255,255,255,0.03);
-  --ipc-card-shadow: 0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
-
-  --ipc-link: #a5f3fc;
-}
-
-
-/* Use IPC vars for the overall page */
-html, body {
-  margin: 0;
-  background: var(--ipc-shell-bg);
-  color: var(--ipc-fg);
-}
-
-/* === IPC theme tokens === */
-:root {
-  --bg: #070a11;
-  --panel: rgba(255, 255, 255, 0.03);
-  --panel-2: rgba(255, 255, 255, 0.04);
-  --text: #e5e7eb;
-  --muted: #9ca3af;
-  --border: rgba(255, 255, 255, 0.1);
-  --accent: #60a5fa;
-  --accent-2: #a5f3fc;
-}
-
-
-body {
-  background: var(--bg);
-  color: var(--text);
-}
-

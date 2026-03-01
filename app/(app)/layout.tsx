@@ -4,8 +4,6 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import SidebarNav from "../components/SidebarNav"; // adjust if your SidebarNav path differs
-import ThemeBoot from "../components/ThemeBoot";
-import ApplyTheme from "../components/ApplyTheme";
 
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
@@ -14,8 +12,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
-     <ApplyTheme />
-      <ThemeBoot />
       <SidebarNav />
       <main
         style={{
