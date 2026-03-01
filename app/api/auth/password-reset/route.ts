@@ -23,10 +23,13 @@ export async function POST(req: NextRequest) {
 
   try {
     // Content-type guard
-    const ct = req.headers.get("content-type") ?? "";
-    if (!ct.includes("application/json")) {
-      return NextResponse.json({ ok: true }, { status: 200 });
-    }
+    const ct = (req.headers.get("content-type") ?? "").toLowerCase();
+
+// Some environments may send "application/json; charset=utf-8"
+if (!ct.includes("application/json")) {
+  // return 200 to avoid enumeration; but also don't fail the flow
+  return NextResponse.json({ ok: true }, { status: 200 });
+}
 
     // Size guard (basic)
     const cl = req.headers.get("content-length");
@@ -34,8 +37,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    const body = (await req.json()) as { email?: string };
-    const email = (body?.email ?? "").trim().toLowerCase();
+    let body: any = null;
+try {
+  body = await req.json();
+} catch {
+  body = null;
+}
+const email = (body?.email ?? "").trim().toLowerCase();
 
     // Always return ok=true to avoid account enumeration
     if (!email || email.length > 320) {
