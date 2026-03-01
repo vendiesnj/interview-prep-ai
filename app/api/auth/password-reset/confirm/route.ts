@@ -11,57 +11,67 @@ function sha256(input: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as {
-      token?: string;
-      password?: string;
-    };
+    let body: any = null;
+    try {
+      body = await req.json();
+    } catch {
+      body = null;
+    }
 
-    const token = body?.token?.trim();
-    const password = body?.password?.trim();
+    const token = (body?.token ?? "").trim();
+    const password = (body?.password ?? "").trim();
 
     if (!token || !password || password.length < 8) {
-      return NextResponse.json(
-        { error: "Invalid request." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
 
     const tokenHash = sha256(token);
+    const now = new Date();
 
-    const record = await prisma.passwordResetToken.findUnique({
-      where: { tokenHash },
-      include: { user: true },
+    // Make the token single-use atomically:
+    // 1) Find token
+    // 2) In a transaction, "claim" it by setting usedAt only if it's unused + unexpired
+    // 3) Only then update the user's password
+    const result = await prisma.$transaction(async (tx) => {
+      const rec = await tx.passwordResetToken.findUnique({
+        where: { tokenHash },
+        select: { id: true, userId: true, usedAt: true, expiresAt: true },
+      });
+
+      if (!rec || rec.usedAt || rec.expiresAt < now) {
+        return { ok: false as const };
+      }
+
+      // Claim token: update only if still unused and unexpired
+      const claimed = await tx.passwordResetToken.updateMany({
+        where: {
+          id: rec.id,
+          usedAt: null,
+          expiresAt: { gt: now },
+        },
+        data: { usedAt: now },
+      });
+
+      if (claimed.count !== 1) {
+        return { ok: false as const };
+      }
+
+      const newHash = await bcrypt.hash(password, 12);
+
+      await tx.user.update({
+        where: { id: rec.userId },
+        data: { passwordHash: newHash },
+      });
+
+      return { ok: true as const };
     });
 
-    if (
-      !record ||
-      record.usedAt ||
-      record.expiresAt < new Date()
-    ) {
-      return NextResponse.json(
-        { error: "Token invalid or expired." },
-        { status: 400 }
-      );
+    if (!result.ok) {
+      return NextResponse.json({ error: "Token invalid or expired." }, { status: 400 });
     }
-
-    const newHash = await bcrypt.hash(password, 12);
-
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: record.userId },
-        data: { passwordHash: newHash },
-      }),
-      prisma.passwordResetToken.update({
-        where: { id: record.id },
-        data: { usedAt: new Date() },
-      }),
-    ]);
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch {
-    return NextResponse.json(
-      { error: "Server error." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Server error." }, { status: 500 });
   }
 }
