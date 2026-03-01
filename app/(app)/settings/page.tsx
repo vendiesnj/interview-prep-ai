@@ -86,12 +86,11 @@ export default function SettingsPage() {
         },
       };
       saveProfile(next);
-      document.documentElement.setAttribute("data-ipc-theme", next.settings.theme ?? "blue");
+      const t = next.settings.theme ?? "dark";
+document.documentElement.setAttribute("data-ipc-theme", t);
 
-// IMPORTANT: do NOT set data-theme (it causes the washed-out UI)
-// Also clear it in case an old value exists from prior tests
+// prevent conflicts with any old theme system
 document.documentElement.removeAttribute("data-theme");
-
       return next;
     });
   }

@@ -5,10 +5,17 @@ import { getProfile } from "@/app/lib/profileStore";
 
 export default function ApplyTheme() {
   useEffect(() => {
-    // read saved settings (your Settings page writes into profileStore)
     const p = getProfile();
-    const theme = p?.settings?.theme ?? "blue"; // default to blue
+    let theme = (p?.settings?.theme ?? "dark") as string;
+
+    // For launch: do NOT allow light theme (it breaks contrast with your current styling)
+    if (theme === "light") theme = "dark";
+
+    // Keep only ONE source of truth: data-ipc-theme
     document.documentElement.setAttribute("data-ipc-theme", theme);
+
+    // If you had old code using data-theme, remove it to avoid conflicts
+    document.documentElement.removeAttribute("data-theme");
   }, []);
 
   return null;
