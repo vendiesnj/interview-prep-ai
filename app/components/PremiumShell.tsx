@@ -17,12 +17,7 @@ export default function PremiumShell({
 
 {
 
-  React.useEffect(() => {
-  try {
-    const theme = getProfile()?.settings?.theme ?? "blue";
-    document.documentElement.dataset.theme = theme;
-  } catch {}
-}, []);
+ 
   return (
     <div
       style={{
