@@ -28,7 +28,7 @@ const defaultProfile: UserProfile = {
   settings: {
     strictMode: false,
     answerTimeLimit: 120,
-    theme: "blue",
+    theme: "dark",
     emailReminders: false,
     privacyMode: "normal",
   },
