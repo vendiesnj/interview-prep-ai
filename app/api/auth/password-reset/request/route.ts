@@ -98,17 +98,22 @@ export async function POST(req: NextRequest) {
 
     logInfo("password_reset_requested", { userId: user.id });
 
-    // ---- send email via Resend ----
     const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.RESEND_FROM;
+const from = process.env.RESEND_FROM;
 
-    if (apiKey && from) {
-      const resend = new Resend(apiKey);
+logInfo("password_reset_email_env_check", {
+  hasApiKey: Boolean(apiKey),
+  hasFrom: Boolean(from),
+  fromValue: from ?? null,
+});
 
-      const subject = "Reset your Interview Performance Coach password";
-      const text = `Reset your password using this link (valid for 1 hour):\n\n${resetLink}\n\nIf you didn't request this, you can ignore this email.`;
+if (apiKey && from) {
+  const resend = new Resend(apiKey);
 
-      const html = `
+  const subject = "Reset your Interview Performance Coach password";
+  const text = `Reset your password using this link (valid for 1 hour):\n\n${resetLink}\n\nIf you didn't request this, you can ignore this email.`;
+
+  const html = `
 <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5;">
   <h2 style="margin:0 0 12px 0;">Reset your password</h2>
   <p style="margin:0 0 12px 0;">Click the button below to reset your password. This link is valid for 1 hour.</p>
@@ -122,23 +127,25 @@ export async function POST(req: NextRequest) {
   <p style="margin:0;font-size:12px;color:#6b7280;">If you didn’t request this, you can ignore this email.</p>
 </div>`;
 
-      try {
-        await resend.emails.send({
-          from,
-          to: email,
-          subject,
-          text,
-          html,
-        });
-      } catch (err: any) {
-        logError("password_reset_email_failed", err, { userId: user.id });
-        // still return ok=true
-      }
-    } else {
-      // If env vars not set, keep a dev-only log to avoid blocking you.
-      // DO NOT rely on this for launch.
-      logInfo("password_reset_link_generated_dev_only", { resetLink });
-    }
+  try {
+    const sent = await resend.emails.send({
+      from,
+      to: email,
+      subject,
+      text,
+      html,
+    });
+
+    logInfo("password_reset_email_sent", {
+      userId: user.id,
+      resendId: (sent as any)?.id ?? null,
+    });
+  } catch (err: any) {
+    logError("password_reset_email_failed", err, { userId: user.id });
+  }
+} else {
+  logInfo("password_reset_link_generated_dev_only", { resetLink });
+}
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (err: any) {
