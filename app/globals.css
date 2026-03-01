@@ -1,21 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 
 /* ✅ DEFAULT THEME (dark) — applies immediately on first paint */
 :root {
-  /* IPC theme tokens */
   --ipc-bg: #070A12;
-  --ipc-panel: rgba(255, 255, 255, 0.04);
-  --ipc-card: rgba(255, 255, 255, 0.03);
-  --ipc-border: rgba(255, 255, 255, 0.10);
-  --ipc-text: #E5E7EB;
+  --ipc-fg: #E5E7EB;
   --ipc-muted: #9CA3AF;
-  --ipc-accent: #A5F3FC;
 
-  /* ✅ map the “app-wide” tokens your file already uses */
   --background: var(--ipc-bg);
-  --foreground: var(--ipc-text);
+  --foreground: var(--ipc-fg);
+
+  --ipc-shell-bg: #070A12;
+  --ipc-card-bg: rgba(255,255,255,0.04);
+  --ipc-card-border: rgba(255,255,255,0.10);
+
+  --ipc-accent: #A5F3FC;
+  --ipc-accent-2: #60A5FA;
+  --ipc-shadow: 0 18px 50px rgba(0,0,0,0.45);
 }
 
 /* Light theme */
@@ -63,4 +62,10 @@ body {
 
 body {
   font-family: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+  background: #0b1020;
+  color: #e5e7eb;
 }
