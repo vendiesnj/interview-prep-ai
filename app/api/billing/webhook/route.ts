@@ -19,8 +19,18 @@ async function updateUserByCustomerOrSub(input: {
   status?: string | null;
   priceId?: string | null;
   currentPeriodEnd?: Date | null;
+  cancelAtPeriodEnd?: boolean | null;
+  canceledAt?: Date | null;
 }) {
-  const { customerId, subscriptionId, status, priceId, currentPeriodEnd } = input;
+  const {
+    customerId,
+    subscriptionId,
+    status,
+    priceId,
+    currentPeriodEnd,
+    cancelAtPeriodEnd,
+    canceledAt,
+  } = input;
 
   if (!customerId && !subscriptionId) return { count: 0 };
 
@@ -32,14 +42,17 @@ async function updateUserByCustomerOrSub(input: {
       ],
     },
     data: {
-  ...(status ? { subscriptionStatus: status } : {}),
-  ...(customerId ? { stripeCustomerId: customerId } : {}),
-  ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
-  ...(priceId ? { stripePriceId: priceId } : {}),
+      ...(status ? { subscriptionStatus: status } : {}),
+      ...(customerId ? { stripeCustomerId: customerId } : {}),
+      ...(subscriptionId ? { stripeSubscriptionId: subscriptionId } : {}),
+      ...(priceId ? { stripePriceId: priceId } : {}),
 
-  // Only touch currentPeriodEnd if the caller provided it.
-  ...(typeof currentPeriodEnd !== "undefined" ? { currentPeriodEnd } : {}),
+      // Only touch currentPeriodEnd if the caller provided it.
+      ...(typeof currentPeriodEnd !== "undefined" ? { currentPeriodEnd } : {}),
 
+      // NEW: cancellation flags for correct UI + entitlement messaging
+      ...(typeof cancelAtPeriodEnd !== "undefined" ? { cancelAtPeriodEnd } : {}),
+      ...(typeof canceledAt !== "undefined" ? { canceledAt } : {}),
     },
   });
 }
@@ -183,12 +196,14 @@ return res;
           const currentPeriodEnd = toDateFromSeconds(sub?.current_period_end);
 
           await updateUserByCustomerOrSub({
-            customerId,
-            subscriptionId,
-            status,
-            priceId,
-            currentPeriodEnd,
-          });
+  customerId,
+  subscriptionId,
+  status,
+  priceId,
+  currentPeriodEnd,
+  cancelAtPeriodEnd: typeof sub?.cancel_at_period_end === "boolean" ? sub.cancel_at_period_end : null,
+  canceledAt: toDateFromSeconds(sub?.canceled_at),
+});
 
           break;
         }

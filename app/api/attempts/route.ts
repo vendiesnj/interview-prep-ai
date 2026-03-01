@@ -67,6 +67,40 @@ if (!userId) {
       },
     });
 
+    const ip =
+  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+  req.headers.get("x-real-ip") ??
+  null;
+
+const rlUser = await rateLimitFixedWindow({
+  key: `attempt_list:user:${userId}`,
+  limit: 60,
+  windowMs: 60_000,
+});
+
+const rlIp = await rateLimitFixedWindow({
+  key: `attempt_list:ip:${ip ?? "unknown"}`,
+  limit: 120,
+  windowMs: 60_000,
+});
+
+const remaining =
+  rlUser.ok && rlIp.ok ? Math.min(rlUser.remaining, rlIp.remaining) : 0;
+
+const resetMs = Math.max(rlUser.resetMs, rlIp.resetMs);
+
+if (!rlUser.ok || !rlIp.ok) {
+  return new NextResponse(JSON.stringify({ error: "RATE_LIMITED", resetMs }), {
+    status: 429,
+    headers: {
+      "Content-Type": "application/json",
+      "Retry-After": String(Math.ceil(resetMs / 1000)),
+      "X-RateLimit-Remaining": "0",
+      "X-RateLimit-Reset-Ms": String(resetMs),
+    },
+  });
+}
+
     // Match your SessionsPage Attempt shape
     const mapped = attempts.map((a: any) => ({
       id: a.id,
@@ -103,12 +137,24 @@ export async function POST(req: NextRequest) {
 const userAgent = req.headers.get("user-agent") ?? null;
 
 
-       // Rate limit before doing any real work (prevents cost spikes + abuse)
-    const rl = await rateLimitFixedWindow({
-      key: `attempt_create:${userId}`,
-      limit: 20,
-      windowMs: 60_000,
-    });
+  const rlUser = await rateLimitFixedWindow({
+  key: `attempt_create:user:${userId}`,
+  limit: 20,
+  windowMs: 60_000,
+});
+
+const rlIp = await rateLimitFixedWindow({
+  key: `attempt_create:ip:${ip ?? "unknown"}`,
+  limit: 40,
+  windowMs: 60_000,
+});
+
+const rl = !rlUser.ok ? rlUser : rlIp;
+
+const remaining =
+  rlUser.ok && rlIp.ok ? Math.min(rlUser.remaining, rlIp.remaining) : 0;
+
+const resetMs = Math.max(rlUser.resetMs, rlIp.resetMs);
     
     
 
@@ -130,9 +176,11 @@ await prisma.auditLog
     {
       status: 429,
       headers: {
-        "Content-Type": "application/json",
-        "Retry-After": String(Math.ceil(rl.resetMs / 1000)),
-      },
+  "Content-Type": "application/json",
+  "Retry-After": String(Math.ceil(rl.resetMs / 1000)),
+  "X-RateLimit-Remaining": "0",
+  "X-RateLimit-Reset-Ms": String(rl.resetMs),
+},
     }
   );
 }
@@ -284,7 +332,13 @@ else if (!result.ok && (result.payload as any)?.error === "FREE_LIMIT_REACHED") 
 }
 
 
-return NextResponse.json(result.payload, { status: result.status });
+return NextResponse.json(result.payload, {
+  status: result.status,
+  headers: {
+    "X-RateLimit-Remaining": String(remaining),
+    "X-RateLimit-Reset-Ms": String(resetMs),
+  },
+});
     
   } catch (err: any) {
     return NextResponse.json(

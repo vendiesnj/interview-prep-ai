@@ -500,8 +500,39 @@ if (!slotAcquired) {
 
 const start = Date.now();
 
+// Basic JSON size guard via Content-Length when present
+const cl = req.headers.get("content-length");
+if (cl && Number(cl) > 40_000) {
+  return new Response(
+    JSON.stringify({ error: "PAYLOAD_TOO_LARGE" }),
+    { status: 413, headers: { "Content-Type": "application/json" } }
+  );
+}
+
   try {
     const { jobDesc, question, transcript } = await req.json();
+
+    // ---- individual field caps (cost control + memory safety) ----
+if (typeof jobDesc === "string" && jobDesc.length > 12_000) {
+  return new Response(JSON.stringify({ error: "JOBDESC_TOO_LONG" }), {
+    status: 413,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+if (typeof question === "string" && question.length > 800) {
+  return new Response(JSON.stringify({ error: "QUESTION_TOO_LONG" }), {
+    status: 413,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+if (typeof transcript === "string" && transcript.length > 10_000) {
+  return new Response(JSON.stringify({ error: "TRANSCRIPT_TOO_LONG" }), {
+    status: 413,
+    headers: { "Content-Type": "application/json" },
+  });
+}
 
     if (!transcript || typeof transcript !== "string" || transcript.trim().length < 10) {
       return new Response(JSON.stringify({ error: "Transcript is too short." }), {
@@ -534,30 +565,47 @@ logInfo("feedback_request_started", {
   userId: user.id,
 });
 
-// ---- rate limit (per user/IP) ----
+// ---- rate limit (per user + per IP) ----
 const ip =
-  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-  req.headers.get("x-real-ip") ||
+  req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+  req.headers.get("x-real-ip") ??
   "unknown";
 
-const rate = await rateLimitFixedWindow({
-  key: `rl:feedback:${user.id}`,
-  limit: 6,
+const rlUser = await rateLimitFixedWindow({
+  key: `feedback:user:${user.id}`,
+  limit: 10,
   windowMs: 60_000,
 });
 
-if (!rate.ok) {
+const rlIp = await rateLimitFixedWindow({
+  key: `feedback:ip:${ip}`,
+  limit: 20,
+  windowMs: 60_000,
+});
+
+// Choose the failing limiter if either fails (so the error resetMs is meaningful)
+const rl = !rlUser.ok ? rlUser : !rlIp.ok ? rlIp : rlUser;
+
+// Compute headers for both success + failure
+const remaining =
+  rlUser.ok && rlIp.ok ? Math.min(rlUser.remaining, rlIp.remaining) : 0;
+
+const resetMs = Math.max(rlUser.resetMs, rlIp.resetMs);
+
+if (!rlUser.ok || !rlIp.ok) {
   return new Response(
     JSON.stringify({
       error: "RATE_LIMITED",
       message: "Too many feedback requests. Please wait a moment.",
-      retryAfterMs: rate.resetMs,
+      retryAfterMs: resetMs,
     }),
     {
       status: 429,
       headers: {
         "Content-Type": "application/json",
-        "Retry-After": String(Math.ceil(rate.resetMs / 1000)),
+        "Retry-After": String(Math.ceil(resetMs / 1000)),
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset-Ms": String(resetMs),
       },
     }
   );
@@ -731,10 +779,12 @@ Do not include any extra text outside JSON.
       );
     }
 
-    await prisma.user.update({
-  where: { id: user.id },
-  data: { freeAttemptsUsed: { increment: 1 } },
-});
+    if (!isPro) {
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { freeAttemptsUsed: { increment: 1 } },
+  });
+}
 
 
 
@@ -755,7 +805,11 @@ Do not include any extra text outside JSON.
   }),
   {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+  "Content-Type": "application/json",
+  "X-RateLimit-Remaining": String(remaining),
+  "X-RateLimit-Reset-Ms": String(resetMs),
+},
   }
 );
 
