@@ -86,10 +86,11 @@ export default function SettingsPage() {
         },
       };
       saveProfile(next);
-      document.documentElement.setAttribute("data-ipc-theme", next.settings.theme ?? "dark");
-if (partial.theme) {
-  document.documentElement.dataset.theme = partial.theme as any;
-}
+      document.documentElement.setAttribute("data-ipc-theme", next.settings.theme ?? "blue");
+
+// IMPORTANT: do NOT set data-theme (it causes the washed-out UI)
+// Also clear it in case an old value exists from prior tests
+document.documentElement.removeAttribute("data-theme");
 
       return next;
     });
@@ -184,8 +185,7 @@ if (partial.theme) {
               }}
             >
               <option value="blue">Blue (default)</option>
-              <option value="dark">Dark</option>
-              <option value="light">Light</option>
+<option value="dark">Dark</option>
             </select>
           </div>
         </PremiumCard>
