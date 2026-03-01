@@ -22,35 +22,28 @@ export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
 
   try {
-    // Content-type guard
     const ct = (req.headers.get("content-type") ?? "").toLowerCase();
+    if (!ct.includes("application/json")) {
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
 
-// Some environments may send "application/json; charset=utf-8"
-if (!ct.includes("application/json")) {
-  // return 200 to avoid enumeration; but also don't fail the flow
-  return NextResponse.json({ ok: true }, { status: 200 });
-}
-
-    // Size guard (basic)
     const cl = req.headers.get("content-length");
     if (cl && Number(cl) > 5_000) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
     let body: any = null;
-try {
-  body = await req.json();
-} catch {
-  body = null;
-}
-const email = (body?.email ?? "").trim().toLowerCase();
+    try {
+      body = await req.json();
+    } catch {
+      body = null;
+    }
 
-    // Always return ok=true to avoid account enumeration
+    const email = (body?.email ?? "").trim().toLowerCase();
     if (!email || email.length > 320) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    // Rate limit: per email + per IP
     const rlEmail = await rateLimitFixedWindow({
       key: `pwreset:email:${email}`,
       limit: 3,
@@ -69,25 +62,19 @@ const email = (body?.email ?? "").trim().toLowerCase();
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, email: true, passwordHash: true },
+      select: { id: true, passwordHash: true },
     });
 
-    // If user doesn't exist or doesn't have password auth, still return ok=true
     if (!user?.id || !user.passwordHash) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    // Create a token, store ONLY hash
     const token = crypto.randomBytes(32).toString("hex");
     const tokenHash = sha256(token);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
     await prisma.passwordResetToken.create({
-      data: {
-        userId: user.id,
-        tokenHash,
-        expiresAt,
-      },
+      data: { userId: user.id, tokenHash, expiresAt },
     });
 
     const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL;
@@ -96,16 +83,11 @@ const email = (body?.email ?? "").trim().toLowerCase();
 
     const resetLink = `${origin}/reset-password?token=${token}`;
 
-    // TODO: send email via Resend (Step 3). For now log the link safely.
-    logInfo("password_reset_requested", {
-      userId: user.id,
-      // logger redacts email anyway, but don't include it
-    });
+    logInfo("password_reset_requested", { userId: user.id });
     logInfo("password_reset_link_generated", { resetLink });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch {
-    // Still return ok=true to avoid leaking details
     return NextResponse.json({ ok: true }, { status: 200 });
   }
 }
