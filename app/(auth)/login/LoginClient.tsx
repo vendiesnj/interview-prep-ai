@@ -117,6 +117,20 @@ async function onEmailLogin(e: React.FormEvent) {
     }}
   />
 
+  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
+  <a
+    href="/forgot-password"
+    style={{
+      fontSize: 12,
+      color: "#A5F3FC",
+      fontWeight: 900,
+      textDecoration: "none",
+    }}
+  >
+    Forgot password?
+  </a>
+</div>
+
   <input
     value={password}
     onChange={(e) => setPassword(e.target.value)}
