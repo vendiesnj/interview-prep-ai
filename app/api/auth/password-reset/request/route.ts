@@ -84,9 +84,13 @@ export async function POST(req: NextRequest) {
     });
 
     // If user doesn't exist or doesn't have password auth, still return ok=true
-    if (!user?.id || !user.passwordHash) {
-      return NextResponse.json({ ok: true }, { status: 200 });
-    }
+if (!user?.id || !user.passwordHash) {
+  logInfo("password_reset_skipped", {
+    userFound: !!user?.id,
+    hasPasswordAuth: !!user?.passwordHash,
+  });
+  return NextResponse.json({ ok: true }, { status: 200 });
+}
 
     // Create token, store ONLY hash
     const token = crypto.randomBytes(32).toString("hex");
