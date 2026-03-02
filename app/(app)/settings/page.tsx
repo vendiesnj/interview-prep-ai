@@ -147,90 +147,9 @@ export default function SettingsPage() {
           </div>
         </PremiumCard>
 
-        <PremiumCard>
-          <div style={{ fontSize: 16, fontWeight: 950 }}>Appearance</div>
+       
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 14,
-              padding: "12px 0",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 900 }}>Theme</div>
-              <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
-                Visual theme preference (we’ll wire this into the whole app next).
-              </div>
-            </div>
-
-            <select
-              value={s?.theme ?? "blue"}
-              onChange={(e) => updateSettings({ theme: e.target.value as any })}
-              style={{
-                height: 36,
-                borderRadius: 12,
-                padding: "0 12px",
-                border: "1px solid rgba(255,255,255,0.14)",
-                background: "rgba(255,255,255,0.06)",
-                color: "#E5E7EB",
-                fontWeight: 800,
-              }}
-            >
-              <option value="blue">Blue (default)</option>
-<option value="dark">Dark</option>
-            </select>
-          </div>
-        </PremiumCard>
-
-        <PremiumCard>
-          <div style={{ fontSize: 16, fontWeight: 950 }}>Notifications & Privacy</div>
-
-          <Toggle
-            label="Email reminders"
-            description="Turn on reminders for scheduled practice (UI only for now — we’ll wire email later)."
-            value={!!s?.emailReminders}
-            onChange={(next) => updateSettings({ emailReminders: next })}
-          />
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 14,
-              padding: "12px 0",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 900 }}>Privacy mode</div>
-              <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
-                Private mode can hide transcripts on-screen and reduce saved detail (we’ll enforce behavior next).
-              </div>
-            </div>
-
-            <select
-              value={s?.privacyMode ?? "normal"}
-              onChange={(e) => updateSettings({ privacyMode: e.target.value as any })}
-              style={{
-                height: 36,
-                borderRadius: 12,
-                padding: "0 12px",
-                border: "1px solid rgba(255,255,255,0.14)",
-                background: "rgba(255,255,255,0.06)",
-                color: "#E5E7EB",
-                fontWeight: 800,
-              }}
-            >
-              <option value="normal">Normal</option>
-              <option value="private">Private</option>
-            </select>
-          </div>
-        </PremiumCard>
+       
       </div>
     </PremiumShell>
   );

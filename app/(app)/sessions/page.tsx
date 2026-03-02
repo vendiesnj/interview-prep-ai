@@ -146,6 +146,38 @@ async function deleteAttempt(target: Attempt) {
   } catch {}
 }
 
+async function clearHistory() {
+  const ok = window.confirm(
+    "Clear all session history? This will remove all saved attempts from your account."
+  );
+  if (!ok) return;
+
+  // Optimistic UI
+  setHistory([]);
+
+  // Wipe local/session fallback keys
+  try {
+    localStorage.removeItem(HISTORY_KEY);
+    localStorage.removeItem("ipc_history");
+    localStorage.removeItem(LAST_RESULT_KEY);
+    localStorage.removeItem("ipc_last_result");
+    localStorage.removeItem(SELECTED_KEY);
+    localStorage.removeItem("ipc_selected_attempt");
+
+    sessionStorage.removeItem(LAST_RESULT_KEY);
+    sessionStorage.removeItem("ipc_last_result");
+    sessionStorage.removeItem(SELECTED_KEY);
+    sessionStorage.removeItem("ipc_selected_attempt");
+  } catch {}
+
+  // If logged in, clear DB too
+  if (email) {
+    try {
+      await fetch(`/api/attempts`, { method: "DELETE" });
+    } catch {}
+  }
+}
+
   return (
     <div style={{ maxWidth: 1100 }}>
       <div style={{ fontSize: 34, fontWeight: 950, color: "#E5E7EB" }}>
@@ -157,7 +189,7 @@ async function deleteAttempt(target: Attempt) {
       </div>
 
       {/* Filter Buttons */}
-      <div style={{ marginTop: 18, display: "flex", gap: 10 }}>
+      <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         {["all", "spoken", "pasted"].map((f) => (
           <button
             key={f}
@@ -181,6 +213,24 @@ async function deleteAttempt(target: Attempt) {
             {f.toUpperCase()}
           </button>
         ))}
+<button
+  type="button"
+  onClick={clearHistory}
+  disabled={history.length === 0}
+  style={{
+    marginLeft: "auto",
+    padding: "8px 14px",
+    borderRadius: 12,
+    border: "1px solid rgba(252,165,165,0.35)",
+    background: history.length === 0 ? "rgba(255,255,255,0.03)" : "rgba(252,165,165,0.10)",
+    color: history.length === 0 ? "#6B7280" : "#FCA5A5",
+    fontWeight: 900,
+    cursor: history.length === 0 ? "not-allowed" : "pointer",
+  }}
+>
+  Clear history
+</button>
+
       </div>
 
       <div style={{ marginTop: 18 }}>

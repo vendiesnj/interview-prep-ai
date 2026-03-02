@@ -202,7 +202,7 @@ export default function ProgressPage() {
     <div style={{ maxWidth: 1100 }}>
       <div style={{ fontSize: 34, fontWeight: 950, color: "#E5E7EB" }}>Progress</div>
       <div style={{ marginTop: 8, color: "#9CA3AF", lineHeight: 1.6 }}>
-        Trend tiles from your saved attempts (<code style={{ color: "#E5E7EB" }}>{HISTORY_KEY}</code>).
+        Trend tiles from your saved attempts <code style={{ color: "#E5E7EB" }}></code>
       </div>
 
       {/* Top tiles */}

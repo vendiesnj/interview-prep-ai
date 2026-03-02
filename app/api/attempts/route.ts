@@ -347,3 +347,66 @@ return NextResponse.json(result.payload, {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const userId = await requireUserId(req);
+    if (!userId) {
+      return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+    }
+
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      req.headers.get("x-real-ip") ??
+      null;
+
+    const rlUser = await rateLimitFixedWindow({
+      key: `attempt_clear:user:${userId}`,
+      limit: 3,
+      windowMs: 60_000,
+    });
+
+    const rlIp = await rateLimitFixedWindow({
+      key: `attempt_clear:ip:${ip ?? "unknown"}`,
+      limit: 6,
+      windowMs: 60_000,
+    });
+
+    const resetMs = Math.max(rlUser.resetMs, rlIp.resetMs);
+
+    if (!rlUser.ok || !rlIp.ok) {
+      return new NextResponse(JSON.stringify({ error: "RATE_LIMITED", resetMs }), {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(Math.ceil(resetMs / 1000)),
+        },
+      });
+    }
+
+    // Soft-delete all attempts for this user
+    const now = new Date();
+    const result = await prisma.attempt.updateMany({
+      where: { userId, deletedAt: null },
+      data: { deletedAt: now },
+    });
+
+    await prisma.auditLog
+      .create({
+        data: {
+          userId,
+          action: "attempt.cleared_all",
+          ip,
+          meta: { count: result.count },
+        },
+      })
+      .catch(() => {});
+
+    return NextResponse.json({ ok: true, cleared: result.count }, { status: 200 });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "ATTEMPT_CLEAR_FAILED", message: err?.message ?? "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
