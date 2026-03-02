@@ -613,7 +613,6 @@ if (!rlUser.ok || !rlIp.ok) {
 
 const isPro =
   user.subscriptionStatus === "active" || user.subscriptionStatus === "trialing";
-
 if (!isPro && user.freeAttemptsUsed >= user.freeAttemptCap) {
   return new Response(
     JSON.stringify({
