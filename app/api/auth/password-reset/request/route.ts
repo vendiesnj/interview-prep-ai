@@ -20,24 +20,28 @@ function getClientIp(req: NextRequest) {
 }
 
 function getOrigin() {
-  const envOrigin = process.env.APP_ORIGIN?.trim();
-  if (envOrigin) return envOrigin;
-
   const baseUrl = process.env.NEXTAUTH_URL || process.env.VERCEL_URL;
-  const origin =
-    baseUrl?.startsWith("http") ? baseUrl : baseUrl ? `https://${baseUrl}` : "";
-  return origin;
+
+  // Prefer NEXTAUTH_URL like: https://interviewperformancecoach.com
+  if (baseUrl?.startsWith("http")) return baseUrl;
+
+  // VERCEL_URL is often like: yourapp.vercel.app (no protocol)
+  if (baseUrl) return `https://${baseUrl}`;
+
+  return "";
 }
 
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
 
   try {
+    // Content-type guard
     const ct = (req.headers.get("content-type") ?? "").toLowerCase();
     if (!ct.includes("application/json")) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
+    // Size guard
     const cl = req.headers.get("content-length");
     if (cl && Number(cl) > 5_000) {
       return NextResponse.json({ ok: true }, { status: 200 });
@@ -76,7 +80,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, passwordHash: true },
+      select: { id: true, email: true, passwordHash: true },
     });
 
     // If user doesn't exist or doesn't have password auth, still return ok=true
@@ -90,7 +94,11 @@ export async function POST(req: NextRequest) {
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     await prisma.passwordResetToken.create({
-      data: { userId: user.id, tokenHash, expiresAt },
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      },
     });
 
     const origin = getOrigin();
@@ -98,57 +106,51 @@ export async function POST(req: NextRequest) {
 
     logInfo("password_reset_requested", { userId: user.id });
 
-    const apiKey = process.env.RESEND_API_KEY;
-const from = process.env.RESEND_FROM;
+    // ---- SEND EMAIL (Resend) ----
+    const resendKey = process.env.RESEND_API_KEY;
+    const from = process.env.RESEND_FROM;
 
-logInfo("password_reset_email_env_check", {
-  hasApiKey: Boolean(apiKey),
-  hasFrom: Boolean(from),
-  fromValue: from ?? null,
-});
+    if (!resendKey || !from) {
+      // Don’t leak details; but do log internally for debugging
+      logError("password_reset_email_missing_env", new Error("Missing RESEND_API_KEY or RESEND_FROM"), {
+        hasResendKey: !!resendKey,
+        hasResendFrom: !!from,
+      });
 
-if (apiKey && from) {
-  const resend = new Resend(apiKey);
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
 
-  const subject = "Reset your Interview Performance Coach password";
-  const text = `Reset your password using this link (valid for 1 hour):\n\n${resetLink}\n\nIf you didn't request this, you can ignore this email.`;
+    const resend = new Resend(resendKey);
 
-  const html = `
-<div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; line-height: 1.5;">
-  <h2 style="margin:0 0 12px 0;">Reset your password</h2>
-  <p style="margin:0 0 12px 0;">Click the button below to reset your password. This link is valid for 1 hour.</p>
-  <p style="margin:18px 0;">
-    <a href="${resetLink}" style="display:inline-block;padding:12px 16px;border-radius:10px;background:#22d3ee;color:#001018;text-decoration:none;font-weight:800;">
-      Reset password
-    </a>
-  </p>
-  <p style="margin:0 0 10px 0;font-size:12px;color:#6b7280;">If the button doesn’t work, paste this link into your browser:</p>
-  <p style="margin:0 0 18px 0;font-size:12px;"><a href="${resetLink}">${resetLink}</a></p>
-  <p style="margin:0;font-size:12px;color:#6b7280;">If you didn’t request this, you can ignore this email.</p>
-</div>`;
-
-  try {
-    const sent = await resend.emails.send({
+    await resend.emails.send({
       from,
       to: email,
-      subject,
-      text,
-      html,
+      subject: "Reset your Interview Performance Coach password",
+      html: `
+        <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5;">
+          <h2 style="margin: 0 0 12px;">Reset your password</h2>
+          <p style="margin: 0 0 12px;">
+            Click the button below to choose a new password. This link expires in 1 hour.
+          </p>
+          <p style="margin: 16px 0;">
+            <a href="${resetLink}"
+               style="display:inline-block;padding:10px 14px;border-radius:10px;
+                      background:#06b6d4;color:#021018;font-weight:700;text-decoration:none;">
+              Reset password
+            </a>
+          </p>
+          <p style="margin: 16px 0 0; color: #6b7280; font-size: 13px;">
+            If you didn’t request this, you can safely ignore this email.
+          </p>
+        </div>
+      `,
     });
 
-    logInfo("password_reset_email_sent", {
-      userId: user.id,
-      resendId: (sent as any)?.id ?? null,
-    });
-  } catch (err: any) {
-    logError("password_reset_email_failed", err, { userId: user.id });
-  }
-} else {
-  logInfo("password_reset_link_generated_dev_only", { resetLink });
-}
+    logInfo("password_reset_email_sent", { userId: user.id });
 
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (err: any) {
+    // Still return ok=true to avoid leaking details
     logError("password_reset_request_error", err);
     return NextResponse.json({ ok: true }, { status: 200 });
   }
