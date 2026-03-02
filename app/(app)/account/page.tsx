@@ -8,6 +8,7 @@ import DangerZoneDeleteAccount from "@/app/components/DangerZoneDeleteAccount";
 import BillingSyncOnReturn from "@/app/components/BillingSyncOnReturn";
 import PremiumShell from "../../components/PremiumShell";
 import { Suspense } from "react";
+import Link from "next/link";
 
 function label(v?: string | null) {
   return v && v.trim().length ? v : "—";
@@ -119,9 +120,37 @@ const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google")
                 </div>
               </div>
 
-              <div style={{ marginTop: 10, color: "#9CA3AF", fontSize: 12 }}>
-                Password changes + linking providers can come next.
-              </div>
+              <div style={{ marginTop: 10, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+  {!hasPassword ? (
+    <div style={{ color: "#9CA3AF", fontSize: 12 }}>
+      No password is set yet. If you signed up with Google, you can set one to enable email login.
+    </div>
+  ) : (
+    <div style={{ color: "#9CA3AF", fontSize: 12 }}>
+      Password is set. You can sign in with email + password.
+    </div>
+  )}
+
+  {hasGoogle && !hasPassword ? (
+    <Link
+      href="/set-password"
+      style={{
+        marginLeft: "auto",
+        padding: "10px 12px",
+        borderRadius: 12,
+        border: "1px solid rgba(34,211,238,0.35)",
+        background: "rgba(34,211,238,0.12)",
+        color: "#A5F3FC",
+        fontWeight: 900,
+        textDecoration: "none",
+        fontSize: 12,
+        whiteSpace: "nowrap",
+      }}
+    >
+      Set password
+    </Link>
+  ) : null}
+</div>
             </div>
           </div>
 
