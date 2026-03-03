@@ -127,6 +127,18 @@ export async function POST(req: Request) {
     const durationSeconds =
       typeof durationRaw === "string" ? Number(durationRaw) : null;
 
+      // ---- duration cap (cost guard) ----
+const MAX_SECONDS = 300; // 5 minutes
+if (
+  typeof durationSeconds === "number" &&
+  Number.isFinite(durationSeconds) &&
+  durationSeconds > MAX_SECONDS
+) {
+  return new Response(
+    JSON.stringify({ error: "AUDIO_TOO_LONG", maxSeconds: MAX_SECONDS }),
+    { status: 413, headers: { "Content-Type": "application/json" } }
+  );
+}
     if (!audio || !(audio instanceof File)) {
       return new Response(JSON.stringify({ error: "MISSING_AUDIO" }), {
         status: 400,

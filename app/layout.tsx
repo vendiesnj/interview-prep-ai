@@ -8,8 +8,18 @@ import Providers from "./providers";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Interview Performance Coach",
-  description: "AI interview practice with scoring and game plans.",
+  title: "AI Interview Practice Tool | STAR Feedback & Mock Interview Coaching",
+  description:
+    "Practice interviews with AI-powered feedback. Get STAR breakdown scoring, communication analysis, and personalized improvement tips to ace your next interview.",
+  metadataBase: new URL("https://interviewperformancecoach.com"),
+  openGraph: {
+    title: "AI Interview Practice Tool | Interview Performance Coach",
+    description:
+      "AI-powered mock interview practice with STAR scoring, communication analysis, and personalized feedback.",
+    url: "https://interviewperformancecoach.com",
+    siteName: "Interview Performance Coach",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
