@@ -69,8 +69,8 @@ export default async function HomePage() {
     height: "auto",
     display: "block",
 
-    /* true visual centering fix */
-    transform: "translateX(-4px)",   // adjust if needed
+    /* vertical centering correction */
+    transform: "translateY(6px)",
   }}
 />
   </div>
