@@ -386,6 +386,8 @@ export default async function HomePage() {
       </section>
 
       {/* ===== LIGHT SECTIONS (FRESH) ===== */}
+
+      <Reveal durationMs={1100}>
       <section
         style={{
           width: "100%",
@@ -413,22 +415,31 @@ export default async function HomePage() {
               gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
               gap: 14,
             }}
+            
           >
+            <Reveal delayMs={0} durationMs={900}>
             <LightCard
               title="STAR breakdown"
               body="Situation, Task, Action, Result scored separately so you know exactly what’s missing."
             />
+            </Reveal>
+            <Reveal delayMs={120} durationMs={900}>
             <LightCard
               title="Clarity + confidence"
               body="Separate signals: structure and clarity vs. ownership language and assertiveness."
             />
+            </Reveal>
+            <Reveal delayMs={240} durationMs={900}>
             <LightCard
               title="Keyword alignment"
               body="Matches your answer to the job description so you speak the employer’s language."
             />
+            </Reveal>
           </div>
         </div>
       </section>
+      </Reveal>
+      
 
       {/* ===== DARK STRIPE (RHYTHM) ===== */}
       <section
