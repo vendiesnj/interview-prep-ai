@@ -50,7 +50,12 @@ export default async function HomePage() {
               <img
                 src="/logo.png"
                 alt="Interview Performance Coach"
-                style={{ width: 34, height: 34, borderRadius: 10, display: "block" }}
+                style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  display: "block",
+                }}
               />
               <span style={{ fontSize: 14, opacity: 0.95 }}>Interview Performance Coach</span>
             </Link>
@@ -89,13 +94,13 @@ export default async function HomePage() {
 
           {/* Hero grid */}
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.15fr 0.85fr",
-              gap: 28,
-              alignItems: "center",
-            }}
-          >
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.15fr 0.85fr",
+                gap: 28,
+                alignItems: "start",   // 👈 aligns tops perfectly
+              }}
+            >
             <div>
               <div
                 style={{
