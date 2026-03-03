@@ -34,6 +34,7 @@ export default async function HomePage() {
               marginBottom: 42,
             }}
           >
+            
             <Link
               href="/"
               style={{
@@ -46,22 +47,11 @@ export default async function HomePage() {
                 letterSpacing: 0.2,
               }}
             >
-              {/* Optional: put your logo at /public/logo.png */}
-              {/* <img src="/logo.png" alt="Interview Performance Coach" style={{ width: 34, height: 34 }} /> */}
-              <div
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.06)",
-                  display: "grid",
-                  placeItems: "center",
-                  fontWeight: 950,
-                }}
-              >
-                IPC
-              </div>
+              <img
+                src="/logo.png"
+                alt="Interview Performance Coach"
+                style={{ width: 34, height: 34, borderRadius: 10, display: "block" }}
+              />
               <span style={{ fontSize: 14, opacity: 0.95 }}>Interview Performance Coach</span>
             </Link>
 
@@ -185,46 +175,164 @@ export default async function HomePage() {
                 <span>✓ Built for real interviews</span>
               </div>
             </div>
+              
 
-            {/* Hero visual card */}
-            <div
-              style={{
-                borderRadius: 20,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03))",
-                boxShadow: "0 30px 90px rgba(0,0,0,0.45)",
-                overflow: "hidden",
-              }}
-            >
-              <div style={{ padding: 16, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.7 }}>SAMPLE FEEDBACK</div>
-                <div style={{ marginTop: 8, fontSize: 14, color: "#E5E7EB", fontWeight: 900 }}>
-                  “Tell me about a time you handled a difficult stakeholder.”
-                </div>
-              </div>
+              {/* Hero visual card */}
+<div
+  style={{
+    borderRadius: 20,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background:
+      "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
+    boxShadow: "0 35px 110px rgba(0,0,0,0.55)",
+    overflow: "hidden",
+    position: "relative",
+  }}
+>
+  {/* subtle glow */}
+  <div
+    style={{
+      position: "absolute",
+      inset: -2,
+      background:
+        "radial-gradient(500px 220px at 20% 0%, rgba(34,211,238,0.18), transparent 60%), radial-gradient(420px 200px at 90% 10%, rgba(99,102,241,0.14), transparent 55%)",
+      pointerEvents: "none",
+    }}
+  />
 
-              <div style={{ padding: 16, display: "grid", gap: 12 }}>
-                <MiniRow label="Overall score" value="7.6 / 10" />
-                <MiniRow label="STAR structure" value="Action is strong • Result is weak" />
-                <MiniRow label="Confidence" value="More ownership language needed" />
-                <MiniRow label="Keywords" value="Missing: forecasting, risk mitigation" />
+  <div style={{ position: "relative" }}>
+    <div style={{ padding: 16, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.7 }}>
+          SAMPLE FEEDBACK
+        </div>
 
-                <div
-                  style={{
-                    marginTop: 6,
-                    padding: 12,
-                    borderRadius: 14,
-                    border: "1px solid rgba(34,211,238,0.25)",
-                    background: "rgba(34,211,238,0.07)",
-                    color: "#A5F3FC",
-                    fontSize: 12,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  Next rep: lead with the metric, name the constraint, and end with a measurable outcome.
-                </div>
-              </div>
-            </div>
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 950,
+            color: "#A5F3FC",
+            border: "1px solid rgba(34,211,238,0.25)",
+            background: "rgba(34,211,238,0.08)",
+            padding: "6px 10px",
+            borderRadius: 999,
+          }}
+        >
+          Overall: 7.6 / 10
+        </div>
+      </div>
+
+      <div style={{ marginTop: 10, fontSize: 14, color: "#E5E7EB", fontWeight: 900 }}>
+        “Tell me about a time you handled a difficult stakeholder.”
+      </div>
+    </div>
+
+    <div style={{ padding: 16, display: "grid", gap: 14 }}>
+      {/* Metric bars */}
+      <BarMetric label="STAR structure" value={7.2} hint="Action strong • Result weak" />
+      <BarMetric label="Clarity (comm.)" value={7.8} hint="Clear flow, tighten sentences" />
+      <BarMetric label="Confidence" value={6.4} hint="Use more ownership language" />
+
+      {/* Mini trend chart */}
+      <div
+        style={{
+          marginTop: 2,
+          padding: 14,
+          borderRadius: 16,
+          border: "1px solid rgba(255,255,255,0.10)",
+          background: "rgba(255,255,255,0.03)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+          <div style={{ color: "#E5E7EB", fontWeight: 950, fontSize: 12 }}>Progress trend</div>
+          <div style={{ color: "#9CA3AF", fontSize: 12, fontWeight: 900 }}>Last 5 attempts</div>
+        </div>
+
+        <svg viewBox="0 0 320 90" width="100%" height="90" style={{ marginTop: 10, display: "block" }}>
+          {/* grid */}
+          <path
+            d="M0 15 H320 M0 45 H320 M0 75 H320"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="1"
+            fill="none"
+          />
+          {/* line */}
+          <path
+            d="M10 65 L80 58 L150 52 L220 44 L300 34"
+            stroke="rgba(34,211,238,0.75)"
+            strokeWidth="3"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {/* dots */}
+          {[
+            { x: 10, y: 65 },
+            { x: 80, y: 58 },
+            { x: 150, y: 52 },
+            { x: 220, y: 44 },
+            { x: 300, y: 34 },
+          ].map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r="4.5" fill="rgba(34,211,238,0.95)" />
+          ))}
+          {/* glow dots */}
+          {[
+            { x: 10, y: 65 },
+            { x: 80, y: 58 },
+            { x: 150, y: 52 },
+            { x: 220, y: 44 },
+            { x: 300, y: 34 },
+          ].map((p, i) => (
+            <circle key={`g${i}`} cx={p.x} cy={p.y} r="9" fill="rgba(34,211,238,0.10)" />
+          ))}
+        </svg>
+
+        <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+          Upward trend. Biggest lift comes from ending with a measurable result.
+        </div>
+      </div>
+
+      {/* Keyword block */}
+      <div
+        style={{
+          marginTop: 0,
+          padding: 12,
+          borderRadius: 16,
+          border: "1px solid rgba(34,211,238,0.20)",
+          background: "rgba(34,211,238,0.07)",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+          <div style={{ color: "#A5F3FC", fontWeight: 950, fontSize: 12 }}>Keyword alignment</div>
+          <div style={{ color: "#9CA3AF", fontWeight: 900, fontSize: 12 }}>Missing: 2</div>
+        </div>
+
+        <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <Chip>forecasting</Chip>
+          <Chip>risk mitigation</Chip>
+          <Chip kind="ok">stakeholder alignment</Chip>
+          <Chip kind="ok">cross-functional</Chip>
+        </div>
+      </div>
+
+      {/* Next rep */}
+      <div
+        style={{
+          padding: 12,
+          borderRadius: 16,
+          border: "1px solid rgba(99,102,241,0.20)",
+          background: "rgba(99,102,241,0.08)",
+          color: "#E5E7EB",
+          fontSize: 12,
+          lineHeight: 1.7,
+        }}
+      >
+        <span style={{ color: "#C7D2FE", fontWeight: 950 }}>Next rep:</span>{" "}
+        lead with the metric, name the constraint, and end with a measurable outcome.
+      </div>
+    </div>
+  </div>
+</div>
           </div>
         </div>
       </section>
@@ -421,5 +529,76 @@ function LightCard({ title, body }: { title: string; body: string }) {
       <div style={{ fontWeight: 950, fontSize: 14 }}>{title}</div>
       <div style={{ marginTop: 8, color: "#475569", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
     </div>
+  );
+}
+
+function BarMetric({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: number; // 0-10
+  hint: string;
+}) {
+  const pct = Math.max(0, Math.min(100, (value / 10) * 100));
+  return (
+    <div
+      style={{
+        padding: 14,
+        borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.10)",
+        background: "rgba(255,255,255,0.03)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+        <div style={{ color: "#E5E7EB", fontWeight: 950, fontSize: 12 }}>{label}</div>
+        <div style={{ color: "#A5F3FC", fontWeight: 950, fontSize: 12 }}>{value.toFixed(1)}</div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 10,
+          height: 10,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            borderRadius: 999,
+            background:
+              "linear-gradient(90deg, rgba(34,211,238,0.9), rgba(99,102,241,0.75))",
+          }}
+        />
+      </div>
+
+      <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>{hint}</div>
+    </div>
+  );
+}
+
+function Chip({ children, kind }: { children: React.ReactNode; kind?: "ok" | "bad" }) {
+  const ok = kind === "ok";
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "7px 10px",
+        borderRadius: 999,
+        border: ok ? "1px solid rgba(34,211,238,0.25)" : "1px solid rgba(251,113,133,0.25)",
+        background: ok ? "rgba(34,211,238,0.08)" : "rgba(251,113,133,0.10)",
+        color: ok ? "#A5F3FC" : "#FDA4AF",
+        fontSize: 12,
+        fontWeight: 900,
+        letterSpacing: 0.2,
+      }}
+    >
+      {children}
+    </span>
   );
 }
