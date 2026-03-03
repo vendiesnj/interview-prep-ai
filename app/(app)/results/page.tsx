@@ -57,6 +57,14 @@ function pickVariant(lines: string[], seed: number) {
 }
 
 
+function extractWhatYouSaid(starAdvice?: string | null): string | null {
+  if (!starAdvice) return null;
+  const m = starAdvice.match(/What you said:\s*["']?(.+?)["']?(?:\.\s*|$)/i);
+  if (!m) return null;
+  const quote = m[1]?.trim();
+  return quote && quote.length >= 3 ? quote : null;
+}
+
 function paceContext(wpm: number) {
   if (wpm < 100) {
     return {
@@ -1162,6 +1170,44 @@ return (
               ))}
             </ul>
           </SectionCard>
+
+          {Array.isArray((feedback as any)?.missed_opportunities) &&
+(feedback as any).missed_opportunities.length > 0 ? (
+  <SectionCard title="Missed opportunities" collapsible defaultOpen={false}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {(feedback as any).missed_opportunities.slice(0, 4).map((m: any, i: number) => (
+        <div
+          key={i}
+          style={{
+            borderRadius: 12,
+            padding: 12,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.02)",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+            <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13 }}>
+              {m?.label ? String(m.label) : "Opportunity"}
+            </div>
+          </div>
+
+          {m?.why ? (
+            <div style={{ marginTop: 6, color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
+              {String(m.why)}
+            </div>
+          ) : null}
+
+          {m?.add_sentence ? (
+            <div style={{ marginTop: 10, color: "#E5E7EB", fontSize: 13, lineHeight: 1.7 }}>
+              <span style={{ color: "#9CA3AF", fontWeight: 800 }}>Add this sentence:</span>{" "}
+              <span style={{ fontStyle: "italic" }}>&ldquo;{String(m.add_sentence)}&rdquo;</span>
+            </div>
+          ) : null}
+        </div>
+      ))}
+    </div>
+  </SectionCard>
+) : null}
 
           {feedback.better_answer ? (
             <SectionCard title="Stronger version" collapsible defaultOpen={false}>

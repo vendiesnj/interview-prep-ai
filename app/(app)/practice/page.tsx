@@ -413,6 +413,7 @@ export default function PracticePage() {
     const email = session?.user?.email ?? null;
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
+  const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
   const HOME_STATE_KEY = userScopedKey("ipc_home_state", session);
   const HISTORY_FALLBACK_KEY = "ipc_history";
 const HOME_STATE_FALLBACK_KEY = "ipc_home_state";
@@ -1460,15 +1461,24 @@ try {
 
         const file = new File([blob], "answer.webm", { type: "audio/webm" });
 
-        const form = new FormData();
-      form.append("audio", file);
-      form.append("duration", String(durationSeconds));
+const startedAt = recordingStartRef.current;
+const durSeconds =
+  typeof startedAt === "number" ? Math.max(0.1, (Date.now() - startedAt) / 1000) : null;
 
+// store locally so WPM works immediately after transcribe
+setDurationSeconds(durSeconds);
 
-        const res = await fetch("/api/transcribe", {
-          method: "POST",
-          body: form,
-        });
+const form = new FormData();
+form.append("audio", file);
+if (typeof durSeconds === "number" && Number.isFinite(durSeconds)) {
+  form.append("duration", String(durSeconds));
+}
+
+const res = await fetch("/api/transcribe", {
+  method: "POST",
+  body: form,
+});
+        
 
         const data = await res.json();
 
@@ -1627,7 +1637,6 @@ if (!res.ok) {
     });
 
    
-    // ✅ Save last result for /results page (session + local fallback)
 // ✅ Save last result for /results page (session + local fallback)
 try {
   const lastResult = {
@@ -1637,7 +1646,6 @@ try {
     wpm: entry.wpm ?? null,
     prosody: entry.prosody ?? null,
     feedback: entry.feedback,
-
     jobDesc: entry.jobDesc ?? "",
     questions: Array.isArray(entry.questions) ? entry.questions : [],
     questionBuckets: entry.questionBuckets ?? null,
@@ -1645,15 +1653,17 @@ try {
 
   const json = JSON.stringify(lastResult);
 
-  // ✅ ALWAYS write a fallback key
+  // ✅ Always write a fallback key
   sessionStorage.setItem("ipc_last_result", json);
   localStorage.setItem("ipc_last_result", json);
 
-  // ✅ If user-scoped key exists, write it too
-  if (LAST_RESULT_KEY) {
-    sessionStorage.setItem(LAST_RESULT_KEY, json);
-    localStorage.setItem(LAST_RESULT_KEY, json);
-  }
+  // ✅ User-scoped last result
+  sessionStorage.setItem(LAST_RESULT_KEY, json);
+  localStorage.setItem(LAST_RESULT_KEY, json);
+
+  // ✅ IMPORTANT: override any old selected attempt so Results shows THIS run
+  sessionStorage.setItem(SELECTED_KEY, json);
+  localStorage.setItem(SELECTED_KEY, json);
 } catch {}
 
 // ✅ Save to DB (best-effort)
