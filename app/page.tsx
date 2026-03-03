@@ -11,6 +11,9 @@ const fullName = session?.user?.name ?? "";
 const firstName = (fullName.trim().split(/\s+/)[0] || "there").trim();
 const isAuthed = !!session?.user?.email;
 
+const subscriptionStatus = (session?.user as any)?.subscriptionStatus ?? "free";
+const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
+
   return (
     <main style={{ width: "100%", minHeight: "100vh" }}>
       {/* ===== HERO (DARK) ===== */}
@@ -266,7 +269,7 @@ const isAuthed = !!session?.user?.email;
             textAlign: "center",
           }}
         >
-          Start Free Practice
+          {isAuthed ? "Continue Practice" : "Start Free Practice"}
         </Link>
 
         <Link

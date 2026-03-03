@@ -63,6 +63,48 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
+  callbacks: {
+  async jwt({ token, user }) {
+    // On first sign-in, `user` is available
+    if (user?.id) {
+      token.userId = user.id;
+    }
+
+    // If we don't have an id, nothing to hydrate
+    if (!token.userId) return token;
+
+    // Hydrate subscription fields from DB (kept lightweight)
+    const dbUser = await prisma.user.findUnique({
+      where: { id: token.userId as string },
+      select: {
+        subscriptionStatus: true,
+        stripeCustomerId: true,
+        stripePriceId: true,
+        currentPeriodEnd: true,
+      },
+    });
+
+    token.subscriptionStatus = dbUser?.subscriptionStatus ?? "free";
+    token.stripeCustomerId = dbUser?.stripeCustomerId ?? null;
+    token.stripePriceId = dbUser?.stripePriceId ?? null;
+    token.currentPeriodEnd = dbUser?.currentPeriodEnd ?? null;
+
+    return token;
+  },
+
+  async session({ session, token }) {
+    // Make userId available if you want it
+    (session.user as any).id = token.userId;
+
+    // Expose subscription fields to the client/server components
+    (session.user as any).subscriptionStatus = token.subscriptionStatus ?? "free";
+    (session.user as any).stripeCustomerId = token.stripeCustomerId ?? null;
+    (session.user as any).stripePriceId = token.stripePriceId ?? null;
+    (session.user as any).currentPeriodEnd = token.currentPeriodEnd ?? null;
+
+    return session;
+  },
+},
 };
 
 // use the exported authOptions here
