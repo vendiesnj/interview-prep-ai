@@ -37,48 +37,39 @@ export default async function HomePage() {
             
             <Link
   href="/"
+  aria-label="Interview Performance Coach"
   style={{
-    display: "flex",
+    display: "inline-flex",
     alignItems: "center",
-    gap: 16,
     textDecoration: "none",
   }}
 >
-  {/* Bigger premium logo container */}
+  {/* Big rectangular logo badge */}
   <div
     style={{
-      width: 72,
-      height: 72,
-      borderRadius: 20,
-      background: "rgba(255,255,255,0.95)",
-      boxShadow: "0 18px 50px rgba(0,0,0,0.45)",
+      width: 190,          // BIG
+      height: 64,          // rectangle shape
+      borderRadius: 18,
+      background: "rgba(255,255,255,0.96)",
+      boxShadow: "0 18px 55px rgba(0,0,0,0.45)",
+      border: "1px solid rgba(0,0,0,0.06)",
       display: "grid",
       placeItems: "center",
-      flex: "0 0 auto",
+      overflow: "hidden",  // important for “zoom crop”
     }}
   >
     <img
       src="/logo.png"
       alt="Interview Performance Coach"
       style={{
-        width: 50,
-        height: 50,
+        width: "130%",      // zoom in to reduce visible whitespace
+        height: "130%",
         objectFit: "contain",
         display: "block",
+        transform: "translateX(-6%)", // nudge left if your padding is heavier on one side
       }}
     />
   </div>
-
-  <span
-    style={{
-      fontSize: 20,
-      fontWeight: 950,
-      letterSpacing: -0.4,
-      color: "#E5E7EB",
-    }}
-  >
-    Interview Performance Coach
-  </span>
 </Link>
 
             <div style={{ display: "flex", gap: 10 }}>
