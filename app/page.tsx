@@ -38,41 +38,36 @@ export default async function HomePage() {
          <Link
   href="/"
   aria-label="Interview Performance Coach"
-  style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
+  style={{
+    display: "inline-flex",
+    textDecoration: "none",
+  }}
 >
   <div
     style={{
-      width: 240,
-      height: 72,
-      borderRadius: 18,
+      width: 300,                 // wider
+      height: 90,                 // slightly taller
+      borderRadius: 22,
 
-      // "glass" blend into the hero
       background:
-        "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05))",
-      border: "1px solid rgba(255,255,255,0.16)",
-      boxShadow: "0 18px 60px rgba(0,0,0,0.45)",
-      backdropFilter: "blur(10px)",
-
-      // give the logo breathing room
-      padding: 10,
+        "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+      border: "1px solid rgba(255,255,255,0.18)",
+      boxShadow: "0 25px 70px rgba(0,0,0,0.55)",
+      backdropFilter: "blur(12px)",
 
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
+      overflow: "hidden",
     }}
   >
     <img
       src="/logo.png"
       alt="Interview Performance Coach"
       style={{
-        width: "100%",
-        height: "100%",
-        objectFit: "contain",
+        width: "92%",        // key change
+        height: "auto",
         display: "block",
-
-        // helps it feel less “pasted”
-        opacity: 0.98,
-        filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.25))",
       }}
     />
   </div>
