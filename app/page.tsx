@@ -1,16 +1,15 @@
 // app/page.tsx
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Reveal from "@/app/components/Reveal";
 
 export default async function HomePage() {
-  // If user is logged in, send them straight into the app
   const session = await getServerSession(authOptions);
-  if (session?.user?.email) {
-    redirect("/dashboard");
-  }
+
+const fullName = session?.user?.name ?? "";
+const firstName = (fullName.trim().split(/\s+/)[0] || "there").trim();
+const isAuthed = !!session?.user?.email;
 
   return (
     <main style={{ width: "100%", minHeight: "100vh" }}>
@@ -77,36 +76,72 @@ export default async function HomePage() {
   </div>
 </Link>
 
-            <div style={{ display: "flex", gap: 10 }}>
-              <Link
-                href="/login"
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 14,
-                  border: "1px solid rgba(255,255,255,0.14)",
-                  background: "rgba(255,255,255,0.04)",
-                  color: "#E5E7EB",
-                  textDecoration: "none",
-                  fontWeight: 900,
-                }}
-              >
-                Log in
-              </Link>
-              <Link
-                href="/signup"
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 14,
-                  border: "1px solid rgba(34,211,238,0.35)",
-                  background: "rgba(34,211,238,0.14)",
-                  color: "#A5F3FC",
-                  textDecoration: "none",
-                  fontWeight: 950,
-                }}
-              >
-                Start free
-              </Link>
-            </div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+  {isAuthed ? (
+    <>
+      <div
+        style={{
+          padding: "10px 14px",
+          borderRadius: 14,
+          border: "1px solid rgba(255,255,255,0.14)",
+          background: "rgba(255,255,255,0.04)",
+          color: "#E5E7EB",
+          fontWeight: 900,
+          whiteSpace: "nowrap",
+        }}
+      >
+        Welcome, {firstName}
+      </div>
+
+      <Link
+        href="/dashboard"
+        style={{
+          padding: "10px 14px",
+          borderRadius: 14,
+          border: "1px solid rgba(34,211,238,0.35)",
+          background: "rgba(34,211,238,0.14)",
+          color: "#A5F3FC",
+          textDecoration: "none",
+          fontWeight: 950,
+          whiteSpace: "nowrap",
+        }}
+      >
+        Open app
+      </Link>
+    </>
+  ) : (
+    <>
+      <Link
+        href="/login"
+        style={{
+          padding: "10px 14px",
+          borderRadius: 14,
+          border: "1px solid rgba(255,255,255,0.14)",
+          background: "rgba(255,255,255,0.04)",
+          color: "#E5E7EB",
+          textDecoration: "none",
+          fontWeight: 900,
+        }}
+      >
+        Log in
+      </Link>
+      <Link
+        href="/signup"
+        style={{
+          padding: "10px 14px",
+          borderRadius: 14,
+          border: "1px solid rgba(34,211,238,0.35)",
+          background: "rgba(34,211,238,0.14)",
+          color: "#A5F3FC",
+          textDecoration: "none",
+          fontWeight: 950,
+        }}
+      >
+        Start free
+      </Link>
+    </>
+  )}
+</div>
           </div>
 
           {/* Hero grid */}
@@ -174,43 +209,85 @@ export default async function HomePage() {
 
         <Reveal delayMs={320}>
             <div
-  className="ipc-fade-up ipc-d4"
-  style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}
->
-                <Link
-                  href="/signup"
-                  style={{
-                    padding: "12px 16px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(34,211,238,0.35)",
-                    background: "rgba(34,211,238,0.14)",
-                    color: "#A5F3FC",
-                    textDecoration: "none",
-                    fontWeight: 950,
-                    minWidth: 170,
-                    textAlign: "center",
-                  }}
-                >
-                  Start Free Practice
-                </Link>
+    style={{
+      marginTop: 22,
+      display: "flex",
+      gap: 12,
+      flexWrap: "wrap",
+    }}
+  >
+    {isAuthed ? (
+      <>
+        <Link
+          href="/practice"
+          style={{
+            padding: "12px 16px",
+            borderRadius: 14,
+            border: "1px solid rgba(34,211,238,0.35)",
+            background: "rgba(34,211,238,0.14)",
+            color: "#A5F3FC",
+            textDecoration: "none",
+            fontWeight: 950,
+            minWidth: 170,
+            textAlign: "center",
+          }}
+        >
+          Practice now
+        </Link>
 
-                <Link
-                  href="/login"
-                  style={{
-                    padding: "12px 16px",
-                    borderRadius: 14,
-                    border: "1px solid rgba(255,255,255,0.14)",
-                    background: "rgba(255,255,255,0.04)",
-                    color: "#E5E7EB",
-                    textDecoration: "none",
-                    fontWeight: 900,
-                    minWidth: 120,
-                    textAlign: "center",
-                  }}
-                >
-                  Log in
-                </Link>
-              </div>
+        <div
+          style={{
+            padding: "12px 16px",
+            borderRadius: 14,
+            border: "1px solid rgba(255,255,255,0.14)",
+            background: "rgba(255,255,255,0.04)",
+            color: "#E5E7EB",
+            fontWeight: 900,
+            minWidth: 200,
+            textAlign: "center",
+          }}
+        >
+          Welcome, {firstName}
+        </div>
+      </>
+    ) : (
+      <>
+        <Link
+          href="/signup"
+          style={{
+            padding: "12px 16px",
+            borderRadius: 14,
+            border: "1px solid rgba(34,211,238,0.35)",
+            background: "rgba(34,211,238,0.14)",
+            color: "#A5F3FC",
+            textDecoration: "none",
+            fontWeight: 950,
+            minWidth: 170,
+            textAlign: "center",
+          }}
+        >
+          Start Free Practice
+        </Link>
+
+        <Link
+          href="/login"
+          style={{
+            padding: "12px 16px",
+            borderRadius: 14,
+            border: "1px solid rgba(255,255,255,0.14)",
+            background: "rgba(255,255,255,0.04)",
+            color: "#E5E7EB",
+            textDecoration: "none",
+            fontWeight: 900,
+            minWidth: 120,
+            textAlign: "center",
+          }}
+        >
+          Log in
+        </Link>
+      </>
+    )}
+  </div>
               </Reveal>
 
               <div style={{ marginTop: 18, display: "flex", gap: 14, flexWrap: "wrap", color: "#9CA3AF", fontSize: 12 }}>
