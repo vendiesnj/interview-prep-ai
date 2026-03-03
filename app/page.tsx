@@ -119,42 +119,56 @@ export default async function HomePage() {
             >
             <div>
               <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "7px 10px",
-                  borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.04)",
-                  color: "#9CA3AF",
-                  fontSize: 12,
-                  fontWeight: 900,
-                  letterSpacing: 0.3,
-                }}
-              >
-                STAR feedback • Confidence scoring • Keyword alignment
-              </div>
+  className="ipc-fade-up ipc-d1"
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "7px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.12)",
+    background: "rgba(255,255,255,0.04)",
+    color: "#9CA3AF",
+    fontSize: 12,
+    fontWeight: 900,
+    letterSpacing: 0.3,
+  }}
+>
+  STAR feedback • Confidence scoring • Keyword alignment
+</div>
 
               <h1
-                style={{
-                  marginTop: 14,
-                  fontSize: 52,
-                  lineHeight: 1.02,
-                  letterSpacing: -1.2,
-                  fontWeight: 1000 as any,
-                  color: "#E5E7EB",
-                }}
-              >
-                Practice interviews with structured, measurable feedback.
-              </h1>
+  className="ipc-fade-up ipc-d2"
+  style={{
+    marginTop: 14,
+    fontSize: 52,
+    lineHeight: 1.02,
+    letterSpacing: -1.2,
+    fontWeight: 1000 as any,
+    color: "#E5E7EB",
+  }}
+>
+  Practice interviews with structured, measurable feedback.
+</h1>
 
-              <p style={{ marginTop: 14, fontSize: 16, lineHeight: 1.7, color: "#9CA3AF", maxWidth: 620 }}>
-                Get instant STAR breakdowns, clarity & communication scoring, confidence signals, and job-description keyword alignment —
-                so you know exactly what to improve before the real thing.
-              </p>
+              <p
+  className="ipc-fade-up ipc-d3"
+  style={{
+    marginTop: 14,
+    fontSize: 16,
+    lineHeight: 1.7,
+    color: "#9CA3AF",
+    maxWidth: 620,
+  }}
+>
+  Get instant STAR breakdowns, clarity & communication scoring, confidence signals, and job-description keyword alignment —
+  so you know exactly what to improve before the real thing.
+</p>
 
-              <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
+            <div
+  className="ipc-fade-up ipc-d4"
+  style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}
+>
                 <Link
                   href="/signup"
                   style={{
@@ -200,6 +214,7 @@ export default async function HomePage() {
 
               {/* Hero visual card */}
 <div
+  className="ipc-fade-up ipc-d5"
   style={{
     borderRadius: 20,
     border: "1px solid rgba(255,255,255,0.12)",
