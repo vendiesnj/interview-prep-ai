@@ -45,7 +45,7 @@ export default async function HomePage() {
 >
   <div
     style={{
-      width: 300,                 // wider
+      width: 340,                 // wider
       height: 90,                 // slightly taller
       borderRadius: 22,
 
@@ -62,14 +62,17 @@ export default async function HomePage() {
     }}
   >
     <img
-      src="/logo.png"
-      alt="Interview Performance Coach"
-      style={{
-        width: "92%",        // key change
-        height: "auto",
-        display: "block",
-      }}
-    />
+  src="/logo.png"
+  alt="Interview Performance Coach"
+  style={{
+    width: "92%",
+    height: "auto",
+    display: "block",
+
+    /* true visual centering fix */
+    transform: "translateX(-4px)",   // adjust if needed
+  }}
+/>
   </div>
 </Link>
 
