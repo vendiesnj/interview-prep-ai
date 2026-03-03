@@ -33,8 +33,11 @@ confidence_evidence: string[];
   confidence_score: number;
   confidence_explanation: string;
 
-  missed_opportunities: string[];
-
+  missed_opportunities: Array<{
+  label: string;      // e.g. "Prioritization"
+  why: string;        // 1 sentence tying to question/JD
+  add_sentence: string; // exact sentence to add
+}>;
 
   star: {
     situation: number;
@@ -153,11 +156,16 @@ for (const k of ["situation", "task", "action", "result"]) {
   if (!obj.strengths.every(isNonEmptyString)) return false;
   if (!obj.improvements.every(isNonEmptyString)) return false;
 
-    // missed_opportunities
-  if (!Array.isArray(obj.missed_opportunities)) return false;
-  if (obj.missed_opportunities.length < 2 || obj.missed_opportunities.length > 4) return false;
-  if (!obj.missed_opportunities.every(isNonEmptyString)) return false;
+    // missed_opportunities (2–4 structured items)
+if (!Array.isArray(obj.missed_opportunities)) return false;
+if (obj.missed_opportunities.length < 2 || obj.missed_opportunities.length > 4) return false;
 
+for (const it of obj.missed_opportunities) {
+  if (typeof it !== "object" || it === null) return false;
+  if (!isNonEmptyString(it.label)) return false;
+  if (!isNonEmptyString(it.why)) return false;
+  if (!isNonEmptyString(it.add_sentence)) return false;
+}
   // better_answer
   if (!isNonEmptyString(obj.better_answer)) return false;
 
@@ -742,7 +750,9 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
 
   "strengths": ["string"],
   "improvements": ["string"],
-  "missed_opportunities": ["string"],
+  "missed_opportunities": [
+  { "label": "string", "why": "string", "add_sentence": "string" }
+],
   "better_answer": "string",
   "keywords_used": ["string"],
   "keywords_missing": ["string"]
@@ -776,6 +786,12 @@ Rules:
 - confidence_score must IGNORE structure/clarity. It is only about ownership + assertiveness language.
 - If communication_score and confidence_score would be within 1 point of each other, force them to differ by at least 2 points
   unless the transcript clearly has BOTH strong structure AND strong ownership.
+- missed_opportunities must be 2–4 items.
+- Each missed_opportunity must have:
+  - label: 1–3 words (e.g., "Metrics", "Prioritization", "Stakeholder alignment")
+  - why: 1 sentence referencing the QUESTION or JOB DESCRIPTION
+  - add_sentence: a single sentence the candidate can add verbatim (no bullets).
+
 
 Do not include any extra text outside JSON.
 `.trim();
