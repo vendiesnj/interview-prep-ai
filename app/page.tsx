@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import Reveal from "@/app/components/Reveal";
 
 export default async function HomePage() {
   // If user is logged in, send them straight into the app
@@ -117,7 +118,10 @@ export default async function HomePage() {
                 alignItems: "start",   // 👈 aligns tops perfectly
               }}
             >
+           
             <div>
+
+              <Reveal delayMs={80}>
               <div
   className="ipc-fade-up ipc-d1"
   style={{
@@ -136,7 +140,8 @@ export default async function HomePage() {
 >
   STAR feedback • Confidence scoring • Keyword alignment
 </div>
-
+</Reveal>
+          <Reveal delayMs={160}>
               <h1
   className="ipc-fade-up ipc-d2"
   style={{
@@ -150,7 +155,8 @@ export default async function HomePage() {
 >
   Practice interviews with structured, measurable feedback.
 </h1>
-
+</Reveal>
+        <Reveal delayMs={240}>
               <p
   className="ipc-fade-up ipc-d3"
   style={{
@@ -164,7 +170,9 @@ export default async function HomePage() {
   Get instant STAR breakdowns, clarity & communication scoring, confidence signals, and job-description keyword alignment —
   so you know exactly what to improve before the real thing.
 </p>
+</Reveal>
 
+        <Reveal delayMs={320}>
             <div
   className="ipc-fade-up ipc-d4"
   style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}
@@ -203,6 +211,7 @@ export default async function HomePage() {
                   Log in
                 </Link>
               </div>
+              </Reveal>
 
               <div style={{ marginTop: 18, display: "flex", gap: 14, flexWrap: "wrap", color: "#9CA3AF", fontSize: 12 }}>
                 <span>✓ 2 minutes to start</span>
@@ -213,6 +222,7 @@ export default async function HomePage() {
               
 
               {/* Hero visual card */}
+<Reveal delayMs={420}>
 <div
   className="ipc-fade-up ipc-d5"
   style={{
@@ -369,6 +379,8 @@ export default async function HomePage() {
     </div>
   </div>
 </div>
+
+</Reveal>
           </div>
         </div>
       </section>
