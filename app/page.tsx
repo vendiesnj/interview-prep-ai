@@ -35,38 +35,44 @@ export default async function HomePage() {
             }}
           >
             
-            <Link
+         <Link
   href="/"
   aria-label="Interview Performance Coach"
-  style={{
-    display: "inline-flex",
-    alignItems: "center",
-    textDecoration: "none",
-  }}
+  style={{ display: "inline-flex", alignItems: "center", textDecoration: "none" }}
 >
-  {/* Big rectangular logo badge */}
   <div
     style={{
-      width: 190,          // BIG
-      height: 64,          // rectangle shape
+      width: 240,
+      height: 72,
       borderRadius: 18,
-      background: "rgba(255,255,255,0.96)",
-      boxShadow: "0 18px 55px rgba(0,0,0,0.45)",
-      border: "1px solid rgba(0,0,0,0.06)",
-      display: "grid",
-      placeItems: "center",
-      overflow: "hidden",  // important for “zoom crop”
+
+      // "glass" blend into the hero
+      background:
+        "linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.05))",
+      border: "1px solid rgba(255,255,255,0.16)",
+      boxShadow: "0 18px 60px rgba(0,0,0,0.45)",
+      backdropFilter: "blur(10px)",
+
+      // give the logo breathing room
+      padding: 10,
+
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
     }}
   >
     <img
       src="/logo.png"
       alt="Interview Performance Coach"
       style={{
-        width: "130%",      // zoom in to reduce visible whitespace
-        height: "130%",
+        width: "100%",
+        height: "100%",
         objectFit: "contain",
         display: "block",
-        transform: "translateX(-6%)", // nudge left if your padding is heavier on one side
+
+        // helps it feel less “pasted”
+        opacity: 0.98,
+        filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.25))",
       }}
     />
   </div>
