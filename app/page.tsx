@@ -387,7 +387,7 @@ export default async function HomePage() {
 
       {/* ===== LIGHT SECTIONS (FRESH) ===== */}
 
-      <Reveal durationMs={1100}>
+      <Reveal durationMs={2000}>
       <section
         style={{
           width: "100%",
@@ -417,19 +417,19 @@ export default async function HomePage() {
             }}
             
           >
-            <Reveal delayMs={0} durationMs={900}>
+            <Reveal delayMs={500} durationMs={1500}>
             <LightCard
               title="STAR breakdown"
               body="Situation, Task, Action, Result scored separately so you know exactly what’s missing."
             />
             </Reveal>
-            <Reveal delayMs={120} durationMs={900}>
+            <Reveal delayMs={700} durationMs={1500}>
             <LightCard
               title="Clarity + confidence"
               body="Separate signals: structure and clarity vs. ownership language and assertiveness."
             />
             </Reveal>
-            <Reveal delayMs={240} durationMs={900}>
+            <Reveal delayMs={900} durationMs={1500}>
             <LightCard
               title="Keyword alignment"
               body="Matches your answer to the job description so you speak the employer’s language."
