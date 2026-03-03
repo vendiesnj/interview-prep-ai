@@ -27,9 +27,13 @@ function releaseFeedbackSlot() {
 type FeedbackJSON = {
   score: number;
   communication_score: number;
+  communication_evidence: string[];
+confidence_evidence: string[];
 
   confidence_score: number;
   confidence_explanation: string;
+
+  missed_opportunities: string[];
 
 
   star: {
@@ -106,6 +110,15 @@ if (obj.confidence_score < 1 || obj.confidence_score > 10) return false;
 // confidence explanation
 if (!isNonEmptyString(obj.confidence_explanation)) return false;
 
+  // communication_evidence
+  if (!Array.isArray(obj.communication_evidence)) return false;
+  if (obj.communication_evidence.length < 2 || obj.communication_evidence.length > 4) return false;
+  if (!obj.communication_evidence.every(isNonEmptyString)) return false;
+
+  // confidence_evidence
+  if (!Array.isArray(obj.confidence_evidence)) return false;
+  if (obj.confidence_evidence.length < 2 || obj.confidence_evidence.length > 4) return false;
+  if (!obj.confidence_evidence.every(isNonEmptyString)) return false;
 
   // STAR
   if (typeof obj.star !== "object" || obj.star === null) return false;
@@ -139,6 +152,11 @@ for (const k of ["situation", "task", "action", "result"]) {
   if (obj.improvements.length < 3 || obj.improvements.length > 5) return false;
   if (!obj.strengths.every(isNonEmptyString)) return false;
   if (!obj.improvements.every(isNonEmptyString)) return false;
+
+    // missed_opportunities
+  if (!Array.isArray(obj.missed_opportunities)) return false;
+  if (obj.missed_opportunities.length < 2 || obj.missed_opportunities.length > 4) return false;
+  if (!obj.missed_opportunities.every(isNonEmptyString)) return false;
 
   // better_answer
   if (!isNonEmptyString(obj.better_answer)) return false;
@@ -702,6 +720,8 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
   "score": 1-10,
   "communication_score": 1-10,
   "confidence_score": 1-10,
+  "communication_evidence": ["string"],
+"confidence_evidence": ["string"],
   "confidence_explanation": "string",
 
   "star": {
@@ -722,6 +742,7 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
 
   "strengths": ["string"],
   "improvements": ["string"],
+  "missed_opportunities": ["string"],
   "better_answer": "string",
   "keywords_used": ["string"],
   "keywords_missing": ["string"]
@@ -738,10 +759,23 @@ Rules:
 - keywords_used must be 0–12 items (keywords from the job description that ARE present in the transcript).
 - keywords_missing must be 0–8 items (important keywords from the job description NOT present in the transcript).
 - Prefer concrete terms (tools, metrics, processes) over generic words.
-
-
-
-
+- strengths: each item must include evidence from the transcript in quotes (3–12 words), e.g. 'Used ownership: "I led the rollout"'.
+- improvements: each item must include (a) evidence quote from transcript OR say "Not present", and (b) a concrete fix (what to add/change in 1 sentence).
+- Add a "missed_opportunities" array (2–4 items): each item must reference (a) a question intent tag OR JD keyword concept, and (b) the exact sentence they should add.
+- better_answer must reuse 2–4 exact nouns/phrases from the transcript (verbatim) to keep it grounded in their story.
+- If the transcript lacks specifics (metrics/tools/stakes), the better_answer must introduce ONLY plausible metrics phrased as ranges or proxies (e.g. "reduced cycle time ~10–15%") and label them as estimates.
+- missed_opportunities must be 2–4 items.
+- Each missed_opportunity must reference either a question intent tag OR an important JD keyword concept.
+- Each item must include the exact sentence the candidate could add.
+- communication_evidence must be 2–4 verbatim quotes (3–12 words each) showing STRUCTURE or CLARITY
+  (signposting, sequencing, concise phrasing). If none exist, include "No clear signposting" and set
+  communication_score <= 5.
+- confidence_evidence must be 2–4 verbatim quotes (3–12 words each) showing OWNERSHIP or HEDGING.
+  If there is little ownership language, confidence_score <= 5.
+- communication_score must IGNORE ownership/hedging language. It is only about clarity + structure.
+- confidence_score must IGNORE structure/clarity. It is only about ownership + assertiveness language.
+- If communication_score and confidence_score would be within 1 point of each other, force them to differ by at least 2 points
+  unless the transcript clearly has BOTH strong structure AND strong ownership.
 
 Do not include any extra text outside JSON.
 `.trim();
