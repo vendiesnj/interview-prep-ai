@@ -436,6 +436,7 @@ const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(n
   const [transcript, setTranscript] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const voiceMetricsRef = useRef<any>(null);
   // --- Live waveform ---
 const analyserRef = useRef<AnalyserNode | null>(null);
 const audioCtxRef = useRef<AudioContext | null>(null);
@@ -1461,6 +1462,30 @@ try {
 
         const file = new File([blob], "answer.webm", { type: "audio/webm" });
 
+        // --- Vendor voice metrics (best-effort, non-blocking for UX) ---
+voiceMetricsRef.current = null;
+
+try {
+  const vmForm = new FormData();
+  vmForm.append("audio", file);
+
+  // fire and await (you can later parallelize with transcribe if needed)
+  const vmRes = await fetch("/api/voice-metrics", {
+    method: "POST",
+    body: vmForm,
+  });
+
+  const vmJson = await vmRes.json().catch(() => null);
+
+  if (vmRes.ok) {
+    voiceMetricsRef.current = vmJson?.metrics ?? null;
+  } else {
+    // silently ignore vendor failures so recording still works
+    voiceMetricsRef.current = null;
+  }
+} catch {
+  voiceMetricsRef.current = null;
+}
 const startedAt = recordingStartRef.current;
 const durSeconds =
   typeof startedAt === "number" ? Math.max(0.1, (Date.now() - startedAt) / 1000) : null;
@@ -1585,6 +1610,7 @@ progressTimerRef.current = window.setInterval(() => {
     jobDesc,
     question: selectedQuestion,
     transcript,
+    deliveryMetrics: voiceMetricsRef.current,
   }),
 });
 
@@ -1621,6 +1647,7 @@ if (!res.ok) {
   jobDesc,
   questions,
   questionBuckets,
+  deliveryMetrics: voiceMetricsRef.current ?? null,
 
 };
 

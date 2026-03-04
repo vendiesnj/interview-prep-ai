@@ -1019,6 +1019,30 @@ return (
       </div>
     ))}
   </div>
+{(stored as any)?.deliveryMetrics ? (
+  <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+    <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
+      Voice delivery signals
+    </div>
+
+    {typeof (stored as any).deliveryMetrics.pauseCount === "number" ? (
+      <div>Pauses: {(stored as any).deliveryMetrics.pauseCount}</div>
+    ) : null}
+
+    {typeof (stored as any).deliveryMetrics.longPauseCount === "number" ? (
+      <div>Long pauses (≥0.9s): {(stored as any).deliveryMetrics.longPauseCount}</div>
+    ) : null}
+
+    {typeof (stored as any).deliveryMetrics.avgPauseMs === "number" ? (
+      <div>Average pause: {(stored as any).deliveryMetrics.avgPauseMs} ms</div>
+    ) : null}
+
+    {typeof (stored as any).deliveryMetrics.maxPauseMs === "number" ? (
+      <div>Max pause: {(stored as any).deliveryMetrics.maxPauseMs} ms</div>
+    ) : null}
+  </div>
+) : null}
+
 </SectionCard>
 
  <SectionCard title="Why this score" collapsible defaultOpen={false}>

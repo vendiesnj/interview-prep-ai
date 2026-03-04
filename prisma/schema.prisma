@@ -74,6 +74,7 @@ model Attempt {
   transcript         String
   inputMethod        String?
   prosody            Json?
+  deliveryMetrics    Json?
   feedback           Json?
   score              Int?
   communicationScore Int?

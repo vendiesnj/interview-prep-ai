@@ -14,6 +14,7 @@ type Body = {
   inputMethod?: "spoken" | "pasted";
   wpm?: number | null;
   prosody?: any | null;
+  deliveryMetrics?: any | null;
   feedback?: any | null;
 
   score?: number | null;
@@ -24,6 +25,7 @@ type Body = {
   jobDesc?: string | null;
   audioId?: string | null;
   durationSeconds?: number | null;
+
 };
 
 async function requireUserId(req: NextRequest): Promise<string | null> {
