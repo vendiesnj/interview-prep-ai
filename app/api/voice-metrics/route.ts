@@ -5,17 +5,20 @@ export const runtime = "nodejs";
 type Word = { start?: number; end?: number; text?: string };
 
 type AcousticMetrics = {
-  pitchMean: number;
-  pitchStd: number;
-  pitchRange: number;
-  monotoneScore?: number;
-  energyMean: number;
-  energyStd: number;
-  energyVariation?: number;
-  tempo: number;
-  tempoDynamics?: number;
-  sampleRate?: number;
-  durationSec?: number;
+  pitchMean: number | null;
+  pitchStd: number | null;
+  pitchRange: number | null;
+  monotoneScore?: number | null;
+
+  energyMean: number | null;
+  energyStd: number | null;
+  energyVariation?: number | null;
+
+  tempo: number | null;
+  tempoDynamics?: number | null;
+
+  sampleRate?: number | null;
+  durationSec?: number | null;
 };
 
 async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {
@@ -230,7 +233,38 @@ const acousticsPromise = fetchAcoustics(audio);
     ? pollJson.disfluencies
     : [];
 
-  const acoustics = await acousticsPromise;
+  const acousticsRaw = await acousticsPromise;
+
+// helpers
+const toNum = (v: any): number | null => {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : null;
+};
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+// Convert a “std dev” into a 0–10-ish score.
+// Tune caps later if you want; these make your UI start working immediately.
+const scoreFromStd = (std: number | null, cap: number) =>
+  std === null ? null : clamp((std / cap) * 10, 0, 10);
+
+const acoustics =
+  acousticsRaw
+    ? {
+        ...acousticsRaw,
+
+        // ✅ ensure energyVariation is usable by UI (0–10)
+        energyVariation:
+          toNum((acousticsRaw as any).energyVariation) ??
+          scoreFromStd(toNum((acousticsRaw as any).energyStd), 0.12),
+
+        // ✅ optional: ensure pitchRange exists if Python didn’t fill it
+        // (if you later return series, you can compute it here)
+        pitchRange: toNum((acousticsRaw as any).pitchRange),
+
+        // ✅ optional: ensure tempoDynamics exists (if you later compute it in Python)
+        tempoDynamics: toNum((acousticsRaw as any).tempoDynamics),
+      }
+    : null;
 
   return NextResponse.json({
     metrics: {

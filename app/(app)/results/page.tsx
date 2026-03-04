@@ -528,7 +528,8 @@ useEffect(() => {
   (stored as any)?.feedback?.deliveryMetrics ??
   (feedback as any)?.deliveryMetrics ??
   null;
-  // ✅ acoustics must be defined BEFORE seriesNorm uses it
+
+// Prefer deliveryMetrics.acoustics (new pipeline), fallback to stored.prosody (older)
 const acoustics: Prosody | null =
   ((dm as any)?.acoustics as Prosody | undefined) ??
   ((stored as any)?.prosody as Prosody | undefined) ??
@@ -538,6 +539,13 @@ const numOrNull = (v: any): number | null => {
   const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
   return Number.isFinite(n) ? n : null;
 };
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+// Convert raw std-dev signals (small decimals) into a 0–10 “score” so bars render meaningfully.
+// Tune caps later if you want; these are sane starter ranges.
+const scoreFromStd = (std: number | null, cap: number) =>
+  std === null ? null : clamp((std / cap) * 10, 0, 10);
 
 const seriesNorm: ProsodySeries | null = (() => {
   const s = (acoustics as any)?.series;
@@ -557,21 +565,30 @@ const seriesNorm: ProsodySeries | null = (() => {
   };
 })();
 
+const energyStd = numOrNull((acoustics as any)?.energyStd);
+const pitchStdHz =
+  numOrNull((acoustics as any)?.pitchStd) ?? numOrNull((acoustics as any)?.pitchStdHz);
+
 const acousticsNorm = acoustics
   ? {
       monotoneScore: numOrNull((acoustics as any).monotoneScore),
 
+      // Keep raw fields if present
       pitchMean: numOrNull((acoustics as any).pitchMean),
-      pitchStd:
-        numOrNull((acoustics as any).pitchStd) ??
-        numOrNull((acoustics as any).pitchStdHz),
+      pitchStd: pitchStdHz,
       pitchRange: numOrNull((acoustics as any).pitchRange),
 
       energyMean: numOrNull((acoustics as any).energyMean),
-      energyStd: numOrNull((acoustics as any).energyStd),
-      energyVariation: numOrNull((acoustics as any).energyVariation),
+      energyStd,
+
+      // ✅ KEY FIX: if energyVariation isn't provided, derive a 0–10 score from energyStd
+      // Typical RMS energy std-dev is small (0.00–0.12-ish). Cap=0.12 => 0–10.
+      energyVariation:
+        numOrNull((acoustics as any).energyVariation) ?? scoreFromStd(energyStd, 0.12),
 
       tempo: numOrNull((acoustics as any).tempo),
+
+      // Optional: if you ever get tempoDynamics later, use it; otherwise null for now
       tempoDynamics: numOrNull((acoustics as any).tempoDynamics),
 
       series: seriesNorm,
@@ -581,7 +598,8 @@ const acousticsNorm = acoustics
 const series = acousticsNorm?.series ?? null;
 
 const hasNum = (v: any): v is number => typeof v === "number" && Number.isFinite(v);
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+
   const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
 
 const starMissingList = useMemo(() => {
@@ -1143,15 +1161,17 @@ return (
         max: 15,
       },
       {
-        label: "Vocal Variety",
-        value:
-          typeof stored?.prosody?.monotoneScore === "number"
-            ? 10 - stored.prosody.monotoneScore
-            : null,
-        sub: "Pitch + energy variation",
-        format: (v: number) => `${v}/10`,
-        max: 10,
-      },
+  label: "Vocal Variety",
+  value:
+    hasNum(acousticsNorm?.monotoneScore)
+      ? 10 - clamp(acousticsNorm.monotoneScore, 0, 10)
+      : typeof stored?.prosody?.monotoneScore === "number"
+      ? 10 - clamp(stored.prosody.monotoneScore, 0, 10)
+      : null,
+  sub: "Pitch + energy variation",
+  format: (v: number) => `${Math.round(v * 10) / 10}/10`,
+  max: 10,
+},
       {
         label: "Confidence",
         value: typeof feedback.confidence_score === "number" ? feedback.confidence_score : null,
