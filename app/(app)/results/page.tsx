@@ -522,15 +522,22 @@ useEffect(() => {
     const avg = (Number(s.situation) + Number(s.task) + Number(s.action) + Number(s.result)) / 4;
     return Math.round(avg * 10) / 10;
   }, [feedback]);
-  const dm =
+ const dm =
   (stored as any)?.deliveryMetrics ??
+  (stored as any)?.feedback?.deliveryMetrics ??
   (feedback as any)?.deliveryMetrics ??
   null;
 
+// Prefer deliveryMetrics.acoustics (new pipeline), fallback to stored.prosody (older)
 const acoustics: Prosody | null =
-  ((stored as any)?.prosody as Prosody | undefined) ?? null;
+  ((dm as any)?.acoustics as Prosody | undefined) ??
+  ((stored as any)?.prosody as Prosody | undefined) ??
+  null;
 
 const series = acoustics?.series ?? null;
+
+const hasNum = (v: any): v is number => typeof v === "number" && Number.isFinite(v);
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
   const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
 
 const starMissingList = useMemo(() => {
@@ -1161,44 +1168,20 @@ return (
       </div>
     ))}
   </div>
-{(() => {
-  const dm =
-    (stored as any)?.deliveryMetrics ??
-    (feedback as any)?.deliveryMetrics ??
-    null;
-
-  if (!dm) return null;
-
-  const acoustics = dm?.acoustics ?? null;
-  const series = acoustics?.series ?? null;
-
-  return (
-    <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
-      <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
-        Voice delivery signals
-      </div>
-
-      {typeof dm.pauseCount === "number" ? (
-        <div>Pauses: {dm.pauseCount}</div>
-      ) : null}
-
-      {typeof dm.longPauseCount === "number" ? (
-        <div>Long pauses (≥0.9s): {dm.longPauseCount}</div>
-      ) : null}
-
-      {typeof dm.avgPauseMs === "number" ? (
-        <div>Average pause: {dm.avgPauseMs} ms</div>
-      ) : null}
-
-      {typeof dm.maxPauseMs === "number" ? (
-        <div>Max pause: {dm.maxPauseMs} ms</div>
-      ) : null}
+{dm ? (
+  <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+    <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
+      Voice delivery signals
     </div>
-  );
-})()}
-</SectionCard>
 
-{acoustics && (
+    {typeof dm.pauseCount === "number" ? <div>Pauses: {dm.pauseCount}</div> : null}
+    {typeof dm.longPauseCount === "number" ? <div>Long pauses (≥0.9s): {dm.longPauseCount}</div> : null}
+    {typeof dm.avgPauseMs === "number" ? <div>Average pause: {dm.avgPauseMs} ms</div> : null}
+    {typeof dm.maxPauseMs === "number" ? <div>Max pause: {dm.maxPauseMs} ms</div> : null}
+  </div>
+) : null}
+
+{acoustics ? (
   <div
     style={{
       marginTop: 12,
@@ -1207,49 +1190,48 @@ return (
       gap: 10,
     }}
   >
-    <MetricBar
-  label="Monotone"
-  value={typeof acoustics?.monotoneScore === "number" ? acoustics.monotoneScore : 0}
-  max={10}
-  subtext="Lower is better"
-/>
+    {hasNum(acoustics.monotoneScore) ? (
+      <MetricBar
+        label="Monotone score"
+        value={clamp(acoustics.monotoneScore, 0, 10)}
+        max={10}
+        subtext="Lower is better"
+      />
+    ) : null}
 
-<MetricBar
-  label="Energy variation"
-  value={typeof acoustics?.energyVariation === "number" ? acoustics.energyVariation : 0}
-  max={10}
-  subtext="Vocal dynamics"
-/>
+    {hasNum(acoustics.energyVariation) ? (
+      <MetricBar
+        label="Energy variation"
+        value={clamp(acoustics.energyVariation, 0, 10)}
+        max={10}
+        subtext="Vocal dynamics"
+      />
+    ) : null}
 
-<MetricBar
-  label="Tempo dynamics"
-  value={typeof acoustics?.tempoDynamics === "number" ? acoustics.tempoDynamics : 0}
-  max={10}
-  subtext="Pacing variety"
-/>
+    {hasNum(acoustics.tempoDynamics) ? (
+      <MetricBar
+        label="Tempo dynamics"
+        value={clamp(acoustics.tempoDynamics, 0, 10)}
+        max={10}
+        subtext="Pacing variety"
+      />
+    ) : null}
 
-    <div
-      style={{
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.03)",
-        padding: 12,
-      }}
-    >
-      <div style={{ fontSize: 12, fontWeight: 900, color: "#9CA3AF", letterSpacing: 0.6 }}>
-        Pitch range
-      </div>
-      <div style={{ marginTop: 8, fontSize: 20, fontWeight: 900, color: "#E5E7EB" }}>
-        {typeof acoustics.pitchRange === "number" ? `${acoustics.pitchRange.toFixed(1)} Hz` : "—"}
-      </div>
-      <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>
-        {typeof acoustics.pitchStd === "number" ? `Std: ${acoustics.pitchStd.toFixed(1)} Hz` : ""}
-      </div>
-    </div>
+    {hasNum(acoustics.pitchRange) ? (
+      <MetricBar
+        label="Pitch range"
+        value={Math.round(acoustics.pitchRange)}
+        max={200}
+        subtext="Hz range"
+      />
+    ) : null}
   </div>
-)}
+) : null}
 
-{series && <SpeakingTimeline series={series} />}
+{series ? <SpeakingTimeline series={series} /> : null}
+
+</SectionCard>
+
 
  <SectionCard title="Why this score" collapsible defaultOpen={false}>
   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
