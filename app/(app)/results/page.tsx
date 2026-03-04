@@ -920,6 +920,15 @@ return (
 </SectionCard>
 
 <SectionCard title="Delivery Analysis" collapsible={false}>
+
+  <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12 }}>
+  AssemblyAI metrics:{" "}
+  {(stored as any)?.deliveryMetrics
+    ? "from stored.deliveryMetrics"
+    : (feedback as any)?.deliveryMetrics
+    ? "from feedback.deliveryMetrics"
+    : "none"}
+</div>
   <div
     style={{
       display: "grid",
