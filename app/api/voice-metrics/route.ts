@@ -19,6 +19,13 @@ type AcousticMetrics = {
 
   sampleRate?: number | null;
   durationSec?: number | null;
+
+  // ✅ ADD THIS
+  series?: {
+    t: number[];
+    energy: number[];
+    pitch: number[];
+  } | null;
 };
 
 async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {

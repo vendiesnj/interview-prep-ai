@@ -1238,10 +1238,12 @@ return (
       Voice delivery signals
     </div>
 
-    <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>
-  acoustics debug:
-  <pre>{JSON.stringify(acousticsNorm, null, 2)}</pre>
-</div>
+   {process.env.NODE_ENV !== "production" ? (
+  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>
+    acoustics debug:
+    <pre>{JSON.stringify(acoustics, null, 2)}</pre>
+  </div>
+) : null}
 
     {typeof dm.pauseCount === "number" ? <div>Pauses: {dm.pauseCount}</div> : null}
     {typeof dm.longPauseCount === "number" ? <div>Long pauses (≥0.9s): {dm.longPauseCount}</div> : null}
@@ -1270,11 +1272,11 @@ return (
 
     {hasNum(acousticsNorm.energyVariation) ? (
       <MetricBar
-        label="Energy variation"
-        value={clamp(acousticsNorm.energyVariation, 0, 10)}
-        max={10}
-        subtext="Vocal dynamics"
-      />
+  label="Energy variation"
+  value={Math.round(clamp(acousticsNorm?.energyVariation, 0, 10) * 10) / 10}
+  max={10}
+  subtext="Vocal dynamics"
+/>
     ) : null}
 
     {hasNum(acousticsNorm.tempoDynamics) ? (
