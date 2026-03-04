@@ -46,6 +46,13 @@ confidence_evidence: string[];
     result: number;
   };
 
+  star_evidence: {
+  situation: string[];
+  task: string[];
+  action: string[];
+  result: string[];
+};
+
   star_missing: Array<"situation" | "task" | "action" | "result">;
 
   star_advice: {
@@ -139,6 +146,21 @@ const allowed = new Set(["situation", "task", "action", "result"]);
 if (!Array.isArray(obj.star_missing)) return false;
 if (obj.star_missing.length > 4) return false;
 if (!obj.star_missing.every((x: any) => typeof x === "string" && allowed.has(x))) return false;
+
+
+// star_evidence (optional but validated if present)
+if (obj.star_evidence !== undefined) {
+  if (typeof obj.star_evidence !== "object" || obj.star_evidence === null) return false;
+
+  for (const k of ["situation", "task", "action", "result"]) {
+    const arr = obj.star_evidence[k];
+    if (!Array.isArray(arr)) return false;
+    if (arr.length > 2) return false;
+    if (!arr.every(isNonEmptyString)) return false;
+  }
+}
+
+
 // star_advice
 if (typeof obj.star_advice !== "object" || obj.star_advice === null) return false;
 
@@ -248,7 +270,10 @@ const JD_GENERIC_STOP = new Set([
 function normalizeText(s: string) {
   return (s || "")
     .toLowerCase()
-    .replace(/[^a-z0-9\s/+.-]/g, " ")
+    // turn hyphens/underscores into spaces so "cross-functional" == "cross functional"
+    .replace(/[-_]+/g, " ")
+    // keep alphanumerics and a few symbols, replace others with space
+    .replace(/[^a-z0-9\s/+.]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -459,16 +484,26 @@ function computeKeywordUsage(jobDesc: string, transcript: string) {
     const hit = (() => {
   if (tr.includes(k)) return true;
 
-  // For phrases, allow close variants: words appear in order with small gaps
   if (k.includes(" ")) {
-    const parts = k.split(" ").filter(Boolean).slice(0, 4);
-    const pattern = parts.map((p) => `\\b${p}\\b`).join("(?:\\W+\\w+){0,3}\\W+");
-    const re = new RegExp(pattern, "i");
-    return re.test(tr);
-  }
+  // normalize keyword phrase the same way as transcript
+  const nk = normalizeText(k);
+  const parts = nk.split(" ").filter(Boolean).slice(0, 5);
 
-  // For single words, require whole-word match (avoid partials)
-  const re = new RegExp(`\\b${k}\\b`, "i");
+  // allow up to 2 "gap words" between phrase parts (tight but flexible)
+  const pattern = parts
+    .map((p) => `\\b${p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`)
+    .join("(?:\\s+\\w+){0,2}\\s+");
+
+  const re = new RegExp(pattern, "i");
+  return re.test(tr);
+}
+
+
+  // For single words, require whole-word match, but allow simple inflections:
+// plural (s/es), past tense (ed), gerund (ing)
+const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const re = new RegExp(`\\b${escaped}(s|es|ed|ing)?\\b`, "i");
+return re.test(tr);
   return re.test(tr);
 })();
 
@@ -671,21 +706,30 @@ FILLER WORD ANALYSIS (precomputed):
 - words: ${fillerStats.wordCount}
 - fillers_per_100_words: ${fillerStats.fillersPer100Words.toFixed(1)}
 
-Use the filler word analysis to slightly influence the communication_score.
-Frequent filler words should lower communication_score slightly, but should not dominate the overall score.
+Use the filler word analysis to influence communication_score:
 
+Guidelines:
+- 0–3 fillers per 100 words → no penalty
+- 4–7 fillers per 100 words → reduce communication_score by ~1 point
+- 8–12 fillers per 100 words → reduce communication_score by ~2 points
+- 13+ fillers per 100 words → reduce communication_score by ~3 points
+
+Filler words should noticeably lower communication_score when frequent, but STAR content should still remain the primary driver of the overall score.
 
 
 Grade STAR quality:
 - situation/task/action/result are 0-10 based on clarity, specificity, and completeness.
 - If an element is weak or missing, give it 0-3.
+
 STAR scoring anchors (use these strictly):
 0-2 = missing or extremely vague (no concrete detail)
-3-4 = mentioned but unclear (generic, lacks context)
-5-6 = present with some specifics (at least 1 concrete detail)
-7-8 = strong and specific (clear details + logical flow)
-9-10 = exceptional (highly specific + measurable impact + crisp phrasing)
-
+3-4 = weak mention, generic, or unclear context
+5 = average interview answer (basic explanation but limited specificity)
+6 = solid detail but lacks measurable impact or clear ownership
+7 = strong explanation with clear actions and context
+8 = strong + includes measurable outcome or clear impact
+9 = exceptional clarity + measurable impact + strong ownership language
+10 = outstanding example with precise metrics, crisp structure, and clear impact
 For each STAR sub-score, base it on a specific detail from the transcript. If none exists, score must be 0-2.
 
 When unsure between two scores, choose the LOWER score unless the transcript clearly supports the higher one.
@@ -694,6 +738,17 @@ When unsure between two scores, choose the LOWER score unless the transcript cle
 
 Scoring guidance:
 - Overall score should be driven mainly by STAR quality (about 70% weight).
+Overall score calibration (must follow):
+- Compute STAR_avg = average of the four STAR subscores.
+- Set overall score close to STAR_avg, rounded to the nearest whole number.
+- communication_score and confidence_score may adjust the overall score by at most +/-1 total (combined).
+- If STAR_avg is below 6, overall score must not exceed 6.
+- Only give overall score 8+ if STAR_avg >= 7 AND the answer includes a clear result/impact.
+- Only give 9–10 if STAR_avg >= 8.5 AND the result includes measurable impact.
+- Treat scores 9–10 as rare: only assign them when the transcript includes at least one concrete metric AND a clear Result.
+- If the Result is not measurable (no metric, no quantified impact, no before/after), overall score must be <= 7.
+
+
 - communication_score (1-10) measures STRUCTURE + CLARITY only:
   - Clear sequencing (S→T→A→R flow), easy to follow, concise sentences, minimal rambling.
   - Good signposting ("First...", "Then...", "As a result..."), concrete nouns/verbs.
@@ -704,10 +759,40 @@ Also return "confidence_score" (1-10) based on ASSERTIVENESS + OWNERSHIP languag
 - Higher if the candidate uses direct ownership language ("I led", "I implemented", "I improved").
 - Lower if the answer contains hedging ("maybe", "kind of", "sort of", "I think"), uncertainty, or excessive softeners.
 - Filler words can lower confidence slightly, but only if they strongly signal uncertainty.
+Confidence strictness (apply):
+- If the transcript contains 3+ hedging phrases (e.g., "I think", "maybe", "kind of", "sort of", "hopefully", "pretty much"),
+  confidence_score must be <= 6 unless there is strong repeated ownership language ("I led/I owned/I drove") AND a clear result.
+- If fillers_per_100_words >= 8, reduce confidence_score by ~1 point (in addition to hedging effects).
+- If fillers_per_100_words >= 13, reduce confidence_score by ~2 points.
+- If the candidate never uses first-person ownership verbs (led/owned/drove/implemented/built/shipped/reduced/increased),
+  confidence_score must be <= 5.
+
 
 Confidence_score must be distinct from communication_score:
 - communication_score = how clear/structured the answer is
 - confidence_score = how decisive/owned the answer sounds
+
+Hard separation rule (must follow):
+- communication_score and confidence_score must not be justified using the same evidence.
+- communication_score must be based ONLY on structure markers and sequencing (e.g., "First...", "Then...", "As a result...", clear STAR ordering).
+- confidence_score must be based ONLY on ownership vs hedging language (e.g., "I led / I drove / I implemented" vs "maybe / kind of / I think").
+
+Anchors (use these strictly):
+Communication_score anchors:
+- 9–10: clear STAR sequence + signposting + concise phrasing (easy to follow)
+- 6–8: mostly structured but some rambling or missing signposts
+- 3–5: unclear sequencing, jumps around, hard to follow
+- 1–2: incoherent / extremely rambling / no structure
+
+Confidence_score anchors:
+- 9–10: strong ownership verbs + decisive framing + direct impact statements
+- 6–8: some ownership but occasional hedging/softeners
+- 3–5: frequent hedging/softeners, weak ownership language
+- 1–2: highly uncertain, apologetic, or non-committal language dominates
+
+If communication_score and confidence_score would be within 1 point, force them to differ by at least 2 points
+UNLESS the transcript clearly shows BOTH strong signposted structure AND strong ownership language.
+
 
 Also return "confidence_explanation" (1-2 sentences) explaining WHY the candidate received that confidence score.
 Reference specific language patterns from the transcript (e.g., hedging, ownership, clarity, filler usage).
@@ -741,6 +826,13 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
 
   "star_missing": ["situation" | "task" | "action" | "result"],
 
+    "star_evidence": {
+    "situation": ["string"],
+    "task": ["string"],
+    "action": ["string"],
+    "result": ["string"]
+  },
+
   "star_advice": {
     "situation": "string",
     "task": "string",
@@ -760,12 +852,28 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
 
 Rules:
 - strengths must be 3–5 items.
+- Each strength must reference something specific the candidate said (a detail, metric, action, or outcome).
+- Avoid generic advice like "good structure" or "clear communication".
+
+
 - improvements must be 3–5 items.
+- Each improvement must identify a specific missing detail or weak part of the answer and explain how to improve it in one sentence.
+- Avoid generic suggestions like "be more specific".
+
+- Each strength or improvement must explicitly reference a phrase, action, or outcome from the transcript so the feedback is clearly tied to this answer.
+- At least 1 strength and 1 improvement must explicitly reference a STAR element by name (Situation/Task/Action/Result) and what was strong/missing in this answer.
+- When a strength or improvement references a STAR element, it must include one short supporting quote taken from star_evidence for that same element (if available).
+
 - keywords_missing must be 0–8 items.
 - star_missing must be 0–4 items.
+
 - better_answer must be 120–180 words.
+- Rewrite the candidate's answer into a stronger STAR response using the SAME situation they described.
+- Do not invent a completely new story.
+- Preserve the candidate's scenario but improve clarity, structure, and measurable impact.
+- If metrics are missing, suggest a realistic outcome rather than fabricating a precise number.
+
 - star_advice: 1–2 sentences per field, must reference something they said OR say "Not mentioned".
-- Include "What you said:" + a 3–10 word verbatim quote inside each star_advice field.
 - keywords_used must be 0–12 items (keywords from the job description that ARE present in the transcript).
 - keywords_missing must be 0–8 items (important keywords from the job description NOT present in the transcript).
 - Prefer concrete terms (tools, metrics, processes) over generic words.
@@ -791,7 +899,14 @@ Rules:
   - label: 1–3 words (e.g., "Metrics", "Prioritization", "Stakeholder alignment")
   - why: 1 sentence referencing the QUESTION or JOB DESCRIPTION
   - add_sentence: a single sentence the candidate can add verbatim (no bullets).
+- star_evidence: include 1–2 short verbatim quotes (3–12 words each) from the transcript that demonstrate each STAR element.
+- If no clear quote exists for a STAR element, return an empty array [] for that field.
 
+
+Tone guidelines:
+- Write feedback like a professional interview coach: specific, concise, and direct.
+- Avoid generic phrases such as "good job", "nice answer", or "try to".
+- Each bullet should feel tailored to the candidate's answer, not like a template.
 
 Do not include any extra text outside JSON.
 `.trim();
@@ -827,6 +942,14 @@ Do not include any extra text outside JSON.
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
+
+    // Ensure star_evidence always exists (safety default)
+(json as any).star_evidence ??= {
+  situation: [],
+  task: [],
+  action: [],
+  result: [],
+};
 
     if (!isPro) {
   await prisma.user.update({

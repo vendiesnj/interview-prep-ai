@@ -926,11 +926,19 @@ return (
     {[
       {
         label: "Pace",
-        value: typeof stored?.wpm === "number" ? stored.wpm : null,
+        value:
+  typeof stored?.wpm === "number"
+    ? stored.wpm
+    : typeof stored?.wpm === "string" && Number.isFinite(Number(stored.wpm))
+    ? Number(stored.wpm)
+    : null,
         sub:
-          typeof stored?.wpm === "number"
-            ? paceContext(stored.wpm).label
-            : "Not detected",
+  (typeof stored?.wpm === "number" ||
+    (typeof stored?.wpm === "string" && Number.isFinite(Number(stored.wpm))))
+    ? paceContext(
+        typeof stored.wpm === "number" ? stored.wpm : Number(stored.wpm)
+      ).label
+    : "Not detected",
         format: (v: number) => `${v} wpm`,
         max: 200,
       },
@@ -980,6 +988,12 @@ return (
         </div>
 
         <div style={{ marginTop: 4, fontSize: 12, color: "#9CA3AF" }}>{m.sub}</div>
+        
+        {m.label === "Confidence" && typeof feedback.confidence_explanation === "string" && feedback.confidence_explanation.trim() ? (
+  <div style={{ marginTop: 8, fontSize: 12, color: "#9CA3AF", lineHeight: 1.6 }}>
+    {feedback.confidence_explanation}
+  </div>
+) : null}
 
         {typeof m.value === "number" ? (
           <div
@@ -1004,6 +1018,36 @@ return (
         ) : null}
       </div>
     ))}
+  </div>
+</SectionCard>
+
+ <SectionCard title="Why this score" collapsible defaultOpen={false}>
+  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+    {typeof starAvg === "number" ? (
+      <div style={{ color: "#E5E7EB", fontSize: 13 }}>
+        STAR average drove most of the score:{" "}
+        <span style={{ fontWeight: 900 }}>{starAvg.toFixed(1)}</span>
+      </div>
+    ) : null}
+
+    {typeof stored?.wpm === "number" ? (
+      <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+        Delivery pace detected: {stored.wpm} words per minute
+      </div>
+    ) : null}
+
+    {Array.isArray(feedback?.keywords_missing) &&
+    feedback.keywords_missing.length > 0 ? (
+      <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+        Missing role keywords also limited the score.
+      </div>
+    ) : null}
+
+    <div style={{ color: "#9CA3AF", fontSize: 12 }}>
+      Scores above 8 require strong STAR structure and measurable impact.
+    </div>
+
   </div>
 </SectionCard>
 
@@ -1092,49 +1136,57 @@ return (
           { key: "action", label: "Action", q: starEvidence.action },
           { key: "result", label: "Result", q: starEvidence.result },
         ] as const).map((row) => {
-          const missing = starMissingList.includes(row.key);
-          const advice = feedback.star_advice?.[row.key];
+         const missing = starMissingList.includes(row.key);
+const advice = feedback.star_advice?.[row.key];
 
-          return (
-            <div
-              key={row.key}
-              style={{
-                borderRadius: 14,
-                padding: 12,
-                border: missing ? "1px solid rgba(248,113,113,0.18)" : "1px solid rgba(255,255,255,0.08)",
-                background: missing ? "rgba(248,113,113,0.06)" : "rgba(255,255,255,0.02)",
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13 }}>{row.label}</div>
-                <div
-                  style={{
-                    color: missing ? "rgba(248,113,113,0.95)" : "#9CA3AF",
-                    fontSize: 12,
-                    fontWeight: 800,
-                  }}
-                >
-                  {missing ? "Missing" : "Detected"}
-                </div>
-              </div>
+// ✅ Prefer model-provided evidence quotes (new)
+const evidenceArr = (feedback as any)?.star_evidence?.[row.key];
+const evidenceQuote =
+  Array.isArray(evidenceArr) && evidenceArr.length > 0 ? String(evidenceArr[0]) : null;
 
-              <div style={{ marginTop: 8, color: "#E5E7EB", fontSize: 13, lineHeight: 1.6 }}>
-                {row.q ? (
-                  <div style={{ fontStyle: "italic", opacity: 0.95 }}>&ldquo;{row.q}&rdquo;</div>
-                ) : (
-                  <div style={{ color: "#9CA3AF" }}>
-                    No clear excerpt detected. Add 1 sentence that explicitly states your {row.label.toLowerCase()}.
-                  </div>
-                )}
-              </div>
+// ✅ Fall back to transcript-based auto excerpt if evidence isn't present
+const excerpt = evidenceQuote || row.q;
 
-              {advice ? (
-                <div style={{ marginTop: 10, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
-                  <span style={{ color: "#E5E7EB", fontWeight: 900 }}>Fix:</span> {advice}
-                </div>
-              ) : null}
-            </div>
-          );
+return (
+  <div
+    key={row.key}
+    style={{
+      borderRadius: 14,
+      padding: 12,
+      border: missing ? "1px solid rgba(248,113,113,0.18)" : "1px solid rgba(255,255,255,0.08)",
+      background: missing ? "rgba(248,113,113,0.06)" : "rgba(255,255,255,0.02)",
+    }}
+  >
+    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+      <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13 }}>{row.label}</div>
+      <div
+        style={{
+          color: missing ? "rgba(248,113,113,0.95)" : "#9CA3AF",
+          fontSize: 12,
+          fontWeight: 800,
+        }}
+      >
+        {missing ? "Missing" : "Detected"}
+      </div>
+    </div>
+
+    <div style={{ marginTop: 8, color: "#E5E7EB", fontSize: 13, lineHeight: 1.6 }}>
+      {excerpt ? (
+        <div style={{ fontStyle: "italic", opacity: 0.95 }}>&ldquo;{excerpt}&rdquo;</div>
+      ) : (
+        <div style={{ color: "#9CA3AF" }}>
+          No clear excerpt detected. Add 1 sentence that explicitly states your {row.label.toLowerCase()}.
+        </div>
+      )}
+    </div>
+
+    {advice ? (
+      <div style={{ marginTop: 10, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+        <span style={{ color: "#E5E7EB", fontWeight: 900 }}>Fix:</span> {advice}
+      </div>
+    ) : null}
+  </div>
+);
         })}
       </div>
     </div>
