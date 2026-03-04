@@ -958,12 +958,20 @@ Do not include any extra text outside JSON.
   temperature: 0,
 });
 
-// ✅ Responses API returns structured JSON output when using json_schema
-const json = JSON.parse(resp.output_text ?? "{}");
+const text = resp.output_text?.trim() ?? "";
+
+// 1) Try direct parse
+let json: any = tryParseJson(text);
+
+// 2) If that fails, extract the first JSON object and parse it
+if (!json) {
+  const candidate = extractFirstJsonObject(text);
+  if (candidate) json = tryParseJson(candidate);
+}
 
 if (!json) {
   return new Response(
-    JSON.stringify({ error: "Model returned empty structured output." }),
+    JSON.stringify({ error: "Model returned non-JSON output.", raw: text }),
     { status: 500, headers: { "Content-Type": "application/json" } }
   );
 }

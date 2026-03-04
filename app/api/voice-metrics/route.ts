@@ -162,6 +162,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ metrics }, { status: 200 });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message ?? "Unknown error" }, { status: 500 });
-  }
+  return NextResponse.json(
+    { metrics: null, vendorError: err?.message ?? "voice-metrics failed" },
+    { status: 200 }
+  );
+}
 }
