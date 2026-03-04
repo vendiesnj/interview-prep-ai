@@ -114,11 +114,12 @@ if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        audio_url: audioUrl,
-        punctuate: true,
-        format_text: true,
-        disfluencies: true,
-      }),
+  audio_url: audioUrl,
+  speech_models: ["universal-2"], // or ["universal-3-pro"] if your plan supports it
+  punctuate: true,
+  format_text: true,
+  disfluencies: true,
+}),
     });
 
     const createText = await createRes.text();
