@@ -1695,20 +1695,32 @@ if (!res.ok) {
       return next;
     });
 
-   
+   // ✅ ensure suggestedQs exists in this scope
+const suggestedQs: string[] =
+  Array.isArray((feedback as any)?.suggestedQuestions)
+    ? (feedback as any).suggestedQuestions.map((q: any) => String(q))
+    : Array.isArray((feedback as any)?.suggested_qs)
+    ? (feedback as any).suggested_qs.map((q: any) => String(q))
+    : Array.isArray((feedback as any)?.questions)
+    ? (feedback as any).questions.map((q: any) => String(q))
+    : [];
 // ✅ Save last result for /results page (session + local fallback)
 try {
   const lastResult = {
-    ts: entry.ts,
-    question: entry.question,
-    transcript: entry.transcript,
-    wpm: entry.wpm ?? null,
-    prosody: entry.prosody ?? null,
-    feedback: entry.feedback,
-    jobDesc: entry.jobDesc ?? "",
-    questions: Array.isArray(entry.questions) ? entry.questions : [],
-    questionBuckets: entry.questionBuckets ?? null,
-  };
+  ts: entry.ts,
+  question: entry.question,
+  transcript: entry.transcript,
+  wpm: entry.wpm,
+  prosody: (entry as any).prosody ?? null,
+
+  // ✅ ADD THIS (so Results can always read dm/acoustics)
+  deliveryMetrics: (entry as any).deliveryMetrics ?? voiceMetricsRef.current ?? null,
+
+  feedback,
+  jobDesc,
+  questions: suggestedQs,
+  questionBuckets: (feedback as any).questionBuckets ?? null,
+};
 
   const json = JSON.stringify(lastResult);
 
@@ -2916,17 +2928,20 @@ return (
 // ✅ When opening a past attempt, store a normalized result shape for /results
 try {
   const lastResult = {
-    ts: h.ts,
-    question: h.question ?? "",
-    transcript: h.transcript ?? "",
-    wpm: typeof h.wpm === "number" ? h.wpm : null,
-    prosody: h.prosody ?? null,
-    feedback: h.feedback ?? null,
+  ts: h.ts,
+  question: h.question ?? "",
+  transcript: h.transcript ?? "",
+  wpm: typeof h.wpm === "number" ? h.wpm : null,
+  prosody: h.prosody ?? null,
 
-    jobDesc: typeof h.jobDesc === "string" ? h.jobDesc : "",
-    questions: Array.isArray(h.questions) ? h.questions : [],
-    questionBuckets: h.questionBuckets ?? null,
-  };
+  // ✅ ADD THIS
+  deliveryMetrics: (h as any).deliveryMetrics ?? null,
+
+  feedback: h.feedback ?? null,
+  jobDesc: typeof h.jobDesc === "string" ? h.jobDesc : "",
+  questions: Array.isArray(h.questions) ? h.questions : [],
+  questionBuckets: h.questionBuckets ?? null,
+};
 
   sessionStorage.setItem(LAST_RESULT_KEY, JSON.stringify(lastResult));
   localStorage.setItem(LAST_RESULT_KEY, JSON.stringify(lastResult));

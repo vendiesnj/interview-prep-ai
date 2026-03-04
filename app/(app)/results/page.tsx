@@ -522,19 +522,19 @@ useEffect(() => {
     const avg = (Number(s.situation) + Number(s.task) + Number(s.action) + Number(s.result)) / 4;
     return Math.round(avg * 10) / 10;
   }, [feedback]);
- const dm =
+
+  const dm =
   (stored as any)?.deliveryMetrics ??
   (stored as any)?.feedback?.deliveryMetrics ??
   (feedback as any)?.deliveryMetrics ??
   null;
-
-  // Prefer deliveryMetrics.acoustics (new pipeline), fallback to stored.prosody (older)
+  // ✅ acoustics must be defined BEFORE seriesNorm uses it
 const acoustics: Prosody | null =
   ((dm as any)?.acoustics as Prosody | undefined) ??
   ((stored as any)?.prosody as Prosody | undefined) ??
   null;
 
-  const numOrNull = (v: any): number | null => {
+const numOrNull = (v: any): number | null => {
   const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
   return Number.isFinite(n) ? n : null;
 };
@@ -550,7 +550,11 @@ const seriesNorm: ProsodySeries | null = (() => {
   const n = Math.min(t.length, energy.length, pitch.length);
   if (n < 5) return null;
 
-  return { t: t.slice(0, n), energy: energy.slice(0, n), pitch: pitch.slice(0, n) };
+  return {
+    t: t.slice(0, n),
+    energy: energy.slice(0, n),
+    pitch: pitch.slice(0, n),
+  };
 })();
 
 const acousticsNorm = acoustics
@@ -558,15 +562,14 @@ const acousticsNorm = acoustics
       monotoneScore: numOrNull((acoustics as any).monotoneScore),
 
       pitchMean: numOrNull((acoustics as any).pitchMean),
-      pitchStd: numOrNull((acoustics as any).pitchStd) ?? numOrNull((acoustics as any).pitchStdHz),
+      pitchStd:
+        numOrNull((acoustics as any).pitchStd) ??
+        numOrNull((acoustics as any).pitchStdHz),
       pitchRange: numOrNull((acoustics as any).pitchRange),
 
       energyMean: numOrNull((acoustics as any).energyMean),
       energyStd: numOrNull((acoustics as any).energyStd),
-      energyVariation:
-        numOrNull((acoustics as any).energyVariation) ??
-        // fallback so you at least render something with your current summary object
-        numOrNull((acoustics as any).energyStd),
+      energyVariation: numOrNull((acoustics as any).energyVariation),
 
       tempo: numOrNull((acoustics as any).tempo),
       tempoDynamics: numOrNull((acoustics as any).tempoDynamics),
