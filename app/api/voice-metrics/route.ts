@@ -4,6 +4,12 @@ export const runtime = "nodejs";
 
 type Word = { start?: number; end?: number; text?: string };
 
+type AcousticSeries = {
+  t: number[];
+  energy: number[];
+  pitch: number[];
+};
+
 type AcousticMetrics = {
   pitchMean: number | null;
   pitchStd: number | null;
@@ -20,12 +26,7 @@ type AcousticMetrics = {
   sampleRate?: number | null;
   durationSec?: number | null;
 
-  // ✅ ADD THIS
-  series?: {
-    t: number[];
-    energy: number[];
-    pitch: number[];
-  } | null;
+  series?: AcousticSeries | null;
 };
 
 async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {
@@ -83,6 +84,52 @@ function computePauseMetrics(words: Word[]) {
 async function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
+
+
+const numOrNull = (v: any): number | null => {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : null;
+};
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+const normalizeSeries = (raw: any): AcousticSeries | null => {
+  if (!raw) return null;
+
+  const t = Array.isArray(raw.t) ? raw.t.map(Number) : [];
+  const energy = Array.isArray(raw.energy) ? raw.energy.map(Number) : [];
+  const pitch = Array.isArray(raw.pitch) ? raw.pitch.map(Number) : [];
+
+  const n = Math.min(t.length, energy.length, pitch.length);
+  if (n < 5) return null;
+
+  return {
+    t: t.slice(0, n),
+    energy: energy.slice(0, n),
+    pitch: pitch.slice(0, n),
+  };
+};
+
+// If pitchRange is missing, derive from series.pitch (ignoring zeros)
+const derivePitchRangeFromSeries = (s: AcousticSeries | null): number | null => {
+  if (!s) return null;
+  const voiced = s.pitch.filter((x) => typeof x === "number" && Number.isFinite(x) && x > 0);
+  if (voiced.length < 5) return null;
+  const min = Math.min(...voiced);
+  const max = Math.max(...voiced);
+  const range = max - min;
+  return Number.isFinite(range) ? range : null;
+};
+
+// If tempoDynamics missing, derive a simple 0–10 score from pause dispersion (fallback)
+// (This isn’t “true tempo dynamics”, but it gives you a useful signal until your Python provides it.)
+const deriveTempoDynamicsFromPauses = (avgPauseMs: number, maxPauseMs: number): number | null => {
+  if (!Number.isFinite(avgPauseMs) || !Number.isFinite(maxPauseMs) || avgPauseMs <= 0) return null;
+  const ratio = maxPauseMs / avgPauseMs; // higher = more variability
+  // ratio ~1.2..3.0 -> map to 0..10
+  const score = clamp(((ratio - 1.2) / (3.0 - 1.2)) * 10, 0, 10);
+  return Number.isFinite(score) ? Math.round(score * 100) / 100 : null;
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -242,34 +289,44 @@ const acousticsPromise = fetchAcoustics(audio);
 
   const acousticsRaw = await acousticsPromise;
 
-// helpers
-const toNum = (v: any): number | null => {
-  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
-  return Number.isFinite(n) ? n : null;
-};
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+  // Normalize acoustics so Results UI always gets what it expects
+  const series = normalizeSeries((acousticsRaw as any)?.series);
 
-// Convert a “std dev” into a 0–10-ish score.
-// Tune caps later if you want; these make your UI start working immediately.
-const scoreFromStd = (std: number | null, cap: number) =>
-  std === null ? null : clamp((std / cap) * 10, 0, 10);
+  const pitchStd = numOrNull((acousticsRaw as any)?.pitchStd) ?? numOrNull((acousticsRaw as any)?.pitchStdHz);
+  const energyStd = numOrNull((acousticsRaw as any)?.energyStd);
 
-const acoustics =
-  acousticsRaw
+  // If energyVariation missing but energyStd exists, create a 0–10 score so the UI bar is meaningful
+  const energyVariation =
+    numOrNull((acousticsRaw as any)?.energyVariation) ??
+    (energyStd === null ? null : clamp((energyStd / 0.12) * 10, 0, 10));
+
+  // If pitchRange missing, derive it from the series
+  const pitchRange =
+    numOrNull((acousticsRaw as any)?.pitchRange) ?? derivePitchRangeFromSeries(series);
+
+  // If tempoDynamics missing, derive a fallback from pause variability
+  const tempoDynamics =
+    numOrNull((acousticsRaw as any)?.tempoDynamics) ??
+    deriveTempoDynamicsFromPauses(pauses.avgPauseMs, pauses.maxPauseMs);
+
+  const acoustics: AcousticMetrics | null = acousticsRaw
     ? {
-        ...acousticsRaw,
+        pitchMean: numOrNull((acousticsRaw as any)?.pitchMean),
+        pitchStd,
+        pitchRange,
+        monotoneScore: numOrNull((acousticsRaw as any)?.monotoneScore),
 
-        // ✅ ensure energyVariation is usable by UI (0–10)
-        energyVariation:
-          toNum((acousticsRaw as any).energyVariation) ??
-          scoreFromStd(toNum((acousticsRaw as any).energyStd), 0.12),
+        energyMean: numOrNull((acousticsRaw as any)?.energyMean),
+        energyStd,
+        energyVariation,
 
-        // ✅ optional: ensure pitchRange exists if Python didn’t fill it
-        // (if you later return series, you can compute it here)
-        pitchRange: toNum((acousticsRaw as any).pitchRange),
+        tempo: numOrNull((acousticsRaw as any)?.tempo),
+        tempoDynamics,
 
-        // ✅ optional: ensure tempoDynamics exists (if you later compute it in Python)
-        tempoDynamics: toNum((acousticsRaw as any).tempoDynamics),
+        sampleRate: numOrNull((acousticsRaw as any)?.sampleRate),
+        durationSec: numOrNull((acousticsRaw as any)?.durationSec),
+
+        series,
       }
     : null;
 
@@ -281,7 +338,7 @@ const acoustics =
       longPauseCount: pauses.longPauseCount,
       avgPauseMs: pauses.avgPauseMs,
       maxPauseMs: pauses.maxPauseMs,
-      acoustics, // <-- NEW: either metrics object or null
+      acoustics,
       fillers: disfluencies.map((d: any) => ({
         text: d?.text ?? "",
         start: d?.start ?? null,
