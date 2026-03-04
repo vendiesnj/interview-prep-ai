@@ -386,7 +386,7 @@ function SpeakingTimeline({
   const pitch = series.pitch ?? [];
 
   const n = Math.min(t.length, energy.length, pitch.length);
-  if (n < 5) return null;
+  if (n < 2) return null;
 
   const e = energy.slice(0, n);
   const p = pitch.slice(0, n);
@@ -536,6 +536,7 @@ const acoustics: Prosody | null =
   null;
 
 const numOrNull = (v: any): number | null => {
+  if (v === null || v === undefined) return null;
   const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
   return Number.isFinite(n) ? n : null;
 };
@@ -556,7 +557,7 @@ const seriesNorm: ProsodySeries | null = (() => {
   const pitch = Array.isArray(s.pitch) ? s.pitch.map(Number) : [];
 
   const n = Math.min(t.length, energy.length, pitch.length);
-  if (n < 5) return null;
+  if (n < 2) return null;
 
   return {
     t: t.slice(0, n),
