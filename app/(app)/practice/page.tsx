@@ -1477,13 +1477,12 @@ try {
     signal: controller.signal,
   }).finally(() => clearTimeout(timeout));
 
-  if (vmRes.ok) {
-    const vmJson = await vmRes.json().catch(() => null);
-    voiceMetricsRef.current = vmJson?.metrics ?? null;
-  } else {
-    // keep null; don't surface to user
-    voiceMetricsRef.current = null;
-  }
+  const vmJson = await vmRes.json().catch(() => null);
+
+// TEMP DEBUG (leave for one test, then remove)
+console.log("voice-metrics response", vmRes.status, vmJson);
+
+voiceMetricsRef.current = vmJson?.metrics ?? null;
 } catch {
   voiceMetricsRef.current = null;
 }
