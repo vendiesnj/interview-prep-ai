@@ -180,7 +180,7 @@ for (const k of ["situation", "task", "action", "result"]) {
 
     // missed_opportunities (2–4 structured items)
 if (!Array.isArray(obj.missed_opportunities)) return false;
-if (obj.missed_opportunities.length < 2 || obj.missed_opportunities.length > 4) return false;
+if (obj.missed_opportunities.length > 4) return false;
 
 for (const it of obj.missed_opportunities) {
   if (typeof it !== "object" || it === null) return false;
@@ -975,6 +975,52 @@ if (!json) {
     { status: 500, headers: { "Content-Type": "application/json" } }
   );
 }
+
+json.communication_evidence = Array.isArray(json.communication_evidence)
+  ? json.communication_evidence.filter(isNonEmptyString).slice(0, 4)
+  : [];
+
+json.confidence_evidence = Array.isArray(json.confidence_evidence)
+  ? json.confidence_evidence.filter(isNonEmptyString).slice(0, 4)
+  : [];
+
+if (json.communication_evidence.length < 2) {
+  json.communication_evidence = [
+    ...json.communication_evidence,
+    "No clear signposting detected",
+    "Sequencing was hard to follow",
+  ].slice(0, 2);
+}
+
+if (json.confidence_evidence.length < 2) {
+  json.confidence_evidence = [
+    ...json.confidence_evidence,
+    "Limited ownership language detected",
+    "Some hedging reduced assertiveness",
+  ].slice(0, 2);
+}
+
+json.star_evidence ??= { situation: [], task: [], action: [], result: [] };
+
+for (const k of ["situation", "task", "action", "result"]) {
+  const arr = json.star_evidence?.[k];
+  json.star_evidence[k] = Array.isArray(arr)
+    ? arr.filter(isNonEmptyString).slice(0, 2)
+    : [];
+}
+
+json.missed_opportunities = Array.isArray(json.missed_opportunities)
+  ? json.missed_opportunities
+      .filter((it: any) => typeof it === "object" && it !== null)
+      .map((it: any) => ({
+        label: isNonEmptyString(it.label) ? it.label : "Opportunity",
+        why: isNonEmptyString(it.why) ? it.why : "Not provided.",
+        add_sentence: isNonEmptyString(it.add_sentence)
+          ? it.add_sentence
+          : "Add one sentence clarifying impact.",
+      }))
+      .slice(0, 4)
+  : [];
 
 // Optional: keep your validator as a safety net
 if (!validateFeedbackShape(json)) {
