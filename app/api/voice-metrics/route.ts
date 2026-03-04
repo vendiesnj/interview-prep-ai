@@ -1,170 +1,187 @@
+// app/api/voice-metrics/route.ts
 import { NextRequest, NextResponse } from "next/server";
-
 export const runtime = "nodejs";
 
-type DeliveryMetrics = {
-  pauseCount: number;
-  avgPauseMs: number;
-  maxPauseMs: number;
-  longPauseCount: number; // e.g. >= 900ms
-  words: number;
-  durationMs?: number;
-  fillers?: Array<{ text: string; start: number; end: number }>;
-};
+type Word = { start?: number; end?: number; text?: string };
 
-function computePausesFromWords(words: Array<{ start: number; end: number }>) {
-  // AssemblyAI word timings are ms
-  const gaps: number[] = [];
-  for (let i = 0; i < words.length - 1; i++) {
-    const gap = words[i + 1].start - words[i].end;
-    if (gap > 0) gaps.push(gap);
+function computePauseMetrics(words: Word[]) {
+  const w = (words || [])
+    .filter((x) => typeof x?.start === "number" && typeof x?.end === "number")
+    .sort((a, b) => (a.start as number) - (b.start as number));
+
+  let pauseCount = 0;
+  let longPauseCount = 0;
+  let sum = 0;
+  let max = 0;
+
+  for (let i = 0; i < w.length - 1; i++) {
+    const gap = (w[i + 1].start as number) - (w[i].end as number);
+    if (gap >= 300) pauseCount += 1;
+    if (gap >= 900) longPauseCount += 1;
+    if (gap > 0) {
+      sum += gap;
+      if (gap > max) max = gap;
+    }
   }
 
-  // Define what you consider a "pause"
-  const PAUSE_MS = 350;
-  const LONG_PAUSE_MS = 900;
+  const avg = pauseCount > 0 ? Math.round(sum / pauseCount) : 0;
 
-  const pauses = gaps.filter((g) => g >= PAUSE_MS);
-  const longPauses = gaps.filter((g) => g >= LONG_PAUSE_MS);
-
-  const pauseCount = pauses.length;
-  const avgPauseMs =
-    pauseCount > 0 ? Math.round(pauses.reduce((a, b) => a + b, 0) / pauseCount) : 0;
-  const maxPauseMs = pauseCount > 0 ? Math.max(...pauses) : 0;
-
-  return { pauseCount, avgPauseMs, maxPauseMs, longPauseCount: longPauses.length };
-}
-
-async function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms));
+  return {
+    pauseCount,
+    longPauseCount,
+    avgPauseMs: avg,
+    maxPauseMs: Math.round(max),
+  };
 }
 
 export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.ASSEMBLYAI_API_KEY;
     if (!apiKey) {
-      return NextResponse.json({ error: "Missing ASSEMBLYAI_API_KEY" }, { status: 500 });
-    }
-
-    const form = await req.formData();
-    const file = form.get("audio");
-
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "audio file missing" }, { status: 400 });
-    }
-
-    // 1) Upload audio to AssemblyAI
-    const uploadResp = await fetch("https://api.assemblyai.com/v2/upload", {
-      method: "POST",
-      headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/octet-stream",
-      },
-      body: Buffer.from(await file.arrayBuffer()),
-    });
-
-    if (!uploadResp.ok) {
-      const t = await uploadResp.text();
       return NextResponse.json(
-  { metrics: null, vendorError: "Upload failed" },
-  { status: 200 }
-);
+        { metrics: null, vendorError: "Missing ASSEMBLYAI_API_KEY" },
+        { status: 500 }
+      );
     }
 
-    const { upload_url } = (await uploadResp.json()) as { upload_url: string }; // :contentReference[oaicite:2]{index=2}
+    const body = await req.json().catch(() => null);
+    const audioUrl = body?.audioUrl ?? body?.audio_url ?? null;
 
-    // 2) Request transcript with disfluencies + word timestamps
-    // disfluencies flag enables filler/disfluency detection :contentReference[oaicite:3]{index=3}
-    const submitResp = await fetch("https://api.assemblyai.com/v2/transcript", {
+    if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
+      return NextResponse.json(
+        { metrics: null, vendorError: "Missing audioUrl in request body" },
+        { status: 400 }
+      );
+    }
+
+    // 1) Create transcript
+    const createRes = await fetch("https://api.assemblyai.com/v2/transcript", {
       method: "POST",
       headers: {
-        Authorization: apiKey,
-        "Content-Type": "application/json",
+        authorization: apiKey,
+        "content-type": "application/json",
       },
       body: JSON.stringify({
-        audio_url: upload_url,
+        audio_url: audioUrl,
         punctuate: true,
         format_text: true,
-        disfluencies: true, // :contentReference[oaicite:4]{index=4}
+        disfluencies: true,
+        word_boost: [],
       }),
     });
 
-    if (!submitResp.ok) {
-      const t = await submitResp.text();
-      return NextResponse.json(
-  { metrics: null, vendorError: "Transcript Submit Failed" },
-  { status: 200 }
-);
+    const createText = await createRes.text();
+    let createJson: any = null;
+    try {
+      createJson = JSON.parse(createText);
+    } catch {
+      createJson = null;
     }
 
-    const { id } = (await submitResp.json()) as { id: string }; // submit endpoint :contentReference[oaicite:5]{index=5}
+    if (!createRes.ok) {
+      return NextResponse.json(
+        {
+          metrics: null,
+          vendorError: "Transcript Submit Failed",
+          vendorStatus: createRes.status,
+          vendorBody: createJson ?? createText,
+          audioUrl,
+        },
+        { status: 502 }
+      );
+    }
 
-    // 3) Poll until completed
-    let status = "queued";
-    let result: any = null;
+    const transcriptId = createJson?.id;
+    if (!transcriptId) {
+      return NextResponse.json(
+        {
+          metrics: null,
+          vendorError: "Transcript Submit Failed (no id returned)",
+          vendorBody: createJson ?? createText,
+          audioUrl,
+        },
+        { status: 502 }
+      );
+    }
 
-    for (let i = 0; i < 60; i++) {
-      const r = await fetch(`https://api.assemblyai.com/v2/transcript/${id}`, {
-        headers: { Authorization: apiKey },
+    // 2) Poll until completed/failed
+    const started = Date.now();
+    while (Date.now() - started < 45_000) {
+      const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
+        headers: { authorization: apiKey },
       });
 
-      if (!r.ok) {
-        const t = await r.text();
-        return NextResponse.json(
-  { metrics: null, vendorError: "Transcript Fetch Failed" },
-  { status: 200 }
-);
+      const pollText = await pollRes.text();
+      let pollJson: any = null;
+      try {
+        pollJson = JSON.parse(pollText);
+      } catch {
+        pollJson = null;
       }
 
-      result = await r.json();
-      status = result.status;
-
-      if (status === "completed") break;
-      if (status === "error") {
+      if (!pollRes.ok) {
         return NextResponse.json(
-  { metrics: null, vendorError: "Transcript error" },
-  { status: 200 }
-);
+          {
+            metrics: null,
+            vendorError: "Transcript Poll Failed",
+            vendorStatus: pollRes.status,
+            vendorBody: pollJson ?? pollText,
+            transcriptId,
+          },
+          { status: 502 }
+        );
       }
 
-      await sleep(750);
+      const status = pollJson?.status;
+      if (status === "completed") {
+        const words: Word[] = Array.isArray(pollJson?.words) ? pollJson.words : [];
+        const pauses = computePauseMetrics(words);
+
+        // disfluencies can vary by plan; keep safe
+        const disfluencies = Array.isArray(pollJson?.disfluencies) ? pollJson.disfluencies : [];
+
+        return NextResponse.json({
+          metrics: {
+            transcriptId,
+            words: words.length,
+            pauseCount: pauses.pauseCount,
+            longPauseCount: pauses.longPauseCount,
+            avgPauseMs: pauses.avgPauseMs,
+            maxPauseMs: pauses.maxPauseMs,
+            fillers: disfluencies.map((d: any) => ({
+              text: d?.text ?? "",
+              start: d?.start ?? null,
+              end: d?.end ?? null,
+            })),
+          },
+          vendorError: null,
+        });
+      }
+
+      if (status === "error" || status === "failed") {
+        return NextResponse.json(
+          {
+            metrics: null,
+            vendorError: "Transcript Failed",
+            vendorBody: pollJson,
+            transcriptId,
+          },
+          { status: 502 }
+        );
+      }
+
+      // queued / processing
+      await new Promise((r) => setTimeout(r, 1200));
     }
 
-    if (status !== "completed") {
-      return NextResponse.json(
-  { metrics: null, vendorError: "Transcript timeout" },
-  { status: 200 }
-);
-    }
-
-    // 4) Compute delivery metrics from word timings + disfluencies
-    const words = Array.isArray(result.words) ? result.words : [];
-    const wordTimings = words
-      .filter((w: any) => typeof w?.start === "number" && typeof w?.end === "number")
-      .map((w: any) => ({ start: w.start, end: w.end }));
-
-    const pauseStats = computePausesFromWords(wordTimings);
-
-    const fillers =
-      Array.isArray(result.disfluencies)
-        ? result.disfluencies
-            .filter((d: any) => typeof d?.start === "number" && typeof d?.end === "number")
-            .slice(0, 50)
-            .map((d: any) => ({ text: String(d.text ?? "").trim(), start: d.start, end: d.end }))
-        : [];
-
-    const metrics: DeliveryMetrics = {
-      ...pauseStats,
-      words: wordTimings.length,
-      fillers,
-      durationMs: typeof result.audio_duration === "number" ? Math.round(result.audio_duration * 1000) : undefined,
-    };
-
-    return NextResponse.json({ metrics }, { status: 200 });
-  } catch (err: any) {
-  return NextResponse.json(
-    { metrics: null, vendorError: err?.message ?? "voice-metrics failed" },
-    { status: 200 }
-  );
-}
+    return NextResponse.json(
+      { metrics: null, vendorError: "Transcript Timeout (poll exceeded 45s)" },
+      { status: 504 }
+    );
+  } catch (e: any) {
+    return NextResponse.json(
+      { metrics: null, vendorError: e?.message ?? "Unknown error" },
+      { status: 500 }
+    );
+  }
 }
