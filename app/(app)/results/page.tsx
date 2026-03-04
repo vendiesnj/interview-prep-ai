@@ -1174,6 +1174,11 @@ return (
       Voice delivery signals
     </div>
 
+    <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>
+  acoustics debug:
+  <pre>{JSON.stringify(acoustics, null, 2)}</pre>
+</div>
+
     {typeof dm.pauseCount === "number" ? <div>Pauses: {dm.pauseCount}</div> : null}
     {typeof dm.longPauseCount === "number" ? <div>Long pauses (≥0.9s): {dm.longPauseCount}</div> : null}
     {typeof dm.avgPauseMs === "number" ? <div>Average pause: {dm.avgPauseMs} ms</div> : null}
