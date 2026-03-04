@@ -573,6 +573,11 @@ if (cl && Number(cl) > 40_000) {
   try {
     const { jobDesc, question, transcript, deliveryMetrics } = await req.json();
 
+    logInfo("feedback_delivery_metrics_received", {
+  hasDeliveryMetrics: !!deliveryMetrics,
+  deliveryMetricsKeys: deliveryMetrics && typeof deliveryMetrics === "object" ? Object.keys(deliveryMetrics) : [],
+});
+
     // ---- individual field caps (cost control + memory safety) ----
 if (typeof jobDesc === "string" && jobDesc.length > 12_000) {
   return new Response(JSON.stringify({ error: "JOBDESC_TOO_LONG" }), {
