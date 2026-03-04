@@ -101,7 +101,7 @@ const normalizeSeries = (raw: any): AcousticSeries | null => {
   const pitch = Array.isArray(raw.pitch) ? raw.pitch.map(Number) : [];
 
   const n = Math.min(t.length, energy.length, pitch.length);
-  if (n < 5) return null;
+  if (n < 2) return null;
 
   return {
     t: t.slice(0, n),
