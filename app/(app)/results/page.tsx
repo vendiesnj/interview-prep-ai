@@ -397,6 +397,10 @@ useEffect(() => {
     const avg = (Number(s.situation) + Number(s.task) + Number(s.action) + Number(s.result)) / 4;
     return Math.round(avg * 10) / 10;
   }, [feedback]);
+  const dm =
+  (stored as any)?.deliveryMetrics ??
+  (feedback as any)?.deliveryMetrics ??
+  null;
 
   const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
 
@@ -1062,6 +1066,16 @@ return (
         <span style={{ fontWeight: 900 }}>{starAvg.toFixed(1)}</span>
       </div>
     ) : null}
+
+    
+    {dm && (typeof dm.longPauseCount === "number" || typeof dm.maxPauseMs === "number") ? (
+  <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+    Delivery penalty applied:{" "}
+    {typeof dm.longPauseCount === "number" ? `long pauses=${dm.longPauseCount}` : ""}
+    {typeof dm.longPauseCount === "number" && typeof dm.maxPauseMs === "number" ? ", " : ""}
+    {typeof dm.maxPauseMs === "number" ? `max pause=${dm.maxPauseMs}ms` : ""}
+  </div>
+) : null}
 
     {typeof stored?.wpm === "number" ? (
       <div style={{ color: "#9CA3AF", fontSize: 13 }}>

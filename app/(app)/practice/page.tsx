@@ -1461,26 +1461,27 @@ try {
       }
 
         const file = new File([blob], "answer.webm", { type: "audio/webm" });
-
-        // --- Vendor voice metrics (best-effort, non-blocking for UX) ---
+      // --- Vendor voice metrics (best-effort; never blocks analysis) ---
 voiceMetricsRef.current = null;
 
 try {
   const vmForm = new FormData();
   vmForm.append("audio", file);
 
-  // fire and await (you can later parallelize with transcribe if needed)
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12_000); // 12s max
+
   const vmRes = await fetch("/api/voice-metrics", {
     method: "POST",
     body: vmForm,
-  });
-
-  const vmJson = await vmRes.json().catch(() => null);
+    signal: controller.signal,
+  }).finally(() => clearTimeout(timeout));
 
   if (vmRes.ok) {
+    const vmJson = await vmRes.json().catch(() => null);
     voiceMetricsRef.current = vmJson?.metrics ?? null;
   } else {
-    // silently ignore vendor failures so recording still works
+    // keep null; don't surface to user
     voiceMetricsRef.current = null;
   }
 } catch {

@@ -750,10 +750,14 @@ Filler words should noticeably lower communication_score when frequent, but STAR
 VOICE DELIVERY METRICS (from audio; may be null):
 ${deliveryMetrics ? JSON.stringify(deliveryMetrics) : "null"}
 
-Use these delivery metrics to influence scoring:
-- More pauses / long pauses should lower communication_score and confidence_score.
-- Do not let delivery metrics override STAR content; they should adjust scores modestly.
-
+Use these delivery metrics to influence scoring (apply when metrics are present):
+- If longPauseCount >= 2 OR maxPauseMs >= 1200:
+  reduce confidence_score by ~1–2 points.
+- If pauseCount >= 8 OR avgPauseMs >= 500:
+  reduce communication_score by ~1 point.
+- If longPauseCount >= 4:
+  confidence_score must be <= 6 unless the transcript has very strong ownership language AND a clear measurable Result.
+- Delivery metrics may adjust overall score by at most -1 total (they should not raise the score).
 Grade STAR quality:
 - situation/task/action/result are 0-10 based on clarity, specificity, and completeness.
 - If an element is weak or missing, give it 0-3.
@@ -948,37 +952,29 @@ Tone guidelines:
 Do not include any extra text outside JSON.
 `.trim();
 
-    const resp = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: prompt,
-      temperature: 0,
-    });
+   const resp = await client.responses.create({
+  model: "gpt-4.1-mini",
+  input: prompt,
+  temperature: 0,
+});
 
-    const text = resp.output_text?.trim() ?? "";
+// ✅ Responses API returns structured JSON output when using json_schema
+const json = JSON.parse(resp.output_text ?? "{}");
 
-    // 1) Try direct parse
-    let json = tryParseJson(text);
-
-    // 2) If that fails, extract JSON and parse it
-    if (!json) {
-      const candidate = extractFirstJsonObject(text);
-      if (candidate) json = tryParseJson(candidate);
-    }
-  if (!json) {
+if (!json) {
   return new Response(
-    JSON.stringify({ error: "Model returned non-JSON output.", raw: text }),
+    JSON.stringify({ error: "Model returned empty structured output." }),
     { status: 500, headers: { "Content-Type": "application/json" } }
   );
 }
 
-
-    // 3) Validate shape
-    if (!validateFeedbackShape(json)) {
-      return new Response(
-        JSON.stringify({ error: "Model returned invalid JSON shape.", raw: text, parsed: json }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
+// Optional: keep your validator as a safety net
+if (!validateFeedbackShape(json)) {
+  return new Response(
+    JSON.stringify({ error: "Model returned invalid JSON shape.", parsed: json }),
+    { status: 500, headers: { "Content-Type": "application/json" } }
+  );
+}
 
     // Ensure star_evidence always exists (safety default)
 (json as any).star_evidence ??= {

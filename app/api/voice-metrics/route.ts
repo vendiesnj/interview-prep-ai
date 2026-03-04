@@ -65,7 +65,10 @@ export async function POST(req: NextRequest) {
 
     if (!uploadResp.ok) {
       const t = await uploadResp.text();
-      return NextResponse.json({ error: "Upload failed", raw: t }, { status: 502 });
+      return NextResponse.json(
+  { metrics: null, vendorError: "Upload failed" },
+  { status: 200 }
+);
     }
 
     const { upload_url } = (await uploadResp.json()) as { upload_url: string }; // :contentReference[oaicite:2]{index=2}
@@ -88,7 +91,10 @@ export async function POST(req: NextRequest) {
 
     if (!submitResp.ok) {
       const t = await submitResp.text();
-      return NextResponse.json({ error: "Transcript submit failed", raw: t }, { status: 502 });
+      return NextResponse.json(
+  { metrics: null, vendorError: "Transcript Submit Failed" },
+  { status: 200 }
+);
     }
 
     const { id } = (await submitResp.json()) as { id: string }; // submit endpoint :contentReference[oaicite:5]{index=5}
@@ -104,7 +110,10 @@ export async function POST(req: NextRequest) {
 
       if (!r.ok) {
         const t = await r.text();
-        return NextResponse.json({ error: "Transcript fetch failed", raw: t }, { status: 502 });
+        return NextResponse.json(
+  { metrics: null, vendorError: "Transcript Fetch Failed" },
+  { status: 200 }
+);
       }
 
       result = await r.json();
@@ -112,14 +121,20 @@ export async function POST(req: NextRequest) {
 
       if (status === "completed") break;
       if (status === "error") {
-        return NextResponse.json({ error: "Transcript error", raw: result }, { status: 502 });
+        return NextResponse.json(
+  { metrics: null, vendorError: "Transcript error" },
+  { status: 200 }
+);
       }
 
       await sleep(750);
     }
 
     if (status !== "completed") {
-      return NextResponse.json({ error: "Transcript timeout" }, { status: 504 });
+      return NextResponse.json(
+  { metrics: null, vendorError: "Transcript timeout" },
+  { status: 200 }
+);
     }
 
     // 4) Compute delivery metrics from word timings + disfluencies
