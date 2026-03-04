@@ -113,7 +113,7 @@ if (!rlUser.ok || !rlIp.ok) {
       score: a.score ?? (a.feedback as any)?.score ?? null,
       feedback: a.feedback as any,
       prosody: a.prosody as any,
-      deliveryMetrics: (a.feedback as any)?.deliveryMetrics ?? null,
+      deliveryMetrics: a.deliveryMetrics ?? (a.feedback as any)?.deliveryMetrics ?? null,
     }));
 
     const ent = await getAttemptEntitlement(userId);

@@ -528,13 +528,54 @@ useEffect(() => {
   (feedback as any)?.deliveryMetrics ??
   null;
 
-// Prefer deliveryMetrics.acoustics (new pipeline), fallback to stored.prosody (older)
+  // Prefer deliveryMetrics.acoustics (new pipeline), fallback to stored.prosody (older)
 const acoustics: Prosody | null =
   ((dm as any)?.acoustics as Prosody | undefined) ??
   ((stored as any)?.prosody as Prosody | undefined) ??
   null;
 
-const series = acoustics?.series ?? null;
+  const numOrNull = (v: any): number | null => {
+  const n = typeof v === "number" ? v : typeof v === "string" ? Number(v) : NaN;
+  return Number.isFinite(n) ? n : null;
+};
+
+const seriesNorm: ProsodySeries | null = (() => {
+  const s = (acoustics as any)?.series;
+  if (!s) return null;
+
+  const t = Array.isArray(s.t) ? s.t.map(Number) : [];
+  const energy = Array.isArray(s.energy) ? s.energy.map(Number) : [];
+  const pitch = Array.isArray(s.pitch) ? s.pitch.map(Number) : [];
+
+  const n = Math.min(t.length, energy.length, pitch.length);
+  if (n < 5) return null;
+
+  return { t: t.slice(0, n), energy: energy.slice(0, n), pitch: pitch.slice(0, n) };
+})();
+
+const acousticsNorm = acoustics
+  ? {
+      monotoneScore: numOrNull((acoustics as any).monotoneScore),
+
+      pitchMean: numOrNull((acoustics as any).pitchMean),
+      pitchStd: numOrNull((acoustics as any).pitchStd) ?? numOrNull((acoustics as any).pitchStdHz),
+      pitchRange: numOrNull((acoustics as any).pitchRange),
+
+      energyMean: numOrNull((acoustics as any).energyMean),
+      energyStd: numOrNull((acoustics as any).energyStd),
+      energyVariation:
+        numOrNull((acoustics as any).energyVariation) ??
+        // fallback so you at least render something with your current summary object
+        numOrNull((acoustics as any).energyStd),
+
+      tempo: numOrNull((acoustics as any).tempo),
+      tempoDynamics: numOrNull((acoustics as any).tempoDynamics),
+
+      series: seriesNorm,
+    }
+  : null;
+
+const series = acousticsNorm?.series ?? null;
 
 const hasNum = (v: any): v is number => typeof v === "number" && Number.isFinite(v);
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -1176,7 +1217,7 @@ return (
 
     <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>
   acoustics debug:
-  <pre>{JSON.stringify(acoustics, null, 2)}</pre>
+  <pre>{JSON.stringify(acousticsNorm, null, 2)}</pre>
 </div>
 
     {typeof dm.pauseCount === "number" ? <div>Pauses: {dm.pauseCount}</div> : null}
@@ -1186,7 +1227,7 @@ return (
   </div>
 ) : null}
 
-{acoustics ? (
+{acousticsNorm ? (
   <div
     style={{
       marginTop: 12,
@@ -1195,37 +1236,37 @@ return (
       gap: 10,
     }}
   >
-    {hasNum(acoustics.monotoneScore) ? (
+    {hasNum(acousticsNorm.monotoneScore) ? (
       <MetricBar
         label="Monotone score"
-        value={clamp(acoustics.monotoneScore, 0, 10)}
+        value={clamp(acousticsNorm.monotoneScore, 0, 10)}
         max={10}
         subtext="Lower is better"
       />
     ) : null}
 
-    {hasNum(acoustics.energyVariation) ? (
+    {hasNum(acousticsNorm.energyVariation) ? (
       <MetricBar
         label="Energy variation"
-        value={clamp(acoustics.energyVariation, 0, 10)}
+        value={clamp(acousticsNorm.energyVariation, 0, 10)}
         max={10}
         subtext="Vocal dynamics"
       />
     ) : null}
 
-    {hasNum(acoustics.tempoDynamics) ? (
+    {hasNum(acousticsNorm.tempoDynamics) ? (
       <MetricBar
         label="Tempo dynamics"
-        value={clamp(acoustics.tempoDynamics, 0, 10)}
+        value={clamp(acousticsNorm.tempoDynamics, 0, 10)}
         max={10}
         subtext="Pacing variety"
       />
     ) : null}
 
-    {hasNum(acoustics.pitchRange) ? (
+    {hasNum(acousticsNorm.pitchRange) ? (
       <MetricBar
         label="Pitch range"
-        value={Math.round(acoustics.pitchRange)}
+        value={Math.round(acousticsNorm.pitchRange)}
         max={200}
         subtext="Hz range"
       />
