@@ -1,21 +1,19 @@
-# Python virtual environment
-.venv/
-
-# Python cache
-__pycache__/
-*.pyc
-
-# macOS
-.DS_Store
-
-# node
-node_modules/
-
-
-# environment variables
+# --- secrets ---
 .env
 .env.local
 .env.*.local
 
-# zip files
+# --- python venv ---
+.venv/
+__pycache__/
+*.pyc
+
+# --- next / node ---
+.next/
+node_modules/
+.vercel/
+out/
+
+# --- misc ---
+.DS_Store
 *.zip

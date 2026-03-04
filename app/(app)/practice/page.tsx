@@ -1739,6 +1739,7 @@ try {
       inputMethod: entry.inputMethod,
       wpm: entry.wpm,
       prosody: entry.prosody,
+      deliveryMetrics: entry.deliveryMetrics ?? null,
       feedback: entry.feedback,
       score: entry.score,
       communication_score: entry.communication_score,

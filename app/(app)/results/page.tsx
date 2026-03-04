@@ -9,11 +9,29 @@ import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 
 
+type ProsodySeries = {
+  t: number[];      // seconds
+  energy: number[]; // rms (0..~0.3)
+  pitch: number[];  // Hz (0 when unvoiced)
+};
+
 type Prosody = {
-  pitchStdHz: number;
-  energyStd: number;
-  monotoneScore: number; // 1–10
-  feedback: string;
+  pitchMean?: number;
+  pitchStd?: number;
+  pitchRange?: number;
+
+  energyMean?: number;
+  energyStd?: number;
+  energyVariation?: number; // 0-10
+
+  tempo?: number;
+  tempoDynamics?: number;   // 0-10
+  monotoneScore?: number;   // 0-10
+
+  sampleRate?: number;
+  durationSec?: number;
+
+  series?: ProsodySeries;
 };
 
 type StoredResult = {
@@ -353,6 +371,113 @@ function extractStarEvidence(transcript: string) {
   return { situation, task, action, result };
 }
 
+function SpeakingTimeline({
+  series,
+  height = 110,
+}: {
+  series: { t: number[]; energy: number[]; pitch: number[] };
+  height?: number;
+}) {
+  const w = 760; // internal svg width
+  const h = height;
+
+  const t = series.t ?? [];
+  const energy = series.energy ?? [];
+  const pitch = series.pitch ?? [];
+
+  const n = Math.min(t.length, energy.length, pitch.length);
+  if (n < 5) return null;
+
+  const e = energy.slice(0, n);
+  const p = pitch.slice(0, n);
+
+  const eMax = Math.max(...e, 1e-8);
+  const pNonZero = p.filter((x) => x > 0);
+  const pMin = pNonZero.length ? Math.min(...pNonZero) : 0;
+  const pMax = pNonZero.length ? Math.max(...pNonZero) : 1;
+
+  const xFor = (i: number) => (i / (n - 1)) * w;
+
+  // energy -> 0..1 then map to svg coords
+  const eY = (val: number) => {
+    const norm = Math.min(Math.max(val / eMax, 0), 1);
+    return h - norm * h;
+  };
+
+  // pitch -> normalize within voiced range; unvoiced => bottom
+  const pY = (val: number) => {
+    if (!pNonZero.length || val <= 0) return h;
+    const denom = Math.max(pMax - pMin, 1e-6);
+    const norm = Math.min(Math.max((val - pMin) / denom, 0), 1);
+    return h - norm * h;
+  };
+
+  const energyPath = e
+    .map((v, i) => `${xFor(i).toFixed(2)},${eY(v).toFixed(2)}`)
+    .join(" ");
+
+  const pitchPath = p
+    .map((v, i) => `${xFor(i).toFixed(2)},${pY(v).toFixed(2)}`)
+    .join(" ");
+
+  const duration = t[n - 1] ?? 0;
+
+  return (
+    <div
+      style={{
+        marginTop: 14,
+        borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.10)",
+        background: "rgba(255,255,255,0.03)",
+        padding: 14,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div style={{ fontWeight: 900, fontSize: 13, color: "#E5E7EB" }}>
+          Speaking timeline
+        </div>
+        <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+          {duration ? `${duration.toFixed(1)}s` : ""}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 10 }}>
+        <svg
+          viewBox={`0 0 ${w} ${h}`}
+          width="100%"
+          height={h}
+          style={{ display: "block" }}
+        >
+          {/* energy */}
+          <polyline
+            points={energyPath}
+            fill="none"
+            stroke="rgba(255,255,255,0.65)"
+            strokeWidth="2"
+          />
+          {/* pitch */}
+          <polyline
+            points={pitchPath}
+            fill="none"
+            stroke="rgba(99,102,241,0.85)"
+            strokeWidth="2"
+          />
+        </svg>
+
+        <div style={{ marginTop: 8, display: "flex", gap: 14, fontSize: 12, color: "#9CA3AF" }}>
+          <div>
+            <span style={{ display: "inline-block", width: 10, height: 2, background: "rgba(255,255,255,0.65)", marginRight: 6 }} />
+            Energy
+          </div>
+          <div>
+            <span style={{ display: "inline-block", width: 10, height: 2, background: "rgba(99,102,241,0.85)", marginRight: 6 }} />
+            Pitch
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 export default function ResultsPage() {
@@ -402,6 +527,10 @@ useEffect(() => {
   (feedback as any)?.deliveryMetrics ??
   null;
 
+const acoustics: Prosody | null =
+  ((stored as any)?.prosody as Prosody | undefined) ?? null;
+
+const series = acoustics?.series ?? null;
   const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
 
 const starMissingList = useMemo(() => {
@@ -1040,6 +1169,9 @@ return (
 
   if (!dm) return null;
 
+  const acoustics = dm?.acoustics ?? null;
+  const series = acoustics?.series ?? null;
+
   return (
     <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
       <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
@@ -1065,6 +1197,59 @@ return (
   );
 })()}
 </SectionCard>
+
+{acoustics && (
+  <div
+    style={{
+      marginTop: 12,
+      display: "grid",
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+      gap: 10,
+    }}
+  >
+    <MetricBar
+  label="Monotone"
+  value={typeof acoustics?.monotoneScore === "number" ? acoustics.monotoneScore : 0}
+  max={10}
+  subtext="Lower is better"
+/>
+
+<MetricBar
+  label="Energy variation"
+  value={typeof acoustics?.energyVariation === "number" ? acoustics.energyVariation : 0}
+  max={10}
+  subtext="Vocal dynamics"
+/>
+
+<MetricBar
+  label="Tempo dynamics"
+  value={typeof acoustics?.tempoDynamics === "number" ? acoustics.tempoDynamics : 0}
+  max={10}
+  subtext="Pacing variety"
+/>
+
+    <div
+      style={{
+        borderRadius: 14,
+        border: "1px solid rgba(255,255,255,0.10)",
+        background: "rgba(255,255,255,0.03)",
+        padding: 12,
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: 900, color: "#9CA3AF", letterSpacing: 0.6 }}>
+        Pitch range
+      </div>
+      <div style={{ marginTop: 8, fontSize: 20, fontWeight: 900, color: "#E5E7EB" }}>
+        {typeof acoustics.pitchRange === "number" ? `${acoustics.pitchRange.toFixed(1)} Hz` : "—"}
+      </div>
+      <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>
+        {typeof acoustics.pitchStd === "number" ? `Std: ${acoustics.pitchStd.toFixed(1)} Hz` : ""}
+      </div>
+    </div>
+  </div>
+)}
+
+{series && <SpeakingTimeline series={series} />}
 
  <SectionCard title="Why this score" collapsible defaultOpen={false}>
   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

@@ -66,6 +66,7 @@ if (!userId) {
         feedback: true,
         wpm: true,
         prosody: true,
+        deliveryMetrics: true,
       },
     });
 
@@ -244,6 +245,7 @@ const user = rows[0] ?? null;
 
         wpm: typeof body.wpm === "number" ? Math.round(body.wpm) : null,
         prosody: body.prosody ?? null,
+        deliveryMetrics: body.deliveryMetrics ?? null,
         feedback: body.feedback ?? null,
 
         score: typeof body.score === "number" ? Math.round(body.score) : null,

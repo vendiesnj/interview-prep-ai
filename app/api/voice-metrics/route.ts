@@ -4,6 +4,42 @@ export const runtime = "nodejs";
 
 type Word = { start?: number; end?: number; text?: string };
 
+type AcousticMetrics = {
+  pitchMean: number;
+  pitchStd: number;
+  pitchRange: number;
+  monotoneScore?: number;
+  energyMean: number;
+  energyStd: number;
+  energyVariation?: number;
+  tempo: number;
+  tempoDynamics?: number;
+  sampleRate?: number;
+  durationSec?: number;
+};
+
+async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {
+  const base = process.env.ACOUSTICS_URL;
+  if (!base) return null;
+
+  try {
+    const fd = new FormData();
+    fd.set("audio", audio, audio.name);
+
+    const res = await fetch(`${base.replace(/\/$/, "")}/analyze`, {
+      method: "POST",
+      body: fd,
+    });
+
+    if (!res.ok) return null;
+
+    const json = (await res.json()) as AcousticMetrics;
+    return json ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function computePauseMetrics(words: Word[]) {
   const w = (words || [])
     .filter((x) => typeof x?.start === "number" && typeof x?.end === "number")
@@ -59,6 +95,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Kick off acoustics in parallel (do not block polling)
+const acousticsPromise = fetchAcoustics(audio);
     // 0) Upload audio to AssemblyAI
     const buf = Buffer.from(await audio.arrayBuffer());
 
@@ -185,30 +223,33 @@ export async function POST(req: NextRequest) {
       const status = pollJson?.status;
 
       if (status === "completed") {
-        const words: Word[] = Array.isArray(pollJson?.words) ? pollJson.words : [];
-        const pauses = computePauseMetrics(words);
+  const words: Word[] = Array.isArray(pollJson?.words) ? pollJson.words : [];
+  const pauses = computePauseMetrics(words);
 
-        const disfluencies = Array.isArray(pollJson?.disfluencies)
-          ? pollJson.disfluencies
-          : [];
+  const disfluencies = Array.isArray(pollJson?.disfluencies)
+    ? pollJson.disfluencies
+    : [];
 
-        return NextResponse.json({
-          metrics: {
-            transcriptId,
-            words: words.length,
-            pauseCount: pauses.pauseCount,
-            longPauseCount: pauses.longPauseCount,
-            avgPauseMs: pauses.avgPauseMs,
-            maxPauseMs: pauses.maxPauseMs,
-            fillers: disfluencies.map((d: any) => ({
-              text: d?.text ?? "",
-              start: d?.start ?? null,
-              end: d?.end ?? null,
-            })),
-          },
-          vendorError: null,
-        });
-      }
+  const acoustics = await acousticsPromise;
+
+  return NextResponse.json({
+    metrics: {
+      transcriptId,
+      words: words.length,
+      pauseCount: pauses.pauseCount,
+      longPauseCount: pauses.longPauseCount,
+      avgPauseMs: pauses.avgPauseMs,
+      maxPauseMs: pauses.maxPauseMs,
+      acoustics, // <-- NEW: either metrics object or null
+      fillers: disfluencies.map((d: any) => ({
+        text: d?.text ?? "",
+        start: d?.start ?? null,
+        end: d?.end ?? null,
+      })),
+    },
+    vendorError: null,
+  });
+}
 
       if (status === "error" || status === "failed") {
         return NextResponse.json(
