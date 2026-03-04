@@ -1446,6 +1446,15 @@ async function startRecording() {
       try {
         const blob = new Blob(chunks, { type: "audio/webm" });
         audioBlobRef.current = blob;
+          // TEMP DEV: download the recording so we can test the python analyzer locally
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "answer.webm";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
         // ✅ Save audio for replay
 try {
   if (attemptIdRef.current) {
