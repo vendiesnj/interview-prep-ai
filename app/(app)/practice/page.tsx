@@ -436,6 +436,7 @@ const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(n
   const [transcript, setTranscript] = useState("");
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioBlobRef = useRef<Blob | null>(null);
   const voiceMetricsRef = useRef<any>(null);
   // --- Live waveform ---
 const analyserRef = useRef<AnalyserNode | null>(null);
@@ -1444,6 +1445,7 @@ async function startRecording() {
 
       try {
         const blob = new Blob(chunks, { type: "audio/webm" });
+        audioBlobRef.current = blob;
         // ✅ Save audio for replay
 try {
   if (attemptIdRef.current) {
@@ -1601,6 +1603,27 @@ progressTimerRef.current = window.setInterval(() => {
   posthog.capture("attempt_submitted", {
   inputMethod, // spoken or pasted
 });
+
+
+const audioBlob = audioBlobRef.current;
+
+// If you already call /api/voice-metrics in mr.onstop, DON'T call it again here.
+// Just use whatever is already in voiceMetricsRef.current.
+if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
+  // Optional: only run if metrics aren't set yet
+  try {
+    const fd = new FormData();
+    fd.append("audio", audioBlob, "answer.webm");
+
+    const vmRes = await fetch("/api/voice-metrics", { method: "POST", body: fd });
+    const vmJson = await vmRes.json().catch(() => null);
+
+    voiceMetricsRef.current = vmJson?.metrics ?? null;
+  } catch {
+    voiceMetricsRef.current = null;
+  }
+}
+
 
   try {
     const res = await fetch("/api/feedback", {

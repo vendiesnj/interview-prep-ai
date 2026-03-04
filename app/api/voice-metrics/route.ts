@@ -44,15 +44,67 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json().catch(() => null);
-    const audioUrl = body?.audioUrl ?? body?.audio_url ?? null;
+ const contentType = req.headers.get("content-type") || "";
 
-    if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
-      return NextResponse.json(
-        { metrics: null, vendorError: "Missing audioUrl in request body" },
-        { status: 400 }
-      );
-    }
+// Prefer multipart/form-data (your client sends FormData)
+let audioUrl: string | null = null;
+
+if (contentType.includes("multipart/form-data")) {
+  const form = await req.formData();
+  const file = form.get("audio");
+
+  if (!(file instanceof File)) {
+    return NextResponse.json(
+      { metrics: null, vendorError: "Missing audio file (field name must be 'audio')" },
+      { status: 400 }
+    );
+  }
+
+  // Upload bytes to AssemblyAI
+  const buf = Buffer.from(await file.arrayBuffer());
+
+  const upRes = await fetch("https://api.assemblyai.com/v2/upload", {
+    method: "POST",
+    headers: {
+      authorization: apiKey,
+      "content-type": "application/octet-stream",
+    },
+    body: buf,
+  });
+
+  const upText = await upRes.text();
+  let upJson: any = null;
+  try {
+    upJson = JSON.parse(upText);
+  } catch {
+    upJson = null;
+  }
+
+  if (!upRes.ok) {
+    return NextResponse.json(
+      {
+        metrics: null,
+        vendorError: "Upload Failed",
+        vendorStatus: upRes.status,
+        vendorBody: upJson ?? upText,
+      },
+      { status: 502 }
+    );
+  }
+
+  audioUrl = upJson?.upload_url ?? null;
+} else {
+  // Backwards compatible: allow JSON {audioUrl}
+  const body = await req.json().catch(() => null);
+  audioUrl = body?.audioUrl ?? body?.audio_url ?? null;
+}
+
+if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
+  return NextResponse.json(
+    { metrics: null, vendorError: "Missing audio (send FormData field 'audio' or JSON audioUrl)" },
+    { status: 400 }
+  );
+}
 
     // 1) Create transcript
     const createRes = await fetch("https://api.assemblyai.com/v2/transcript", {
@@ -66,7 +118,6 @@ export async function POST(req: NextRequest) {
         punctuate: true,
         format_text: true,
         disfluencies: true,
-        word_boost: [],
       }),
     });
 
