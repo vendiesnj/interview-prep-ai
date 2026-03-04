@@ -152,11 +152,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Kick off acoustics in parallel (do not block polling)
-const acousticsPromise = fetchAcoustics(audio);
-    // 0) Upload audio to AssemblyAI
-    const buf = Buffer.from(await audio.arrayBuffer());
+    // Read bytes ONCE, then reuse for both vendors.
+// This avoids "stream already read" / partial body issues with File in Node.
+const buf = Buffer.from(await audio.arrayBuffer());
 
+// Create a fresh File for the acoustics service (so it gets a clean readable body)
+const acousticsFile = new File(
+  [buf],
+  audio.name && audio.name.length ? audio.name : "audio.webm",
+  { type: audio.type || "audio/webm" }
+);
+
+// Kick off acoustics in parallel (safe now; it uses a cloned File)
+const acousticsPromise = fetchAcoustics(acousticsFile);
+
+// 0) Upload audio to AssemblyAI (use the same buf)
     const uploadRes = await fetch("https://api.assemblyai.com/v2/upload", {
       method: "POST",
       headers: {
@@ -288,6 +298,8 @@ const acousticsPromise = fetchAcoustics(audio);
     : [];
 
   const acousticsRaw = await acousticsPromise;
+  // Helpful when diagnosing prod: confirms whether series exists
+ console.log("acoustics keys:", acousticsRaw ? Object.keys(acousticsRaw as any) : null);
 
   // Normalize acoustics so Results UI always gets what it expects
   const series = normalizeSeries((acousticsRaw as any)?.series);
