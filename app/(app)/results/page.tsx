@@ -1272,11 +1272,11 @@ return (
 
     {hasNum(acousticsNorm.energyVariation) ? (
       <MetricBar
-  label="Energy variation"
-  value={Math.round(clamp(acousticsNorm?.energyVariation, 0, 10) * 10) / 10}
-  max={10}
-  subtext="Vocal dynamics"
-/>
+          label="Energy variation"
+          value={Math.round(clamp(acousticsNorm?.energyVariation, 0, 10) * 10) / 10}
+          max={10}
+          subtext="Vocal dynamics"
+        />
     ) : null}
 
     {hasNum(acousticsNorm.tempoDynamics) ? (
