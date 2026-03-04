@@ -571,7 +571,7 @@ if (cl && Number(cl) > 40_000) {
 }
 
   try {
-    const { jobDesc, question, transcript } = await req.json();
+    const { jobDesc, question, transcript, deliveryMetrics } = await req.json();
 
     // ---- individual field caps (cost control + memory safety) ----
 if (typeof jobDesc === "string" && jobDesc.length > 12_000) {
@@ -706,6 +706,7 @@ FILLER WORD ANALYSIS (precomputed):
 - words: ${fillerStats.wordCount}
 - fillers_per_100_words: ${fillerStats.fillersPer100Words.toFixed(1)}
 
+
 Use the filler word analysis to influence communication_score:
 
 Guidelines:
@@ -716,6 +717,12 @@ Guidelines:
 
 Filler words should noticeably lower communication_score when frequent, but STAR content should still remain the primary driver of the overall score.
 
+VOICE DELIVERY METRICS (from audio; may be null):
+${deliveryMetrics ? JSON.stringify(deliveryMetrics) : "null"}
+
+Use these delivery metrics to influence scoring:
+- More pauses / long pauses should lower communication_score and confidence_score.
+- Do not let delivery metrics override STAR content; they should adjust scores modestly.
 
 Grade STAR quality:
 - situation/task/action/result are 0-10 based on clarity, specificity, and completeness.
