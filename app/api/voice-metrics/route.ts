@@ -34,6 +34,10 @@ function computePauseMetrics(words: Word[]) {
   };
 }
 
+async function sleep(ms: number) {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
 export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.ASSEMBLYAI_API_KEY;
@@ -44,67 +48,60 @@ export async function POST(req: NextRequest) {
       );
     }
 
- const contentType = req.headers.get("content-type") || "";
+    // ✅ Accept multipart form-data with "audio"
+    const form = await req.formData().catch(() => null);
+    const audio = form?.get("audio");
 
-// Prefer multipart/form-data (your client sends FormData)
-let audioUrl: string | null = null;
+    if (!(audio instanceof File)) {
+      return NextResponse.json(
+        { metrics: null, vendorError: 'Missing "audio" file in form-data' },
+        { status: 400 }
+      );
+    }
 
-if (contentType.includes("multipart/form-data")) {
-  const form = await req.formData();
-  const file = form.get("audio");
+    // 0) Upload audio to AssemblyAI
+    const buf = Buffer.from(await audio.arrayBuffer());
 
-  if (!(file instanceof File)) {
-    return NextResponse.json(
-      { metrics: null, vendorError: "Missing audio file (field name must be 'audio')" },
-      { status: 400 }
-    );
-  }
-
-  // Upload bytes to AssemblyAI
-  const buf = Buffer.from(await file.arrayBuffer());
-
-  const upRes = await fetch("https://api.assemblyai.com/v2/upload", {
-    method: "POST",
-    headers: {
-      authorization: apiKey,
-      "content-type": "application/octet-stream",
-    },
-    body: buf,
-  });
-
-  const upText = await upRes.text();
-  let upJson: any = null;
-  try {
-    upJson = JSON.parse(upText);
-  } catch {
-    upJson = null;
-  }
-
-  if (!upRes.ok) {
-    return NextResponse.json(
-      {
-        metrics: null,
-        vendorError: "Upload Failed",
-        vendorStatus: upRes.status,
-        vendorBody: upJson ?? upText,
+    const uploadRes = await fetch("https://api.assemblyai.com/v2/upload", {
+      method: "POST",
+      headers: {
+        authorization: apiKey,
+        "content-type": "application/octet-stream",
       },
-      { status: 502 }
-    );
-  }
+      body: buf,
+    });
 
-  audioUrl = upJson?.upload_url ?? null;
-} else {
-  // Backwards compatible: allow JSON {audioUrl}
-  const body = await req.json().catch(() => null);
-  audioUrl = body?.audioUrl ?? body?.audio_url ?? null;
-}
+    const uploadText = await uploadRes.text();
+    let uploadJson: any = null;
+    try {
+      uploadJson = JSON.parse(uploadText);
+    } catch {
+      uploadJson = null;
+    }
 
-if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
-  return NextResponse.json(
-    { metrics: null, vendorError: "Missing audio (send FormData field 'audio' or JSON audioUrl)" },
-    { status: 400 }
-  );
-}
+    if (!uploadRes.ok) {
+      return NextResponse.json(
+        {
+          metrics: null,
+          vendorError: "Audio Upload Failed",
+          vendorStatus: uploadRes.status,
+          vendorBody: uploadJson ?? uploadText,
+        },
+        { status: 502 }
+      );
+    }
+
+    const audioUrl = uploadJson?.upload_url;
+    if (typeof audioUrl !== "string" || audioUrl.length < 10) {
+      return NextResponse.json(
+        {
+          metrics: null,
+          vendorError: "Audio Upload Failed (no upload_url returned)",
+          vendorBody: uploadJson ?? uploadText,
+        },
+        { status: 502 }
+      );
+    }
 
     // 1) Create transcript
     const createRes = await fetch("https://api.assemblyai.com/v2/transcript", {
@@ -114,12 +111,12 @@ if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-  audio_url: audioUrl,
-  speech_models: ["universal-2"], // or ["universal-3-pro"] if your plan supports it
-  punctuate: true,
-  format_text: true,
-  disfluencies: true,
-}),
+        audio_url: audioUrl,
+        speech_models: ["universal-2"], // ✅ required by your account right now
+        punctuate: true,
+        format_text: true,
+        disfluencies: true,
+      }),
     });
 
     const createText = await createRes.text();
@@ -159,9 +156,10 @@ if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
     // 2) Poll until completed/failed
     const started = Date.now();
     while (Date.now() - started < 45_000) {
-      const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
-        headers: { authorization: apiKey },
-      });
+      const pollRes = await fetch(
+        `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
+        { headers: { authorization: apiKey } }
+      );
 
       const pollText = await pollRes.text();
       let pollJson: any = null;
@@ -185,12 +183,14 @@ if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
       }
 
       const status = pollJson?.status;
+
       if (status === "completed") {
         const words: Word[] = Array.isArray(pollJson?.words) ? pollJson.words : [];
         const pauses = computePauseMetrics(words);
 
-        // disfluencies can vary by plan; keep safe
-        const disfluencies = Array.isArray(pollJson?.disfluencies) ? pollJson.disfluencies : [];
+        const disfluencies = Array.isArray(pollJson?.disfluencies)
+          ? pollJson.disfluencies
+          : [];
 
         return NextResponse.json({
           metrics: {
@@ -222,8 +222,7 @@ if (typeof audioUrl !== "string" || audioUrl.trim().length < 10) {
         );
       }
 
-      // queued / processing
-      await new Promise((r) => setTimeout(r, 1200));
+      await sleep(1200);
     }
 
     return NextResponse.json(
