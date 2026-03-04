@@ -602,6 +602,36 @@ if (typeof transcript === "string" && transcript.length > 10_000) {
       });
     }
     const fillerStats = countFillers(transcript);
+    // Prefer AssemblyAI filler/disfluency list if available
+const aaiFillers = Array.isArray(deliveryMetrics?.fillers) ? deliveryMetrics.fillers : null;
+
+if (aaiFillers && aaiFillers.length > 0) {
+  // Override totals using vendor-derived disfluencies
+  fillerStats.total = aaiFillers.length;
+
+  // Estimate words if vendor provided words count; else keep transcript-derived wordCount
+  if (typeof deliveryMetrics?.words === "number" && deliveryMetrics.words > 0) {
+    fillerStats.wordCount = deliveryMetrics.words;
+    fillerStats.fillersPer100Words = (fillerStats.total / fillerStats.wordCount) * 100;
+  }
+
+  // Build top fillers list by text
+  const counts = new Map<string, number>();
+  for (const f of aaiFillers) {
+    const t = String(f?.text ?? "").toLowerCase().trim();
+    if (!t) continue;
+    counts.set(t, (counts.get(t) ?? 0) + 1);
+  }
+
+  const top = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([k, n]) => `${k} (${n})`);
+
+  // Replace perFiller map for consistency downstream
+  (fillerStats as any).perFiller = Object.fromEntries(counts.entries());
+  // Replace topFillers source later by using fillerStats.perFiller
+}
     const kw = computeKeywordUsage(jobDesc ?? "", transcript);
     const qa = computeQuestionAlignment(question ?? "", transcript);
 
@@ -970,6 +1000,7 @@ Do not include any extra text outside JSON.
    return new Response(
   JSON.stringify({
     ...json,
+    deliveryMetrics: deliveryMetrics ?? null,
     filler: {
       total: fillerStats.total,
       words: fillerStats.wordCount,
@@ -980,6 +1011,7 @@ Do not include any extra text outside JSON.
     keywords_missing: kw.keywords_missing,
     question_used: qa.question_used,
     question_missing: qa.question_missing,
+
 
   }),
   {
