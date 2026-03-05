@@ -24,6 +24,7 @@ type Body = {
   focusGoal?: string | null;
   jobDesc?: string | null;
   audioId?: string | null;
+  audioPath?: string | null;
   durationSeconds?: number | null;
 
 };
@@ -57,17 +58,21 @@ if (!userId) {
       orderBy: { ts: "desc" },
       take: limit,
       select: {
-        id: true,
-        ts: true,
-        question: true,
-        transcript: true,
-        inputMethod: true,
-        score: true,
-        feedback: true,
-        wpm: true,
-        prosody: true,
-        deliveryMetrics: true,
-      },
+  id: true,
+  ts: true,
+  question: true,
+  transcript: true,
+  inputMethod: true,
+  score: true,
+  feedback: true,
+  wpm: true,
+  prosody: true,
+  deliveryMetrics: true,
+
+  // ✅ needed for replay
+  audioId: true,
+  audioPath: true,
+},
     });
 
     const ip =
@@ -114,6 +119,8 @@ if (!rlUser.ok || !rlIp.ok) {
       feedback: a.feedback as any,
       prosody: a.prosody as any,
       deliveryMetrics: a.deliveryMetrics ?? (a.feedback as any)?.deliveryMetrics ?? null,
+      audioId: a.audioId ?? null,
+audioPath: a.audioPath ?? null,
     }));
 
     const ent = await getAttemptEntitlement(userId);
@@ -262,6 +269,7 @@ const user = rows[0] ?? null;
         focusGoal: body.focusGoal ?? null,
         jobDesc: body.jobDesc ?? null,
         audioId: body.audioId ?? null,
+        audioPath: body.audioPath ?? null,
         durationSeconds:
           typeof body.durationSeconds === "number" ? body.durationSeconds : null,
       },

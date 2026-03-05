@@ -1594,34 +1594,36 @@ audioBlobRef.current = blob;
 // Keep webm for AssemblyAI/transcribe (small + reliable)
 const webmFile = new File([blob], "answer.webm", { type: "audio/webm" });
 // ✅ Upload recording to Supabase Storage (real replay across devices)
+// ✅ Upload recording to Supabase Storage (real replay across devices)
 let audioPath: string | null = null;
 
-if (inputMethod === "spoken" && webmFile) {
-  try {
-    const fd = new FormData();
-    fd.append("audio", webmFile);
+try {
+  const fd = new FormData();
+  fd.append("audio", webmFile);
 
-    // Optional: helps you associate the upload with the attempt later
-    // (your upload route supports this)
-    fd.append("attemptId", String(Date.now()));
+  // Use the attempt UUID you already generated
+  fd.append("attemptId", attemptIdRef.current ?? `attempt_${Date.now()}`);
 
-    const up = await fetch("/api/audio/upload", {
-      method: "POST",
-      body: fd,
-    });
+  const up = await fetch("/api/audio/upload", {
+    method: "POST",
+    body: fd,
+  });
 
-    const uj = await up.json().catch(() => ({}));
+  const uj = await up.json().catch(() => ({}));
 
-    if (up.ok && (typeof uj?.audioPath === "string" || typeof uj?.path === "string")) {
-  const p = uj.audioPath ?? uj.path;
-  audioPath = p;
-  audioPathRef.current = p;
+  // Your upload route returns { audioPath: path }
+  if (up.ok && typeof uj?.audioPath === "string") {
+  audioPath = uj.audioPath;
+
+  // ✅ persist for the later "save attempt" step
+  audioPathRef.current = audioPath;
+
+  console.log("[audio/upload] OK:", audioPath);
 } else {
-  console.warn("audio upload failed:", uj);
+  console.warn("[audio/upload] failed:", uj);
 }
-  } catch (e) {
-    console.warn("audio upload error:", e);
-  }
+} catch (e) {
+  console.warn("audio upload error:", e);
 }
 // Convert to WAV for Python acoustics (avoids ffmpeg/webm decode issues on Render)
 let wavFile: File | null = null;
@@ -1760,8 +1762,13 @@ function stopRecording() {
 
   setRecording(false);
 
-  mr.stop();
-  mediaRecorderRef.current = null;
+  // ✅ ensure last chunk is flushed before stop
+try {
+  mr.requestData();
+} catch {}
+
+mr.stop();
+mediaRecorderRef.current = null;
 }
 
 async function analyzeAnswer() {
@@ -1960,22 +1967,24 @@ try {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      ts: entry.ts,
-      question: entry.question,
-      transcript: entry.transcript,
-      inputMethod: entry.inputMethod,
-      wpm: entry.wpm,
-      prosody: entry.prosody,
-      deliveryMetrics: entry.deliveryMetrics ?? null,
-      feedback: entry.feedback,
-      score: entry.score,
-      communication_score: entry.communication_score,
-      confidence_score: entry.confidence_score,
-      focusGoal: entry.focusGoal ?? null,
-      jobDesc: entry.jobDesc ?? null,
-      audioPath: (entry as any).audioPath ?? null,
-      durationSeconds: durationSeconds ?? null,
-    }),
+  ts: entry.ts,
+  question: entry.question,
+  transcript: entry.transcript,
+  inputMethod: entry.inputMethod,
+  wpm: entry.wpm,
+  prosody: entry.prosody,
+  deliveryMetrics: entry.deliveryMetrics ?? null,
+  feedback: entry.feedback,
+  score: entry.score,
+  communication_score: entry.communication_score,
+  confidence_score: entry.confidence_score,
+  focusGoal: entry.focusGoal ?? null,
+  jobDesc: entry.jobDesc ?? null,
+
+  audioId: entry.audioId ?? null,
+audioPath: entry.audioPath ?? null,
+durationSeconds: durationSeconds ?? null,
+}),
   });
 
   const data = await res.json().catch(() => null);

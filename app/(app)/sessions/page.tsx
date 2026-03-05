@@ -13,6 +13,7 @@ type Attempt = {
   question?: string;
   inputMethod?: "spoken" | "pasted";
   score?: number;
+  audioId?: string | null;
   audioPath?: string | null;
 
   transcript?: string;
@@ -89,7 +90,7 @@ export default function SessionsPage() {
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
 const [audioUrlById, setAudioUrlById] = useState<Record<string, string>>({});
-
+const [signedUrlByPath, setSignedUrlByPath] = useState<Record<string, string>>({});
   const [history, setHistory] = useState<Attempt[]>([]);
   const [filter, setFilter] = useState<"all" | "spoken" | "pasted">("all");
 useEffect(() => {
@@ -213,6 +214,20 @@ async function clearHistory() {
       await fetch(`/api/attempts`, { method: "DELETE" });
     } catch {}
   }
+}
+
+async function ensureSignedUrl(path: string) {
+  if (signedUrlByPath[path]) return;
+
+  const res = await fetch(`/api/audio/signed-url?path=${encodeURIComponent(path)}`);
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok || typeof data?.signedUrl !== "string") {
+    console.warn("[audio/signed-url] failed", data);
+    return;
+  }
+
+  setSignedUrlByPath((prev) => ({ ...prev, [path]: data.signedUrl }));
 }
 
 async function ensureAudioUrl(audioId: string) {
@@ -385,29 +400,70 @@ async function ensureAudioUrl(audioId: string) {
                         {formatDate(attempt.ts)}
                       </div>
 
-                      {attempt.inputMethod === "spoken" && attempt.audioPath ? (
+                      {attempt.inputMethod === "spoken" ? (
   <div style={{ marginTop: 10 }}>
-    {!audioUrlById[attempt.audioPath!] ? (
-      <button
-        type="button"
-        onClick={(e) => {
-  e.stopPropagation();
-  ensureAudioUrl(attempt.audioPath!);
-}}
-        style={{
-          padding: "8px 12px",
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.14)",
-          background: "rgba(255,255,255,0.05)",
-          color: "#E5E7EB",
-          fontWeight: 800,
-          cursor: "pointer",
-        }}
-      >
-        Load recording
-      </button>
+    {/* ✅ Preferred: cross-device replay via Supabase signed URL */}
+    {attempt.audioPath ? (
+      !signedUrlByPath[attempt.audioPath] ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            ensureSignedUrl(attempt.audioPath!);
+          }}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.14)",
+            background: "rgba(255,255,255,0.05)",
+            color: "#E5E7EB",
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          Load recording
+        </button>
+      ) : (
+        <audio
+          controls
+          preload="none"
+          src={signedUrlByPath[attempt.audioPath]}
+          style={{ width: "100%" }}
+        />
+      )
+    ) : attempt.audioId ? (
+      /* Fallback: same-device replay via IndexedDB */
+      !audioUrlById[attempt.audioId] ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            ensureAudioUrl(attempt.audioId!);
+          }}
+          style={{
+            padding: "8px 12px",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.14)",
+            background: "rgba(255,255,255,0.05)",
+            color: "#E5E7EB",
+            fontWeight: 800,
+            cursor: "pointer",
+          }}
+        >
+          Load recording (this device)
+        </button>
+      ) : (
+        <audio
+          controls
+          preload="none"
+          src={audioUrlById[attempt.audioId]}
+          style={{ width: "100%" }}
+        />
+      )
     ) : (
-      <audio controls preload="none" src={audioUrlById[attempt.audioPath!]} style={{ width: "100%" }} />
+      <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+        No recording attached to this attempt.
+      </div>
     )}
   </div>
 ) : null}
