@@ -48,6 +48,8 @@ type StoredResult = {
   } | null;
   prosody?: Prosody | null;
   feedback: any;
+  audioId?: string | null;
+inputMethod?: "spoken" | "pasted";
 };
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -57,6 +59,30 @@ function safeJSONParse<T>(raw: string | null, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+const AUDIO_DB = "ipc_audio_db";
+const AUDIO_STORE = "audio";
+
+function openAudioDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(AUDIO_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(AUDIO_STORE)) db.createObjectStore(AUDIO_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbGetAudio(id: string): Promise<Blob | null> {
+  const db = await openAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(AUDIO_STORE, "readonly");
+    const req = tx.objectStore(AUDIO_STORE).get(id);
+    req.onsuccess = () => resolve((req.result as Blob) ?? null);
+    req.onerror = () => reject(req.error);
+  });
 }
 
 function mulberry32(seed: number) {
@@ -248,6 +274,7 @@ function SectionCard({
         }}
       >
         <span>{title}</span>
+        
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
           {typeof badgeValue === "number" && Number.isFinite(badgeValue) ? (
@@ -520,7 +547,7 @@ export default function ResultsPage() {
   const router = useRouter();
   const [stored, setStored] = useState<StoredResult | null>(null);
   const { data: session, status } = useSession();
-
+const [replayUrl, setReplayUrl] = useState<string | null>(null);
 const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
 const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
 
@@ -529,14 +556,20 @@ useEffect(() => {
 
 
   try {
-    const selectedRaw =
-      sessionStorage.getItem(SELECTED_KEY) ||
-      localStorage.getItem(SELECTED_KEY);
+    const fromPractice = sessionStorage.getItem("ipc_from_practice") === "1";
 
-    if (selectedRaw) {
-      setStored(JSON.parse(selectedRaw));
-      return;
-    }
+if (fromPractice) {
+  sessionStorage.removeItem("ipc_from_practice");
+} else {
+  const selectedRaw =
+    sessionStorage.getItem(SELECTED_KEY) ||
+    localStorage.getItem(SELECTED_KEY);
+
+  if (selectedRaw) {
+    setStored(JSON.parse(selectedRaw));
+    return;
+  }
+}
 
     const raw =
       sessionStorage.getItem(LAST_RESULT_KEY) ||
@@ -585,7 +618,10 @@ const scoreFromStd = (std: number | null, cap: number) =>
   std === null ? null : clamp((std / cap) * 10, 0, 10);
 
 const seriesNorm: ProsodySeries | null = (() => {
-  const s = (acoustics as any)?.series;
+  const s =
+  (acoustics as any)?.series?.t
+    ? (acoustics as any).series
+    : (acoustics as any)?.series?.series;
   if (!s) return null;
 
   const t = Array.isArray(s.t) ? s.t.map(Number) : [];
@@ -643,6 +679,41 @@ const starMissingList = useMemo(() => {
   const raw = Array.isArray(feedback?.star_missing) ? (feedback.star_missing as any[]) : [];
   return raw.map((s) => String(s).toLowerCase());
 }, [feedback]);
+
+useEffect(() => {
+  let cancelled = false;
+  let urlToRevoke: string | null = null;
+
+  async function load() {
+    try {
+      // clear old
+      setReplayUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+
+      if (!stored?.audioId) return;
+
+      const blob = await idbGetAudio(stored.audioId);
+      if (!blob || cancelled) return;
+
+      const url = URL.createObjectURL(blob);
+      urlToRevoke = url;
+      setReplayUrl(url);
+    } catch {}
+  }
+
+  load();
+
+  return () => {
+    cancelled = true;
+    if (urlToRevoke) {
+      try {
+        URL.revokeObjectURL(urlToRevoke);
+      } catch {}
+    }
+  };
+}, [stored?.audioId]);
 
   const insightBullets = useMemo(() => {
   if (!stored || !feedback) return null;
@@ -900,7 +971,15 @@ return (
           {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : ""}
         </div>
       </div>
-
+{stored?.audioId ? (
+  <div style={{ marginTop: 12 }}>
+    {replayUrl ? (
+      <audio controls preload="none" src={replayUrl} style={{ width: "100%" }} />
+    ) : (
+      <div style={{ color: "#9CA3AF", fontSize: 13 }}>Loading recording…</div>
+    )}
+  </div>
+) : null}
       {/* keep the rest of your existing Results JSX exactly the same below this line */}
 
 

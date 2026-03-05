@@ -88,6 +88,8 @@ model Attempt {
   updatedAt          DateTime  @updatedAt
   deletedAt          DateTime?
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audioUrl   String? 
+audioMime  String?
 
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])

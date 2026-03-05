@@ -1607,19 +1607,33 @@ try {
 const fileForTranscribe = webmFile;
 const fileForAcoustics = wavFile ?? webmFile;
 
-// ✅ Save WAV for replay in UI (store object URL)
+// ✅ Save audio for replay (object URL + IndexedDB)
 if (wavUrlRef.current) {
   URL.revokeObjectURL(wavUrlRef.current);
   wavUrlRef.current = null;
 }
 
+let replayBlob: Blob | null = null;
+
+// Prefer WAV for replay if available, else fall back to the original webm blob
 if (wavFile) {
   const wavBlobForReplay = new Blob([await wavFile.arrayBuffer()], { type: "audio/wav" });
+  replayBlob = wavBlobForReplay;
+
   wavBlobRef.current = wavBlobForReplay;
   wavUrlRef.current = URL.createObjectURL(wavBlobForReplay);
 } else {
+  replayBlob = blob;
+
   wavBlobRef.current = null;
   wavUrlRef.current = null;
+}
+
+// ✅ Persist replay audio for Sessions/Results (keyed by audioId)
+const audioId = attemptIdRef.current;
+if (audioId && replayBlob) {
+  // don't block the UI if IDB is slow/blocked
+  idbPutAudio(audioId, replayBlob).catch(() => {});
 }
 
 // --- Kick off voice metrics in parallel (DON'T await here) ---
@@ -1897,6 +1911,8 @@ try {
   // ✅ IMPORTANT: override any old selected attempt so Results shows THIS run
   sessionStorage.setItem(SELECTED_KEY, json);
   localStorage.setItem(SELECTED_KEY, json);
+  // ✅ Tell /results to ignore any stale "selected attempt" and show this run
+sessionStorage.setItem("ipc_from_practice", "1");
 } catch {}
 
 // ✅ Save to DB (best-effort)

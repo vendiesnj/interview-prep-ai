@@ -13,6 +13,7 @@ type Attempt = {
   question?: string;
   inputMethod?: "spoken" | "pasted";
   score?: number;
+  audioId?: string | null;
 
   transcript?: string;
   wpm?: number | null;
@@ -40,6 +41,32 @@ function formatDate(ts?: number) {
   return new Date(ts).toLocaleString();
 }
 
+// --- IndexedDB helpers for audio replay ---
+const AUDIO_DB = "ipc_audio_db";
+const AUDIO_STORE = "audio";
+
+function openAudioDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(AUDIO_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(AUDIO_STORE)) db.createObjectStore(AUDIO_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbGetAudio(id: string): Promise<Blob | null> {
+  const db = await openAudioDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(AUDIO_STORE, "readonly");
+    const req = tx.objectStore(AUDIO_STORE).get(id);
+    req.onsuccess = () => resolve((req.result as Blob) ?? null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
 export default function SessionsPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -51,7 +78,7 @@ export default function SessionsPage() {
   const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
-
+const [audioUrlById, setAudioUrlById] = useState<Record<string, string>>({});
 
   const [history, setHistory] = useState<Attempt[]>([]);
   const [filter, setFilter] = useState<"all" | "spoken" | "pasted">("all");
@@ -176,6 +203,16 @@ async function clearHistory() {
       await fetch(`/api/attempts`, { method: "DELETE" });
     } catch {}
   }
+}
+
+async function ensureAudioUrl(audioId: string) {
+  if (audioUrlById[audioId]) return;
+
+  const blob = await idbGetAudio(audioId);
+  if (!blob) return;
+
+  const url = URL.createObjectURL(blob);
+  setAudioUrlById((prev) => ({ ...prev, [audioId]: url }));
 }
 
   return (
@@ -334,6 +371,30 @@ async function clearHistory() {
                         {attempt.inputMethod ?? "unknown"} •{" "}
                         {formatDate(attempt.ts)}
                       </div>
+
+                      {attempt.inputMethod === "spoken" && attempt.audioId ? (
+  <div style={{ marginTop: 10 }}>
+    {!audioUrlById[attempt.audioId] ? (
+      <button
+        type="button"
+        onClick={() => ensureAudioUrl(attempt.audioId!)}
+        style={{
+          padding: "8px 12px",
+          borderRadius: 12,
+          border: "1px solid rgba(255,255,255,0.14)",
+          background: "rgba(255,255,255,0.05)",
+          color: "#E5E7EB",
+          fontWeight: 800,
+          cursor: "pointer",
+        }}
+      >
+        Load recording
+      </button>
+    ) : (
+      <audio controls preload="none" src={audioUrlById[attempt.audioId]} style={{ width: "100%" }} />
+    )}
+  </div>
+) : null}
 
                       <button
                         onClick={(e) => {
