@@ -42,11 +42,15 @@ async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {
       body: fd,
     });
 
-    if (!res.ok) return null;
-
+    if (!res.ok) {
+  const text = await res.text().catch(() => "");
+  console.error("ACOUSTICS ERROR:", res.status, text);
+  return null;
+}
     const json = (await res.json()) as AcousticMetrics;
     return json ?? null;
-  } catch {
+  } catch (e) {
+    console.error("ACOUSTICS FETCH EXCEPTION:", e);
     return null;
   }
 }

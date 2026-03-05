@@ -1674,11 +1674,13 @@ progressTimerRef.current = window.setInterval(() => {
 
 const audioBlob = audioBlobRef.current;
 
+// If you already call /api/voice-metrics in mr.onstop, DON'T call it again here.
+// Just use whatever is already in voiceMetricsRef.current.
 if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
+  // Optional: only run if metrics aren't set yet
   try {
     const fd = new FormData();
-    const wavFile = await blobToWavFile(audioBlob, "answer.wav");
-    fd.append("audio", wavFile);
+    fd.append("audio", audioBlob, "answer.webm");
 
     const vmRes = await fetch("/api/voice-metrics", { method: "POST", body: fd });
     const vmJson = await vmRes.json().catch(() => null);
