@@ -61,7 +61,7 @@ async def analyze(audio: UploadFile = File(...)):
             tmp.write(raw)
             tmp_path = tmp.name
 
-        y, sr = librosa.load(tmp_path, sr=None, mono=True)
+        y, sr = librosa.load(tmp_path, sr=16000, mono=True)
 
         if y is None or sr is None or len(y) < int(sr * 0.25):  # < 250ms
             raise ValueError("Audio too short or failed to decode")

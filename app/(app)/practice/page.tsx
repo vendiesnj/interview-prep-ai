@@ -431,6 +431,9 @@ const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(n
   remaining: number;
 };
 
+const [postRecordLoading, setPostRecordLoading] = useState(false);
+const [postRecordStage, setPostRecordStage] = useState<string>("Preparing…");
+
   const [entitlement, setEntitlement] = useState<AttemptEntitlement | null>(null);
   const [recording, setRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -438,6 +441,7 @@ const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(n
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioBlobRef = useRef<Blob | null>(null);
   const voiceMetricsRef = useRef<any>(null);
+  const voiceMetricsPromiseRef = useRef<Promise<any> | null>(null);
 
   const wavBlobRef = useRef<Blob | null>(null);
 const wavUrlRef = useRef<string | null>(null);
@@ -678,7 +682,10 @@ const focusCopy: Record<FocusGoal, { title: string; tip: string }> = {
 
 const analyzeDisabled =
   feedbackLoading ||
+  postRecordLoading ||
   !transcript.trim();
+
+
   const [prosody, setProsody] = useState<null | {
   pitchStdHz: number;
   energyStd: number;
@@ -1563,6 +1570,8 @@ async function startRecording() {
     };
 
     mr.onstop = async () => {
+      setPostRecordLoading(true);
+setPostRecordStage("Preparing audio…");
     
       const durationSeconds =
       recordingStartRef.current
@@ -1613,31 +1622,36 @@ if (wavFile) {
   wavUrlRef.current = null;
 }
 
-// --- Vendor voice metrics (best-effort) ---
+// --- Kick off voice metrics in parallel (DON'T await here) ---
+setPostRecordStage("Computing voice metrics…");
+
 voiceMetricsRef.current = null;
+voiceMetricsPromiseRef.current = (async () => {
+  try {
+    const vmForm = new FormData();
+    vmForm.append("audio", fileForAcoustics);
 
-try {
-  const vmForm = new FormData();
-  vmForm.append("audio", fileForAcoustics);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 120_000);
 
-  // your server route can take a while; 12s is too low
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 120_000);
+    const vmRes = await fetch("/api/voice-metrics", {
+      method: "POST",
+      body: vmForm,
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
 
-  const vmRes = await fetch("/api/voice-metrics", {
-    method: "POST",
-    body: vmForm,
-    signal: controller.signal,
-  }).finally(() => clearTimeout(timeout));
+    const vmJson = await vmRes.json().catch(() => null);
+    console.log("voice-metrics response", vmRes.status, vmJson);
 
-  const vmJson = await vmRes.json().catch(() => null);
-  console.log("voice-metrics response", vmRes.status, vmJson);
-
-  voiceMetricsRef.current = vmJson?.metrics ?? null;
-} catch (e) {
-  console.warn("voice-metrics failed", e);
-  voiceMetricsRef.current = null;
-}
+    const metrics = vmJson?.metrics ?? null;
+    voiceMetricsRef.current = metrics;
+    return vmJson;
+  } catch (e) {
+    console.warn("voice-metrics failed", e);
+    voiceMetricsRef.current = null;
+    return null;
+  }
+})();
 
 // ---- any later transcription form code must use fileForTranscribe ----
 const startedAt = recordingStartRef.current;
@@ -1645,6 +1659,7 @@ const durSeconds =
   typeof startedAt === "number" ? Math.max(0.1, (Date.now() - startedAt) / 1000) : null;
 
 setDurationSeconds(durSeconds);
+setPostRecordStage("Transcribing…");
 
 const form = new FormData();
 form.append("audio", fileForTranscribe);
@@ -1660,23 +1675,28 @@ const res = await fetch("/api/transcribe", {
         const data = await res.json();
 
         if (!res.ok) {
-          setVoiceError(data?.error ?? "Transcription failed.");
-          return;
-        }
+  setVoiceError(data?.error ?? "Transcription failed.");
+  setPostRecordLoading(false);
+  return;
+}
 
         const text = data.text ?? "";
 
 setTranscript(text);
+setPostRecordLoading(false);
 setDurationSeconds(typeof data.durationSeconds === "number" ? data.durationSeconds : null);
 
 // mark as spoken
 setInputMethod("spoken");
 lastTranscribedRef.current = text;
+setPostRecordLoading(false);
 
         
-      } catch {
-        setVoiceError("Upload/transcription failed.");
-      }
+      } catch (e) {
+  console.error("onstop pipeline failed:", e);
+  setVoiceError("Upload/transcription failed.");
+  setPostRecordLoading(false);
+}
     };
     recordingStartRef.current = Date.now();
     mr.start();
