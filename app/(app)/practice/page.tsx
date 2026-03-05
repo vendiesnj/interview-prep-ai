@@ -1164,6 +1164,63 @@ async function analyzeProsodyFromBlob(blob: Blob) {
   };
 }
 
+function encodeWavMono16(samples: Float32Array, sampleRate: number): ArrayBuffer {
+  const numFrames = samples.length;
+  const bytesPerSample = 2;
+  const blockAlign = bytesPerSample * 1;
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = numFrames * bytesPerSample;
+
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  let offset = 0;
+  const writeString = (s: string) => {
+    for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
+    offset += s.length;
+  };
+
+  writeString("RIFF");
+  view.setUint32(offset, 36 + dataSize, true); offset += 4;
+  writeString("WAVE");
+
+  writeString("fmt ");
+  view.setUint32(offset, 16, true); offset += 4;          // PCM header size
+  view.setUint16(offset, 1, true); offset += 2;           // format = PCM
+  view.setUint16(offset, 1, true); offset += 2;           // channels = 1
+  view.setUint32(offset, sampleRate, true); offset += 4;
+  view.setUint32(offset, byteRate, true); offset += 4;
+  view.setUint16(offset, blockAlign, true); offset += 2;
+  view.setUint16(offset, 16, true); offset += 2;          // bits/sample
+
+  writeString("data");
+  view.setUint32(offset, dataSize, true); offset += 4;
+
+  // Float32 [-1..1] -> Int16
+  let p = 44;
+  for (let i = 0; i < samples.length; i++) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    view.setInt16(p, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    p += 2;
+  }
+
+  return buffer;
+}
+
+async function blobToWavFile(blob: Blob, filename = "answer.wav"): Promise<File> {
+  const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  const arrayBuf = await blob.arrayBuffer();
+  const audioBuf = await audioCtx.decodeAudioData(arrayBuf);
+
+  // mono
+  const channel = audioBuf.getChannelData(0);
+  const wav = encodeWavMono16(channel, audioBuf.sampleRate);
+
+  try { await audioCtx.close(); } catch {}
+
+  return new File([wav], filename, { type: "audio/wav" });
+}
+
 useEffect(() => {
   let cancelled = false;
 
@@ -1475,6 +1532,7 @@ try {
       // --- Vendor voice metrics (best-effort; never blocks analysis) ---
 voiceMetricsRef.current = null;
 
+const wavFile = await blobToWavFile(blob, "answer.wav");
 try {
   const vmForm = new FormData();
   vmForm.append("audio", file);
@@ -1616,13 +1674,11 @@ progressTimerRef.current = window.setInterval(() => {
 
 const audioBlob = audioBlobRef.current;
 
-// If you already call /api/voice-metrics in mr.onstop, DON'T call it again here.
-// Just use whatever is already in voiceMetricsRef.current.
 if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
-  // Optional: only run if metrics aren't set yet
   try {
     const fd = new FormData();
-    fd.append("audio", audioBlob, "answer.webm");
+    const wavFile = await blobToWavFile(audioBlob, "answer.wav");
+    fd.append("audio", wavFile);
 
     const vmRes = await fetch("/api/voice-metrics", { method: "POST", body: fd });
     const vmJson = await vmRes.json().catch(() => null);
