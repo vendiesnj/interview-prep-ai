@@ -108,6 +108,42 @@ function paceContext(wpm: number) {
   };
 }
 
+function monotoneContext(score: number) {
+  if (score <= 3) return "Expressive (great)";
+  if (score <= 6) return "Moderate (good)";
+  return "Flat (work on variation)";
+}
+
+function energyVarContext(score: number) {
+  if (score < 3) return "Low energy variation";
+  if (score <= 7) return "Healthy dynamics";
+  return "Very dynamic (watch consistency)";
+}
+
+function tempoDynContext(score: number) {
+  if (score < 3) return "Very steady pacing";
+  if (score <= 7) return "Natural pacing variety";
+  return "Highly variable pacing";
+}
+
+function pitchRangeContext(hz: number) {
+  if (hz < 80) return "Narrow range (can sound flat)";
+  if (hz <= 180) return "Good range (natural)";
+  return "Wide range (very expressive)";
+}
+
+function tempoContext(bpm: number) {
+  if (bpm < 90) return "Slow cadence";
+  if (bpm <= 140) return "Normal cadence";
+  return "Fast cadence";
+}
+
+function pitchStdContext(hz: number) {
+  if (hz < 10) return "Low variation";
+  if (hz <= 30) return "Good variation";
+  return "High variation";
+}
+
 function gradeFromScore(score: number) {
   if (score >= 9) return { grade: "A+", label: "Excellent" };
   if (score >= 8) return { grade: "A", label: "Strong" };
@@ -1267,7 +1303,7 @@ return (
         label="Monotone score"
         value={clamp(acousticsNorm.monotoneScore, 0, 10)}
         max={10}
-        subtext="Lower is better"
+        subtext={monotoneContext(acousticsNorm.monotoneScore)}
       />
     ) : null}
 
@@ -1276,7 +1312,7 @@ return (
           label="Energy variation"
           value={Math.round(clamp(acousticsNorm?.energyVariation, 0, 10) * 10) / 10}
           max={10}
-          subtext="Vocal dynamics"
+          subtext={energyVarContext(acousticsNorm.energyVariation ?? 0)}
         />
     ) : null}
 
@@ -1285,7 +1321,7 @@ return (
         label="Tempo dynamics"
         value={clamp(acousticsNorm.tempoDynamics, 0, 10)}
         max={10}
-        subtext="Pacing variety"
+        subtext={tempoDynContext(acousticsNorm.tempoDynamics)}
       />
     ) : null}
 
@@ -1294,9 +1330,27 @@ return (
         label="Pitch range"
         value={Math.round(acousticsNorm.pitchRange)}
         max={200}
-        subtext="Hz range"
+        subtext={pitchRangeContext(acousticsNorm.pitchRange)}
       />
     ) : null}
+    {hasNum(acousticsNorm.tempo) ? (
+  <MetricBar
+    label="Tempo"
+    value={Math.round(acousticsNorm.tempo)}
+    max={200}
+    subtext={`${tempoContext(acousticsNorm.tempo)} (BPM)`}
+  />
+) : null}
+
+{hasNum(acousticsNorm.pitchStd) ? (
+  <MetricBar
+    label="Pitch variety"
+    value={Math.round(acousticsNorm.pitchStd)}
+    max={60}
+    subtext={`${pitchStdContext(acousticsNorm.pitchStd)} (std dev Hz)`}
+  />
+) : null}
+
   </div>
 ) : null}
 
