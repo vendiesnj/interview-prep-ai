@@ -13,7 +13,7 @@ type Attempt = {
   question?: string;
   inputMethod?: "spoken" | "pasted";
   score?: number;
-  audioId?: string | null;
+  audioPath?: string | null;
 
   transcript?: string;
   wpm?: number | null;
@@ -64,6 +64,16 @@ async function idbGetAudio(id: string): Promise<Blob | null> {
     const req = tx.objectStore(AUDIO_STORE).get(id);
     req.onsuccess = () => resolve((req.result as Blob) ?? null);
     req.onerror = () => reject(req.error);
+  });
+}
+
+async function idbPutAudio(id: string, blob: Blob): Promise<void> {
+  const db = await openAudioDB();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(AUDIO_STORE, "readwrite");
+    tx.objectStore(AUDIO_STORE).put(blob, id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 }
 
@@ -306,6 +316,9 @@ async function ensureAudioUrl(audioId: string) {
                           wpm: typeof attempt.wpm === "number" ? attempt.wpm : null,
                           prosody: attempt.prosody ?? null,
                           feedback: attempt.feedback ?? null,
+                          
+                          audioId: attempt.audioPath ?? null,
+                          inputMethod: attempt.inputMethod ?? "pasted",
 
                           jobDesc: (attempt as any).jobDesc ?? "",
                           questions: Array.isArray((attempt as any).questions) ? (attempt as any).questions : [],
@@ -372,12 +385,15 @@ async function ensureAudioUrl(audioId: string) {
                         {formatDate(attempt.ts)}
                       </div>
 
-                      {attempt.inputMethod === "spoken" && attempt.audioId ? (
+                      {attempt.inputMethod === "spoken" && attempt.audioPath ? (
   <div style={{ marginTop: 10 }}>
-    {!audioUrlById[attempt.audioId] ? (
+    {!audioUrlById[attempt.audioPath!] ? (
       <button
         type="button"
-        onClick={() => ensureAudioUrl(attempt.audioId!)}
+        onClick={(e) => {
+  e.stopPropagation();
+  ensureAudioUrl(attempt.audioPath!);
+}}
         style={{
           padding: "8px 12px",
           borderRadius: 12,
@@ -391,7 +407,7 @@ async function ensureAudioUrl(audioId: string) {
         Load recording
       </button>
     ) : (
-      <audio controls preload="none" src={audioUrlById[attempt.audioId]} style={{ width: "100%" }} />
+      <audio controls preload="none" src={audioUrlById[attempt.audioPath!]} style={{ width: "100%" }} />
     )}
   </div>
 ) : null}

@@ -88,9 +88,9 @@ model Attempt {
   updatedAt          DateTime  @updatedAt
   deletedAt          DateTime?
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  audioUrl   String? 
-audioMime  String?
-
+  audioUrl           String? 
+  audioMime          String?
+  audioPath          String?
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])
   @@index([userId, deletedAt])
@@ -127,4 +127,10 @@ model PasswordResetToken {
 
   @@index([userId, createdAt])
   @@index([expiresAt])
+}
+
+datasource db {
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }

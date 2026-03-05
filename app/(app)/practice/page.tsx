@@ -452,6 +452,7 @@ const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null);
 const animationRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const attemptIdRef = useRef<string | null>(null);
+  const audioPathRef = useRef<string | null>(null); // ✅ Supabase Storage path for replay across devices
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   type TrendMetric = "overall" | "communication" | "confidence" | "pace" | "fillers" | "star_result" | "vocal_variety";
@@ -1547,7 +1548,7 @@ async function startRecording() {
   setDurationSeconds(null);
 
   attemptIdRef.current = crypto.randomUUID();
-
+audioPathRef.current = null; // reset each attempt
   const chunks: BlobPart[] = [];
 
   try {
@@ -1592,7 +1593,35 @@ audioBlobRef.current = blob;
 
 // Keep webm for AssemblyAI/transcribe (small + reliable)
 const webmFile = new File([blob], "answer.webm", { type: "audio/webm" });
+// ✅ Upload recording to Supabase Storage (real replay across devices)
+let audioPath: string | null = null;
 
+if (inputMethod === "spoken" && webmFile) {
+  try {
+    const fd = new FormData();
+    fd.append("audio", webmFile);
+
+    // Optional: helps you associate the upload with the attempt later
+    // (your upload route supports this)
+    fd.append("attemptId", String(Date.now()));
+
+    const up = await fetch("/api/audio/upload", {
+      method: "POST",
+      body: fd,
+    });
+
+    const uj = await up.json().catch(() => ({}));
+
+    if (up.ok && typeof uj?.path === "string") {
+      audioPath = uj.path;
+      audioPathRef.current = uj.path;
+    } else {
+      console.warn("audio upload failed:", uj);
+    }
+  } catch (e) {
+    console.warn("audio upload error:", e);
+  }
+}
 // Convert to WAV for Python acoustics (avoids ffmpeg/webm decode issues on Render)
 let wavFile: File | null = null;
 try {
@@ -1838,14 +1867,20 @@ if (!res.ok) {
 
     setFeedback(data);
 
-    const entry = {
+  const entry = {
   id: crypto.randomUUID(),
   ts: Date.now(),
   question: selectedQuestion || "",
   transcript,
   wpm: inputMethod === "spoken" ? wpm : null,
   inputMethod,
+
+  // ✅ local replay id (IndexedDB) — keep if you still want same-device replay
   audioId: inputMethod === "spoken" ? attemptIdRef.current : null,
+
+  // ✅ cross-device replay (Supabase Storage)
+  audioPath: inputMethod === "spoken" ? audioPathRef.current : null,
+
   prosody,
   feedback: data,
   score: data.score,
@@ -1856,7 +1891,6 @@ if (!res.ok) {
   questions,
   questionBuckets,
   deliveryMetrics: voiceMetricsRef.current ?? null,
-
 };
 
 
@@ -1915,6 +1949,8 @@ try {
 sessionStorage.setItem("ipc_from_practice", "1");
 } catch {}
 
+
+
 // ✅ Save to DB (best-effort)
 try {
 
@@ -1936,7 +1972,7 @@ try {
       confidence_score: entry.confidence_score,
       focusGoal: entry.focusGoal ?? null,
       jobDesc: entry.jobDesc ?? null,
-      audioId: entry.audioId ?? null,
+      audioPath: (entry as any).audioPath ?? null,
       durationSeconds: durationSeconds ?? null,
     }),
   });
