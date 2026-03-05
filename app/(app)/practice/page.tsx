@@ -442,6 +442,7 @@ const [postRecordStage, setPostRecordStage] = useState<string>("Preparing…");
   const audioBlobRef = useRef<Blob | null>(null);
   const voiceMetricsRef = useRef<any>(null);
   const voiceMetricsPromiseRef = useRef<Promise<any> | null>(null);
+  const audioUploadPromiseRef = useRef<Promise<void> | null>(null);
 
   const wavBlobRef = useRef<Blob | null>(null);
 const wavUrlRef = useRef<string | null>(null);
@@ -1593,38 +1594,36 @@ audioBlobRef.current = blob;
 
 // Keep webm for AssemblyAI/transcribe (small + reliable)
 const webmFile = new File([blob], "answer.webm", { type: "audio/webm" });
+
 // ✅ Upload recording to Supabase Storage (real replay across devices)
-// ✅ Upload recording to Supabase Storage (real replay across devices)
-let audioPath: string | null = null;
+// Store the upload as a Promise so analyzeAnswer() can wait for it
+audioUploadPromiseRef.current = (async () => {
+  try {
+    const fd = new FormData();
+    fd.append("audio", webmFile);
 
-try {
-  const fd = new FormData();
-  fd.append("audio", webmFile);
+    // Use the attempt UUID you already generated
+    fd.append("attemptId", attemptIdRef.current ?? `attempt_${Date.now()}`);
 
-  // Use the attempt UUID you already generated
-  fd.append("attemptId", attemptIdRef.current ?? `attempt_${Date.now()}`);
+    const up = await fetch("/api/audio/upload", {
+      method: "POST",
+      body: fd,
+    });
 
-  const up = await fetch("/api/audio/upload", {
-    method: "POST",
-    body: fd,
-  });
+    const uj = await up.json().catch(() => ({}));
 
-  const uj = await up.json().catch(() => ({}));
+    // Your upload route returns { audioPath: path }
+    if (up.ok && typeof uj?.audioPath === "string") {
+      audioPathRef.current = uj.audioPath;
+      console.log("[audio/upload] OK:", uj.audioPath);
+    } else {
+      console.warn("[audio/upload] failed:", uj);
+    }
+  } catch (e) {
+    console.warn("[audio/upload] error:", e);
+  }
+})();
 
-  // Your upload route returns { audioPath: path }
-  if (up.ok && typeof uj?.audioPath === "string") {
-  audioPath = uj.audioPath;
-
-  // ✅ persist for the later "save attempt" step
-  audioPathRef.current = audioPath;
-
-  console.log("[audio/upload] OK:", audioPath);
-} else {
-  console.warn("[audio/upload] failed:", uj);
-}
-} catch (e) {
-  console.warn("audio upload error:", e);
-}
 // Convert to WAV for Python acoustics (avoids ffmpeg/webm decode issues on Render)
 let wavFile: File | null = null;
 try {
@@ -1962,7 +1961,10 @@ sessionStorage.setItem("ipc_from_practice", "1");
 // ✅ Save to DB (best-effort)
 try {
 
-
+if (audioUploadPromiseRef.current) {
+  console.log("[audio/upload] waiting before saving attempt…");
+  await audioUploadPromiseRef.current;
+}
   const res = await fetch("/api/attempts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
