@@ -438,6 +438,9 @@ const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(n
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioBlobRef = useRef<Blob | null>(null);
   const voiceMetricsRef = useRef<any>(null);
+
+  const wavBlobRef = useRef<Blob | null>(null);
+const wavUrlRef = useRef<string | null>(null);
   // --- Live waveform ---
 const analyserRef = useRef<AnalyserNode | null>(null);
 const audioCtxRef = useRef<AudioContext | null>(null);
@@ -1452,6 +1455,79 @@ function cleanupWaveform() {
   audioCtxRef.current = null;
 }
 
+function audioBufferToWav(buffer: AudioBuffer): Blob {
+  const numChannels = buffer.numberOfChannels;
+  const sampleRate = buffer.sampleRate;
+  const format = 1; // PCM
+  const bitDepth = 16;
+
+  // Mix down to mono (your acoustics pipeline expects mono anyway)
+  const length = buffer.length;
+  const mono = new Float32Array(length);
+
+  if (numChannels === 1) {
+    buffer.copyFromChannel(mono, 0);
+  } else {
+    const ch0 = new Float32Array(length);
+    const ch1 = new Float32Array(length);
+    buffer.copyFromChannel(ch0, 0);
+    buffer.copyFromChannel(ch1, 1);
+    for (let i = 0; i < length; i++) mono[i] = 0.5 * (ch0[i] + ch1[i]);
+  }
+
+  // 16-bit PCM encode
+  const bytesPerSample = bitDepth / 8;
+  const blockAlign = 1 * bytesPerSample; // mono
+  const byteRate = sampleRate * blockAlign;
+  const dataSize = mono.length * bytesPerSample;
+
+  const bufferSize = 44 + dataSize;
+  const arrayBuffer = new ArrayBuffer(bufferSize);
+  const view = new DataView(arrayBuffer);
+
+  let offset = 0;
+  const writeString = (s: string) => {
+    for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i));
+    offset += s.length;
+  };
+
+  writeString("RIFF");
+  view.setUint32(offset, 36 + dataSize, true); offset += 4;
+  writeString("WAVE");
+  writeString("fmt ");
+  view.setUint32(offset, 16, true); offset += 4;              // fmt chunk size
+  view.setUint16(offset, format, true); offset += 2;          // PCM = 1
+  view.setUint16(offset, 1, true); offset += 2;               // mono
+  view.setUint32(offset, sampleRate, true); offset += 4;
+  view.setUint32(offset, byteRate, true); offset += 4;
+  view.setUint16(offset, blockAlign, true); offset += 2;
+  view.setUint16(offset, bitDepth, true); offset += 2;
+
+  writeString("data");
+  view.setUint32(offset, dataSize, true); offset += 4;
+
+  // PCM samples
+  for (let i = 0; i < mono.length; i++) {
+    const s = Math.max(-1, Math.min(1, mono[i]));
+    view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+    offset += 2;
+  }
+
+  return new Blob([arrayBuffer], { type: "audio/wav" });
+}
+
+async function blobToWav(blob: Blob): Promise<Blob> {
+  const arrayBuf = await blob.arrayBuffer();
+  const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+  try {
+    const audioBuffer = await ctx.decodeAudioData(arrayBuf.slice(0));
+    return audioBufferToWav(audioBuffer);
+  } finally {
+    // don't leak audio contexts
+    try { await ctx.close(); } catch {}
+  }
+}
+
 
 
 
@@ -1501,44 +1577,52 @@ async function startRecording() {
 
 
       try {
+        
         const blob = new Blob(chunks, { type: "audio/webm" });
-        audioBlobRef.current = blob;
-          // TEMP DEV: download the recording so we can test the python analyzer locally
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "answer.webm";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-        // ✅ Save audio for replay
-try {
-  if (attemptIdRef.current) {
-    await idbPutAudio(attemptIdRef.current, blob);
-  }
-} catch {
-  // ignore storage errors (quota/private mode)
-}
-        // Prosody / monotone analysis (local)
-      try {
-        const pros = await analyzeProsodyFromBlob(blob);
-        setProsody(pros);
-      } catch {
-        setProsody(null);
-      }
+audioBlobRef.current = blob;
 
-        const file = new File([blob], "answer.webm", { type: "audio/webm" });
-      // --- Vendor voice metrics (best-effort; never blocks analysis) ---
+// Keep webm for AssemblyAI/transcribe (small + reliable)
+const webmFile = new File([blob], "answer.webm", { type: "audio/webm" });
+
+// Convert to WAV for Python acoustics (avoids ffmpeg/webm decode issues on Render)
+let wavFile: File | null = null;
+try {
+  const wavBlob = await blobToWav(blob);
+  wavFile = new File([wavBlob], "answer.wav", { type: "audio/wav" });
+} catch (e) {
+  console.error("WAV CONVERSION FAILED:", e);
+  wavFile = null;
+}
+
+// Choose per-vendor files
+const fileForTranscribe = webmFile;
+const fileForAcoustics = wavFile ?? webmFile;
+
+// ✅ Save WAV for replay in UI (store object URL)
+if (wavUrlRef.current) {
+  URL.revokeObjectURL(wavUrlRef.current);
+  wavUrlRef.current = null;
+}
+
+if (wavFile) {
+  const wavBlobForReplay = new Blob([await wavFile.arrayBuffer()], { type: "audio/wav" });
+  wavBlobRef.current = wavBlobForReplay;
+  wavUrlRef.current = URL.createObjectURL(wavBlobForReplay);
+} else {
+  wavBlobRef.current = null;
+  wavUrlRef.current = null;
+}
+
+// --- Vendor voice metrics (best-effort) ---
 voiceMetricsRef.current = null;
 
-const wavFile = await blobToWavFile(blob, "answer.wav");
 try {
   const vmForm = new FormData();
-  vmForm.append("audio", file);
+  vmForm.append("audio", fileForAcoustics);
 
+  // your server route can take a while; 12s is too low
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 12_000); // 12s max
+  const timeout = setTimeout(() => controller.abort(), 120_000);
 
   const vmRes = await fetch("/api/voice-metrics", {
     method: "POST",
@@ -1547,27 +1631,26 @@ try {
   }).finally(() => clearTimeout(timeout));
 
   const vmJson = await vmRes.json().catch(() => null);
+  console.log("voice-metrics response", vmRes.status, vmJson);
 
-// TEMP DEBUG (leave for one test, then remove)
-console.log("voice-metrics response", vmRes.status, vmJson);
-
-voiceMetricsRef.current = vmJson?.metrics ?? null;
-} catch {
+  voiceMetricsRef.current = vmJson?.metrics ?? null;
+} catch (e) {
+  console.warn("voice-metrics failed", e);
   voiceMetricsRef.current = null;
 }
+
+// ---- any later transcription form code must use fileForTranscribe ----
 const startedAt = recordingStartRef.current;
 const durSeconds =
   typeof startedAt === "number" ? Math.max(0.1, (Date.now() - startedAt) / 1000) : null;
 
-// store locally so WPM works immediately after transcribe
 setDurationSeconds(durSeconds);
 
 const form = new FormData();
-form.append("audio", file);
+form.append("audio", fileForTranscribe);
 if (typeof durSeconds === "number" && Number.isFinite(durSeconds)) {
   form.append("duration", String(durSeconds));
 }
-
 const res = await fetch("/api/transcribe", {
   method: "POST",
   body: form,
@@ -1673,6 +1756,7 @@ progressTimerRef.current = window.setInterval(() => {
 
 
 const audioBlob = audioBlobRef.current;
+
 
 // If you already call /api/voice-metrics in mr.onstop, DON'T call it again here.
 // Just use whatever is already in voiceMetricsRef.current.
@@ -2438,6 +2522,13 @@ return (
     ) : null}
   </div>
 </CollapsibleNoteCard>
+
+{wavUrlRef.current && (
+  <div style={{ marginTop: 12 }}>
+    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Replay (WAV)</div>
+    <audio controls src={wavUrlRef.current} />
+  </div>
+)}
 
 {(() => {
   const mm = Math.floor(timeLeft / 60);
