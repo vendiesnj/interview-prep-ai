@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { supabaseAdmin } from "@/app/lib/supabaseAdmin";
+import { getSupabaseAdmin } from "@/app/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
@@ -13,14 +13,21 @@ export async function GET(req: NextRequest) {
   const path = searchParams.get("path");
   if (!path) return NextResponse.json({ error: "Missing path" }, { status: 400 });
 
-  // Basic safety: ensure the user can only request their own files
   if (!path.startsWith(`${userId}/`)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const supabaseAdmin = getSupabaseAdmin();
+  if (!supabaseAdmin) {
+    return NextResponse.json(
+      { error: "Server misconfigured: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing" },
+      { status: 500 }
+    );
+  }
+
   const { data, error } = await supabaseAdmin.storage
     .from("recordings")
-    .createSignedUrl(path, 60 * 30); // 30 minutes
+    .createSignedUrl(path, 60 * 30);
 
   if (error || !data?.signedUrl) {
     return NextResponse.json({ error: error?.message || "Could not sign URL" }, { status: 500 });

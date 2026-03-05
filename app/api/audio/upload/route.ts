@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { supabaseAdmin } from "@/app/lib/supabaseAdmin";
-
+import { getSupabaseAdmin } from "@/app/lib/supabaseAdmin";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
@@ -26,6 +25,14 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+        const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Server misconfigured: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing" },
+        { status: 500 }
+      );
+    }
+
     const { error } = await supabaseAdmin.storage
       .from("recordings")
       .upload(path, buffer, {
@@ -38,7 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Return the storage path your DB should store
-    return NextResponse.json({ audioPath: path }, { status: 200 });
+        return NextResponse.json({ audioPath: path, path }, { status: 200 });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || "Upload failed" }, { status: 500 });
   }

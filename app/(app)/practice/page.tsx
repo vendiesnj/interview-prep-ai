@@ -1612,12 +1612,13 @@ if (inputMethod === "spoken" && webmFile) {
 
     const uj = await up.json().catch(() => ({}));
 
-    if (up.ok && typeof uj?.path === "string") {
-      audioPath = uj.path;
-      audioPathRef.current = uj.path;
-    } else {
-      console.warn("audio upload failed:", uj);
-    }
+    if (up.ok && (typeof uj?.audioPath === "string" || typeof uj?.path === "string")) {
+  const p = uj.audioPath ?? uj.path;
+  audioPath = p;
+  audioPathRef.current = p;
+} else {
+  console.warn("audio upload failed:", uj);
+}
   } catch (e) {
     console.warn("audio upload error:", e);
   }
