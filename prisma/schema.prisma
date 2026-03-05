@@ -128,7 +128,3 @@ model PasswordResetToken {
   @@index([userId, createdAt])
   @@index([expiresAt])
 }
-
-datasource db {
-  provider          = "postgresql"
-}
