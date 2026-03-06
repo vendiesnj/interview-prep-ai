@@ -554,8 +554,8 @@ Evaluate:
 - directness_score (1-10): how directly the candidate answered instead of circling around.
 - completeness_score (1-10): how fully they addressed all parts of the question.
 - off_topic_score (1-10): how off-topic the response was.
-  - 1 = fully on-topic
-  - 10 = highly off-topic
+  - 1 = highly off-topic
+  - 10 = fully on-topic
 - missed_parts: list the specific parts of the question the candidate failed to answer.
 - relevance_explanation: 1-2 sentences explaining whether the candidate answered the question directly and completely.
 
@@ -746,9 +746,9 @@ Rules:
 - relevance.missed_parts must be 0–6 items.
 - relevance_explanation must be 1–2 sentences and reference the actual question asked.
 - off_topic_score uses this direction:
-  - 1–3 = strongly on-topic
+  - 1–3 = mostly off-topic or did not answer the question
   - 4–6 = somewhat incomplete or drifting
-  - 7–10 = mostly off-topic or did not answer the question
+  - 7–10 = strongly on-topic
 - directness_score must be lower if the candidate takes too long to get to the point.
 - completeness_score must reflect whether all parts of the interviewer’s question were answered.
 

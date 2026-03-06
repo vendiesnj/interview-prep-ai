@@ -1087,6 +1087,253 @@ export default function ResultsPage() {
                   </div>
                 </div>
 
+                {feedback?.relevance ? (
+  <div
+    style={{
+      marginTop: 18,
+      marginBottom: 18,
+      padding: 18,
+      borderRadius: 18,
+      border: "1px solid rgba(255,255,255,0.08)",
+      background:
+        "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+      boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+      minWidth: 0,
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: 14,
+        flexWrap: "wrap",
+      }}
+    >
+      <div>
+        <div
+          style={{
+            fontSize: 12,
+            color: "#9CA3AF",
+            fontWeight: 800,
+            letterSpacing: 0.5,
+          }}
+        >
+          Question Relevance
+        </div>
+
+        <div
+          style={{
+            marginTop: 8,
+            fontSize: 34,
+            fontWeight: 950,
+            letterSpacing: -0.5,
+            color: "#E5E7EB",
+          }}
+        >
+          {typeof feedback.relevance.relevance_score === "number"
+            ? `${feedback.relevance.relevance_score}/10`
+            : "—"}
+        </div>
+
+        <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+          {feedback.relevance.answered_question
+            ? "Answered the interviewer’s question"
+            : "Did not fully answer the interviewer’s question"}
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "7px 12px",
+          borderRadius: 999,
+          border: feedback.relevance.answered_question
+            ? "1px solid rgba(34,197,94,0.30)"
+            : "1px solid rgba(248,113,113,0.30)",
+          background: feedback.relevance.answered_question
+            ? "rgba(34,197,94,0.12)"
+            : "rgba(248,113,113,0.10)",
+          color: feedback.relevance.answered_question
+            ? "rgba(34,197,94,0.95)"
+            : "rgba(248,113,113,0.95)",
+          fontSize: 12,
+          fontWeight: 900,
+        }}
+      >
+        {feedback.relevance.answered_question ? "On question" : "Missed the ask"}
+      </div>
+    </div>
+
+    <div
+      style={{
+        marginTop: 14,
+        height: 8,
+        borderRadius: 999,
+        background: "rgba(255,255,255,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          width: `${Math.max(
+            0,
+            Math.min(100, (Number(feedback.relevance.relevance_score ?? 0) / 10) * 100)
+          )}%`,
+          height: "100%",
+          background:
+            "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+          transition: "width 300ms ease",
+        }}
+      />
+    </div>
+
+    <div
+      style={{
+        marginTop: 16,
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gap: 12,
+      }}
+    >
+      {[
+        {
+          label: "Directness",
+          value: feedback.relevance.directness_score,
+          sub: "How quickly you got to the point",
+        },
+        {
+          label: "Completeness",
+          value: feedback.relevance.completeness_score,
+          sub: "How fully you answered all parts",
+        },
+        {
+          label: "On-topic",
+          value: feedback.relevance.off_topic_score,
+          sub: "How well you stayed on the actual ask",
+        },
+      ].map((m) => (
+        <div
+          key={m.label}
+          style={{
+            padding: 16,
+            borderRadius: 16,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background:
+              "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.28)",
+            minWidth: 0,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              color: "#9CA3AF",
+              fontWeight: 800,
+              letterSpacing: 0.5,
+            }}
+          >
+            {m.label}
+          </div>
+
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: 24,
+              fontWeight: 950,
+              color: "#E5E7EB",
+            }}
+          >
+            {typeof m.value === "number" ? `${m.value}/10` : "—"}
+          </div>
+
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              color: "#9CA3AF",
+              lineHeight: 1.45,
+            }}
+          >
+            {m.sub}
+          </div>
+
+          <div
+            style={{
+              marginTop: 10,
+              height: 6,
+              borderRadius: 999,
+              background: "rgba(255,255,255,0.08)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.max(0, Math.min(100, (Number(m.value ?? 0) / 10) * 100))}%`,
+                height: "100%",
+                background:
+                  "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+                transition: "width 300ms ease",
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+
+    {Array.isArray(feedback.relevance.missed_parts) &&
+    feedback.relevance.missed_parts.length > 0 ? (
+      <div
+        style={{
+          marginTop: 16,
+          padding: 14,
+          borderRadius: 14,
+          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.03)",
+        }}
+      >
+        <div
+          style={{
+            color: "#9CA3AF",
+            fontWeight: 800,
+            fontSize: 12,
+            letterSpacing: 0.4,
+          }}
+        >
+          Missed parts of the question
+        </div>
+
+        <ul
+          style={{
+            marginTop: 8,
+            marginBottom: 0,
+            paddingLeft: 18,
+            lineHeight: 1.7,
+            color: "#E5E7EB",
+          }}
+        >
+          {feedback.relevance.missed_parts.map((part: string, i: number) => (
+            <li key={i}>{part}</li>
+          ))}
+        </ul>
+      </div>
+    ) : null}
+
+    {typeof feedback.relevance.relevance_explanation === "string" &&
+    feedback.relevance.relevance_explanation.trim() ? (
+      <div
+        style={{
+          marginTop: 14,
+          color: "#9CA3AF",
+          fontSize: 13,
+          lineHeight: 1.7,
+        }}
+      >
+        {feedback.relevance.relevance_explanation}
+      </div>
+    ) : null}
+  </div>
+) : null}
+
                 {stored?.question ? (
                   <div
                     style={{
@@ -1560,7 +1807,7 @@ export default function ResultsPage() {
               </SectionCard>
             ) : null}
 
-            {activeTab === "overview" ? (
+            {activeTab === "coaching" ? (
               <SectionCard title="Strengths">
                 <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
                   {(feedback.strengths ?? []).map((s: string, i: number) => (
@@ -1570,7 +1817,7 @@ export default function ResultsPage() {
               </SectionCard>
             ) : null}
 
-            {activeTab === "overview" ? (
+            {activeTab === "coaching" ? (
               <SectionCard title="Improvements">
                 <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
                   {(feedback.improvements ?? []).map((s: string, i: number) => (
