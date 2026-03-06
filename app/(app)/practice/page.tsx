@@ -317,7 +317,7 @@ function CollapsibleNoteCard({
   return (
     <div
       style={{
-        marginTop: 14,
+        marginTop: 16,
         borderRadius: 16,
         border: "1px solid rgba(255,255,255,0.08)",
         background: "rgba(255,255,255,0.03)",
@@ -2136,79 +2136,103 @@ return;
 
 return (
   <PremiumShell hideHeader>
-
-    <div style={{ marginTop: 10, marginBottom: 24 }}>
-  <div style={{ fontSize: 42, fontWeight: 950, color: "#E5E7EB", letterSpacing: -0.8, lineHeight: 1.05 }}>
+<div style={{ marginTop: 6, marginBottom: 26 }}>
+  <div
+    style={{
+      fontSize: 42,
+      fontWeight: 950,
+      color: "#E5E7EB",
+      letterSpacing: -0.9,
+      lineHeight: 1.02,
+      maxWidth: 820,
+    }}
+  >
     Practice interviews with AI feedback
   </div>
 
-  <div style={{ marginTop: 10, fontSize: 16, color: "#9CA3AF", maxWidth: 760, lineHeight: 1.6 }}>
+  <div
+    style={{
+      marginTop: 8,
+      fontSize: 16,
+      color: "#9CA3AF",
+      maxWidth: 760,
+      lineHeight: 1.55,
+    }}
+  >
     Record answers, get scoring on communication, confidence, STAR structure, fillers, pace, and vocal variety —
     then follow a game plan for your next attempt.
   </div>
 
-  <div style={{ marginTop: 14, fontSize: 13, color: "#6B7280" }}>
-  Paste a job description to begin generating tailored interview questions.
+  <div
+    style={{
+      marginTop: 12,
+      fontSize: 13,
+      color: "#6B7280",
+      lineHeight: 1.45,
+    }}
+  >
+    Paste a job description to begin generating tailored interview questions.
+  </div>
 </div>
-
-</div>
-
+    
 {mode === "answer" ? (
   <div
     style={{
       marginTop: 16,
       padding: "16px 18px",
-      borderRadius: 20,
-      border: "1px solid rgba(34,211,238,0.35)",
-      background:
-        "radial-gradient(900px 420px at 15% -10%, rgba(34,211,238,0.16), transparent 60%), rgba(255,255,255,0.02)",
+      borderRadius: 18,
+      border: "1px solid rgba(34,211,238,0.22)",
+      background: "rgba(255,255,255,0.025)",
+      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
       transform: "translateY(0px)",
       opacity: 1,
       transition: "opacity 200ms ease, transform 200ms ease",
     }}
   >
+
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>
-          SELECTED QUESTION
-        </div>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "#9CA3AF" }}>
+  SELECTED QUESTION
+</div>
         <div
-          style={{
-            marginTop: 8,
-            fontSize: 18,
-            lineHeight: 1.55,
-            fontWeight: 950,
-            color: "#E5E7EB",
-            wordBreak: "break-word",
-          }}
-        >
-          {selectedQuestion}
-        </div>
+  style={{
+    marginTop: 8,
+    fontSize: 17,
+    lineHeight: 1.55,
+    fontWeight: 900,
+    color: "#E5E7EB",
+    wordBreak: "break-word",
+    maxWidth: 820,
+  }}
+>
+  {selectedQuestion}
+</div>
       </div>
 
       <button
-        type="button"
-        onClick={() => {
-          // Go back to the question list (keep previously generated questions)
-          setSelectedQuestion("");
-          setMode(questions.length ? "questions" : "setup");
-          persistHomeState({ selectedQuestion: "", mode: questions.length ? "questions" : "setup" });
-        }}
-        style={{
-          flex: "0 0 auto",
-          padding: "9px 12px",
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.10)",
-          background: "rgba(255,255,255,0.04)",
-          color: "#E5E7EB",
-          cursor: "pointer",
-          fontSize: 12,
-          fontWeight: 900,
-          whiteSpace: "nowrap",
-        }}
-      >
-        Change question
-      </button>
+  type="button"
+  onClick={() => {
+    // Go back to the question list (keep previously generated questions)
+    setSelectedQuestion("");
+    setMode(questions.length ? "questions" : "setup");
+    persistHomeState({ selectedQuestion: "", mode: questions.length ? "questions" : "setup" });
+  }}
+  style={{
+    flex: "0 0 auto",
+    padding: "9px 12px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent",
+    color: "#9CA3AF",
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  }}
+>
+  Change question
+</button>
     </div>
   </div>
 ) : null}
@@ -2319,29 +2343,26 @@ return (
   }}
   placeholder="Paste the job description here…"
   style={{
-    width: "100%",
-    maxWidth: "100%",
-    boxSizing: "border-box", // ✅ stops bleed
-    display: "block",
-
-    height: 220,
-    marginTop: 14,
-    padding: 14,
-
-    fontFamily:
-      'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
-    fontSize: 14,
-    fontWeight: 600,
-    letterSpacing: 0.2,
-    lineHeight: 1.5,
-
-    color: "#E5E7EB",
-    background: "rgba(17,24,39,0.55)",
-    border: "1px solid rgba(255,255,255,0.10)",
-    borderRadius: 14,
-    outline: "none",
-    resize: "vertical",
-  }}
+  width: "100%",
+  maxWidth: "100%",
+  boxSizing: "border-box",
+  display: "block",
+  height: 220,
+  marginTop: 14,
+  padding: 14,
+  fontFamily:
+    'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+  fontSize: 14,
+  fontWeight: 500,
+  letterSpacing: 0.15,
+  lineHeight: 1.6,
+  color: "#E5E7EB",
+  background: "rgba(17,24,39,0.48)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 12,
+  outline: "none",
+  resize: "vertical",
+}}
 />
 
 
@@ -2408,10 +2429,10 @@ return (
   Clear
 </button>
 
-    <div style={{ marginLeft: "auto", fontSize: 12, color: "#9CA3AF" }}>
-      Minimum 30 characters
-    </div>
-    <div style={{ marginTop: 10, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+    <div style={{ marginLeft: "auto", fontSize: 12, color: "#6B7280" }}>
+  Minimum 30 characters
+</div>
+    <div style={{ marginTop: 10, fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
   By using this tool, you agree to our{" "}
   <a href="/terms" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
     Terms
@@ -2443,12 +2464,11 @@ return (
   <div
     style={{
       marginTop: 24,
-      padding: 20,
-      border: "1px solid rgba(255,255,255,0.08)",
-      borderRadius: 18,
-      background:
-        "radial-gradient(900px 420px at 15% -10%, rgba(99,102,241,0.10), transparent 60%), rgba(255,255,255,0.02)",
-      boxShadow: "0 10px 30px rgba(0,0,0,0.22)",
+      padding: 18,
+      border: "1px solid rgba(255,255,255,0.06)",
+      borderRadius: 16,
+      background: "rgba(255,255,255,0.02)",
+      boxShadow: "none",
       position: "relative",
       overflow: "visible",
     }}
@@ -2511,20 +2531,32 @@ return (
             tab.key as "all" | "behavioral" | "technical" | "role_specific" | "custom"
           )
         }
+        onMouseEnter={(e) => {
+          if (!active) {
+            e.currentTarget.style.background = "rgba(255,255,255,0.055)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!active) {
+            e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+          }
+        }}
         style={{
-          padding: "8px 12px",
+          padding: "7px 11px",
           borderRadius: 999,
           border: active
-            ? "1px solid rgba(34,211,238,0.45)"
-            : "1px solid rgba(255,255,255,0.10)",
+            ? "1px solid rgba(34,211,238,0.38)"
+            : "1px solid rgba(255,255,255,0.08)",
           background: active
             ? "rgba(34,211,238,0.10)"
-            : "rgba(255,255,255,0.04)",
-          color: active ? "#A5F3FC" : "#E5E7EB",
+            : "rgba(255,255,255,0.03)",
+          color: active ? "#67E8F9" : "#D1D5DB",
           fontSize: 12,
-          fontWeight: 900,
+          fontWeight: 800,
           cursor: "pointer",
-          transition: "all 140ms ease",
+          transition: "background 140ms ease, border-color 140ms ease, color 140ms ease",
         }}
       >
         {tab.label}
@@ -2540,7 +2572,7 @@ return (
         No questions generated yet.
       </div>
     ) : (
-     <div style={{ display: "grid", gap: 14 }}>
+     <div style={{ display: "grid", gap: 18 }}>
   {visibleQuestionSections.map((section) => (
   <div
     key={section.key}
@@ -2550,18 +2582,18 @@ return (
     }}
   >
               <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 900,
-                  color: "#9CA3AF",
-                  letterSpacing: 0.5,
-                  marginBottom: 10,
-                }}
-              >
-                {section.title}
-              </div>
+  style={{
+    fontSize: 13,
+    fontWeight: 800,
+    color: "#E5E7EB",
+    letterSpacing: 0,
+    marginBottom: 10,
+  }}
+>
+  {section.title}
+</div>
 
-              <div style={{ display: "grid", gap: 10 }}>
+              <div style={{ display: "grid", gap: 8 }}>
                 {section.items.map((q, idx) => {
                   const active = selectedQuestion === q;
 
@@ -2611,7 +2643,7 @@ return (
   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
     <span
       style={{
-        color: active ? "#A5F3FC" : "#6B7280",
+        color: active ? "#67E8F9" : "#6B7280",
         fontWeight: 800,
         minWidth: 18,
         flex: "0 0 auto",
@@ -2633,93 +2665,98 @@ return (
       </div>
     )}
 
-    <div
+ <div
   style={{
+    marginTop: 6,
     padding: 14,
     borderRadius: 14,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    background: "rgba(255,255,255,0.02)",
   }}
 >
-      <div style={{ fontSize: 12, fontWeight: 900, color: "#E5E7EB", letterSpacing: 0.4 }}>
-        Custom question
-      </div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: "#E5E7EB" }}>
+  Use your own question
+</div>
 
-      <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
-        Paste or write your own interview question.
-      </div>
+    <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+  If the generated options are not right, paste or write your own interview question.
+</div>
 
       <textarea
         value={customQuestion}
         onChange={(e) => setCustomQuestion(e.target.value)}
         placeholder="e.g. Tell me about a time you had to manage multiple competing priorities."
         style={{
-          width: "100%",
-          boxSizing: "border-box",
-          display: "block",
-          marginTop: 10,
-          minHeight: 88,
-          padding: 12,
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.10)",
-          background: "rgba(17,24,39,0.55)",
-          color: "#E5E7EB",
-          fontSize: 14,
-          lineHeight: 1.5,
-          resize: "vertical",
-          outline: "none",
-        }}
+  width: "100%",
+  boxSizing: "border-box",
+  display: "block",
+  marginTop: 10,
+  minHeight: 88,
+  padding: 12,
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(17,24,39,0.48)",
+  color: "#E5E7EB",
+  fontSize: 14,
+  fontWeight: 500,
+  letterSpacing: 0.15,
+  lineHeight: 1.6,
+  resize: "vertical",
+  outline: "none",
+}}
       />
 
       <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
         <button
-          type="button"
-          disabled={!customQuestion.trim()}
-          onClick={() => {
-            const q = customQuestion.trim();
-            if (!q) return;
+  type="button"
+  disabled={!customQuestion.trim()}
+  onClick={() => {
+    const q = customQuestion.trim();
+    if (!q) return;
 
-            setSelectedQuestion(q);
-            persistHomeState({ selectedQuestion: q });
-            setMode("answer");
-            persistHomeState({ mode: "answer" });
+    setSelectedQuestion(q);
+    persistHomeState({ selectedQuestion: q });
+    setMode("answer");
+    persistHomeState({ mode: "answer" });
 
-            setQuestionBuckets((prev) => {
-              const next = {
-                behavioral: prev?.behavioral ?? [],
-                technical: prev?.technical ?? [],
-                role_specific: prev?.role_specific ?? [],
-                custom: [...(prev?.custom ?? []), q],
-              };
+    setQuestionBuckets((prev) => {
+      const next = {
+        behavioral: prev?.behavioral ?? [],
+        technical: prev?.technical ?? [],
+        role_specific: prev?.role_specific ?? [],
+        custom: [...(prev?.custom ?? []), q],
+      };
 
-              persistHomeState({
-                questionBuckets: next,
-                questions: [
-                  ...(next.behavioral ?? []),
-                  ...(next.technical ?? []),
-                  ...(next.role_specific ?? []),
-                  ...(next.custom ?? []),
-                ],
-              });
+      persistHomeState({
+        questionBuckets: next,
+        questions: [
+          ...(next.behavioral ?? []),
+          ...(next.technical ?? []),
+          ...(next.role_specific ?? []),
+          ...(next.custom ?? []),
+        ],
+      });
 
-              return next;
-            });
-          }}
-          style={{
-            padding: "10px 14px",
-            borderRadius: 12,
-            border: "1px solid rgba(34,211,238,0.35)",
-            background: customQuestion.trim()
-              ? "rgba(34,211,238,0.10)"
-              : "rgba(255,255,255,0.04)",
-            color: customQuestion.trim() ? "#A5F3FC" : "#9CA3AF",
-            fontWeight: 900,
-            cursor: customQuestion.trim() ? "pointer" : "not-allowed",
-            fontSize: 13,
-          }}
-        >
-          Use custom question
-        </button>
+      return next;
+    });
+  }}
+  style={{
+    padding: "10px 14px",
+    borderRadius: 12,
+    border: customQuestion.trim()
+      ? "1px solid rgba(34,211,238,0.28)"
+      : "1px solid rgba(255,255,255,0.08)",
+    background: customQuestion.trim()
+      ? "rgba(34,211,238,0.08)"
+      : "transparent",
+    color: customQuestion.trim() ? "#67E8F9" : "#9CA3AF",
+    fontWeight: 800,
+    cursor: customQuestion.trim() ? "pointer" : "not-allowed",
+    fontSize: 13,
+  }}
+>
+  Use custom question
+</button>
       </div>
     </div>
   </div>
@@ -2738,54 +2775,55 @@ return (
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "space-between",
-    gap: 12,
-    paddingBottom: 12,
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    gap: 14,
+    paddingBottom: 14,
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
   }}
 >
   <div>
     <div
-      style={{
-        fontSize: 11,
-        fontWeight: 900,
-        letterSpacing: 0.8,
-        color: "#9CA3AF",
-      }}
-    >
-      PRACTICE
-    </div>
+  style={{
+    fontSize: 11,
+    fontWeight: 800,
+    letterSpacing: 0.7,
+    color: "#9CA3AF",
+  }}
+>
+  PRACTICE
+</div>
 
     <h2
-      style={{
-        margin: "6px 0 0 0",
-        fontSize: 18,
-        fontWeight: 900,
-        color: "#E5E7EB",
-      }}
-    >
+  style={{
+    margin: "6px 0 0 0",
+    fontSize: 19,
+    fontWeight: 900,
+    letterSpacing: -0.2,
+    color: "#E5E7EB",
+  }}
+>
       Voice Practice
     </h2>
 
-    <div style={{ marginTop: 4, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+<div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.45 }}>
       Record like a real interview. We’ll transcribe and score your answer.
     </div>
   </div>
 
   <button
-    type="button"
-    onClick={() => setShowAdvanced((v) => !v)}
-    style={{
-      padding: "9px 12px",
-      borderRadius: 12,
-      border: "1px solid rgba(255,255,255,0.10)",
-      background: showAdvanced ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.04)",
-      color: showAdvanced ? "#A5F3FC" : "#E5E7EB",
-      cursor: "pointer",
-      fontSize: 12,
-      fontWeight: 900,
-      whiteSpace: "nowrap",
-    }}
-  >
+  type="button"
+  onClick={() => setShowAdvanced((v) => !v)}
+  style={{
+    padding: "8px 12px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: showAdvanced ? "rgba(34,211,238,0.08)" : "transparent",
+    color: showAdvanced ? "#A5F3FC" : "#9CA3AF",
+    cursor: "pointer",
+    fontSize: 12,
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  }}
+>
     {showAdvanced ? "Hide insights" : "Advanced insights"}
   
   </button>
@@ -2876,7 +2914,7 @@ return (
 </CollapsibleNoteCard>
 
 {wavUrlRef.current && (
-  <div style={{ marginTop: 12 }}>
+  <div style={{ marginTop: 16 }}>
     <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Replay (WAV)</div>
     <audio controls src={wavUrlRef.current} />
   </div>
@@ -2887,42 +2925,57 @@ return (
   const ss = timeLeft % 60;
   const label = `${mm}:${ss.toString().padStart(2, "0")}`;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+    <div
+  style={{
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.025)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+  }}
+>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <span>⏱</span>
-        <span style={{ fontWeight: 900 }}>Time left:</span>
-        <span>{label}</span>
-      </div>
+  <span style={{ opacity: 0.85 }}>⏱</span>
+  <span style={{ fontSize: 12, fontWeight: 800, color: "#9CA3AF", letterSpacing: 0.3 }}>
+    TIME LEFT
+  </span>
+  <span style={{ fontWeight: 900, color: "#E5E7EB" }}>{label}</span>
+</div>
 
       <div style={{ display: "flex", gap: 8, marginLeft: 8 }}>
         
 
         <button
-          type="button"
-          onClick={() => {
-            setTimerRunning(false);
-            setTimeLeft(answerTimeLimit);
-          }}
-          style={{
-            height: 28,
-            padding: "0 10px",
-            borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: "rgba(255,255,255,0.06)",
-            color: "#E5E7EB",
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          Reset
-        </button>
+  type="button"
+  onClick={() => {
+    setTimerRunning(false);
+    setTimeLeft(answerTimeLimit);
+  }}
+  style={{
+    height: 30,
+    padding: "0 10px",
+    borderRadius: 10,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent",
+    color: "#9CA3AF",
+    fontWeight: 800,
+    cursor: "pointer",
+  }}
+>
+  Reset
+</button>
       </div>
     </div>
   );
 })()}
 
 {/* Controls */}
-<div style={{ padding: 12, paddingTop: 8, display: "flex", gap: 10 }}>
+<div style={{ marginTop: 12, display: "flex", gap: 10 }}>
     <button
       type="button"
       onClick={startRecording}
@@ -2951,96 +3004,117 @@ return (
       onClick={stopRecording}
       disabled={!recording}
       style={{
-        flex: "1 1 0",
-        padding: "10px 12px",
-        borderRadius: 12,
-        border: !recording
-          ? "1px solid rgba(255,255,255,0.10)"
-          : "1px solid rgba(255,255,255,0.18)",
-        background: !recording ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.06)",
-        color: !recording ? "#9CA3AF" : "#E5E7EB",
-        fontSize: 14,
-        fontWeight: 900,
-        cursor: !recording ? "not-allowed" : "pointer",
-        opacity: !recording ? 0.7 : 1,
-      }}
+  flex: "1 1 0",
+  padding: "12px 14px",
+  borderRadius: 12,
+  border: !recording
+    ? "1px solid rgba(255,255,255,0.08)"
+    : "1px solid rgba(255,255,255,0.14)",
+  background: !recording ? "transparent" : "rgba(255,255,255,0.06)",
+  color: !recording ? "#6B7280" : "#E5E7EB",
+  fontSize: 14,
+  fontWeight: 800,
+  cursor: !recording ? "not-allowed" : "pointer",
+  opacity: !recording ? 0.75 : 1,
+}}
     >
       Stop
     </button>
   </div>
 
 {/* Analyze CTA (always visible) */}
-<div style={{ padding: "1px 12px 12px 12px" }}>
-  {!entitlement?.isPro ? (
-    <div style={{ marginTop: 10, color: "#9CA3AF", fontSize: 12 }}>
-      Free attempts:{" "}
-      <span style={{ color: "#A5F3FC", fontWeight: 900 }}>
-        {entitlement?.cap == null ? "—" : `${entitlement.used}/${entitlement.cap}`}
-      </span>
-      {" · "}
-      Remaining:{" "}
-      <span style={{ color: "#A5F3FC", fontWeight: 900 }}>
-        {entitlement?.remaining == null ? "—" : entitlement.remaining}
-      </span>
-    </div>
-  ) : null}
+<div
+  style={{
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 16,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.025)",
+  }}
+>
+ {!entitlement?.isPro ? (
+  <div
+    style={{
+      marginBottom: 12,
+      color: "#9CA3AF",
+      fontSize: 12,
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 6,
+      alignItems: "center",
+    }}
+  >
+    <span style={{ color: "#9CA3AF" }}>Free attempts:</span>
+    <span style={{ color: "#A5F3FC", fontWeight: 900 }}>
+      {entitlement?.cap == null ? "—" : `${entitlement.used}/${entitlement.cap}`}
+    </span>
+    <span style={{ color: "#6B7280" }}>•</span>
+    <span style={{ color: "#9CA3AF" }}>Remaining:</span>
+    <span style={{ color: "#A5F3FC", fontWeight: 900 }}>
+      {entitlement?.remaining == null ? "—" : entitlement.remaining}
+    </span>
+  </div>
+) : null}
 
   <button
-    type="button"
-    onClick={analyzeAnswer}
-    disabled={analyzeDisabled}
-    {...hoverLiftHandlers()}
-    style={withHoverLift({
-      width: "100%",
-      padding: "12px 14px",
-      fontSize: 14,
-      fontWeight: 900,
-      borderRadius: 12,
-      border: analyzeDisabled
-        ? "1px solid rgba(255,255,255,0.10)"
-        : "1px solid rgba(34,211,238,0.35)",
-      background: analyzeDisabled ? "rgba(255,255,255,0.04)" : "rgba(34,211,238,0.10)",
-      color: analyzeDisabled ? "#9CA3AF" : "#A5F3FC",
-      cursor: analyzeDisabled ? "not-allowed" : "pointer",
-      opacity: analyzeDisabled ? 0.75 : 1,
-    })}
-  >
-    {feedbackLoading ? "Analyzing…" : capHit ? "Upgrade to Continue" : "Analyze Answer"}
-  </button>
+  type="button"
+  onClick={analyzeAnswer}
+  disabled={analyzeDisabled}
+  {...hoverLiftHandlers()}
+  style={withHoverLift({
+    width: "100%",
+    padding: "13px 16px",
+    fontSize: 14,
+    fontWeight: 900,
+    borderRadius: 12,
+    border: analyzeDisabled
+      ? "1px solid rgba(255,255,255,0.08)"
+      : "1px solid rgba(99,102,241,0.28)",
+    background: analyzeDisabled
+      ? "rgba(255,255,255,0.04)"
+      : "linear-gradient(135deg, rgba(99,102,241,0.56), rgba(34,211,238,0.30))",
+    boxShadow: analyzeDisabled ? "none" : "0 12px 28px rgba(34,211,238,0.12)",
+    color: analyzeDisabled ? "#9CA3AF" : "#E5E7EB",
+    cursor: analyzeDisabled ? "not-allowed" : "pointer",
+    opacity: analyzeDisabled ? 0.75 : 1,
+  })}
+>
+  {feedbackLoading ? "Analyzing…" : capHit ? "Upgrade to Continue" : "Analyze Answer"}
+</button>
 
-  <div style={{ marginTop: 8, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
-    {recording
-      ? "Finish speaking, then press Stop."
-      : !selectedQuestion.trim()
-      ? "Pick a question first (open Questions and select one)."
-      : !transcript.trim()
-      ? "Record or paste a response to enable analysis."
-      : capHit
-      ? "You’ve reached the free limit. Upgrade to Pro for unlimited attempts."
-      : "Ready — analyze your answer for scoring + next steps."}
-  </div>
+  <div style={{ marginTop: 9, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+  {recording
+    ? "Finish speaking, then press Stop."
+    : !selectedQuestion.trim()
+    ? "Pick a question first to continue."
+    : !transcript.trim()
+    ? "Record or paste a response to enable analysis."
+    : capHit
+    ? "You’ve reached the free limit. Upgrade to Pro for unlimited attempts."
+    : "Ready to score this answer and get next-step coaching."}
+</div>
 </div>
 
 
 {/* Live waveform */}
-  <div style={{ padding: "0 12px 12px 12px" }}>
+  <div style={{ marginTop: 12 }}>
     <canvas
       ref={waveformCanvasRef}
       style={{
-        width: "100%",
-        height: 90,
-        borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(17,24,39,0.55)",
-        display: recording ? "block" : "none",
-      }}
+  width: "100%",
+  height: 90,
+  borderRadius: 12,
+  border: "1px solid rgba(255,255,255,0.08)",
+  background: "rgba(17,24,39,0.48)",
+  display: recording ? "block" : "none",
+}}
     />
   </div>
 
  {voiceError ? (
   <div
     style={{
-      marginTop: 12,
+      marginTop: 14,
       padding: 10,
       borderRadius: 12,
       border: "1px solid rgba(252, 165, 165, 0.35)",
@@ -3056,54 +3130,54 @@ return (
 
 <div
   style={{
-    marginTop: 14,
+    marginTop: 16,
     borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.03)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.025)",
     overflow: "hidden",
   }}
 >
   {/* Header */}
 
   <div
-    style={{
-      padding: 12,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 12,
-      borderBottom: "1px solid rgba(255,255,255,0.08)",
-      background: "rgba(255,255,255,0.02)",
-    }}
-  >
+  style={{
+    padding: 16,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
+    background: "rgba(255,255,255,0.018)",
+  }}
+>
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.6, color: "#E5E7EB" }}>
-        TRANSCRIPT
-      </div>
-      <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-        {inputMethod === "spoken" ? "Auto-transcribed from your recording" : "Pasted/typed (pace disabled)"}
-      </div>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.7, color: "#9CA3AF" }}>
+  TRANSCRIPT
+</div>
+      <div style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.4 }}>
+  {inputMethod === "spoken" ? "Auto-transcribed from your recording" : "Pasted/typed (pace disabled)"}
+</div>
     </div>
 
     <span
-      style={{
-        fontSize: 11,
-        fontWeight: 900,
-        padding: "4px 10px",
-        borderRadius: 999,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.03)",
-        color: "#9CA3AF",
-        whiteSpace: "nowrap",
-      }}
-    >
+  style={{
+    fontSize: 11,
+    fontWeight: 800,
+    padding: "4px 10px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.02)",
+    color: "#9CA3AF",
+    whiteSpace: "nowrap",
+  }}
+>
       {transcript.trim() ? `${transcript.trim().split(/\s+/).filter(Boolean).length} words` : "Empty"}
     </span>
   </div>
  
 
   {/* Body */}
-  <div style={{ padding: 12 }}>
+  <div style={{ padding: 13 }}>
     <textarea
   value={transcript}
   onChange={(e) => {
@@ -3118,28 +3192,25 @@ return (
   }}
   placeholder="Your transcript will appear here after you stop recording."
   style={{
-    width: "100%",
-    maxWidth: "100%",
-    boxSizing: "border-box", // ✅ stops bleed
-    display: "block",
-
-    height: 140,
-    padding: 12,
-
-    fontFamily:
-      'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
-    fontSize: 14,
-    fontWeight: 600,
-    letterSpacing: 0.2,
-    lineHeight: 1.5,
-
-    color: "#E5E7EB",
-    background: "rgba(17,24,39,0.55)",
-    border: "1px solid rgba(255,255,255,0.10)",
-    borderRadius: 12,
-    outline: "none",
-    resize: "vertical",
-  }}
+  width: "100%",
+  maxWidth: "100%",
+  boxSizing: "border-box",
+  display: "block",
+  height: 148,
+  padding: 13,
+  fontFamily:
+    'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+  fontSize: 14,
+  fontWeight: 500,
+  letterSpacing: 0.15,
+  lineHeight: 1.6,
+  color: "#E5E7EB",
+  background: "rgba(17,24,39,0.48)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderRadius: 12,
+  outline: "none",
+  resize: "vertical",
+}}
 />
 
 
