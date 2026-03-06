@@ -336,6 +336,41 @@ function SectionCard({
   );
 }
 
+type ResultsTab = "overview" | "structure" | "delivery" | "coaching" | "transcript";
+
+function TabButton({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: "10px 12px",
+        borderRadius: 12,
+        border: active ? "1px solid rgba(99,102,241,0.55)" : "1px solid rgba(255,255,255,0.10)",
+        background: active
+          ? "linear-gradient(180deg, rgba(99,102,241,0.18), rgba(255,255,255,0.04))"
+          : "rgba(255,255,255,0.03)",
+        color: "#E5E7EB",
+        fontWeight: 900,
+        fontSize: 13,
+        cursor: "pointer",
+        boxShadow: active ? "0 0 18px rgba(99,102,241,0.18)" : "none",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
 function StarChip({
   letter,
   label,
@@ -546,6 +581,7 @@ function SpeakingTimeline({
 export default function ResultsPage() {
   const router = useRouter();
   const [stored, setStored] = useState<StoredResult | null>(null);
+  const [activeTab, setActiveTab] = useState<ResultsTab>("overview");
   const { data: session, status } = useSession();
 const [replayUrl, setReplayUrl] = useState<string | null>(null);
 const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
@@ -971,6 +1007,21 @@ return (
           {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : ""}
         </div>
       </div>
+
+      <div
+  style={{
+    marginTop: 14,
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+  }}
+>
+  <TabButton label="Overview" active={activeTab === "overview"} onClick={() => setActiveTab("overview")} />
+  <TabButton label="Structure" active={activeTab === "structure"} onClick={() => setActiveTab("structure")} />
+  <TabButton label="Delivery" active={activeTab === "delivery"} onClick={() => setActiveTab("delivery")} />
+  <TabButton label="Coaching" active={activeTab === "coaching"} onClick={() => setActiveTab("coaching")} />
+  <TabButton label="Transcript" active={activeTab === "transcript"} onClick={() => setActiveTab("transcript")} />
+</div>
 {stored?.audioId ? (
   <div style={{ marginTop: 12 }}>
     {replayUrl ? (
@@ -1000,16 +1051,17 @@ return (
         <>
          
 
-          <SectionCard title="Performance Overview">
+          {activeTab === "overview" ? (
+  <SectionCard title="Performance Overview">
             <div
-  style={{
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 14,
-    flexWrap: "wrap",
-  }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+                marginBottom: 14,
+                flexWrap: "wrap",
+              }}
 >
   <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
     <div
@@ -1231,8 +1283,10 @@ return (
 
 
 
-</SectionCard>
+  </SectionCard>
+) : null}
 
+{activeTab === "delivery" ? (
 <SectionCard title="Delivery Analysis" collapsible={false}>
 
   <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12 }}>
@@ -1436,49 +1490,48 @@ return (
 {series ? <SpeakingTimeline series={series} /> : null}
 
 </SectionCard>
-
-
- <SectionCard title="Why this score" collapsible defaultOpen={false}>
-  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-
-    {typeof starAvg === "number" ? (
-      <div style={{ color: "#E5E7EB", fontSize: 13 }}>
-        STAR average drove most of the score:{" "}
-        <span style={{ fontWeight: 900 }}>{starAvg.toFixed(1)}</span>
-      </div>
-    ) : null}
-
-    
-    {dm && (typeof dm.longPauseCount === "number" || typeof dm.maxPauseMs === "number") ? (
-  <div style={{ color: "#9CA3AF", fontSize: 13 }}>
-    Delivery penalty applied:{" "}
-    {typeof dm.longPauseCount === "number" ? `long pauses=${dm.longPauseCount}` : ""}
-    {typeof dm.longPauseCount === "number" && typeof dm.maxPauseMs === "number" ? ", " : ""}
-    {typeof dm.maxPauseMs === "number" ? `max pause=${dm.maxPauseMs}ms` : ""}
-  </div>
 ) : null}
 
-    {typeof stored?.wpm === "number" ? (
-      <div style={{ color: "#9CA3AF", fontSize: 13 }}>
-        Delivery pace detected: {stored.wpm} words per minute
-      </div>
-    ) : null}
+{activeTab === "coaching" ? (
+  <SectionCard title="Why this score" collapsible defaultOpen={false}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {typeof starAvg === "number" ? (
+        <div style={{ color: "#E5E7EB", fontSize: 13 }}>
+          STAR average drove most of the score:{" "}
+          <span style={{ fontWeight: 900 }}>{starAvg.toFixed(1)}</span>
+        </div>
+      ) : null}
 
-    {Array.isArray(feedback?.keywords_missing) &&
-    feedback.keywords_missing.length > 0 ? (
-      <div style={{ color: "#9CA3AF", fontSize: 13 }}>
-        Missing role keywords also limited the score.
-      </div>
-    ) : null}
+      {dm && (typeof dm.longPauseCount === "number" || typeof dm.maxPauseMs === "number") ? (
+        <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+          Delivery penalty applied:{" "}
+          {typeof dm.longPauseCount === "number" ? `long pauses=${dm.longPauseCount}` : ""}
+          {typeof dm.longPauseCount === "number" && typeof dm.maxPauseMs === "number" ? ", " : ""}
+          {typeof dm.maxPauseMs === "number" ? `max pause=${dm.maxPauseMs}ms` : ""}
+        </div>
+      ) : null}
 
-    <div style={{ color: "#9CA3AF", fontSize: 12 }}>
-      Scores above 8 require strong STAR structure and measurable impact.
+      {typeof stored?.wpm === "number" ? (
+        <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+          Delivery pace detected: {stored.wpm} words per minute
+        </div>
+      ) : null}
+
+      {Array.isArray(feedback?.keywords_missing) && feedback.keywords_missing.length > 0 ? (
+        <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+          Missing role keywords also limited the score.
+        </div>
+      ) : null}
+
+      <div style={{ color: "#9CA3AF", fontSize: 12 }}>
+        Scores above 8 require strong STAR structure and measurable impact.
+      </div>
     </div>
+  </SectionCard>
+) : null}
+ 
 
-  </div>
-</SectionCard>
-
-{gamePlan ? (
+{activeTab === "coaching" && gamePlan ? (
   <SectionCard title="Next Attempt Game Plan">
     <div style={{ color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
       <strong style={{ color: "#E5E7EB" }}>{gamePlan.summary}</strong>
@@ -1496,7 +1549,8 @@ return (
 <div style={{ marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.06)" }} />
 
 
-          {feedback.star ? (
+    {activeTab === "structure" && feedback.star ? (
+    
   <SectionCard
     title={`STAR Breakdown${starAvg !== null ? ` (avg ${starAvg}/10)` : ""}`}
     collapsible={false}
@@ -1633,7 +1687,7 @@ return (
   </SectionCard>
 ) : null}
 
-
+        {activeTab === "overview" ? (
           <SectionCard title="Strengths" collapsible defaultOpen={false}>
             <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
               {(feedback.strengths ?? []).map((s: string, i: number) => (
@@ -1641,7 +1695,9 @@ return (
               ))}
             </ul>
           </SectionCard>
+        ) : null}
 
+        {activeTab === "overview" ? (
           <SectionCard title="Improvements" collapsible defaultOpen={false}>
             <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
               {(feedback.improvements ?? []).map((s: string, i: number) => (
@@ -1649,8 +1705,9 @@ return (
               ))}
             </ul>
           </SectionCard>
+        ) : null }
 
-          {Array.isArray((feedback as any)?.missed_opportunities) &&
+        {activeTab === "coaching" && Array.isArray((feedback as any)?.missed_opportunities) &&
 (feedback as any).missed_opportunities.length > 0 ? (
   <SectionCard title="Missed opportunities" collapsible defaultOpen={false}>
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1688,16 +1745,16 @@ return (
   </SectionCard>
 ) : null}
 
-          {feedback.better_answer ? (
-            <SectionCard title="Stronger version" collapsible defaultOpen={false}>
+       {activeTab === "coaching" && feedback.better_answer ? (
+  <SectionCard title="Stronger version" collapsible defaultOpen={false}>
+    <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#E5E7EB" }}>
+      {feedback.better_answer}
+    </div>
+  </SectionCard>
+) : null}   
 
-              <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#E5E7EB" }}>
-                {feedback.better_answer}
-              </div>
-            </SectionCard>
-          ) : null}
-
-         {(Array.isArray(feedback.keywords_used) || Array.isArray(feedback.keywords_missing)) ? (
+    {activeTab === "structure" &&
+(Array.isArray(feedback.keywords_used) || Array.isArray(feedback.keywords_missing)) ? (
   <SectionCard title="Keywords" collapsible defaultOpen={false}>
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {Array.isArray(feedback.keywords_used) && feedback.keywords_used.length > 0 ? (
@@ -1754,7 +1811,6 @@ return (
         </div>
       ) : null}
 
-      {/* Optional: show a friendly line when no used keywords were detected */}
       {Array.isArray(feedback.keywords_used) && feedback.keywords_used.length === 0 ? (
         <div style={{ color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
           No strong job-specific keywords detected yet. Try naming the system/tool/process you used (ERP/MRP, schedule adherence, KPIs).
@@ -1762,13 +1818,15 @@ return (
       ) : null}
     </div>
   </SectionCard>
-) : null}
+) : null}  
 
-          <SectionCard title="Transcript" collapsible defaultOpen={false}>
-            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#E5E7EB" }}>
-              {stored.transcript}
-            </div>
-          </SectionCard>
+       {activeTab === "transcript" ? (
+  <SectionCard title="Transcript" collapsible defaultOpen={false}>
+    <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#E5E7EB" }}>
+      {stored.transcript}
+    </div>
+  </SectionCard>
+) : null}   
         </>
       )}
       </div>
