@@ -2216,11 +2216,10 @@ return (
   <div
   style={{
     marginTop: 24,
-    padding: 18,
+    padding: 0,
     borderRadius: 20,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background:
-      "radial-gradient(900px 400px at 20% -10%, rgba(99,102,241,0.14), transparent 60%), rgba(255,255,255,0.02)",
+    border: "none",
+    background: "transparent",
   }}
 >
   <div
@@ -2239,14 +2238,15 @@ return (
     {(mode=== "setup" || mode === "questions") ? (
       <>
 
+
 {/* ===== SECTION: Job Description ===== */}
 <div
   style={{
     marginTop: 24,
-    padding: 18,
-    borderRadius: 18,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.03)",
+    padding: 0,
+    borderRadius: 0,
+    border: "none",
+    background: "transparent",
   }}
 >
   
@@ -2355,53 +2355,58 @@ return (
     }}
   >
     <button
-      onClick={generateQuestions}
-      disabled={jobDesc.trim().length < 30}
-      {...hoverLiftHandlers()}
-      style={withHoverLift({
-        padding: "10px 16px",
-        fontSize: 14,
-        fontWeight: 900,
-        borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background:
-          jobDesc.trim().length < 30
-            ? "rgba(255,255,255,0.04)"
-            : "linear-gradient(90deg, rgba(99,102,241,0.40), rgba(34,211,238,0.28))",
-        color: "#E5E7EB",
-        cursor: jobDesc.trim().length < 30 ? "not-allowed" : "pointer",
-        opacity: jobDesc.trim().length < 30 ? 0.55 : 1,
-      })}
-    >
-      {loading ? "Generating..." : "Generate Questions"}
-    </button>
+  onClick={generateQuestions}
+  disabled={jobDesc.trim().length < 30}
+  {...hoverLiftHandlers()}
+  style={withHoverLift({
+    padding: "11px 18px",
+    fontSize: 14,
+    fontWeight: 900,
+    borderRadius: 12,
+    border: jobDesc.trim().length < 30
+      ? "1px solid rgba(255,255,255,0.10)"
+      : "1px solid rgba(99,102,241,0.30)",
+    background:
+      jobDesc.trim().length < 30
+        ? "rgba(255,255,255,0.04)"
+        : "linear-gradient(135deg, rgba(99,102,241,0.58), rgba(34,211,238,0.34))",
+    boxShadow:
+      jobDesc.trim().length < 30
+        ? "none"
+        : "0 10px 30px rgba(34,211,238,0.12)",
+    color: "#E5E7EB",
+    cursor: jobDesc.trim().length < 30 ? "not-allowed" : "pointer",
+    opacity: jobDesc.trim().length < 30 ? 0.55 : 1,
+  })}
+>
+  {loading ? "Generating..." : "Generate Questions"}
+</button>
 
-    <button
-      type="button"
-      onClick={() => {
-  setQuestions([]);
-  setQuestionBuckets(null);
-  setQuestionFilter("all");
-  setMode("questions");
+ <button
+  type="button"
+  onClick={() => {
+    setQuestions([]);
+    setQuestionBuckets(null);
+    setQuestionFilter("all");
+    setMode("questions");
 
-  // ✅ persist cleared state so refresh/back doesn't resurrect old data
-  persistHomeState({ questions: [], questionBuckets: null, selectedQuestion: "" });
-  setSelectedQuestion("");
-}}
-
-      style={{
-        padding: "10px 16px",
-        fontSize: 14,
-        fontWeight: 800,
-        borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.04)",
-        color: "#E5E7EB",
-        cursor: "pointer",
-      }}
-    >
-      Clear
-    </button>
+    // ✅ persist cleared state so refresh/back doesn't resurrect old data
+    persistHomeState({ questions: [], questionBuckets: null, selectedQuestion: "" });
+    setSelectedQuestion("");
+  }}
+  style={{
+    padding: "11px 16px",
+    fontSize: 14,
+    fontWeight: 800,
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "transparent",
+    color: "#9CA3AF",
+    cursor: "pointer",
+  }}
+>
+  Clear
+</button>
 
     <div style={{ marginLeft: "auto", fontSize: 12, color: "#9CA3AF" }}>
       Minimum 30 characters
@@ -2436,51 +2441,78 @@ return (
 
 <PremiumCard>
   <div
-  style={{
-    marginTop: 30,
-    padding: 16,
-    border: "1px solid rgba(255,255,255,0.10)",
-    borderRadius: 12,
-
-    // 🔑 important
-    position: "relative",
-    overflow: "visible",
-  }}
->
+    style={{
+      marginTop: 24,
+      padding: 20,
+      border: "1px solid rgba(255,255,255,0.08)",
+      borderRadius: 18,
+      background:
+        "radial-gradient(900px 420px at 15% -10%, rgba(99,102,241,0.10), transparent 60%), rgba(255,255,255,0.02)",
+      boxShadow: "0 10px 30px rgba(0,0,0,0.22)",
+      position: "relative",
+      overflow: "visible",
+    }}
+  >
 
 
   {mode === "questions" ? (
   <div style={{ display: "grid", gap: 16 }}>
-    <div
-      style={{
-        fontSize: 11,
-        fontWeight: 900,
-        letterSpacing: 0.8,
-        color: "#9CA3AF",
-      }}
-    >
-      QUESTION SELECTION
-    </div>
+  <div style={{ display: "grid", gap: 6 }}>
+  <div
+    style={{
+      fontSize: 11,
+      fontWeight: 900,
+      letterSpacing: 0.8,
+      color: "#9CA3AF",
+    }}
+  >
+    QUESTION SELECTION
+  </div>
 
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-  {(
-    [
-      ["all", "All"],
-      ["behavioral", "Behavioral"],
-      ["technical", "Technical"],
-      ["role_specific", "Role-Specific"],
-      ["custom", "Custom"],
-    ] as const
-  ).map(([key, label]) => {
-    const active = questionFilter === key;
+  <div
+    style={{
+      fontSize: 18,
+      fontWeight: 900,
+      color: "#E5E7EB",
+      letterSpacing: -0.2,
+    }}
+  >
+    Choose a question to practice
+  </div>
+
+  <div
+    style={{
+      fontSize: 13,
+      color: "#9CA3AF",
+      lineHeight: 1.5,
+      maxWidth: 620,
+    }}
+  >
+    Generate tailored questions, filter by type, or paste your own custom question.
+  </div>
+</div>
+
+<div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+  {[
+    { key: "all", label: "All" },
+    { key: "behavioral", label: "Behavioral" },
+    { key: "technical", label: "Technical" },
+    { key: "role_specific", label: "Role-Specific" },
+    { key: "custom", label: "Custom" },
+  ].map((tab) => {
+    const active = questionFilter === tab.key;
 
     return (
       <button
-        key={key}
+        key={tab.key}
         type="button"
-        onClick={() => setQuestionFilter(key)}
+        onClick={() =>
+          setQuestionFilter(
+            tab.key as "all" | "behavioral" | "technical" | "role_specific" | "custom"
+          )
+        }
         style={{
-          padding: "7px 10px",
+          padding: "8px 12px",
           borderRadius: 999,
           border: active
             ? "1px solid rgba(34,211,238,0.45)"
@@ -2492,22 +2524,123 @@ return (
           fontSize: 12,
           fontWeight: 900,
           cursor: "pointer",
+          transition: "all 140ms ease",
         }}
       >
-        {label}
+        {tab.label}
       </button>
     );
   })}
 </div>
 
-    <div
+
+
+    {questions.length === 0 && !questionBuckets ? (
+      <div style={{ fontSize: 13, color: "#9CA3AF" }}>
+        No questions generated yet.
+      </div>
+    ) : (
+     <div style={{ display: "grid", gap: 14 }}>
+  {visibleQuestionSections.map((section) => (
+  <div
+    key={section.key}
+    style={{
+      paddingTop: 6,
+      paddingBottom: 2,
+    }}
+  >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#9CA3AF",
+                  letterSpacing: 0.5,
+                  marginBottom: 10,
+                }}
+              >
+                {section.title}
+              </div>
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {section.items.map((q, idx) => {
+                  const active = selectedQuestion === q;
+
+                  return (
+                   <button
+  key={`${section.key}-${idx}-${q}`}
+  type="button"
+  onClick={() => {
+    setSelectedQuestion(q);
+    persistHomeState({ selectedQuestion: q });
+    setMode("answer");
+    persistHomeState({ mode: "answer" });
+  }}
+  onMouseEnter={(e) => {
+    if (!active) {
+      e.currentTarget.style.background = "rgba(255,255,255,0.055)";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+      e.currentTarget.style.transform = "translateY(-1px)";
+    }
+  }}
+  onMouseLeave={(e) => {
+    if (!active) {
+      e.currentTarget.style.background = "rgba(255,255,255,0.025)";
+      e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
+      e.currentTarget.style.transform = "translateY(0px)";
+    }
+  }}
+  style={{
+    textAlign: "left",
+    width: "100%",
+    padding: "12px 14px",
+    borderRadius: 12,
+    border: active
+      ? "1px solid rgba(34,211,238,0.40)"
+      : "1px solid rgba(255,255,255,0.06)",
+    background: active
+      ? "linear-gradient(180deg, rgba(34,211,238,0.12), rgba(34,211,238,0.06))"
+      : "rgba(255,255,255,0.025)",
+    boxShadow: active ? "0 0 0 1px rgba(34,211,238,0.08) inset" : "none",
+    fontSize: 14,
+    lineHeight: 1.55,
+    color: "#E5E7EB",
+    cursor: "pointer",
+    transition: "background 140ms ease, border-color 140ms ease, transform 140ms ease",
+  }}
+>
+  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+    <span
       style={{
-        padding: 14,
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(255,255,255,0.03)",
+        color: active ? "#A5F3FC" : "#6B7280",
+        fontWeight: 800,
+        minWidth: 18,
+        flex: "0 0 auto",
       }}
     >
+      {idx + 1}.
+    </span>
+
+    <span style={{ flex: 1, fontWeight: active ? 700 : 600 }}>
+      {q}
+    </span>
+  </div>
+</button> 
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+      </div>
+    )}
+
+    <div
+  style={{
+    padding: 14,
+    borderRadius: 14,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.03)",
+  }}
+>
       <div style={{ fontSize: 12, fontWeight: 900, color: "#E5E7EB", letterSpacing: 0.4 }}>
         Custom question
       </div>
@@ -2589,80 +2722,6 @@ return (
         </button>
       </div>
     </div>
-
-    {questions.length === 0 && !questionBuckets ? (
-      <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-        No questions generated yet.
-      </div>
-    ) : (
-     <div style={{ display: "grid", gap: 14 }}>
-  {visibleQuestionSections.map((section) => (
-            <div
-              key={section.key}
-              style={{
-                padding: 14,
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(255,255,255,0.03)",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 900,
-                  color: "#9CA3AF",
-                  letterSpacing: 0.5,
-                  marginBottom: 10,
-                }}
-              >
-                {section.title}
-              </div>
-
-              <div style={{ display: "grid", gap: 10 }}>
-                {section.items.map((q, idx) => {
-                  const active = selectedQuestion === q;
-
-                  return (
-                    <button
-                      key={`${section.key}-${idx}-${q}`}
-                      type="button"
-                      onClick={() => {
-                        setSelectedQuestion(q);
-                        persistHomeState({ selectedQuestion: q });
-                        setMode("answer");
-                        persistHomeState({ mode: "answer" });
-                      }}
-                      style={{
-                        textAlign: "left",
-                        width: "100%",
-                        padding: "10px 12px",
-                        borderRadius: 12,
-                        border: active
-                          ? "1px solid rgba(34,211,238,0.45)"
-                          : "1px solid rgba(255,255,255,0.08)",
-                        background: active
-                          ? "rgba(34,211,238,0.08)"
-                          : "rgba(255,255,255,0.04)",
-                        fontSize: 14,
-                        lineHeight: 1.5,
-                        color: "#E5E7EB",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div style={{ display: "flex", gap: 10 }}>
-                        <span style={{ color: "#9CA3AF", fontWeight: 700 }}>
-                          {idx + 1}.
-                        </span>
-                        <span>{q}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-      </div>
-    )}
   </div>
 ) : null}
 
