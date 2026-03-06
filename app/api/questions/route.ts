@@ -55,7 +55,7 @@ ${jobDesc}
 
     const text = resp.output_text?.trim() ?? "";
 
-    let buckets: { behavioral: string[]; technical: string[]; role_specific: string[] } = {
+  let buckets: { behavioral: string[]; technical: string[]; role_specific: string[] } = {
   behavioral: [],
   technical: [],
   role_specific: [],
@@ -65,26 +65,25 @@ try {
   const parsed = JSON.parse(text);
 
   if (parsed && typeof parsed === "object") {
-    const b = Array.isArray((parsed as any).behavioral)
-      ? (parsed as any).behavioral.map(String)
+    const behavioral = Array.isArray((parsed as any).behavioral)
+      ? (parsed as any).behavioral.map(String).filter(Boolean).slice(0, 5)
       : [];
 
-    const t = Array.isArray((parsed as any).technical)
-      ? (parsed as any).technical.map(String)
+    const technical = Array.isArray((parsed as any).technical)
+      ? (parsed as any).technical.map(String).filter(Boolean).slice(0, 5)
       : [];
 
-    const r = Array.isArray((parsed as any).role_specific)
-      ? (parsed as any).role_specific.map(String)
+    const roleSpecific = Array.isArray((parsed as any).role_specific)
+      ? (parsed as any).role_specific.map(String).filter(Boolean).slice(0, 5)
       : [];
 
     buckets = {
-      behavioral: b.slice(0, 5),
-      technical: t.slice(0, 5),
-      role_specific: r.slice(0, 5),
+      behavioral,
+      technical,
+      role_specific: roleSpecific,
     };
   }
 } catch {
-  // Fallback: split lines into a single flat list, then bucket by position
   const flat = text
     .split("\n")
     .map((l) => l.replace(/^\s*\d+[\).\s-]*/, "").trim())
