@@ -426,6 +426,9 @@ type QuestionBuckets = {
   role_specific: string[];
   custom?: string[];
 };
+const [questionFilter, setQuestionFilter] = useState<
+  "all" | "behavioral" | "technical" | "role_specific" | "custom"
+>("all");
 const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(null);
 const [customQuestion, setCustomQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1328,6 +1331,7 @@ const qs =
       : [];
 
   setQuestions(qs);
+  setQuestionFilter("all");
 
 setQuestionBuckets(
   b &&
@@ -1369,6 +1373,33 @@ if (qs.length) setShowQuestions(true);
     setLoading(false);
   }
 }
+
+const visibleQuestionSections = [
+  {
+    key: "behavioral" as const,
+    title: "Behavioral",
+    items: questionBuckets?.behavioral ?? [],
+  },
+  {
+    key: "technical" as const,
+    title: "Technical",
+    items: questionBuckets?.technical ?? [],
+  },
+  {
+    key: "role_specific" as const,
+    title: "Role-Specific",
+    items: questionBuckets?.role_specific ?? [],
+  },
+  {
+    key: "custom" as const,
+    title: "Custom",
+    items: questionBuckets?.custom ?? [],
+  },
+].filter((section) => {
+  if (questionFilter === "all") return section.items.length > 0;
+  return section.key === questionFilter && section.items.length > 0;
+});
+
 
 function stopWaveform() {
   if (animationRef.current) {
@@ -2350,6 +2381,7 @@ return (
       onClick={() => {
   setQuestions([]);
   setQuestionBuckets(null);
+  setQuestionFilter("all");
   setMode("questions");
 
   // ✅ persist cleared state so refresh/back doesn't resurrect old data
@@ -2429,6 +2461,44 @@ return (
     >
       QUESTION SELECTION
     </div>
+
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+  {(
+    [
+      ["all", "All"],
+      ["behavioral", "Behavioral"],
+      ["technical", "Technical"],
+      ["role_specific", "Role-Specific"],
+      ["custom", "Custom"],
+    ] as const
+  ).map(([key, label]) => {
+    const active = questionFilter === key;
+
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={() => setQuestionFilter(key)}
+        style={{
+          padding: "7px 10px",
+          borderRadius: 999,
+          border: active
+            ? "1px solid rgba(34,211,238,0.45)"
+            : "1px solid rgba(255,255,255,0.10)",
+          background: active
+            ? "rgba(34,211,238,0.10)"
+            : "rgba(255,255,255,0.04)",
+          color: active ? "#A5F3FC" : "#E5E7EB",
+          fontSize: 12,
+          fontWeight: 900,
+          cursor: "pointer",
+        }}
+      >
+        {label}
+      </button>
+    );
+  })}
+</div>
 
     <div
       style={{
@@ -2525,31 +2595,8 @@ return (
         No questions generated yet.
       </div>
     ) : (
-      <div style={{ display: "grid", gap: 14 }}>
-        {[
-          {
-            key: "behavioral",
-            title: "Behavioral",
-            items: questionBuckets?.behavioral ?? [],
-          },
-          {
-            key: "technical",
-            title: "Technical",
-            items: questionBuckets?.technical ?? [],
-          },
-          {
-            key: "role_specific",
-            title: "Role-Specific",
-            items: questionBuckets?.role_specific ?? [],
-          },
-          {
-            key: "custom",
-            title: "Custom",
-            items: questionBuckets?.custom ?? [],
-          },
-        ]
-          .filter((section) => section.items.length > 0)
-          .map((section) => (
+     <div style={{ display: "grid", gap: 14 }}>
+  {visibleQuestionSections.map((section) => (
             <div
               key={section.key}
               style={{
