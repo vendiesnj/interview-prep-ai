@@ -33,6 +33,16 @@ confidence_evidence: string[];
   confidence_score: number;
   confidence_explanation: string;
 
+    relevance: {
+    answered_question: boolean;
+    relevance_score: number;
+    directness_score: number;
+    completeness_score: number;
+    off_topic_score: number;
+    missed_parts: string[];
+    relevance_explanation: string;
+  };
+
   missed_opportunities: Array<{
   label: string;      // e.g. "Prioritization"
   why: string;        // 1 sentence tying to question/JD
@@ -65,8 +75,6 @@ confidence_evidence: string[];
   strengths: string[];
   improvements: string[];
   better_answer: string;
-  keywords_missing: string[];
-  keywords_used:string[]
 };
 
 // (optional) response type you actually return after you append filler
@@ -119,6 +127,23 @@ if (obj.confidence_score < 1 || obj.confidence_score > 10) return false;
 
 // confidence explanation
 if (!isNonEmptyString(obj.confidence_explanation)) return false;
+
+  // relevance
+  if (typeof obj.relevance !== "object" || obj.relevance === null) return false;
+
+  if (typeof obj.relevance.answered_question !== "boolean") return false;
+
+  for (const k of ["relevance_score", "directness_score", "completeness_score", "off_topic_score"] as const) {
+    const v = obj.relevance[k];
+    if (typeof v !== "number" || !Number.isFinite(v)) return false;
+    if (v < 1 || v > 10) return false;
+  }
+
+  if (!Array.isArray(obj.relevance.missed_parts)) return false;
+  if (obj.relevance.missed_parts.length > 6) return false;
+  if (!obj.relevance.missed_parts.every(isNonEmptyString)) return false;
+
+  if (!isNonEmptyString(obj.relevance.relevance_explanation)) return false;
 
   // communication_evidence
   if (!Array.isArray(obj.communication_evidence)) return false;
@@ -191,15 +216,6 @@ for (const it of obj.missed_opportunities) {
   // better_answer
   if (!isNonEmptyString(obj.better_answer)) return false;
 
-    // keywords_used
-  if (!Array.isArray(obj.keywords_used)) return false;
-  if (obj.keywords_used.length > 12) return false;
-  if (!obj.keywords_used.every(isNonEmptyString)) return false;
-
-  // keywords_missing
-  if (!Array.isArray(obj.keywords_missing)) return false;
-  if (obj.keywords_missing.length > 8) return false;
-  if (!obj.keywords_missing.every(isNonEmptyString)) return false;
 
   return true;
 }
@@ -250,20 +266,7 @@ const STOP = new Set([
   "about","over","under","between","within","across","per","via","etc"
 ]);
 
-// JD-generic words that frequently appear but are not differentiating "keywords"
-const JD_GENERIC_STOP = new Set([
-  // HR/legal/boilerplate & low-signal terms
-  "required","requirements","requirement","duties","duty","responsibilities","responsibility",
-  "ensure","ensures","ensuring","including","include","includes","etc",
-  "employee","employees","personnel","organization","company","values",
-  "work","working","environment","workplace","work environment","work area",
-  "all levels","entire","while performing",
-  "policies","procedures","housekeeping","regulatory","compliance","comply",
-  "training","train","assist","participate","team meetings","special projects","miscellaneous",
-  "us citizen","citizen",
-  "vision","color vision",
-  "secure","well maintained","maintained","clean"
-]);
+
 
 
 
@@ -278,158 +281,10 @@ function normalizeText(s: string) {
     .trim();
 }
 
-function tokenBad(t: string) {
-  return STOP.has(t) || JD_GENERIC_STOP.has(t);
-}
-
-function phraseBad(phrase: string) {
-  if (JD_GENERIC_STOP.has(phrase)) return true;
-  // very common low-signal phrases
-  if (
-    phrase === "work environment" ||
-    phrase === "workplace environment" ||
-    phrase === "job duties" ||
-    phrase === "job requirements"
-  ) return true;
-  return false;
-}
-
-function pruneJobDescForKeywords(jobDesc: string) {
-  const raw = (jobDesc || "").replace(/\r/g, "");
-
-  // Prefer the responsibilities section; stop before qualifications/extra duties.
-  const startIdx = (() => {
-    const m =
-      raw.match(/Essential or Primary\s*\/\s*Key Responsibilities[:\s]/i) ??
-      raw.match(/Key Responsibilities[:\s]/i) ??
-      raw.match(/Responsibilities[:\s]/i);
-    return m?.index ?? 0;
-  })();
-
-  const endIdx = (() => {
-    const cut = [
-      raw.search(/Minimum Required Qualifications[:\s]/i),
-      raw.search(/Qualifications[:\s]/i),
-      raw.search(/Additional Duties\s*\/\s*Responsibilities[:\s]/i),
-      raw.search(/Additional Duties[:\s]/i),
-    ].filter((n) => n >= 0);
-    return cut.length ? Math.min(...cut) : raw.length;
-  })();
-
-  const slice = raw.slice(startIdx, endIdx);
-
-  // Drop lines that are legal/HR/physical requirements or generic fluff.
-  const lines = slice
-    .split("\n")
-    .map((l) => l.trim())
-    .filter(Boolean)
-    .filter((l) => !/must be\b/i.test(l))
-    .filter((l) => !/\bus citizen\b/i.test(l))
-    .filter((l) => !/\bcolor vision\b/i.test(l))
-    .filter((l) => !/\bwork area\b/i.test(l))
-    .filter((l) => !/\bhousekeeping\b/i.test(l))
-    .filter((l) => !/\bpolicies\/procedures\b/i.test(l))
-    .filter((l) => !/\bclean\b.*\bmaintained\b/i.test(l));
-
-  return lines.join("\n");
-}
 
 
 
-function extractKeywords(jobDesc: string) {
-  const pruned = pruneJobDescForKeywords(jobDesc);
-  const text = normalizeText(pruned);
-  const words = text.split(" ").filter(Boolean);
 
-  const counts = new Map<string, number>();
-  for (const w of words) counts.set(w, (counts.get(w) ?? 0) + 1);
-
-  const candidates = new Map<string, number>();
-
-  // Universal “head nouns” that appear across domains (keeps phrases meaningful)
-  const GOOD_HEADS = new Set([
-    "strategy","planning","analysis","reporting","operations","execution","delivery","performance","quality",
-    "pipeline","growth","research","design","architecture","development","implementation","integration",
-    "forecasting","budgeting","optimization","testing","deployment","security","automation","framework",
-    "stakeholders","customers","clients","systems","tools","metrics","kpis","roadmap","pricing","retention"
-  ]);
-
-  function isMostlyLetters(s: string) {
-    return /^[a-z][a-z0-9\/\-']*$/i.test(s);
-  }
-
-  function isJunkyPhrase(p: string) {
-    if (phraseBad(p)) return true;
-
-    // Ban phrases that are just generic verb-led fragments
-    if (/^(perform|ensure|maintain|provide|support|assist|participate|bring|abide|contribute|keep)\b/i.test(p)) return true;
-
-    // Ban obvious HR/legal/physical requirement language
-    if (/\b(us citizen|color vision|work environment|work area|housekeeping|policies|procedures|all levels|miscellaneous)\b/i.test(p)) return true;
-
-    const parts = p.split(" ").filter(Boolean);
-    const badCount = parts.filter((x) => tokenBad(x)).length;
-    if (badCount >= Math.ceil(parts.length / 2)) return true;
-
-    return false;
-  }
-
-  // Bigrams: keep only if both tokens look real and phrase isn't junky
-  for (let i = 0; i < words.length - 1; i++) {
-    const a = words[i], b = words[i + 1];
-    if (![a, b].every((t) => t.length >= 3 && isMostlyLetters(t) && !tokenBad(t))) continue;
-
-    const bigram = `${a} ${b}`;
-    if (isJunkyPhrase(bigram)) continue;
-
-    const boost = GOOD_HEADS.has(b) ? 3 : 0;
-    candidates.set(bigram, (candidates.get(bigram) ?? 0) + 3 + boost);
-  }
-
-  // Trigrams: only if last token is a good “head noun” (prevents garbage fragments)
-  for (let i = 0; i < words.length - 2; i++) {
-    const a = words[i], b = words[i + 1], c = words[i + 2];
-    if (![a, b, c].every((t) => t.length >= 3 && isMostlyLetters(t) && !tokenBad(t))) continue;
-
-    const trigram = `${a} ${b} ${c}`;
-    if (isJunkyPhrase(trigram)) continue;
-
-    const boost = GOOD_HEADS.has(c) ? 5 : 0;
-    if (boost === 0) continue; // require a meaningful head noun for trigrams
-    candidates.set(trigram, (candidates.get(trigram) ?? 0) + 4 + boost);
-  }
-
-  // Unigrams: keep only if repeated OR domain-ish acronyms OR long technical terms
-  for (const w of words) {
-    const freq = counts.get(w) ?? 0;
-    if (w.length < 4) continue;
-    if (tokenBad(w)) continue;
-    if (!isMostlyLetters(w)) continue;
-
-    const isAcr = /^(erp|mrp|kpi|okr|api|sla|etl|aws|gcp|crm|sql|prisma|stripe)$/i.test(w);
-    if (!isAcr && freq < 2 && w.length < 9) continue;
-
-    candidates.set(w, (candidates.get(w) ?? 0) + 1);
-  }
-
-  // Sort and de-dupe: drop unigrams covered by phrases
-  const sorted = [...candidates.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => k);
-
-  const keep: string[] = [];
-  for (const k of sorted) {
-    if (keep.length >= 20) break;
-
-    if (k.includes(" ")) {
-      keep.push(k);
-      continue;
-    }
-
-    if (keep.some((p) => p.includes(` ${k} `) || p.startsWith(`${k} `) || p.endsWith(` ${k}`))) continue;
-    keep.push(k);
-  }
-
-  return keep;
-}
 
 function extractQuestionSignals(question: string) {
   const q = normalizeText(question);
@@ -470,52 +325,6 @@ function extractQuestionSignals(question: string) {
   return { tags, topTerms };
 }
 
-function computeKeywordUsage(jobDesc: string, transcript: string) {
-  const jd = normalizeText(jobDesc);
-  const tr = normalizeText(transcript);
-
-  const keywords = extractKeywords(jobDesc);
-  
-
-  const used: string[] = [];
-  const missing: string[] = [];
-
-  for (const k of keywords) {
-    const hit = (() => {
-  if (tr.includes(k)) return true;
-
-  if (k.includes(" ")) {
-  // normalize keyword phrase the same way as transcript
-  const nk = normalizeText(k);
-  const parts = nk.split(" ").filter(Boolean).slice(0, 5);
-
-  // allow up to 2 "gap words" between phrase parts (tight but flexible)
-  const pattern = parts
-    .map((p) => `\\b${p.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`)
-    .join("(?:\\s+\\w+){0,2}\\s+");
-
-  const re = new RegExp(pattern, "i");
-  return re.test(tr);
-}
-
-
-  // For single words, require whole-word match, but allow simple inflections:
-// plural (s/es), past tense (ed), gerund (ing)
-const escaped = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const re = new RegExp(`\\b${escaped}(s|es|ed|ing)?\\b`, "i");
-return re.test(tr);
-  return re.test(tr);
-})();
-
-if (hit) used.push(k);
-else missing.push(k);
-  }
-
-  return {
-    keywords_used: used.slice(0, 12),
-    keywords_missing: missing.slice(0, 8),
-  };
-}
 
 function computeQuestionAlignment(question: string, transcript: string) {
   const tr = normalizeText(transcript);
@@ -637,7 +446,7 @@ if (aaiFillers && aaiFillers.length > 0) {
   (fillerStats as any).perFiller = Object.fromEntries(counts.entries());
   // Replace topFillers source later by using fillerStats.perFiller
 }
-    const kw = computeKeywordUsage(jobDesc ?? "", transcript);
+
     const qa = computeQuestionAlignment(question ?? "", transcript);
 
     const topFillers = Object.entries(fillerStats.perFiller)
@@ -735,6 +544,31 @@ ${question ?? ""}
 
 CANDIDATE ANSWER (TRANSCRIPT):
 ${transcript}
+
+QUESTION RELEVANCE EVALUATION:
+Judge whether the candidate actually answered the interview question being asked.
+
+Evaluate:
+- answered_question: true if the response substantially addresses the interviewer’s ask.
+- relevance_score (1-10): overall relevance to the question asked.
+- directness_score (1-10): how directly the candidate answered instead of circling around.
+- completeness_score (1-10): how fully they addressed all parts of the question.
+- off_topic_score (1-10): how off-topic the response was.
+  - 1 = fully on-topic
+  - 10 = highly off-topic
+- missed_parts: list the specific parts of the question the candidate failed to answer.
+- relevance_explanation: 1-2 sentences explaining whether the candidate answered the question directly and completely.
+
+Important relevance rules:
+- Judge relevance primarily against the QUESTION, not the job description.
+- Multi-part questions must be graded strictly.
+- If the candidate answers only one part of a multi-part question, completeness_score must be <= 5.
+- If the answer is polished but does not actually answer what was asked, relevance_score must be <= 5.
+- Distinguish between:
+  - on-topic but incomplete
+  - partially relevant
+  - mostly off-topic
+- If the candidate clearly avoids the interviewer’s ask, answered_question must be false.
 
 FILLER WORD ANALYSIS (precomputed):
 - total_fillers: ${fillerStats.total}
@@ -863,6 +697,16 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
 "confidence_evidence": ["string"],
   "confidence_explanation": "string",
 
+  "relevance": {
+    "answered_question": true,
+    "relevance_score": 1-10,
+    "directness_score": 1-10,
+    "completeness_score": 1-10,
+    "off_topic_score": 1-10,
+    "missed_parts": ["string"],
+    "relevance_explanation": "string"
+  },
+
   "star": {
     "situation": 0-10,
     "task": 0-10,
@@ -892,8 +736,6 @@ Return STRICT JSON with this exact shape (no extra keys, no markdown):
   { "label": "string", "why": "string", "add_sentence": "string" }
 ],
   "better_answer": "string",
-  "keywords_used": ["string"],
-  "keywords_missing": ["string"]
 }
 
 Rules:
@@ -901,6 +743,14 @@ Rules:
 - Each strength must reference something specific the candidate said (a detail, metric, action, or outcome).
 - Avoid generic advice like "good structure" or "clear communication".
 
+- relevance.missed_parts must be 0–6 items.
+- relevance_explanation must be 1–2 sentences and reference the actual question asked.
+- off_topic_score uses this direction:
+  - 1–3 = strongly on-topic
+  - 4–6 = somewhat incomplete or drifting
+  - 7–10 = mostly off-topic or did not answer the question
+- directness_score must be lower if the candidate takes too long to get to the point.
+- completeness_score must reflect whether all parts of the interviewer’s question were answered.
 
 - improvements must be 3–5 items.
 - Each improvement must identify a specific missing detail or weak part of the answer and explain how to improve it in one sentence.
@@ -910,7 +760,7 @@ Rules:
 - At least 1 strength and 1 improvement must explicitly reference a STAR element by name (Situation/Task/Action/Result) and what was strong/missing in this answer.
 - When a strength or improvement references a STAR element, it must include one short supporting quote taken from star_evidence for that same element (if available).
 
-- keywords_missing must be 0–8 items.
+
 - star_missing must be 0–4 items.
 
 - better_answer must be 120–180 words.
@@ -920,9 +770,6 @@ Rules:
 - If metrics are missing, suggest a realistic outcome rather than fabricating a precise number.
 
 - star_advice: 1–2 sentences per field, must reference something they said OR say "Not mentioned".
-- keywords_used must be 0–12 items (keywords from the job description that ARE present in the transcript).
-- keywords_missing must be 0–8 items (important keywords from the job description NOT present in the transcript).
-- Prefer concrete terms (tools, metrics, processes) over generic words.
 - strengths: each item must include evidence from the transcript in quotes (3–12 words), e.g. 'Used ownership: "I led the rollout"'.
 - improvements: each item must include (a) evidence quote from transcript OR say "Not present", and (b) a concrete fix (what to add/change in 1 sentence).
 - Add a "missed_opportunities" array (2–4 items): each item must reference (a) a question intent tag OR JD keyword concept, and (b) the exact sentence they should add.
@@ -1027,6 +874,31 @@ json.missed_opportunities = Array.isArray(json.missed_opportunities)
       .slice(0, 4)
   : [];
 
+  json.relevance ??= {
+  answered_question: false,
+  relevance_score: 5,
+  directness_score: 5,
+  completeness_score: 5,
+  off_topic_score: 5,
+  missed_parts: [],
+  relevance_explanation: "Relevance analysis was unavailable.",
+};
+
+json.relevance.answered_question = Boolean(json.relevance.answered_question);
+
+for (const k of ["relevance_score", "directness_score", "completeness_score", "off_topic_score"] as const) {
+  const v = Number(json.relevance[k]);
+  json.relevance[k] = Number.isFinite(v) ? Math.max(1, Math.min(10, v)) : 5;
+}
+
+json.relevance.missed_parts = Array.isArray(json.relevance.missed_parts)
+  ? json.relevance.missed_parts.filter(isNonEmptyString).slice(0, 6)
+  : [];
+
+if (!isNonEmptyString(json.relevance.relevance_explanation)) {
+  json.relevance.relevance_explanation = "Relevance analysis was unavailable.";
+}
+
 // Optional: keep your validator as a safety net
 if (!validateFeedbackShape(json)) {
   return new Response(
@@ -1062,8 +934,7 @@ if (!validateFeedbackShape(json)) {
       per100: Number(fillerStats.fillersPer100Words.toFixed(1)),
       top: topFillers,
     },
-    keywords_used: kw.keywords_used,
-    keywords_missing: kw.keywords_missing,
+
     question_used: qa.question_used,
     question_missing: qa.question_missing,
 
