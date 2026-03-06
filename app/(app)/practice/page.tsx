@@ -1312,6 +1312,8 @@ useEffect(() => {
     }
 
     const b = data?.buckets ?? null;
+    console.log("questions API data:", data);
+console.log("role_specific bucket:", data?.buckets?.role_specific);
 
 const qs =
   Array.isArray(data?.questions)

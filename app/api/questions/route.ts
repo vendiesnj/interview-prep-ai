@@ -31,6 +31,8 @@ Rules:
 - behavioral = transferable STAR-style questions that a candidate could answer from school, internships, part-time work, volunteering, clubs, or projects.
 - technical = skill/process/tool/functional questions directly tied to the job.
 - role_specific = questions specific to succeeding in this exact role, team context, stakeholder environment, business problems, or responsibilities.
+- role_specific must not be empty.
+- If unsure, still generate 5 role_specific questions based on the job’s responsibilities, stakeholders, and success profile.
 - Do NOT return "culture".
 - Keep every question concise, professional, and interview-ready.
 - Avoid duplicates.
@@ -61,34 +63,44 @@ ${jobDesc}
   role_specific: [],
 };
 
+function cleanQuestions(arr: unknown, limit = 5): string[] {
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .map((x) => String(x).trim())
+    .filter(Boolean)
+    .filter((q) => q.length >= 8)
+    .slice(0, limit);
+}
+
+function uniqueQuestions(arr: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+
+  for (const q of arr) {
+    const key = q.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(q);
+  }
+
+  return out;
+}
+
 try {
   const parsed = JSON.parse(text);
 
   if (parsed && typeof parsed === "object") {
-    const behavioral = Array.isArray((parsed as any).behavioral)
-      ? (parsed as any).behavioral.map(String).filter(Boolean).slice(0, 5)
-      : [];
-
-    const technical = Array.isArray((parsed as any).technical)
-      ? (parsed as any).technical.map(String).filter(Boolean).slice(0, 5)
-      : [];
-
-    const roleSpecific = Array.isArray((parsed as any).role_specific)
-      ? (parsed as any).role_specific.map(String).filter(Boolean).slice(0, 5)
-      : [];
-
     buckets = {
-      behavioral,
-      technical,
-      role_specific: roleSpecific,
+      behavioral: cleanQuestions((parsed as any).behavioral, 5),
+      technical: cleanQuestions((parsed as any).technical, 5),
+      role_specific: cleanQuestions((parsed as any).role_specific, 5),
     };
   }
 } catch {
   const flat = text
     .split("\n")
     .map((l) => l.replace(/^\s*\d+[\).\s-]*/, "").trim())
-    .filter(Boolean)
-    .slice(0, 15);
+    .filter(Boolean);
 
   buckets = {
     behavioral: flat.slice(0, 5),
@@ -97,12 +109,39 @@ try {
   };
 }
 
+// de-dupe within each bucket
+buckets = {
+  behavioral: uniqueQuestions(buckets.behavioral).slice(0, 5),
+  technical: uniqueQuestions(buckets.technical).slice(0, 5),
+  role_specific: uniqueQuestions(buckets.role_specific).slice(0, 5),
+};
+
+// emergency repair: if role_specific came back empty or too short,
+// fill it with overflow questions that are not already used
+if (buckets.role_specific.length < 5) {
+  const used = new Set(
+    [...buckets.behavioral, ...buckets.technical, ...buckets.role_specific].map((q) =>
+      q.toLowerCase()
+    )
+  );
+
+  const extras = text
+    .split("\n")
+    .map((l) => l.replace(/^\s*\d+[\).\s-]*/, "").trim())
+    .filter(Boolean)
+    .filter((q) => q.length >= 8)
+    .filter((q) => !used.has(q.toLowerCase()));
+
+  buckets.role_specific = [...buckets.role_specific, ...extras].slice(0, 5);
+}
+
 const questions = [
   ...buckets.behavioral,
   ...buckets.technical,
   ...buckets.role_specific,
 ];
 
+console.log("QUESTION_BUCKETS:", buckets);
 return new Response(JSON.stringify({ buckets, questions }), {
   status: 200,
   headers: { "Content-Type": "application/json" },
