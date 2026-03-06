@@ -420,8 +420,14 @@ const HOME_STATE_FALLBACK_KEY = "ipc_home_state";
   const FOCUS_KEY = userScopedKey("ipc_focus_goal", session);
   const [jobDesc, setJobDesc] = useState("");
   const [questions, setQuestions] = useState<string[]>([]);
-type QuestionBuckets = { behavioral: string[]; technical: string[]; culture: string[] };
+type QuestionBuckets = {
+  behavioral: string[];
+  technical: string[];
+  role_specific: string[];
+  custom?: string[];
+};
 const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(null);
+const [customQuestion, setCustomQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const hydratedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -1314,26 +1320,39 @@ const qs =
       ? [
           ...(Array.isArray(b.behavioral) ? b.behavioral : []),
           ...(Array.isArray(b.technical) ? b.technical : []),
-          ...(Array.isArray(b.culture) ? b.culture : []),
+          ...(Array.isArray(b.role_specific) ? b.role_specific : []),
+          ...(Array.isArray(b.custom) ? b.custom : []),
         ].map(String)
       : [];
+
+  setQuestions(qs);
 
 setQuestionBuckets(
   b &&
     typeof b === "object" &&
     Array.isArray(b.behavioral) &&
     Array.isArray(b.technical) &&
-    Array.isArray(b.culture)
-    ? { behavioral: b.behavioral.map(String), technical: b.technical.map(String), culture: b.culture.map(String) }
+    Array.isArray(b.role_specific)
+    ? {
+        behavioral: b.behavioral.map(String),
+        technical: b.technical.map(String),
+        role_specific: b.role_specific.map(String),
+        custom: Array.isArray(b.custom) ? b.custom.map(String) : [],
+      }
     : null
 );
 
-setQuestions(qs);
-persistHomeState({ questions: qs, questionBuckets: b ? {
-  behavioral: (Array.isArray(b.behavioral) ? b.behavioral : []).map(String),
-  technical: (Array.isArray(b.technical) ? b.technical : []).map(String),
-  culture: (Array.isArray(b.culture) ? b.culture : []).map(String),
-} : null });
+persistHomeState({
+  questions: qs,
+  questionBuckets: b
+    ? {
+        behavioral: (Array.isArray(b.behavioral) ? b.behavioral : []).map(String),
+        technical: (Array.isArray(b.technical) ? b.technical : []).map(String),
+        role_specific: (Array.isArray(b.role_specific) ? b.role_specific : []).map(String),
+        custom: (Array.isArray(b.custom) ? b.custom : []).map(String),
+      }
+    : null,
+});
 
 setMode("questions");
 
@@ -2396,9 +2415,8 @@ return (
 >
 
 
-  
-{mode === "questions" ? (
-  <div style={{ display: "grid", gap: 14 }}>
+  {mode === "questions" ? (
+  <div style={{ display: "grid", gap: 16 }}>
     <div
       style={{
         fontSize: 11,
@@ -2407,56 +2425,198 @@ return (
         color: "#9CA3AF",
       }}
     >
-      GENERATED QUESTIONS
+      QUESTION SELECTION
     </div>
 
-    {questions.length === 0 ? (
+    <div
+      style={{
+        padding: 14,
+        borderRadius: 14,
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.03)",
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: 900, color: "#E5E7EB", letterSpacing: 0.4 }}>
+        Custom question
+      </div>
+
+      <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+        Paste or write your own interview question.
+      </div>
+
+      <textarea
+        value={customQuestion}
+        onChange={(e) => setCustomQuestion(e.target.value)}
+        placeholder="e.g. Tell me about a time you had to manage multiple competing priorities."
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          display: "block",
+          marginTop: 10,
+          minHeight: 88,
+          padding: 12,
+          borderRadius: 12,
+          border: "1px solid rgba(255,255,255,0.10)",
+          background: "rgba(17,24,39,0.55)",
+          color: "#E5E7EB",
+          fontSize: 14,
+          lineHeight: 1.5,
+          resize: "vertical",
+          outline: "none",
+        }}
+      />
+
+      <div style={{ marginTop: 10, display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          disabled={!customQuestion.trim()}
+          onClick={() => {
+            const q = customQuestion.trim();
+            if (!q) return;
+
+            setSelectedQuestion(q);
+            persistHomeState({ selectedQuestion: q });
+            setMode("answer");
+            persistHomeState({ mode: "answer" });
+
+            setQuestionBuckets((prev) => {
+              const next = {
+                behavioral: prev?.behavioral ?? [],
+                technical: prev?.technical ?? [],
+                role_specific: prev?.role_specific ?? [],
+                custom: [...(prev?.custom ?? []), q],
+              };
+
+              persistHomeState({
+                questionBuckets: next,
+                questions: [
+                  ...(next.behavioral ?? []),
+                  ...(next.technical ?? []),
+                  ...(next.role_specific ?? []),
+                  ...(next.custom ?? []),
+                ],
+              });
+
+              return next;
+            });
+          }}
+          style={{
+            padding: "10px 14px",
+            borderRadius: 12,
+            border: "1px solid rgba(34,211,238,0.35)",
+            background: customQuestion.trim()
+              ? "rgba(34,211,238,0.10)"
+              : "rgba(255,255,255,0.04)",
+            color: customQuestion.trim() ? "#A5F3FC" : "#9CA3AF",
+            fontWeight: 900,
+            cursor: customQuestion.trim() ? "pointer" : "not-allowed",
+            fontSize: 13,
+          }}
+        >
+          Use custom question
+        </button>
+      </div>
+    </div>
+
+    {questions.length === 0 && !questionBuckets ? (
       <div style={{ fontSize: 13, color: "#9CA3AF" }}>
         No questions generated yet.
       </div>
     ) : (
-      <div style={{ display: "grid", gap: 10 }}>
-        {questions.map((q, idx) => {
-          const active = selectedQuestion === q;
-
-          return (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => {
-                setSelectedQuestion(q);
-                persistHomeState({ selectedQuestion: q });
-                setMode("answer");
-                persistHomeState({ mode: "answer"});
-              }}
+      <div style={{ display: "grid", gap: 14 }}>
+        {[
+          {
+            key: "behavioral",
+            title: "Behavioral",
+            items: questionBuckets?.behavioral ?? [],
+          },
+          {
+            key: "technical",
+            title: "Technical",
+            items: questionBuckets?.technical ?? [],
+          },
+          {
+            key: "role_specific",
+            title: "Role-Specific",
+            items: questionBuckets?.role_specific ?? [],
+          },
+          {
+            key: "custom",
+            title: "Custom",
+            items: questionBuckets?.custom ?? [],
+          },
+        ]
+          .filter((section) => section.items.length > 0)
+          .map((section) => (
+            <div
+              key={section.key}
               style={{
-                textAlign: "left",
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: 12,
-                border: active
-                  ? "1px solid rgba(34,211,238,0.45)"
-                  : "1px solid rgba(255,255,255,0.08)",
-                background: active
-                  ? "rgba(34,211,238,0.08)"
-                  : "rgba(255,255,255,0.04)",
-                fontSize: 14,
-                lineHeight: 1.5,
-                color: "#E5E7EB",
-                cursor: "pointer",
+                padding: 14,
+                borderRadius: 14,
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.03)",
               }}
             >
-              <div style={{ display: "flex", gap: 10 }}>
-                <span style={{ color: "#9CA3AF", fontWeight: 700 }}>{idx + 1}.</span>
-                <span>{q}</span>
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 900,
+                  color: "#9CA3AF",
+                  letterSpacing: 0.5,
+                  marginBottom: 10,
+                }}
+              >
+                {section.title}
               </div>
-            </button>
-          );
-        })}
+
+              <div style={{ display: "grid", gap: 10 }}>
+                {section.items.map((q, idx) => {
+                  const active = selectedQuestion === q;
+
+                  return (
+                    <button
+                      key={`${section.key}-${idx}-${q}`}
+                      type="button"
+                      onClick={() => {
+                        setSelectedQuestion(q);
+                        persistHomeState({ selectedQuestion: q });
+                        setMode("answer");
+                        persistHomeState({ mode: "answer" });
+                      }}
+                      style={{
+                        textAlign: "left",
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 12,
+                        border: active
+                          ? "1px solid rgba(34,211,238,0.45)"
+                          : "1px solid rgba(255,255,255,0.08)",
+                        background: active
+                          ? "rgba(34,211,238,0.08)"
+                          : "rgba(255,255,255,0.04)",
+                        fontSize: 14,
+                        lineHeight: 1.5,
+                        color: "#E5E7EB",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: 10 }}>
+                        <span style={{ color: "#9CA3AF", fontWeight: 700 }}>
+                          {idx + 1}.
+                        </span>
+                        <span>{q}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
       </div>
     )}
   </div>
 ) : null}
+
 
 
 {mode === "answer" ? (

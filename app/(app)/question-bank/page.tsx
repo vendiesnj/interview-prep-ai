@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from "react";
 type BankItem = {
   id: string;
   question: string;
-  bucket?: "behavioral" | "technical" | "culture" | "other";
+  bucket?: "behavioral" | "technical" | "role_specific" | "custom" | "other";
   role?: string; // optional tag
   favorite?: boolean;
   createdAt: number;
@@ -15,10 +15,11 @@ type HomeState = {
   jobDesc?: string;
   questions?: string[];
   questionBuckets?: {
-    behavioral: string[];
-    technical: string[];
-    culture: string[];
-  } | null;
+  behavioral: string[];
+  technical: string[];
+  role_specific: string[];
+  custom?: string[];
+} | null;
 };
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -113,10 +114,11 @@ export default function QuestionBankPage() {
     // Build a map question -> bucket (best effort)
     const bucketMap = new Map<string, BankItem["bucket"]>();
     if (buckets) {
-      buckets.behavioral?.forEach((q) => bucketMap.set(String(q), "behavioral"));
-      buckets.technical?.forEach((q) => bucketMap.set(String(q), "technical"));
-      buckets.culture?.forEach((q) => bucketMap.set(String(q), "culture"));
-    }
+  buckets.behavioral?.forEach((q) => bucketMap.set(String(q), "behavioral"));
+  buckets.technical?.forEach((q) => bucketMap.set(String(q), "technical"));
+  buckets.role_specific?.forEach((q) => bucketMap.set(String(q), "role_specific"));
+  buckets.custom?.forEach((q) => bucketMap.set(String(q), "custom"));
+}
 
     const qs = Array.isArray(home.questions) ? home.questions.map(String) : [];
     const unique = Array.from(new Set(qs)).filter(Boolean);
@@ -300,7 +302,8 @@ export default function QuestionBankPage() {
           <option value="all">All buckets</option>
           <option value="behavioral">Behavioral</option>
           <option value="technical">Technical</option>
-          <option value="culture">Culture</option>
+          <option value="role_specific">Role-Specific</option>
+          <option value="custom">Custom</option>
           <option value="other">Other</option>
         </select>
 
