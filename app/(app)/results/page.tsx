@@ -577,6 +577,91 @@ function SpeakingTimeline({
   );
 }
 
+function mean(arr: number[]) {
+  if (!arr.length) return 0;
+  return arr.reduce((a, b) => a + b, 0) / arr.length;
+}
+
+function sliceThirds<T>(arr: T[]) {
+  const n = arr.length;
+  if (n < 3) return { first: arr, last: arr };
+  const k = Math.max(1, Math.floor(n / 3));
+  return { first: arr.slice(0, k), last: arr.slice(n - k) };
+}
+
+function scoreLabel(score: number) {
+  if (score >= 8.5) return "Excellent";
+  if (score >= 7.0) return "Strong";
+  if (score >= 5.5) return "Good";
+  if (score >= 4.0) return "Needs polish";
+  return "Needs work";
+}
+
+function clamp01(x: number) {
+  return Math.max(0, Math.min(1, x));
+}
+
+// A small “headline card” for Delivery pillars
+function HeadlineCard({
+  title,
+  score,
+  subtitle,
+  bullets,
+}: {
+  title: string;
+  score: number | null;
+  subtitle: string;
+  bullets: string[];
+}) {
+  const s = typeof score === "number" && Number.isFinite(score) ? score : null;
+  return (
+    <div
+      style={{
+        padding: 16,
+        borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.08)",
+        background: "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        minWidth: 0,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>{title}</div>
+        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800 }}>
+          {s !== null ? `${Math.round(s * 10) / 10}/10 · ${scoreLabel(s)}` : "—"}
+        </div>
+      </div>
+
+      <div style={{ marginTop: 8, fontSize: 13, color: "#E5E7EB", fontWeight: 900 }}>{subtitle}</div>
+
+      <div
+        style={{
+          marginTop: 10,
+          height: 6,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${s !== null ? Math.max(0, Math.min(100, (s / 10) * 100)) : 0}%`,
+            height: "100%",
+            background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+            transition: "width 300ms ease",
+          }}
+        />
+      </div>
+
+      <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, lineHeight: 1.6, color: "#9CA3AF", fontSize: 12 }}>
+        {bullets.slice(0, 3).map((b, i) => (
+          <li key={i}>{b}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -708,6 +793,216 @@ const series = acousticsNorm?.series ?? null;
 
 const hasNum = (v: any): v is number => typeof v === "number" && Number.isFinite(v);
 
+const deliverySummary = useMemo(() => {
+  // Inputs
+  const fillersPer100 = typeof feedback?.filler?.per100 === "number" ? feedback.filler.per100 : null;
+
+  const pauseCount = typeof dm?.pauseCount === "number" ? dm.pauseCount : null;
+  const longPauseCount = typeof dm?.longPauseCount === "number" ? dm.longPauseCount : null;
+  const avgPauseMs = typeof dm?.avgPauseMs === "number" ? dm.avgPauseMs : null;
+
+  // Duration from timeline (best available)
+  const durationSec =
+    typeof series?.t?.[series.t.length - 1] === "number" && Number.isFinite(series.t[series.t.length - 1])
+      ? Number(series.t[series.t.length - 1])
+      : typeof (acoustics as any)?.durationSec === "number"
+      ? Number((acoustics as any).durationSec)
+      : null;
+
+  // Derived pause metrics
+  const pauseDensity =
+    durationSec && pauseCount !== null && durationSec > 0 ? pauseCount / durationSec : null; // pauses/sec
+
+  const longPauseRatio =
+    pauseCount && longPauseCount !== null && pauseCount > 0 ? longPauseCount / pauseCount : null;
+
+  // Energy drift + pitch trend from series
+  let energyDrift: number | null = null; // positive means more energy at end
+  let pitchTrend: number | null = null;  // positive means higher pitch at end
+  if (series?.energy?.length && series?.pitch?.length) {
+    const n = Math.min(series.energy.length, series.pitch.length);
+    const e = series.energy.slice(0, n).map(Number).filter((x) => Number.isFinite(x));
+    const p = series.pitch.slice(0, n).map(Number).filter((x) => Number.isFinite(x));
+
+    if (e.length >= 6) {
+      const thirdsE = sliceThirds(e);
+      const startE = mean(thirdsE.first);
+      const endE = mean(thirdsE.last);
+      energyDrift = endE - startE;
+    }
+
+    // pitch: ignore unvoiced zeros by filtering per-third
+    if (p.length >= 6) {
+      const thirdsP = sliceThirds(p);
+      const startP = mean(thirdsP.first.filter((x) => x > 0));
+      const endP = mean(thirdsP.last.filter((x) => x > 0));
+      if (Number.isFinite(startP) && Number.isFinite(endP) && (startP > 0 || endP > 0)) {
+        pitchTrend = endP - startP;
+      }
+    }
+  }
+
+  // Normalize / score components (0–10)
+  const monotone = typeof acousticsNorm?.monotoneScore === "number" ? acousticsNorm.monotoneScore : null;
+  const energyVar = typeof acousticsNorm?.energyVariation === "number" ? acousticsNorm.energyVariation : null;
+  const tempo = typeof acousticsNorm?.tempo === "number" ? acousticsNorm.tempo : null;
+  const tempoDyn = typeof acousticsNorm?.tempoDynamics === "number" ? acousticsNorm.tempoDynamics : null;
+  const pitchStd = typeof acousticsNorm?.pitchStd === "number" ? acousticsNorm.pitchStd : null;
+  const pitchRange = typeof acousticsNorm?.pitchRange === "number" ? acousticsNorm.pitchRange : null;
+
+  // Helpers (map real-world ranges → 0..10)
+  const pitchVarScore = pitchStd === null ? null : Math.max(0, Math.min(10, (pitchStd / 30) * 10));      // ~30Hz std = 10
+  const pitchRangeScore = pitchRange === null ? null : Math.max(0, Math.min(10, (pitchRange / 180) * 10)); // ~180Hz range = 10
+
+  // Tempo “good zone”: 90–140 ideal. Penalize outside.
+  const tempoScore =
+    tempo === null
+      ? null
+      : (() => {
+          const idealLo = 90;
+          const idealHi = 140;
+          if (tempo >= idealLo && tempo <= idealHi) return 9.0;
+          // falloff
+          const dist = tempo < idealLo ? idealLo - tempo : tempo - idealHi;
+          return Math.max(2, 9 - dist / 8); // ~8 bpm away = -1
+        })();
+
+  // Pause smoothness score using density + long pause ratio + avg pause
+  const rhythmScore =
+    (() => {
+      const parts: number[] = [];
+
+      if (pauseDensity !== null) {
+        // best around ~0.08–0.16 pauses/sec (roughly 1 pause per 6–12s)
+        const target = 0.12;
+        const d = Math.abs(pauseDensity - target);
+        const s = Math.max(0, 10 - d * 60); // tune multiplier
+        parts.push(s);
+      }
+
+      if (longPauseRatio !== null) {
+        // lower is better: 0–0.25 good, 0.5+ bad
+        const s = Math.max(0, 10 - longPauseRatio * 16);
+        parts.push(s);
+      }
+
+      if (avgPauseMs !== null) {
+        // avg pause ~400–900ms good; very long means choppy
+        const over = Math.max(0, avgPauseMs - 900);
+        const s = Math.max(0, 10 - over / 120); // every 120ms over loses ~1
+        parts.push(s);
+      }
+
+      if (tempoDyn !== null) {
+        // dynamics is okay in moderation; very high can feel erratic
+        // assume 4–7 is good
+        const s = tempoDyn <= 7 ? 8.5 : Math.max(3, 8.5 - (tempoDyn - 7) * 1.5);
+        parts.push(s);
+      }
+
+      if (!parts.length) return null;
+      return parts.reduce((a, b) => a + b, 0) / parts.length;
+    })();
+
+  // Vocal presence: prefer non-monotone + energyVar + pitchVar + pitchRange
+  const vocalPresenceScore =
+    (() => {
+      const parts: number[] = [];
+
+      if (monotone !== null) parts.push(10 - Math.max(0, Math.min(10, monotone))); // invert monotone
+      if (energyVar !== null) parts.push(Math.max(0, Math.min(10, energyVar)));
+      if (pitchVarScore !== null) parts.push(pitchVarScore);
+      if (pitchRangeScore !== null) parts.push(pitchRangeScore);
+
+      if (!parts.length) return null;
+      return parts.reduce((a, b) => a + b, 0) / parts.length;
+    })();
+
+  // Clarity: fillers + pauses (fewer fillers + smoother pauses = clearer)
+  const clarityScore =
+    (() => {
+      const parts: number[] = [];
+
+      if (fillersPer100 !== null) {
+        // 0 is best, 6+ is bad
+        const s = Math.max(0, 10 - fillersPer100 * 1.6);
+        parts.push(s);
+      }
+
+      if (pauseDensity !== null) {
+        // very high pause density hurts clarity
+        const s = Math.max(0, 10 - Math.max(0, pauseDensity - 0.18) * 60);
+        parts.push(s);
+      }
+
+      if (longPauseRatio !== null) {
+        const s = Math.max(0, 10 - longPauseRatio * 18);
+        parts.push(s);
+      }
+
+      if (!parts.length) return null;
+      return parts.reduce((a, b) => a + b, 0) / parts.length;
+    })();
+
+  // Engagement: combine vocal presence + rhythm + tempoScore + energy stability
+  const engagementScore =
+    (() => {
+      const parts: number[] = [];
+
+      if (vocalPresenceScore !== null) parts.push(vocalPresenceScore * 0.45);
+      if (rhythmScore !== null) parts.push(rhythmScore * 0.30);
+      if (tempoScore !== null) parts.push(tempoScore * 0.15);
+
+      if (energyDrift !== null) {
+        // prefer slight positive or neutral drift; big drop is bad
+        const driftScore = energyDrift >= 0 ? 8.5 : Math.max(2, 8.5 + energyDrift * 120); // energyDrift is small decimals
+        parts.push(driftScore * 0.10);
+      }
+
+      if (!parts.length) return null;
+      const sum = parts.reduce((a, b) => a + b, 0);
+      // weights already baked into parts; normalize to 0..10-ish
+      return Math.max(0, Math.min(10, sum));
+    })();
+
+  const pitchTrendLabel =
+    pitchTrend === null
+      ? null
+      : pitchTrend > 12
+      ? "Rising (can sound unsure)"
+      : pitchTrend < -12
+      ? "Falling (often confident)"
+      : "Stable (steady)";
+
+  const energyDriftLabel =
+    energyDrift === null
+      ? null
+      : energyDrift > 0.01
+      ? "Building energy"
+      : energyDrift < -0.01
+      ? "Energy dropping"
+      : "Stable energy";
+
+  return {
+    fillersPer100,
+    pauseCount,
+    longPauseCount,
+    avgPauseMs,
+    durationSec,
+    pauseDensity,
+    longPauseRatio,
+    energyDrift,
+    pitchTrend,
+    pitchTrendLabel,
+    energyDriftLabel,
+    tempo,
+    tempoDyn,
+    engagementScore,
+    vocalPresenceScore,
+    rhythmScore,
+    clarityScore,
+  };
+}, [feedback, dm, acousticsNorm, series, acoustics]);
 
   const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
 
@@ -1287,209 +1582,290 @@ return (
 ) : null}
 
 {activeTab === "delivery" ? (
-<SectionCard title="Delivery Analysis" collapsible={false}>
+  <SectionCard title="Voice Delivery" collapsible={false}>
+    <div style={{ marginTop: 6, color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
+      This tab focuses on <strong style={{ color: "#E5E7EB" }}>how you sounded</strong>: presence, rhythm, and clarity.
+    </div>
 
-  <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12 }}>
-  AssemblyAI metrics:{" "}
-  {(stored as any)?.deliveryMetrics
-    ? "from stored.deliveryMetrics"
-    : (feedback as any)?.deliveryMetrics
-    ? "from feedback.deliveryMetrics"
-    : "none"}
-</div>
-  <div
-    style={{
-      display: "grid",
-      gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-      gap: 14,
-    }}
-  >
-    {[
-      {
-        label: "Pace",
-        value:
-  typeof stored?.wpm === "number"
-    ? stored.wpm
-    : typeof stored?.wpm === "string" && Number.isFinite(Number(stored.wpm))
-    ? Number(stored.wpm)
-    : null,
-        sub:
-  (typeof stored?.wpm === "number" ||
-    (typeof stored?.wpm === "string" && Number.isFinite(Number(stored.wpm))))
-    ? paceContext(
-        typeof stored.wpm === "number" ? stored.wpm : Number(stored.wpm)
-      ).label
-    : "Not detected",
-        format: (v: number) => `${v} wpm`,
-        max: 200,
-      },
-      {
-        label: "Fillers",
-        value: typeof feedback.filler?.per100 === "number" ? feedback.filler.per100 : null,
-        sub: "per 100 words",
-        format: (v: number) => `${v}`,
-        max: 15,
-      },
-      {
-  label: "Vocal Variety",
-  value:
-    hasNum(acousticsNorm?.monotoneScore)
-      ? 10 - clamp(acousticsNorm.monotoneScore, 0, 10)
-      : typeof stored?.prosody?.monotoneScore === "number"
-      ? 10 - clamp(stored.prosody.monotoneScore, 0, 10)
-      : null,
-  sub: "Pitch + energy variation",
-  format: (v: number) => `${Math.round(v * 10) / 10}/10`,
-  max: 10,
-},
-      {
-        label: "Confidence",
-        value: typeof feedback.confidence_score === "number" ? feedback.confidence_score : null,
-        sub: "Tone + decisiveness",
-        format: (v: number) => `${v}/10`,
-        max: 10,
-      },
-    ].map((m) => (
-      <div
-        key={m.label}
-        style={{
-          padding: 16,
-          borderRadius: 16,
-          border: "1px solid rgba(255,255,255,0.08)",
-          background:
-            "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
-          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-          minWidth: 0,
-        }}
-      >
-        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>
-          {m.label}
+    {/* Engagement Score (hero) */}
+    <div
+      style={{
+        marginTop: 14,
+        padding: 16,
+        borderRadius: 18,
+        border: "1px solid rgba(255,255,255,0.10)",
+        background:
+          "radial-gradient(900px 420px at 15% -10%, rgba(99,102,241,0.16), transparent 60%), rgba(255,255,255,0.03)",
+        boxShadow: "0 14px 50px rgba(0,0,0,0.35)",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap", alignItems: "baseline" }}>
+        <div>
+          <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>Engagement score</div>
+          <div style={{ marginTop: 8, fontSize: 38, fontWeight: 950, letterSpacing: -0.8, color: "#E5E7EB" }}>
+            {typeof deliverySummary?.engagementScore === "number"
+              ? `${Math.round(deliverySummary.engagementScore * 10) / 10}/10`
+              : "—"}
+          </div>
+          <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF" }}>
+            {typeof deliverySummary?.engagementScore === "number"
+              ? scoreLabel(deliverySummary.engagementScore)
+              : "No acoustic signal detected yet."}
+          </div>
         </div>
 
-        <div style={{ marginTop: 8, fontSize: 22, fontWeight: 900, color: "#E5E7EB" }}>
-          {typeof m.value === "number" ? m.format(m.value) : "—"}
-        </div>
-
-        <div style={{ marginTop: 4, fontSize: 12, color: "#9CA3AF" }}>{m.sub}</div>
-        
-        {m.label === "Confidence" && typeof feedback.confidence_explanation === "string" && feedback.confidence_explanation.trim() ? (
-  <div style={{ marginTop: 8, fontSize: 12, color: "#9CA3AF", lineHeight: 1.6 }}>
-    {feedback.confidence_explanation}
-  </div>
-) : null}
-
-        {typeof m.value === "number" ? (
-          <div
-            style={{
-              marginTop: 10,
-              height: 6,
-              borderRadius: 999,
-              background: "rgba(255,255,255,0.08)",
-              overflow: "hidden",
-            }}
-          >
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
+          {deliverySummary?.energyDriftLabel ? (
             <div
               style={{
-                width: `${Math.max(0, Math.min(100, (m.value / m.max) * 100))}%`,
-                height: "100%",
-                background:
-                  "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
-                transition: "width 300ms ease",
+                padding: "6px 10px",
+                borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.06)",
+                color: "#E5E7EB",
+                fontSize: 12,
+                fontWeight: 800,
               }}
-            />
+            >
+              Energy: <span style={{ color: "#9CA3AF", fontWeight: 900 }}>{deliverySummary.energyDriftLabel}</span>
+            </div>
+          ) : null}
+
+          {deliverySummary?.pitchTrendLabel ? (
+            <div
+              style={{
+                padding: "6px 10px",
+                borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.06)",
+                color: "#E5E7EB",
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              Pitch trend: <span style={{ color: "#9CA3AF", fontWeight: 900 }}>{deliverySummary.pitchTrendLabel}</span>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 12,
+          height: 8,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${
+              typeof deliverySummary?.engagementScore === "number"
+                ? Math.max(0, Math.min(100, (deliverySummary.engagementScore / 10) * 100))
+                : 0
+            }%`,
+            height: "100%",
+            background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+            transition: "width 300ms ease",
+          }}
+        />
+      </div>
+
+      <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+        Built from your pitch + energy variation, rhythm, and clarity signals.
+      </div>
+    </div>
+
+    {/* Pillars */}
+    <div
+      style={{
+        marginTop: 14,
+        display: "grid",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+        gap: 14,
+      }}
+    >
+      <HeadlineCard
+        title="Vocal Presence"
+        score={deliverySummary?.vocalPresenceScore ?? null}
+        subtitle="Variation + emphasis (not monotone)"
+        bullets={[
+          "Improve by emphasizing metrics and outcomes with a slight pitch lift, then pause.",
+          "Vary sentence length: short claim → detail → short result.",
+          "Aim for steady energy; avoid fading at the end.",
+        ]}
+      />
+
+      <HeadlineCard
+        title="Speaking Rhythm"
+        score={deliverySummary?.rhythmScore ?? null}
+        subtitle="Smooth pacing (not choppy)"
+        bullets={[
+          "Pause intentionally after numbers — avoid clusters of long pauses.",
+          "If rhythm feels erratic, tighten sentences and remove extra setup.",
+          "Keep a steady cadence; variation is good, chaos is not.",
+        ]}
+      />
+
+      <HeadlineCard
+        title="Speech Clarity"
+        score={deliverySummary?.clarityScore ?? null}
+        subtitle="Clean delivery (low fillers)"
+        bullets={[
+          "Replace fillers with a one-beat pause.",
+          "Shorter sentences reduce fillers immediately.",
+          "Stop after the result line — don’t ramble past the win.",
+        ]}
+      />
+    </div>
+
+    {/* Micro signals (cleaner) */}
+    {(dm || deliverySummary) ? (
+      <div
+        style={{
+          marginTop: 14,
+          borderRadius: 16,
+          border: "1px solid rgba(255,255,255,0.10)",
+          background: "rgba(255,255,255,0.03)",
+          padding: 14,
+        }}
+      >
+        <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 8 }}>
+          Micro delivery signals
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 10,
+            color: "#9CA3AF",
+            fontSize: 12,
+            lineHeight: 1.7,
+          }}
+        >
+          <div>
+            {typeof deliverySummary?.fillersPer100 === "number" ? (
+              <div>Fillers: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{deliverySummary.fillersPer100}</span> / 100 words</div>
+            ) : (
+              <div>Fillers: —</div>
+            )}
+
+            {typeof deliverySummary?.pauseDensity === "number" ? (
+              <div>Pause density: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{(deliverySummary.pauseDensity).toFixed(3)}</span> pauses/sec</div>
+            ) : (
+              <div>Pause density: —</div>
+            )}
+
+            {typeof dm?.pauseCount === "number" ? (
+              <div>Pauses: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{dm.pauseCount}</span></div>
+            ) : null}
+          </div>
+
+          <div>
+            {typeof dm?.longPauseCount === "number" ? (
+              <div>Long pauses (≥0.9s): <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{dm.longPauseCount}</span></div>
+            ) : null}
+
+            {typeof deliverySummary?.longPauseRatio === "number" ? (
+              <div>Long pause ratio: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{Math.round(deliverySummary.longPauseRatio * 100)}%</span></div>
+            ) : (
+              <div>Long pause ratio: —</div>
+            )}
+
+            {typeof dm?.avgPauseMs === "number" ? (
+              <div>Average pause: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{dm.avgPauseMs}</span> ms</div>
+            ) : null}
+          </div>
+        </div>
+
+        {process.env.NODE_ENV !== "production" ? (
+          <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 10 }}>
+            acoustics debug:
+            <pre>{JSON.stringify(acoustics, null, 2)}</pre>
           </div>
         ) : null}
       </div>
-    ))}
-  </div>
-{dm ? (
-  <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
-    <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
-      Voice delivery signals
-    </div>
-
-   {process.env.NODE_ENV !== "production" ? (
-  <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 6 }}>
-    acoustics debug:
-    <pre>{JSON.stringify(acoustics, null, 2)}</pre>
-  </div>
-) : null}
-
-    {typeof dm.pauseCount === "number" ? <div>Pauses: {dm.pauseCount}</div> : null}
-    {typeof dm.longPauseCount === "number" ? <div>Long pauses (≥0.9s): {dm.longPauseCount}</div> : null}
-    {typeof dm.avgPauseMs === "number" ? <div>Average pause: {dm.avgPauseMs} ms</div> : null}
-    {typeof dm.maxPauseMs === "number" ? <div>Max pause: {dm.maxPauseMs} ms</div> : null}
-  </div>
-) : null}
-
-{acousticsNorm ? (
-  <div
-    style={{
-      marginTop: 12,
-      display: "grid",
-      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-      gap: 10,
-    }}
-  >
-    {hasNum(acousticsNorm.monotoneScore) ? (
-      <MetricBar
-        label="Monotone score"
-        value={clamp(acousticsNorm.monotoneScore, 0, 10)}
-        max={10}
-        subtext={monotoneContext(acousticsNorm.monotoneScore)}
-      />
     ) : null}
 
-    {hasNum(acousticsNorm.energyVariation) ? (
-      <MetricBar
-          label="Energy variation"
-          value={Math.round(clamp(acousticsNorm?.energyVariation, 0, 10) * 10) / 10}
-          max={10}
-          subtext={energyVarContext(acousticsNorm.energyVariation ?? 0)}
-        />
-    ) : null}
+    {/* Deep signals (your existing bars, kept but framed better) */}
+    {acousticsNorm ? (
+      <div style={{ marginTop: 14 }}>
+        <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
+          Voice dynamics
+        </div>
 
-    {hasNum(acousticsNorm.tempoDynamics) ? (
-      <MetricBar
-        label="Tempo dynamics"
-        value={clamp(acousticsNorm.tempoDynamics, 0, 10)}
-        max={10}
-        subtext={tempoDynContext(acousticsNorm.tempoDynamics)}
-      />
-    ) : null}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 10,
+          }}
+        >
+          {hasNum(acousticsNorm.monotoneScore) ? (
+            <MetricBar
+              label="Monotone score"
+              value={clamp(acousticsNorm.monotoneScore, 0, 10)}
+              max={10}
+              subtext={monotoneContext(acousticsNorm.monotoneScore)}
+            />
+          ) : null}
 
-    {hasNum(acousticsNorm.pitchRange) ? (
-      <MetricBar
-        label="Pitch range"
-        value={Math.round(acousticsNorm.pitchRange)}
-        max={200}
-        subtext={pitchRangeContext(acousticsNorm.pitchRange)}
-      />
-    ) : null}
-    {hasNum(acousticsNorm.tempo) ? (
-  <MetricBar
-    label="Tempo"
-    value={Math.round(acousticsNorm.tempo)}
-    max={200}
-    subtext={`${tempoContext(acousticsNorm.tempo)} (BPM)`}
-  />
-) : null}
+          {hasNum(acousticsNorm.energyVariation) ? (
+            <MetricBar
+              label="Energy variation"
+              value={Math.round(clamp(acousticsNorm.energyVariation, 0, 10) * 10) / 10}
+              max={10}
+              subtext={energyVarContext(acousticsNorm.energyVariation)}
+            />
+          ) : null}
 
-{hasNum(acousticsNorm.pitchStd) ? (
-  <MetricBar
-    label="Pitch variety"
-    value={Math.round(acousticsNorm.pitchStd)}
-    max={60}
-    subtext={`${pitchStdContext(acousticsNorm.pitchStd)} (std dev Hz)`}
-  />
-) : null}
+          {hasNum(acousticsNorm.tempo) ? (
+            <MetricBar
+              label="Tempo"
+              value={Math.round(acousticsNorm.tempo)}
+              max={200}
+              subtext={`${tempoContext(acousticsNorm.tempo)} (BPM)`}
+            />
+          ) : null}
 
-  </div>
-) : null}
+          {hasNum(acousticsNorm.tempoDynamics) ? (
+            <MetricBar
+              label="Tempo dynamics"
+              value={clamp(acousticsNorm.tempoDynamics, 0, 10)}
+              max={10}
+              subtext={tempoDynContext(acousticsNorm.tempoDynamics)}
+            />
+          ) : null}
 
-{series ? <SpeakingTimeline series={series} /> : null}
+          {hasNum(acousticsNorm.pitchRange) ? (
+            <MetricBar
+              label="Pitch range"
+              value={Math.round(acousticsNorm.pitchRange)}
+              max={200}
+              subtext={pitchRangeContext(acousticsNorm.pitchRange)}
+            />
+          ) : null}
 
-</SectionCard>
+          {hasNum(acousticsNorm.pitchStd) ? (
+            <MetricBar
+              label="Pitch variety"
+              value={Math.round(acousticsNorm.pitchStd)}
+              max={60}
+              subtext={`${pitchStdContext(acousticsNorm.pitchStd)} (std dev Hz)`}
+            />
+          ) : null}
+        </div>
+
+        {series ? <SpeakingTimeline series={series} /> : null}
+      </div>
+    ) : (
+      <div style={{ marginTop: 14, color: "#9CA3AF", fontSize: 13 }}>
+        No acoustic features detected yet. Record a spoken answer to populate voice analytics.
+      </div>
+    )}
+  </SectionCard>
 ) : null}
 
 {activeTab === "coaching" ? (
