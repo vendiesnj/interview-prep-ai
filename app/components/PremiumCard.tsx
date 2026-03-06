@@ -12,13 +12,15 @@ export default function PremiumCard({
   return (
     <div
       style={{
-        borderRadius: 20,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background:
-          "radial-gradient(800px 280px at 15% -20%, rgba(34,211,238,0.10), transparent 55%), rgba(255,255,255,0.03)",
-        boxShadow:
-          "0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
+        borderRadius: "var(--radius-xl)",
+        border: "1px solid var(--card-border)",
+        background: `
+          radial-gradient(800px 280px at 15% -20%, var(--accent-soft), transparent 55%),
+          var(--card-bg)
+        `,
+        boxShadow: "var(--shadow-card)",
         padding: 16,
+        color: "var(--text-primary)",
         ...style,
       }}
     >

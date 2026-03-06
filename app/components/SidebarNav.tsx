@@ -61,45 +61,48 @@ export default function SidebarNav() {
 
   return (
     <aside
-      style={{
-        width: collapsed ? 72 : 260,
-        flex: `0 0 ${collapsed ? 72 : 260}px`,
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-        borderRight: "1px solid rgba(255,255,255,0.08)",
-        background:
-          "radial-gradient(900px 400px at 10% -10%, rgba(34,211,238,0.10), transparent 55%), rgba(17,24,39,0.92)",
-        padding: collapsed ? 12 : 16,
-        boxSizing: "border-box",
-        transition: "width 180ms ease, padding 180ms ease",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+  style={{
+    width: collapsed ? 72 : 260,
+    flex: `0 0 ${collapsed ? 72 : 260}px`,
+    height: "100vh",
+    position: "sticky",
+    top: 0,
+    borderRight: "1px solid var(--card-border-soft)",
+    background: `
+      radial-gradient(900px 400px at 10% -10%, var(--accent-soft), transparent 55%),
+      rgba(17,24,39,0.92)
+    `,
+    padding: collapsed ? 12 : 16,
+    boxSizing: "border-box",
+    transition: "width 180ms ease, padding 180ms ease",
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    color: "var(--text-primary)",
+  }}
+>
       {/* Header */}
-      <div
-        style={{
-          padding: collapsed ? "10px 6px 12px 6px" : "10px 10px 16px 10px",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
-          gap: 10,
-        }}
-      >
+     <div
+  style={{
+    padding: collapsed ? "10px 6px 12px 6px" : "10px 10px 16px 10px",
+    borderBottom: "1px solid var(--card-border-soft)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: collapsed ? "center" : "space-between",
+    gap: 10,
+  }}
+>
         {!collapsed ? (
           <div>
-            <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.6 }}>
-              INTERVIEW COACH
-            </div>
-            <div style={{ marginTop: 6, fontSize: 16, color: "#E5E7EB", fontWeight: 950 }}>
-              Performance Suite
-            </div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900, letterSpacing: 0.6 }}>
+  INTERVIEW COACH
+</div>
+            <div style={{ marginTop: 6, fontSize: 16, color: "var(--text-primary)", fontWeight: 950 }}>
+  Performance Suite
+</div>
           </div>
         ) : (
-          <div style={{ fontSize: 14, color: "#E5E7EB", fontWeight: 950 }}>IC</div>
+          <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 950 }}>IC</div>
         )}
 
         <button
@@ -108,19 +111,19 @@ export default function SidebarNav() {
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           title={collapsed ? "Expand" : "Collapse"}
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(255,255,255,0.04)",
-            color: "#E5E7EB",
-            cursor: "pointer",
-            fontSize: 18,
-            fontWeight: 900,
-            lineHeight: "34px",
-            textAlign: "center",
-            flex: "0 0 auto",
-          }}
+  width: 36,
+  height: 36,
+  borderRadius: 12,
+  border: "1px solid var(--card-border)",
+  background: "var(--card-bg)",
+  color: "var(--text-primary)",
+  cursor: "pointer",
+  fontSize: 18,
+  fontWeight: 900,
+  lineHeight: "34px",
+  textAlign: "center",
+  flex: "0 0 auto",
+}}
         >
           <span
   aria-hidden
@@ -148,25 +151,25 @@ export default function SidebarNav() {
     href={item.href}
     title={item.label}
     style={{
-      textDecoration: "none",
-      display: "flex",
-      flexDirection: collapsed ? "column" : "row",
-      alignItems: "center",
-      justifyContent: collapsed ? "center" : "flex-start",
-      gap: collapsed ? 6 : 10,
-      padding: collapsed ? "10px 6px" : "10px 12px",
-      borderRadius: 12,
-      border: active
-        ? "1px solid rgba(34,211,238,0.35)"
-        : "1px solid rgba(255,255,255,0.08)",
-      background: active ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.03)",
-      color: active ? "#A5F3FC" : "#E5E7EB",
-      fontWeight: active ? 900 : 800,
-      fontSize: 13,
-      minWidth: 0,           // ✅ allow children to size correctly
-      width: "100%",         // ✅ makes the pill take the full sidebar column
-      boxSizing: "border-box",
-    }}
+  textDecoration: "none",
+  display: "flex",
+  flexDirection: collapsed ? "column" : "row",
+  alignItems: "center",
+  justifyContent: collapsed ? "center" : "flex-start",
+  gap: collapsed ? 6 : 10,
+  padding: collapsed ? "10px 6px" : "10px 12px",
+  borderRadius: 12,
+  border: active
+    ? "1px solid var(--accent-strong)"
+    : "1px solid var(--card-border-soft)",
+  background: active ? "var(--accent-soft)" : "var(--card-bg)",
+  color: active ? "var(--accent)" : "var(--text-primary)",
+  fontWeight: active ? 900 : 800,
+  fontSize: 13,
+  minWidth: 0,
+  width: "100%",
+  boxSizing: "border-box",
+}}
   >
     <div
   style={{
@@ -181,11 +184,11 @@ export default function SidebarNav() {
   <span
   aria-hidden="true"
   style={{
-    display: "grid",
-    placeItems: "center",
-    color: active ? "#22D3EE" : "rgba(229,231,235,0.75)",
-    flex: "0 0 auto",
-  }}
+  display: "grid",
+  placeItems: "center",
+  color: active ? "var(--accent)" : "rgba(229,231,235,0.75)",
+  flex: "0 0 auto",
+}}
 >
   {item.icon}
 </span>
@@ -193,13 +196,13 @@ export default function SidebarNav() {
   {!collapsed ? (
     <div
       style={{
-        fontSize: 13,
-        fontWeight: active ? 900 : 800,
-        color: active ? "#A5F3FC" : "#E5E7EB",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }}
+  fontSize: 13,
+  fontWeight: active ? 900 : 800,
+  color: active ? "var(--accent)" : "var(--text-primary)",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+}}
     >
       {item.label}
     </div>
@@ -220,24 +223,24 @@ export default function SidebarNav() {
           href="/settings"
           title="Settings"
           style={{
-            textDecoration: "none",
-            padding: collapsed ? "10px 10px" : "10px 12px",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.03)",
-            color: "#9CA3AF",
-            fontWeight: 900,
-            fontSize: 13,
-            textAlign: "center",
-          }}
+  textDecoration: "none",
+  padding: collapsed ? "10px 10px" : "10px 12px",
+  borderRadius: 12,
+  border: "1px solid var(--card-border)",
+  background: "var(--card-bg)",
+  color: "var(--text-muted)",
+  fontWeight: 900,
+  fontSize: 13,
+  textAlign: "center",
+}}
         >
           {!collapsed ? "Settings" : "⚙"}
         </Link>
         <div
   style={{
     borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.10)",
-    background: "rgba(255,255,255,0.03)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
     overflow: "hidden",
   }}
 >
