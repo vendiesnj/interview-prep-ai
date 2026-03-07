@@ -580,6 +580,7 @@ async function clearHistory() {
   const [showQuestions, setShowQuestions] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [analysisStage, setAnalysisStage] = useState<string>("Preparing analysis…");
   const progressTimerRef = useRef<number | null>(null);
   const [feedback, setFeedback] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
@@ -1867,6 +1868,52 @@ mr.stop();
 mediaRecorderRef.current = null;
 }
 
+function setAnalysisProgress(stage: string) {
+  setAnalysisStage(stage);
+
+  switch (stage) {
+    case "Preparing analysis…":
+      setProgress(8);
+      break;
+    case "Finalizing voice metrics…":
+      setProgress(22);
+      break;
+    case "Generating AI feedback…":
+      setProgress(55);
+      break;
+    case "Saving results…":
+      setProgress(78);
+      break;
+    case "Opening results…":
+      setProgress(95);
+      break;
+    default:
+      break;
+  }
+}
+
+function inferQuestionCategory(
+  question: string,
+  buckets: {
+    behavioral?: string[];
+    technical?: string[];
+    role_specific?: string[];
+    custom?: string[];
+  } | null
+): "behavioral" | "technical" | "role_specific" | "custom" | "other" {
+  const q = question.trim();
+
+  if (!q) return "other";
+  if (!buckets) return "other";
+
+  if ((buckets.behavioral ?? []).includes(q)) return "behavioral";
+  if ((buckets.technical ?? []).includes(q)) return "technical";
+  if ((buckets.role_specific ?? []).includes(q)) return "role_specific";
+  if ((buckets.custom ?? []).includes(q)) return "custom";
+
+  return "other";
+}
+
 async function analyzeAnswer() {
   if (capHit) {
   setError("Redirecting to upgrade...");
@@ -1896,26 +1943,14 @@ async function analyzeAnswer() {
     return;
   }
 
-
-  setFeedbackLoading(true);
-  // --- progress bar start ---
+setFeedbackLoading(true);
 setProgress(0);
+setAnalysisProgress("Preparing analysis…");
 
-// clear any existing timer
 if (progressTimerRef.current) {
   window.clearInterval(progressTimerRef.current);
   progressTimerRef.current = null;
 }
-
-// climb toward 90% while waiting
-progressTimerRef.current = window.setInterval(() => {
-  setProgress((p) => {
-    const next = p + Math.max(0.8, (90 - p) * 0.08);
-    return Math.min(90, next);
-  });
-}, 200);
-// --- end progress bar start ---
-
 
   posthog.capture("attempt_submitted", {
   inputMethod, // spoken or pasted
@@ -1924,18 +1959,34 @@ progressTimerRef.current = window.setInterval(() => {
 
 const audioBlob = audioBlobRef.current;
 
+setAnalysisProgress("Finalizing voice metrics…");
+// Wait for the in-flight voice metrics job started in mr.onstop
+if (voiceMetricsPromiseRef.current) {
+  try {
+    await voiceMetricsPromiseRef.current;
+  } catch {
+    // ignore and fall through
+  }
+}
 
-// If you already call /api/voice-metrics in mr.onstop, DON'T call it again here.
-// Just use whatever is already in voiceMetricsRef.current.
+// Fallback: if metrics still are not ready, try one direct request
 if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
-  // Optional: only run if metrics aren't set yet
   try {
     const fd = new FormData();
-    fd.append("audio", audioBlob, "answer.webm");
 
-    const vmRes = await fetch("/api/voice-metrics", { method: "POST", body: fd });
+    // Prefer WAV if available, since your acoustics pipeline is more reliable on WAV
+    if (wavBlobRef.current) {
+      fd.append("audio", wavBlobRef.current, "answer.wav");
+    } else {
+      fd.append("audio", audioBlob, "answer.webm");
+    }
+
+    const vmRes = await fetch("/api/voice-metrics", {
+      method: "POST",
+      body: fd,
+    });
+
     const vmJson = await vmRes.json().catch(() => null);
-
     voiceMetricsRef.current = vmJson?.metrics ?? null;
   } catch {
     voiceMetricsRef.current = null;
@@ -1944,14 +1995,81 @@ if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
 
 
   try {
-    const res = await fetch("/api/feedback", {
+    const freshestVoiceMetrics = voiceMetricsRef.current ?? null;
+
+const normalizedAcoustics = (() => {
+  const m = freshestVoiceMetrics as any;
+  if (!m) return null;
+
+  if (m.acoustics && typeof m.acoustics === "object") {
+    return m.acoustics;
+  }
+
+  if (m.prosody && typeof m.prosody === "object") {
+    return m.prosody;
+  }
+
+  const hasFlatAcoustics =
+    typeof m.pitchStdHz === "number" ||
+    typeof m.pitchStd === "number" ||
+    typeof m.energyStd === "number" ||
+    typeof m.monotoneScore === "number" ||
+    typeof m.pitchMean === "number" ||
+    typeof m.pitchRange === "number" ||
+    typeof m.energyMean === "number" ||
+    typeof m.energyVariation === "number" ||
+    typeof m.tempo === "number" ||
+    typeof m.tempoDynamics === "number" ||
+    !!m.series;
+
+  if (!hasFlatAcoustics) return null;
+
+  return {
+    pitchStdHz:
+      typeof m.pitchStdHz === "number"
+        ? m.pitchStdHz
+        : typeof m.pitchStd === "number"
+        ? m.pitchStd
+        : null,
+    pitchStd:
+      typeof m.pitchStd === "number"
+        ? m.pitchStd
+        : typeof m.pitchStdHz === "number"
+        ? m.pitchStdHz
+        : null,
+    energyStd: typeof m.energyStd === "number" ? m.energyStd : null,
+    monotoneScore: typeof m.monotoneScore === "number" ? m.monotoneScore : null,
+    feedback: typeof m.feedback === "string" ? m.feedback : null,
+
+    pitchMean: typeof m.pitchMean === "number" ? m.pitchMean : null,
+    pitchRange: typeof m.pitchRange === "number" ? m.pitchRange : null,
+    energyMean: typeof m.energyMean === "number" ? m.energyMean : null,
+    energyVariation: typeof m.energyVariation === "number" ? m.energyVariation : null,
+    tempo: typeof m.tempo === "number" ? m.tempo : null,
+    tempoDynamics: typeof m.tempoDynamics === "number" ? m.tempoDynamics : null,
+    durationSec: typeof m.durationSec === "number" ? m.durationSec : null,
+    sampleRate: typeof m.sampleRate === "number" ? m.sampleRate : null,
+    series: m.series ?? null,
+  };
+})();
+
+const normalizedVoiceMetrics = freshestVoiceMetrics
+  ? {
+      ...(freshestVoiceMetrics as any),
+      acoustics: normalizedAcoustics,
+    }
+  : null;
+
+  setAnalysisProgress("Generating AI feedback…");
+
+const res = await fetch("/api/feedback", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     jobDesc,
     question: selectedQuestion,
     transcript,
-    deliveryMetrics: voiceMetricsRef.current,
+    deliveryMetrics: normalizedVoiceMetrics,
   }),
 });
 
@@ -1975,10 +2093,20 @@ const activeProfileTitle = activeJobProfile?.title ?? null;
 const activeProfileCompany = activeJobProfile?.company ?? null;
 const activeProfileRoleType = activeJobProfile?.roleType ?? null;
 
+const questionCategory = inferQuestionCategory(
+  selectedQuestion,
+  questionBuckets
+);
+
   const entry = {
   id: crypto.randomUUID(),
   ts: Date.now(),
   question: selectedQuestion || "",
+questionCategory,
+questionSource:
+  selectedQuestion === customQuestion.trim()
+    ? "custom"
+    : "generated",
   transcript,
   wpm: inputMethod === "spoken" ? wpm : null,
   inputMethod,
@@ -1989,7 +2117,7 @@ const activeProfileRoleType = activeJobProfile?.roleType ?? null;
   // ✅ cross-device replay (Supabase Storage)
   audioPath: inputMethod === "spoken" ? audioPathRef.current : null,
 
-  prosody,
+  prosody: normalizedAcoustics,
   feedback: data,
   score: data.score,
   communication_score: data.communication_score,
@@ -2004,7 +2132,7 @@ jobProfileRoleType: activeProfileRoleType,
 
 questions,
 questionBuckets,
-deliveryMetrics: voiceMetricsRef.current ?? null,
+deliveryMetrics: normalizedVoiceMetrics,
 };
 
 
@@ -2021,149 +2149,146 @@ deliveryMetrics: voiceMetricsRef.current ?? null,
 
    // ✅ ensure suggestedQs exists in this scope
 const suggestedQs: string[] =
-  Array.isArray((feedback as any)?.suggestedQuestions)
-    ? (feedback as any).suggestedQuestions.map((q: any) => String(q))
-    : Array.isArray((feedback as any)?.suggested_qs)
-    ? (feedback as any).suggested_qs.map((q: any) => String(q))
-    : Array.isArray((feedback as any)?.questions)
-    ? (feedback as any).questions.map((q: any) => String(q))
+  Array.isArray((data as any)?.suggestedQuestions)
+    ? (data as any).suggestedQuestions.map((q: any) => String(q))
+    : Array.isArray((data as any)?.suggested_qs)
+    ? (data as any).suggested_qs.map((q: any) => String(q))
+    : Array.isArray((data as any)?.questions)
+    ? (data as any).questions.map((q: any) => String(q))
     : [];
 // ✅ Save last result for /results page (session + local fallback)
 try {
-  const lastResult = {
+  const freshestDeliveryMetrics =
+  entry.deliveryMetrics ??
+  (data as any)?.deliveryMetrics ??
+  normalizedVoiceMetrics ??
+  null;
+
+const freshestProsody =
+  entry.prosody ??
+  (freshestDeliveryMetrics as any)?.acoustics ??
+  normalizedAcoustics ??
+  (data as any)?.prosody ??
+  null;
+
+  console.log("entry.prosody", entry.prosody);
+console.log("entry.deliveryMetrics", entry.deliveryMetrics);
+console.log("data.deliveryMetrics", (data as any)?.deliveryMetrics);
+console.log("voiceMetricsRef.current", voiceMetricsRef.current);
+console.log("normalizedVoiceMetrics", normalizedVoiceMetrics);
+console.log("normalizedAcoustics", normalizedAcoustics);
+const lastResult = {
   ts: entry.ts,
   question: entry.question,
-  transcript: entry.transcript,
-  wpm: entry.wpm,
-  prosody: (entry as any).prosody ?? null,
+  questionCategory: entry.questionCategory ?? "other",
+questionSource: entry.questionSource ?? "generated",
+  transcript: entry.transcript ?? "",
+  wpm: typeof entry.wpm === "number" ? entry.wpm : null,
 
-  // ✅ ADD THIS (so Results can always read dm/acoustics)
-  deliveryMetrics: (entry as any).deliveryMetrics ?? voiceMetricsRef.current ?? null,
+  // ✅ make acoustics explicit for Results
+  prosody: freshestProsody,
 
-  feedback,
-  jobDesc,
+  // ✅ preserve full delivery object too
+  deliveryMetrics: freshestDeliveryMetrics,
 
-  jobProfileId: activeProfileId,
-  jobProfileTitle: activeProfileTitle,
-  jobProfileCompany: activeProfileCompany,
-  jobProfileRoleType: activeProfileRoleType,
+  feedback: data ?? null,
+  jobDesc: entry.jobDesc ?? "",
 
-  questions: suggestedQs,
-  questionBuckets: (feedback as any).questionBuckets ?? null,
+  jobProfileId: entry.jobProfileId ?? null,
+  jobProfileTitle: entry.jobProfileTitle ?? null,
+  jobProfileCompany: entry.jobProfileCompany ?? null,
+  jobProfileRoleType: entry.jobProfileRoleType ?? null,
+
+  questions: Array.isArray(suggestedQs) ? suggestedQs : [],
+  questionBuckets: data?.questionBuckets ?? null,
+
+  audioId: entry.audioId ?? null,
+  audioPath: entry.audioPath ?? null,
+  inputMethod: entry.inputMethod ?? "pasted",
 };
 
   const json = JSON.stringify(lastResult);
+
+    // ✅ User-scoped last result
+  sessionStorage.setItem(LAST_RESULT_KEY, json);
+  localStorage.setItem(LAST_RESULT_KEY, json);
 
   // ✅ Always write a fallback key
   sessionStorage.setItem("ipc_last_result", json);
   localStorage.setItem("ipc_last_result", json);
 
-  // ✅ User-scoped last result
-  sessionStorage.setItem(LAST_RESULT_KEY, json);
-  localStorage.setItem(LAST_RESULT_KEY, json);
+
 
   // ✅ IMPORTANT: override any old selected attempt so Results shows THIS run
   sessionStorage.setItem(SELECTED_KEY, json);
   localStorage.setItem(SELECTED_KEY, json);
+
+  sessionStorage.setItem("ipc_selected_attempt", json);
+localStorage.setItem("ipc_selected_attempt", json);
   // ✅ Tell /results to ignore any stale "selected attempt" and show this run
 sessionStorage.setItem("ipc_from_practice", "1");
 } catch {}
 
 
 
-// ✅ Save to DB (best-effort)
-try {
-
-if (audioUploadPromiseRef.current) {
-  console.log("[audio/upload] waiting before saving attempt…");
-  await audioUploadPromiseRef.current;
-}
-  const res = await fetch("/api/attempts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-  ts: entry.ts,
-  question: entry.question,
-  transcript: entry.transcript,
-  inputMethod: entry.inputMethod,
-  wpm: entry.wpm,
-  prosody: entry.prosody,
-  deliveryMetrics: entry.deliveryMetrics ?? null,
-  feedback: entry.feedback,
-  score: entry.score,
-  communication_score: entry.communication_score,
-  confidence_score: entry.confidence_score,
-  focusGoal: entry.focusGoal ?? null,
-  jobDesc: entry.jobDesc ?? null,
-
-  audioId: entry.audioId ?? null,
-audioPath: entry.audioPath ?? null,
-durationSeconds: durationSeconds ?? null,
-}),
-  });
-
-  const data = await res.json().catch(() => null);
-
-  if (res.status === 429) {
-  const ms = typeof data?.retryAfterMs === "number" ? data.retryAfterMs : 30_000;
-  const seconds = Math.max(1, Math.ceil(ms / 1000));
-  setError(`Too many requests. Please try again in ${seconds}s.`);
-}
-
-if (res.status === 413) {
-  const msg =
-    data?.error === "TRANSCRIPT_TOO_LONG"
-      ? "Your response is too long. Please shorten it and try again."
-      : data?.error === "JOBDESC_TOO_LONG"
-      ? "That job description is too long. Please shorten it and try again."
-      : data?.error === "QUESTION_TOO_LONG"
-      ? "That question text is too long. Please shorten it and try again."
-      : "Request too large. Please shorten your text and try again.";
-
-  setError(msg);
-}
-
-  if (res.status === 402 && data?.error === "FREE_LIMIT_REACHED") {
-  setError("You’ve used all free attempts. Redirecting to upgrade...");
-
-  try {
-    const checkoutRes = await fetch("/api/billing/checkout", { method: "POST" });
-    const checkoutData = await checkoutRes.json();
-
-    if (checkoutData?.url) {
-      window.location.href = checkoutData.url;
-      
-    }
-  } catch {}
-
-}
-
-if (res.status === 403 || res.status ===402) {
-  setError(data?.error ? String(data.error) : "Not allowed.");
-
-}
-
-if (!res.ok) {
-  setError(data?.error ? String(data.error) : "Failed to save attempt.");
-}
-
-// ✅ Save updated entitlement from the server (keeps counter perfectly in sync)
-if (data?.entitlement) {
-  // Replace this setter name with whatever you already use in the component
-  // Common patterns: setEntitlement(data.entitlement) or setRemainingAttempts(...)
-  setEntitlement(data.entitlement);
-}
-
-} catch (e) {}
+setAnalysisProgress("Saving results…");
 
 saveHomeState();
 persistHomeState();
 
-// Hard redirect on next tick, then STOP running this function
-setTimeout(() => {
-  // If you have a basePath/locale, this preserves the current origin cleanly
-  window.location.href = new URL("/results", window.location.href).toString();
-}, 0);
+setAnalysisProgress("Opening results…");
+
+// Navigate immediately so the user sees Results fast
+router.push("/results");
+
+// Save to DB in the background (best-effort)
+void (async () => {
+  try {
+    if (audioUploadPromiseRef.current) {
+      console.log("[audio/upload] waiting before saving attempt…");
+      await audioUploadPromiseRef.current;
+    }
+
+    const res = await fetch("/api/attempts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ts: entry.ts,
+        question: entry.question,
+        questionCategory: entry.questionCategory ?? "other",
+questionSource: entry.questionSource ?? "generated",
+        transcript: entry.transcript,
+        inputMethod: entry.inputMethod,
+        wpm: entry.wpm,
+        prosody: entry.prosody ?? null,
+        deliveryMetrics: entry.deliveryMetrics ?? null,
+        feedback: entry.feedback,
+        score: entry.score,
+        communication_score: entry.communication_score,
+        confidence_score: entry.confidence_score,
+        focusGoal: entry.focusGoal ?? null,
+        jobDesc: entry.jobDesc ?? null,
+
+        jobProfileId: entry.jobProfileId ?? null,
+        jobProfileTitle: entry.jobProfileTitle ?? null,
+        jobProfileCompany: entry.jobProfileCompany ?? null,
+        jobProfileRoleType: entry.jobProfileRoleType ?? null,
+
+        audioId: entry.audioId ?? null,
+        audioPath: entry.audioPath ?? null,
+        durationSeconds: durationSeconds ?? null,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (data?.entitlement) {
+      setEntitlement(data.entitlement);
+    }
+  } catch (e) {
+    console.warn("Background attempt save failed", e);
+  }
+})();
 
 return;
 
@@ -4006,13 +4131,13 @@ onMouseLeave={(e) =>
             borderRadius: 999,
             background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
 boxShadow: "var(--shadow-glow)",
-            transition: "width 220ms ease",
+            transition: "width 420ms ease",
           }}
         />
       </div>
 
       <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
-  This can take a bit depending on answer length.
+  {analysisStage}
 </div>
     </div>
   </div>

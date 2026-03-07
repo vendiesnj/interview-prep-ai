@@ -95,6 +95,8 @@ model Attempt {
   jobProfileTitle    String?
   jobProfileCompany  String?
   jobProfileRoleType String?
+  questionCategory   String?
+  questionSource     String?
 
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])

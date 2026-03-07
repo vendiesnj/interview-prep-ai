@@ -36,6 +36,8 @@ type Prosody = {
 type StoredResult = {
   ts: number;
   question: string;
+    questionCategory?: string | null;
+  questionSource?: string | null;
   transcript: string;
   wpm: number | null;
   jobDesc?: string;
@@ -586,7 +588,7 @@ export default function ResultsPage() {
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
   const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
 
-  useEffect(() => {
+    useEffect(() => {
     if (status === "loading") return;
 
     try {
@@ -594,15 +596,36 @@ export default function ResultsPage() {
 
       if (fromPractice) {
         sessionStorage.removeItem("ipc_from_practice");
-      } else {
-        const selectedRaw = sessionStorage.getItem(SELECTED_KEY) || localStorage.getItem(SELECTED_KEY);
-        if (selectedRaw) {
-          setStored(JSON.parse(selectedRaw));
+
+        const practiceRaw =
+          sessionStorage.getItem(LAST_RESULT_KEY) ||
+          localStorage.getItem(LAST_RESULT_KEY) ||
+          sessionStorage.getItem("ipc_last_result") ||
+          localStorage.getItem("ipc_last_result");
+
+        if (practiceRaw) {
+          setStored(JSON.parse(practiceRaw));
           return;
         }
       }
 
-      const raw = sessionStorage.getItem(LAST_RESULT_KEY) || localStorage.getItem(LAST_RESULT_KEY);
+      const selectedRaw =
+        sessionStorage.getItem(SELECTED_KEY) ||
+        localStorage.getItem(SELECTED_KEY) ||
+        sessionStorage.getItem("ipc_selected_attempt") ||
+        localStorage.getItem("ipc_selected_attempt");
+
+      if (selectedRaw) {
+        setStored(JSON.parse(selectedRaw));
+        return;
+      }
+
+      const raw =
+        sessionStorage.getItem(LAST_RESULT_KEY) ||
+        localStorage.getItem(LAST_RESULT_KEY) ||
+        sessionStorage.getItem("ipc_last_result") ||
+        localStorage.getItem("ipc_last_result");
+
       if (raw) setStored(JSON.parse(raw));
       else setStored(null);
     } catch {
@@ -1236,26 +1259,87 @@ export default function ResultsPage() {
                 </div>
 
                 {stored?.question ? (
-                  <div
-  style={{
-    marginTop: 16,
-    marginBottom: 18,
-    padding: 16,
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--card-border-soft)",
-    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-    boxShadow: "var(--shadow-card-soft)",
-    minWidth: 0,
-  }}
->
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800, letterSpacing: 0.5 }}>
-  Question
-</div>
-                    <div style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: "var(--text-primary)" }}>
-  {stored.question}
-</div>
-                  </div>
-                ) : null}
+  <div
+    style={{
+      marginTop: 16,
+      marginBottom: 18,
+      padding: 16,
+      borderRadius: "var(--radius-md)",
+      border: "1px solid var(--card-border-soft)",
+      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+      boxShadow: "var(--shadow-card-soft)",
+      minWidth: 0,
+    }}
+  >
+    <div
+      style={{
+        fontSize: 12,
+        color: "var(--text-muted)",
+        fontWeight: 800,
+        letterSpacing: 0.5,
+      }}
+    >
+      Question
+    </div>
+
+    <div
+      style={{
+        marginTop: 8,
+        fontSize: 14,
+        lineHeight: 1.6,
+        color: "var(--text-primary)",
+      }}
+    >
+      {stored.question}
+    </div>
+
+    {stored.questionCategory || stored.questionSource ? (
+      <div
+        style={{
+          marginTop: 10,
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        {stored.questionCategory ? (
+          <span
+            style={{
+              padding: "4px 9px",
+              borderRadius: 999,
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg)",
+              color: "var(--text-primary)",
+              fontSize: 12,
+              fontWeight: 800,
+              textTransform: "capitalize",
+            }}
+          >
+            {stored.questionCategory.replace(/_/g, " ")}
+          </span>
+        ) : null}
+
+        {stored.questionSource ? (
+          <span
+            style={{
+              padding: "4px 9px",
+              borderRadius: 999,
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg)",
+              color: "var(--text-muted)",
+              fontSize: 12,
+              fontWeight: 800,
+              textTransform: "capitalize",
+            }}
+          >
+            {stored.questionSource}
+          </span>
+        ) : null}
+      </div>
+    ) : null}
+  </div>
+) : null}
 
                 <div style={{ marginTop: 10 }}>
                   <div
@@ -1826,8 +1910,13 @@ export default function ResultsPage() {
 
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
                       {hasNum(acousticsNorm.monotoneScore) ? (
-                        <MetricBar label="Monotone score" value={clamp(acousticsNorm.monotoneScore, 0, 10)} max={10} subtext={monotoneContext(acousticsNorm.monotoneScore)} />
-                      ) : null}
+  <MetricBar
+    label="Monotone risk"
+    value={clamp(acousticsNorm.monotoneScore, 0, 10)}
+    max={10}
+    subtext={monotoneContext(acousticsNorm.monotoneScore)}
+  />
+) : null}
 
                       {hasNum(acousticsNorm.energyVariation) ? (
                         <MetricBar

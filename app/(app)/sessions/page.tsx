@@ -12,6 +12,8 @@ type Attempt = {
   id?: string;
   ts?: number;
   question?: string;
+    questionCategory?: string | null;
+  questionSource?: string | null;
   inputMethod?: "spoken" | "pasted";
   score?: number;
   audioId?: string | null;
@@ -507,6 +509,8 @@ async function ensureAudioUrl(audioId: string) {
                         const lastResult = {
   ts: attempt.ts ?? Date.now(),
   question: attempt.question ?? "",
+    questionCategory: attempt.questionCategory ?? "other",
+  questionSource: attempt.questionSource ?? "generated",
   transcript: attempt.transcript ?? "",
   wpm: typeof attempt.wpm === "number" ? attempt.wpm : null,
   prosody: attempt.prosody ?? null,
@@ -593,6 +597,50 @@ async function ensureAudioUrl(audioId: string) {
   <span>•</span>
   <span>{formatDate(attempt.ts)}</span>
 </div>
+
+{attempt.questionCategory ? (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      flexWrap: "wrap",
+      marginTop: 2,
+    }}
+  >
+    <span
+      style={{
+        padding: "4px 9px",
+        borderRadius: 999,
+        border: "1px solid var(--card-border)",
+        background: "var(--card-bg-strong)",
+        color: "var(--text-primary)",
+        fontSize: 11,
+        fontWeight: 800,
+        textTransform: "capitalize",
+      }}
+    >
+      {attempt.questionCategory.replace(/_/g, " ")}
+    </span>
+
+    {attempt.questionSource ? (
+      <span
+        style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg-strong)",
+          color: "var(--text-muted)",
+          fontSize: 11,
+          fontWeight: 800,
+          textTransform: "capitalize",
+        }}
+      >
+        {attempt.questionSource}
+      </span>
+    ) : null}
+  </div>
+) : null}
 
 {attempt.jobProfileTitle || attempt.jobProfileCompany || attempt.jobProfileRoleType ? (
   <div

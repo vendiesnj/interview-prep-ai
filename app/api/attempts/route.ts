@@ -10,6 +10,8 @@ export const runtime = "nodejs";
 type Body = {
   ts: number;
   question: string;
+  questionCategory?: string | null;
+questionSource?: string | null;
   transcript: string;
   inputMethod?: "spoken" | "pasted";
   wpm?: number | null;
@@ -66,6 +68,8 @@ if (!userId) {
   id: true,
   ts: true,
   question: true,
+  questionCategory: true,
+questionSource: true,
   transcript: true,
   inputMethod: true,
   score: true,
@@ -125,6 +129,8 @@ if (!rlUser.ok || !rlIp.ok) {
   id: a.id,
   ts: a.ts.getTime(),
   question: a.question,
+  questionCategory: a.questionCategory ?? "other",
+questionSource: a.questionSource ?? "generated",
   transcript: a.transcript ?? "",
   inputMethod: (a.inputMethod as "spoken" | "pasted" | undefined) ?? undefined,
   score: a.score ?? (a.feedback as any)?.score ?? null,
@@ -268,6 +274,8 @@ const user = rows[0] ?? null;
         userId,
         ts: new Date(body.ts),
         question: body.question,
+        questionCategory: body.questionCategory ?? null,
+questionSource: body.questionSource ?? null,
         transcript: body.transcript,
         inputMethod: body.inputMethod,
 
