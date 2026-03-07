@@ -48,7 +48,13 @@ type StoredResult = {
   prosody?: Prosody | null;
   feedback: any;
   audioId?: string | null;
+  audioPath?: string | null;
   inputMethod?: "spoken" | "pasted";
+
+  jobProfileId?: string | null;
+  jobProfileTitle?: string | null;
+  jobProfileCompany?: string | null;
+  jobProfileRoleType?: string | null;
 };
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -1066,6 +1072,107 @@ export default function ResultsPage() {
     {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : "No saved result yet."}
   </div>
 </div>
+
+        {stored?.jobProfileTitle || stored?.jobProfileCompany || stored?.jobProfileRoleType ? (
+          <div style={{ marginTop: 16 }}>
+            <div
+              style={{
+                padding: 16,
+                borderRadius: "var(--radius-lg)",
+                border: "1px solid var(--accent-strong)",
+                background: "var(--accent-soft)",
+                boxShadow: "var(--shadow-card)",
+                display: "grid",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: 0.8,
+                  color: "var(--accent)",
+                }}
+              >
+                INTERVIEW CONTEXT
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  justifyContent: "space-between",
+                  gap: 12,
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 18,
+                      fontWeight: 950,
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    {stored.jobProfileTitle ?? "Target role"}
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 8,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                    }}
+                  >
+                    {stored.jobProfileCompany ? (
+                      <span
+                        style={{
+                          padding: "4px 9px",
+                          borderRadius: 999,
+                          border: "1px solid var(--card-border)",
+                          background: "var(--card-bg)",
+                          color: "var(--text-primary)",
+                          fontSize: 12,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {stored.jobProfileCompany}
+                      </span>
+                    ) : null}
+
+                    {stored.jobProfileRoleType ? (
+                      <span
+                        style={{
+                          padding: "4px 9px",
+                          borderRadius: 999,
+                          border: "1px solid var(--card-border)",
+                          background: "var(--card-bg)",
+                          color: "var(--text-muted)",
+                          fontSize: 12,
+                          fontWeight: 800,
+                        }}
+                      >
+                        {stored.jobProfileRoleType}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                  color: "var(--text-muted)",
+                }}
+              >
+                This attempt is being evaluated in the context of your selected job profile, which will later power role-based trends, strengths, and benchmarking.
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {!stored || !feedback ? (
           <SectionCard title="No results found">

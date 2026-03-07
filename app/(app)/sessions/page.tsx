@@ -26,7 +26,16 @@ type Attempt = {
     feedback?: string;
   } | null;
 
-  feedback?: any | null; // ✅ stop TS complaints immediately
+  jobDesc?: string;
+  questions?: string[];
+  questionBuckets?: any | null;
+
+  jobProfileId?: string | null;
+  jobProfileTitle?: string | null;
+  jobProfileCompany?: string | null;
+  jobProfileRoleType?: string | null;
+
+  feedback?: any | null;
 };
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -94,6 +103,7 @@ const [audioUrlById, setAudioUrlById] = useState<Record<string, string>>({});
 const [signedUrlByPath, setSignedUrlByPath] = useState<Record<string, string>>({});
   const [history, setHistory] = useState<Attempt[]>([]);
   const [filter, setFilter] = useState<"all" | "spoken" | "pasted">("all");
+  const [jobProfileFilter, setJobProfileFilter] = useState<string>("all");
 useEffect(() => {
   // Wait for session to resolve (prevents flicker + wrong user key)
   if (status === "loading") return;
@@ -145,21 +155,29 @@ useEffect(() => {
 }, [status, email, HISTORY_KEY]);
   
 
-  const filtered = useMemo(() => {
-    let data = [...history];
 
-    // newest first
-    data.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
+ const filtered = useMemo(() => {
+  let data = [...history];
 
-    if (filter === "spoken") {
-      data = data.filter((a) => a.inputMethod === "spoken");
-    }
-    if (filter === "pasted") {
-      data = data.filter((a) => a.inputMethod === "pasted");
-    }
+  // newest first
+  data.sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0));
 
-    return data;
-  }, [history, filter]);
+  if (filter === "spoken") {
+    data = data.filter((a) => a.inputMethod === "spoken");
+  }
+
+  if (filter === "pasted") {
+    data = data.filter((a) => a.inputMethod === "pasted");
+  }
+
+  if (jobProfileFilter !== "all") {
+    data = data.filter(
+      (a) => (a.jobProfileId || a.jobProfileTitle || "") === jobProfileFilter
+    );
+  }
+
+  return data;
+}, [history, filter, jobProfileFilter]);
 
 async function deleteAttempt(target: Attempt) {
   // ✅ 1) Optimistically remove from UI
@@ -184,6 +202,43 @@ async function deleteAttempt(target: Attempt) {
     localStorage.setItem(key, JSON.stringify(updated));
   } catch {}
 }
+
+const availableJobProfiles = useMemo(() => {
+  const map = new Map<
+    string,
+    {
+      key: string;
+      title: string;
+      company?: string | null;
+      roleType?: string | null;
+      count: number;
+    }
+  >();
+
+  for (const attempt of history) {
+    const key = attempt.jobProfileId || attempt.jobProfileTitle || "";
+    if (!key) continue;
+
+    const existing = map.get(key);
+    if (existing) {
+      existing.count += 1;
+      continue;
+    }
+
+    map.set(key, {
+      key,
+      title: attempt.jobProfileTitle || "Untitled profile",
+      company: attempt.jobProfileCompany ?? null,
+      roleType: attempt.jobProfileRoleType ?? null,
+      count: 1,
+    });
+  }
+
+  return Array.from(map.values()).sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return a.title.localeCompare(b.title);
+  });
+}, [history]);
 
 async function clearHistory() {
   const ok = window.confirm(
@@ -294,13 +349,139 @@ async function ensureAudioUrl(audioId: string) {
 
       </div>
 
+            <div
+        style={{
+          marginTop: 14,
+          display: "grid",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 900,
+                color: "var(--text-primary)",
+              }}
+            >
+              Filter by job profile
+            </div>
+            <div
+              style={{
+                marginTop: 4,
+                fontSize: 12,
+                color: "var(--text-muted)",
+                lineHeight: 1.5,
+              }}
+            >
+              Review attempts for a specific target role.
+            </div>
+          </div>
+
+          <div
+            style={{
+              fontSize: 12,
+              color: "var(--text-muted)",
+            }}
+          >
+            {filtered.length} shown
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setJobProfileFilter("all")}
+            style={{
+              padding: "8px 10px",
+              borderRadius: 999,
+              border:
+                jobProfileFilter === "all"
+                  ? "1px solid var(--accent-strong)"
+                  : "1px solid var(--card-border)",
+              background:
+                jobProfileFilter === "all"
+                  ? "var(--accent-soft)"
+                  : "var(--card-bg-strong)",
+              color:
+                jobProfileFilter === "all"
+                  ? "var(--accent)"
+                  : "var(--text-primary)",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: "pointer",
+            }}
+          >
+            All roles
+          </button>
+
+          {availableJobProfiles.map((profile) => (
+            <button
+              key={profile.key}
+              type="button"
+              onClick={() => setJobProfileFilter(profile.key)}
+              style={{
+                padding: "8px 10px",
+                borderRadius: 999,
+                border:
+                  jobProfileFilter === profile.key
+                    ? "1px solid var(--accent-strong)"
+                    : "1px solid var(--card-border)",
+                background:
+                  jobProfileFilter === profile.key
+                    ? "var(--accent-soft)"
+                    : "var(--card-bg-strong)",
+                color:
+                  jobProfileFilter === profile.key
+                    ? "var(--accent)"
+                    : "var(--text-primary)",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <span>{profile.title}</span>
+              <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+                {profile.count}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div style={{ marginTop: 18 }}>
         <PremiumCard>
           {filtered.length === 0 ? (
-            <div style={{ color: "var(--text-muted)" }}>
-  No sessions yet. Go record an attempt.
-</div>
-          ) : (
+  <div
+    style={{
+      color: "var(--text-muted)",
+      lineHeight: 1.6,
+    }}
+  >
+    {jobProfileFilter === "all"
+      ? "No sessions yet. Go record an attempt."
+      : "No sessions found for this job profile yet."}
+  </div>
+) : (
             <div style={{ display: "grid", gap: 10 }}>
               {filtered.map((attempt, i) => {
                 const overall =
@@ -324,21 +505,26 @@ async function ensureAudioUrl(audioId: string) {
                       try {
                         // ✅ Store a normalized shape that /results already knows how to read
                         const lastResult = {
-                          ts: attempt.ts ?? Date.now(),
-                          question: attempt.question ?? "",
-                          transcript: attempt.transcript ?? "",
-                          wpm: typeof attempt.wpm === "number" ? attempt.wpm : null,
-                          prosody: attempt.prosody ?? null,
-                          feedback: attempt.feedback ?? null,
-                          
-                          audioId: attempt.audioId ?? null,
-audioPath: attempt.audioPath ?? null,
-inputMethod: attempt.inputMethod ?? "pasted",
+  ts: attempt.ts ?? Date.now(),
+  question: attempt.question ?? "",
+  transcript: attempt.transcript ?? "",
+  wpm: typeof attempt.wpm === "number" ? attempt.wpm : null,
+  prosody: attempt.prosody ?? null,
+  feedback: attempt.feedback ?? null,
 
-                          jobDesc: (attempt as any).jobDesc ?? "",
-                          questions: Array.isArray((attempt as any).questions) ? (attempt as any).questions : [],
-                          questionBuckets: (attempt as any).questionBuckets ?? null,
-                        };
+  audioId: attempt.audioId ?? null,
+  audioPath: attempt.audioPath ?? null,
+  inputMethod: attempt.inputMethod ?? "pasted",
+
+  jobDesc: attempt.jobDesc ?? "",
+  questions: Array.isArray(attempt.questions) ? attempt.questions : [],
+  questionBuckets: attempt.questionBuckets ?? null,
+
+  jobProfileId: attempt.jobProfileId ?? null,
+  jobProfileTitle: attempt.jobProfileTitle ?? null,
+  jobProfileCompany: attempt.jobProfileCompany ?? null,
+  jobProfileRoleType: attempt.jobProfileRoleType ?? null,
+};
 
                         const json = JSON.stringify(lastResult);
 
@@ -407,6 +593,67 @@ inputMethod: attempt.inputMethod ?? "pasted",
   <span>•</span>
   <span>{formatDate(attempt.ts)}</span>
 </div>
+
+{attempt.jobProfileTitle || attempt.jobProfileCompany || attempt.jobProfileRoleType ? (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      flexWrap: "wrap",
+      marginTop: 2,
+    }}
+  >
+    {attempt.jobProfileTitle ? (
+      <span
+        style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--accent-strong)",
+          background: "var(--accent-soft)",
+          color: "var(--accent)",
+          fontSize: 11,
+          fontWeight: 900,
+          letterSpacing: 0.2,
+        }}
+      >
+        {attempt.jobProfileTitle}
+      </span>
+    ) : null}
+
+    {attempt.jobProfileCompany ? (
+      <span
+        style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg-strong)",
+          color: "var(--text-primary)",
+          fontSize: 11,
+          fontWeight: 800,
+        }}
+      >
+        {attempt.jobProfileCompany}
+      </span>
+    ) : null}
+
+    {attempt.jobProfileRoleType ? (
+      <span
+        style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg-strong)",
+          color: "var(--text-muted)",
+          fontSize: 11,
+          fontWeight: 800,
+        }}
+      >
+        {attempt.jobProfileRoleType}
+      </span>
+    ) : null}
+  </div>
+) : null}
 
 <div
   style={{

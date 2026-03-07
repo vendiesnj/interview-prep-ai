@@ -23,10 +23,15 @@ type Body = {
 
   focusGoal?: string | null;
   jobDesc?: string | null;
+
+  jobProfileId?: string | null;
+  jobProfileTitle?: string | null;
+  jobProfileCompany?: string | null;
+  jobProfileRoleType?: string | null;
+
   audioId?: string | null;
   audioPath?: string | null;
   durationSeconds?: number | null;
-
 };
 
 async function requireUserId(req: NextRequest): Promise<string | null> {
@@ -68,6 +73,12 @@ if (!userId) {
   wpm: true,
   prosody: true,
   deliveryMetrics: true,
+
+  jobDesc: true,
+  jobProfileId: true,
+  jobProfileTitle: true,
+  jobProfileCompany: true,
+  jobProfileRoleType: true,
 
   // ✅ needed for replay
   audioId: true,
@@ -111,17 +122,26 @@ if (!rlUser.ok || !rlIp.ok) {
 
     // Match your SessionsPage Attempt shape
     const mapped = attempts.map((a: any) => ({
-      id: a.id,
-      ts: a.ts.getTime(),
-      question: a.question,
-      inputMethod: (a.inputMethod as "spoken" | "pasted" | undefined) ?? undefined,
-      score: a.score ?? (a.feedback as any)?.score ?? null,
-      feedback: a.feedback as any,
-      prosody: a.prosody as any,
-      deliveryMetrics: a.deliveryMetrics ?? (a.feedback as any)?.deliveryMetrics ?? null,
-      audioId: a.audioId ?? null,
-audioPath: a.audioPath ?? null,
-    }));
+  id: a.id,
+  ts: a.ts.getTime(),
+  question: a.question,
+  transcript: a.transcript ?? "",
+  inputMethod: (a.inputMethod as "spoken" | "pasted" | undefined) ?? undefined,
+  score: a.score ?? (a.feedback as any)?.score ?? null,
+  feedback: a.feedback as any,
+  wpm: a.wpm ?? null,
+  prosody: a.prosody as any,
+  deliveryMetrics: a.deliveryMetrics ?? (a.feedback as any)?.deliveryMetrics ?? null,
+
+  jobDesc: a.jobDesc ?? "",
+  jobProfileId: a.jobProfileId ?? null,
+  jobProfileTitle: a.jobProfileTitle ?? null,
+  jobProfileCompany: a.jobProfileCompany ?? null,
+  jobProfileRoleType: a.jobProfileRoleType ?? null,
+
+  audioId: a.audioId ?? null,
+  audioPath: a.audioPath ?? null,
+}));
 
     const ent = await getAttemptEntitlement(userId);
 
@@ -267,11 +287,17 @@ const user = rows[0] ?? null;
             : null,
 
         focusGoal: body.focusGoal ?? null,
-        jobDesc: body.jobDesc ?? null,
-        audioId: body.audioId ?? null,
-        audioPath: body.audioPath ?? null,
-        durationSeconds:
-          typeof body.durationSeconds === "number" ? body.durationSeconds : null,
+jobDesc: body.jobDesc ?? null,
+
+jobProfileId: body.jobProfileId ?? null,
+jobProfileTitle: body.jobProfileTitle ?? null,
+jobProfileCompany: body.jobProfileCompany ?? null,
+jobProfileRoleType: body.jobProfileRoleType ?? null,
+
+audioId: body.audioId ?? null,
+audioPath: body.audioPath ?? null,
+durationSeconds:
+  typeof body.durationSeconds === "number" ? body.durationSeconds : null,
       },
       select: { id: true },
     });

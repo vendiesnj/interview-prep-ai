@@ -11,6 +11,7 @@ import {
   Clock,
   User,
   Settings,
+  Briefcase,
 } from "lucide-react";
 import LogoutButton from "../components/LogoutButton";
 import BillingSidebarButton from "@/app/components/BillingSidebarButton";
@@ -24,6 +25,7 @@ type NavItem = {
 const NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
   { label: "Practice", href: "/practice", icon: <Mic size={18} /> },
+  { label: "Job Profiles", href: "/job-profiles", icon: <Briefcase size={18} /> },
   { label: "Results", href: "/results", icon: <BarChart2 size={18} /> },
   { label: "Progress", href: "/progress", icon: <LineChart size={18} /> },
   { label: "Sessions", href: "/sessions", icon: <Clock size={18} /> },

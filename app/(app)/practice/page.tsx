@@ -9,7 +9,10 @@ import { useRouter } from "next/navigation";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
 import { getProfile } from "../../lib/profileStore";
-
+import {
+  getActiveJobProfile,
+  type JobProfile,
+} from "@/app/lib/jobProfiles";
 import { createPortal } from "react-dom";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
@@ -419,7 +422,8 @@ export default function PracticePage() {
 const HOME_STATE_FALLBACK_KEY = "ipc_home_state";
   const FOCUS_KEY = userScopedKey("ipc_focus_goal", session);
   const [jobDesc, setJobDesc] = useState("");
-  const [questions, setQuestions] = useState<string[]>([]);
+const [activeJobProfile, setActiveJobProfile] = useState<JobProfile | null>(null);
+const [questions, setQuestions] = useState<string[]>([]);
 type QuestionBuckets = {
   behavioral: string[];
   technical: string[];
@@ -477,7 +481,13 @@ const answerTimeLimit = getProfile().settings.answerTimeLimit;
 const [timeLeft, setTimeLeft] = React.useState(answerTimeLimit);
 const [timerRunning, setTimerRunning] = React.useState(false);
 const [mode, setMode] = React.useState<"setup" | "questions" | "answer">("setup");
-
+function refreshActiveJobProfile() {
+  try {
+    setActiveJobProfile(getActiveJobProfile());
+  } catch {
+    setActiveJobProfile(null);
+  }
+}
 React.useEffect(() => {
   if (!timerRunning) return;
 
@@ -498,8 +508,19 @@ React.useEffect(() => {
 
 
 
-useEffect(() => setMounted(true), []);
+useEffect(() => {
+  setMounted(true);
+  refreshActiveJobProfile();
+}, []);
 
+useEffect(() => {
+  function handleFocus() {
+    refreshActiveJobProfile();
+  }
+
+  window.addEventListener("focus", handleFocus);
+  return () => window.removeEventListener("focus", handleFocus);
+}, []);
 async function playHistoryAudio(audioId: string) {
   try {
     // Stop existing
@@ -1293,6 +1314,30 @@ useEffect(() => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [HOME_STATE_KEY]);
 
+function applyActiveProfileToJobDesc() {
+  if (!activeJobProfile?.jobDescription) return;
+
+  setJobDesc(activeJobProfile.jobDescription);
+  persistHomeState({ jobDesc: activeJobProfile.jobDescription });
+}
+
+function clearJobDescAndQuestions() {
+  setJobDesc("");
+  setQuestions([]);
+  setQuestionBuckets(null);
+  setQuestionFilter("all");
+  setSelectedQuestion("");
+  setMode("setup");
+
+  persistHomeState({
+    jobDesc: "",
+    questions: [],
+    questionBuckets: null,
+    selectedQuestion: "",
+    mode: "setup",
+  });
+}
+
   async function generateQuestions() {
   setLoading(true);
   setError(null);
@@ -1925,6 +1970,10 @@ if (!res.ok) {
 }
 
     setFeedback(data);
+    const activeProfileId = activeJobProfile?.id ?? null;
+const activeProfileTitle = activeJobProfile?.title ?? null;
+const activeProfileCompany = activeJobProfile?.company ?? null;
+const activeProfileRoleType = activeJobProfile?.roleType ?? null;
 
   const entry = {
   id: crypto.randomUUID(),
@@ -1946,10 +1995,16 @@ if (!res.ok) {
   communication_score: data.communication_score,
   confidence_score: data.confidence_score,
   focusGoal: activeFocus,
-  jobDesc,
-  questions,
-  questionBuckets,
-  deliveryMetrics: voiceMetricsRef.current ?? null,
+jobDesc,
+
+jobProfileId: activeProfileId,
+jobProfileTitle: activeProfileTitle,
+jobProfileCompany: activeProfileCompany,
+jobProfileRoleType: activeProfileRoleType,
+
+questions,
+questionBuckets,
+deliveryMetrics: voiceMetricsRef.current ?? null,
 };
 
 
@@ -1987,6 +2042,12 @@ try {
 
   feedback,
   jobDesc,
+
+  jobProfileId: activeProfileId,
+  jobProfileTitle: activeProfileTitle,
+  jobProfileCompany: activeProfileCompany,
+  jobProfileRoleType: activeProfileRoleType,
+
   questions: suggestedQs,
   questionBuckets: (feedback as any).questionBuckets ?? null,
 };
@@ -2312,7 +2373,7 @@ return (
   </div>
 
   {/* Helper */}
-  <div
+<div
   style={{
     marginTop: 4,
     fontSize: 13,
@@ -2320,8 +2381,167 @@ return (
     lineHeight: 1.5,
   }}
 >
-  Paste the role description. We’ll generate tailored interview questions.
+  Paste the role description manually, or load your active job profile to generate tailored interview questions.
 </div>
+
+{activeJobProfile ? (
+  <div
+    style={{
+      marginTop: 14,
+      padding: 14,
+      borderRadius: "var(--radius-lg)",
+      border: "1px solid var(--accent-strong)",
+      background: "var(--accent-soft)",
+      boxShadow: "var(--shadow-card)",
+      display: "grid",
+      gap: 10,
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 12,
+        flexWrap: "wrap",
+      }}
+    >
+      <div style={{ minWidth: 0 }}>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 900,
+            letterSpacing: 0.8,
+            color: "var(--accent)",
+          }}
+        >
+          ACTIVE PROFILE
+        </div>
+
+        <div
+          style={{
+            marginTop: 6,
+            fontSize: 16,
+            fontWeight: 900,
+            color: "var(--text-primary)",
+          }}
+        >
+          {activeJobProfile.title}
+        </div>
+
+        <div
+          style={{
+            marginTop: 6,
+            display: "flex",
+            gap: 8,
+            flexWrap: "wrap",
+            alignItems: "center",
+            fontSize: 12,
+            color: "var(--text-muted)",
+          }}
+        >
+          {activeJobProfile.company ? (
+            <span
+              style={{
+                padding: "4px 8px",
+                borderRadius: 999,
+                border: "1px solid var(--card-border)",
+                background: "var(--card-bg)",
+              }}
+            >
+              {activeJobProfile.company}
+            </span>
+          ) : null}
+
+          {activeJobProfile.roleType ? (
+            <span
+              style={{
+                padding: "4px 8px",
+                borderRadius: 999,
+                border: "1px solid var(--card-border)",
+                background: "var(--card-bg)",
+              }}
+            >
+              {activeJobProfile.roleType}
+            </span>
+          ) : null}
+        </div>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
+        <button
+          type="button"
+          onClick={applyActiveProfileToJobDesc}
+          style={{
+            padding: "9px 12px",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--accent-strong)",
+            background: "linear-gradient(135deg, var(--accent-2), var(--accent))",
+            color: "var(--text-primary)",
+            fontWeight: 900,
+            fontSize: 12,
+            cursor: "pointer",
+            boxShadow: "var(--shadow-glow)",
+          }}
+        >
+          Load into setup
+        </button>
+
+        <button
+          type="button"
+          onClick={refreshActiveJobProfile}
+          style={{
+            padding: "9px 12px",
+            borderRadius: "var(--radius-sm)",
+            border: "1px solid var(--card-border)",
+            background: "var(--card-bg)",
+            color: "var(--text-primary)",
+            fontWeight: 900,
+            fontSize: 12,
+            cursor: "pointer",
+          }}
+        >
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div
+      style={{
+        fontSize: 12,
+        lineHeight: 1.6,
+        color: "var(--text-muted)",
+        display: "-webkit-box",
+        WebkitLineClamp: 3,
+        WebkitBoxOrient: "vertical" as const,
+        overflow: "hidden",
+      }}
+    >
+      {activeJobProfile.jobDescription}
+    </div>
+  </div>
+) : (
+  <div
+    style={{
+      marginTop: 14,
+      padding: 14,
+      borderRadius: "var(--radius-lg)",
+      border: "1px dashed var(--card-border)",
+      background: "var(--card-bg)",
+      color: "var(--text-muted)",
+      fontSize: 13,
+      lineHeight: 1.6,
+    }}
+  >
+    No active job profile selected. You can still paste a job description manually, or set one in Job Profiles.
+  </div>
+)}
 
   {/* Divider */}
   <div
@@ -2401,6 +2621,23 @@ return (
   })}
 >
   {loading ? "Generating..." : "Generate Questions"}
+</button>
+
+<button
+  type="button"
+  onClick={clearJobDescAndQuestions}
+  style={{
+    padding: "11px 16px",
+    fontSize: 14,
+    fontWeight: 800,
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    color: "var(--text-primary)",
+    cursor: "pointer",
+  }}
+>
+  Clear
 </button>
 
  <button

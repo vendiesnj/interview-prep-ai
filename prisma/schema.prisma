@@ -91,6 +91,11 @@ model Attempt {
   audioUrl           String? 
   audioMime          String?
   audioPath          String?
+  jobProfileId       String?
+  jobProfileTitle    String?
+  jobProfileCompany  String?
+  jobProfileRoleType String?
+
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])
   @@index([userId, deletedAt])
