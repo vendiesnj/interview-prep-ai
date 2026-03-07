@@ -158,17 +158,45 @@ export const virginiaTechTheme: AppTheme = {
   colors: {
     ...defaultTheme.colors,
 
-    pageBg: "#1A0E12",
+    pageBg: "#F3EEEC",
+    pageBgAccentA: "rgba(134,31,65,0.09)",
+    pageBgAccentB: "rgba(232,119,34,0.08)",
 
-    pageBgAccentA: "rgba(134,31,65,0.22)",
-    pageBgAccentB: "rgba(232,119,34,0.16)",
+    text: "#211C19",
+    textMuted: "#6A625D",
+    textSoft: "#877D77",
 
-    accent: "#E87722",
-    accentSoft: "rgba(232,119,34,0.14)",
-    accentStrong: "rgba(232,119,34,0.36)",
+    cardBg: "#FFF9F7",
+    cardBgStrong: "#FFFFFF",
+    cardBorder: "rgba(134,31,65,0.14)",
+    cardBorderSoft: "rgba(33,28,25,0.08)",
 
-    accent2: "#861F41",
-    accent2Soft: "rgba(134,31,65,0.28)",
+    inputBg: "#FFFFFF",
+    inputBorder: "rgba(134,31,65,0.16)",
+
+    accent: "#861F41",
+    accentSoft: "rgba(134,31,65,0.11)",
+    accentStrong: "rgba(134,31,65,0.30)",
+
+    accent2: "#E87722",
+    accent2Soft: "rgba(232,119,34,0.13)",
+
+    danger: "#B42318",
+    dangerSoft: "rgba(180,35,24,0.09)",
+
+    success: "#166534",
+    successSoft: "rgba(22,101,52,0.09)",
+  },
+
+  radii: {
+    ...defaultTheme.radii,
+  },
+
+  shadows: {
+    card: "0 16px 36px rgba(33,28,25,0.08)",
+    cardSoft: "0 8px 20px rgba(33,28,25,0.05)",
+    glow: "0 10px 24px rgba(134,31,65,0.10)",
+    none: "none",
   },
 };
 

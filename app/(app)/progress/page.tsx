@@ -200,43 +200,43 @@ export default function ProgressPage() {
 
   return (
     <div style={{ maxWidth: 1100 }}>
-      <div style={{ fontSize: 34, fontWeight: 950, color: "#E5E7EB" }}>Progress</div>
-      <div style={{ marginTop: 8, color: "#9CA3AF", lineHeight: 1.6 }}>
-        Trend tiles from your saved attempts <code style={{ color: "#E5E7EB" }}></code>
+      <div style={{ fontSize: 34, fontWeight: 950, color: "var(--text-primary)" }}>Progress</div>
+      <div style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.6 }}>
+        Trend tiles from your saved attempts <code style={{ color: "var(--text-primary)" }}></code>
       </div>
 
       {/* Top tiles */}
       <div style={{ marginTop: 18, display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 14 }}>
         <PremiumCard>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>TOTAL</div>
-          <div style={{ marginTop: 10, fontSize: 28, fontWeight: 950, color: "#E5E7EB" }}>{totals.total}</div>
-          <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>Saved attempts</div>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>TOTAL</div>
+          <div style={{ marginTop: 10, fontSize: 28, fontWeight: 950, color: "var(--text-primary)" }}>{totals.total}</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>Saved attempts</div>
         </PremiumCard>
 
         <PremiumCard>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>LAST 7 DAYS</div>
-          <div style={{ marginTop: 10, fontSize: 28, fontWeight: 950, color: "#E5E7EB" }}>{totals.last7}</div>
-          <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>Attempts recorded</div>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>LAST 7 DAYS</div>
+          <div style={{ marginTop: 10, fontSize: 28, fontWeight: 950, color: "var(--text-primary)" }}>{totals.last7}</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>Attempts recorded</div>
         </PremiumCard>
 
         <PremiumCard>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>AVG (LAST 10)</div>
-          <div style={{ marginTop: 10, fontSize: 28, fontWeight: 950, color: "#E5E7EB" }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>AVG (LAST 10)</div>
+          <div style={{ marginTop: 10, fontSize: 28, fontWeight: 950, color: "var(--text-primary)" }}>
             {totals.avg10 ?? "—"}
-            <span style={{ fontSize: 14, color: "#9CA3AF", marginLeft: 6 }}>/10</span>
+            <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>/10</span>
           </div>
-          <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>Overall score</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>Overall score</div>
         </PremiumCard>
 
         <PremiumCard>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>INPUT MIX</div>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>INPUT MIX</div>
           <div style={{ marginTop: 10, display: "flex", gap: 10, alignItems: "baseline" }}>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "#E5E7EB" }}>{totals.spoken}</div>
-            <div style={{ fontSize: 12, color: "#9CA3AF" }}>spoken</div>
-            <div style={{ marginLeft: 10, fontSize: 18, fontWeight: 950, color: "#E5E7EB" }}>{totals.pasted}</div>
-            <div style={{ fontSize: 12, color: "#9CA3AF" }}>pasted</div>
+            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>{totals.spoken}</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>spoken</div>
+            <div style={{ marginLeft: 10, fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>{totals.pasted}</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>pasted</div>
           </div>
-          <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>Helps interpret pace/vocal variety</div>
+          <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>Helps interpret pace/vocal variety</div>
         </PremiumCard>
       </div>
 
@@ -245,10 +245,10 @@ export default function ProgressPage() {
         <PremiumCard>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>TREND</div>
-              <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "#E5E7EB" }}>Overall score</div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>TREND</div>
+              <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "var(--text-primary)" }}>Overall score</div>
             </div>
-            <div style={{ fontSize: 12, color: "#9CA3AF" }}>Last {Math.min(history.length, 20)} attempts</div>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Last {Math.min(history.length, 20)} attempts</div>
           </div>
 
           <div style={{ marginTop: 12 }}>
@@ -257,14 +257,14 @@ export default function ProgressPage() {
               viewBox={`0 0 ${sparkW} ${sparkH}`}
               style={{
                 borderRadius: 16,
-                border: "1px solid rgba(255,255,255,0.10)",
+                border: "1px solid var(--card-border)",
                 background:
                   "radial-gradient(900px 420px at 15% -10%, rgba(34,211,238,0.10), transparent 60%), rgba(17,24,39,0.55)",
               }}
             >
               <path
                 d={`M 10 ${(sparkH - 10).toFixed(1)} L ${(sparkW - 10).toFixed(1)} ${(sparkH - 10).toFixed(1)}`}
-                stroke="rgba(255,255,255,0.10)"
+                stroke="var(--card-border)"
                 strokeWidth="1"
                 fill="none"
               />
@@ -283,7 +283,7 @@ export default function ProgressPage() {
                 </text>
               )}
             </svg>
-            <div style={{ marginTop: 8, fontSize: 12, color: "#9CA3AF" }}>
+            <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
               Newest attempt is on the right
             </div>
           </div>
@@ -291,21 +291,21 @@ export default function ProgressPage() {
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
           <PremiumCard>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>TREND</div>
-            <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "#E5E7EB" }}>Communication</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>TREND</div>
+            <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "var(--text-primary)" }}>Communication</div>
             <div style={{ marginTop: 12 }}>
               <svg
                 width="100%"
                 viewBox={`0 0 ${sparkW} ${sparkH}`}
                 style={{
                   borderRadius: 16,
-                  border: "1px solid rgba(255,255,255,0.10)",
+                  border: "1px solid var(--card-border)",
                   background: "rgba(17,24,39,0.55)",
                 }}
               >
                 <path
                   d={`M 10 ${(sparkH - 10).toFixed(1)} L ${(sparkW - 10).toFixed(1)} ${(sparkH - 10).toFixed(1)}`}
-                  stroke="rgba(255,255,255,0.10)"
+                  stroke="var(--card-border)"
                   strokeWidth="1"
                   fill="none"
                 />
@@ -317,17 +317,17 @@ export default function ProgressPage() {
 
             <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
               <div>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Avg</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
                 <div style={{ marginTop: 4, fontWeight: 950 }}>{avg(seriesComm)?.toFixed(1) ?? "—"}</div>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Fillers</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Fillers</div>
                 <div style={{ marginTop: 4, fontWeight: 950 }}>
                   {avg(seriesFillers) === null ? "—" : `${(Math.round((avg(seriesFillers) as number) * 10) / 10).toFixed(1)}/100`}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Pace</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Pace</div>
                 <div style={{ marginTop: 4, fontWeight: 950 }}>
                   {avg(seriesPace) === null ? "—" : `${Math.round(avg(seriesPace) as number)} wpm`}
                 </div>
@@ -336,24 +336,24 @@ export default function ProgressPage() {
           </PremiumCard>
 
           <PremiumCard>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>TREND</div>
-            <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "#E5E7EB" }}>Confidence + STAR Result</div>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>TREND</div>
+            <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "var(--text-primary)" }}>Confidence + STAR Result</div>
             <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
               <div>
-                <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900 }}>Confidence</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900 }}>Confidence</div>
                 <svg
                   width="100%"
                   viewBox={`0 0 ${sparkW} ${sparkH}`}
                   style={{
                     borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.10)",
+                    border: "1px solid var(--card-border)",
                     background: "rgba(17,24,39,0.55)",
                     marginTop: 8,
                   }}
                 >
                   <path
                     d={`M 10 ${(sparkH - 10).toFixed(1)} L ${(sparkW - 10).toFixed(1)} ${(sparkH - 10).toFixed(1)}`}
-                    stroke="rgba(255,255,255,0.10)"
+                    stroke="var(--card-border)"
                     strokeWidth="1"
                     fill="none"
                   />
@@ -364,20 +364,20 @@ export default function ProgressPage() {
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900 }}>STAR — Result</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900 }}>STAR — Result</div>
                 <svg
                   width="100%"
                   viewBox={`0 0 ${sparkW} ${sparkH}`}
                   style={{
                     borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.10)",
+                    border: "1px solid var(--card-border)",
                     background: "rgba(17,24,39,0.55)",
                     marginTop: 8,
                   }}
                 >
                   <path
                     d={`M 10 ${(sparkH - 10).toFixed(1)} L ${(sparkW - 10).toFixed(1)} ${(sparkH - 10).toFixed(1)}`}
-                    stroke="rgba(255,255,255,0.10)"
+                    stroke="var(--card-border)"
                     strokeWidth="1"
                     fill="none"
                   />
@@ -389,11 +389,11 @@ export default function ProgressPage() {
 
               <div style={{ marginTop: 2, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
                 <div>
-                  <div style={{ fontSize: 11, color: "#9CA3AF" }}>Conf avg</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Conf avg</div>
                   <div style={{ marginTop: 4, fontWeight: 950 }}>{avg(seriesConf)?.toFixed(1) ?? "—"}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: "#9CA3AF" }}>STAR-R avg</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>STAR-R avg</div>
                   <div style={{ marginTop: 4, fontWeight: 950 }}>{avg(seriesStarR)?.toFixed(1) ?? "—"}</div>
                 </div>
                 <div>
@@ -402,8 +402,8 @@ export default function ProgressPage() {
             </div>
           </PremiumCard>
                   <PremiumCard>
-  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>TREND</div>
-  <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "#E5E7EB" }}>Vocal variety</div>
+  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>TREND</div>
+  <div style={{ marginTop: 6, fontSize: 16, fontWeight: 950, color: "var(--text-primary)" }}>Vocal variety</div>
 
   <div style={{ marginTop: 12 }}>
     <svg
@@ -411,13 +411,13 @@ export default function ProgressPage() {
       viewBox={`0 0 ${sparkW} ${sparkH}`}
       style={{
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.10)",
+        border: "1px solid var(--card-border)",
         background: "rgba(17,24,39,0.55)",
       }}
     >
       <path
         d={`M 10 ${(sparkH - 10).toFixed(1)} L ${(sparkW - 10).toFixed(1)} ${(sparkH - 10).toFixed(1)}`}
-        stroke="rgba(255,255,255,0.10)"
+        stroke="var(--card-border)"
         strokeWidth="1"
         fill="none"
       />
@@ -429,17 +429,17 @@ export default function ProgressPage() {
 
   <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
     <div>
-      <div style={{ fontSize: 11, color: "#9CA3AF" }}>Avg</div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
       <div style={{ marginTop: 4, fontWeight: 950 }}>{avg(seriesVocal)?.toFixed(1) ?? "—"}</div>
     </div>
     <div>
-      <div style={{ fontSize: 11, color: "#9CA3AF" }}>Min</div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Min</div>
       <div style={{ marginTop: 4, fontWeight: 950 }}>
         {seriesVocal.length ? Math.min(...seriesVocal).toFixed(1) : "—"}
       </div>
     </div>
     <div>
-      <div style={{ fontSize: 11, color: "#9CA3AF" }}>Max</div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Max</div>
       <div style={{ marginTop: 4, fontWeight: 950 }}>
         {seriesVocal.length ? Math.max(...seriesVocal).toFixed(1) : "—"}
       </div>

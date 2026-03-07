@@ -17,23 +17,51 @@ export default function PremiumShell({
     <div
       style={{
         minHeight: "100vh",
-        background:
-          "radial-gradient(900px 420px at 20% -10%, rgba(99,102,241,0.16), transparent 60%), #05070b",
-        color: "#E5E7EB",
+        background: `
+          radial-gradient(900px 420px at 20% -10%, var(--app-bg-accent-a), transparent 60%),
+          radial-gradient(900px 420px at 100% 0%, var(--app-bg-accent-b), transparent 55%),
+          var(--app-bg)
+        `,
+        color: "var(--text-primary)",
       }}
     >
       <div style={{ maxWidth: 1120, margin: "0 auto", padding: 20 }}>
         {!hideHeader && (title || subtitle) ? (
           <div style={{ marginBottom: 18 }}>
             {title ? (
-              <div style={{ fontSize: 28, fontWeight: 950, letterSpacing: -0.3 }}>{title}</div>
+              <div
+                style={{
+                  fontSize: 28,
+                  fontWeight: 950,
+                  letterSpacing: -0.3,
+                  color: "var(--text-primary)",
+                }}
+              >
+                {title}
+              </div>
             ) : null}
+
             {subtitle ? (
-              <div style={{ marginTop: 10, fontSize: 15, color: "#9CA3AF", lineHeight: 1.6, maxWidth: 760 }}>
+              <div
+                style={{
+                  marginTop: 10,
+                  fontSize: 15,
+                  color: "var(--text-muted)",
+                  lineHeight: 1.6,
+                  maxWidth: 760,
+                }}
+              >
                 {subtitle}
               </div>
             ) : null}
-            <div style={{ marginTop: 16, height: 1, background: "rgba(255,255,255,0.08)" }} />
+
+            <div
+              style={{
+                marginTop: 16,
+                height: 1,
+                background: "var(--card-border-soft)",
+              }}
+            />
           </div>
         ) : null}
 
@@ -42,23 +70,40 @@ export default function PremiumShell({
         <div
           style={{
             marginTop: 22,
-            borderTop: "1px solid rgba(255,255,255,0.08)",
+            borderTop: "1px solid var(--card-border-soft)",
             paddingTop: 16,
             display: "flex",
             justifyContent: "space-between",
             gap: 12,
             flexWrap: "wrap",
-            color: "#9CA3AF",
+            color: "var(--text-muted)",
             fontSize: 12,
           }}
         >
           <div>Interview Performance Coach</div>
+
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <a href="/terms" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
+            <a
+              href="/terms"
+              style={{
+                color: "var(--accent)",
+                fontWeight: 900,
+                textDecoration: "none",
+              }}
+            >
               Terms
             </a>
-            <span style={{ color: "rgba(255,255,255,0.18)" }}>•</span>
-            <a href="/privacy" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
+
+            <span style={{ color: "var(--text-soft)" }}>•</span>
+
+            <a
+              href="/privacy"
+              style={{
+                color: "var(--accent)",
+                fontWeight: 900,
+                textDecoration: "none",
+              }}
+            >
               Privacy
             </a>
           </div>

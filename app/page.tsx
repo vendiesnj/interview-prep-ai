@@ -23,7 +23,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           padding: "84px 24px 64px",
           background:
             "radial-gradient(1100px 700px at 18% 0%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(900px 600px at 78% 10%, rgba(99,102,241,0.12), transparent 60%), rgba(3,7,18,1)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          borderBottom: "1px solid var(--card-border-soft)",
         }}
       >
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
@@ -53,7 +53,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
       borderRadius: 22,
 
       background:
-        "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.04))",
+        "linear-gradient(180deg, var(--card-border-soft), rgba(255,255,255,0.04))",
       border: "1px solid rgba(255,255,255,0.18)",
       boxShadow: "0 25px 70px rgba(0,0,0,0.55)",
       backdropFilter: "blur(12px)",
@@ -88,7 +88,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           borderRadius: 14,
           border: "1px solid rgba(255,255,255,0.14)",
           background: "rgba(255,255,255,0.04)",
-          color: "#E5E7EB",
+          color: "var(--text-primary)",
           fontWeight: 900,
           whiteSpace: "nowrap",
         }}
@@ -121,7 +121,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           borderRadius: 14,
           border: "1px solid rgba(255,255,255,0.14)",
           background: "rgba(255,255,255,0.04)",
-          color: "#E5E7EB",
+          color: "var(--text-primary)",
           textDecoration: "none",
           fontWeight: 900,
         }}
@@ -170,7 +170,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
     borderRadius: 999,
     border: "1px solid rgba(255,255,255,0.12)",
     background: "rgba(255,255,255,0.04)",
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     fontSize: 12,
     fontWeight: 900,
     letterSpacing: 0.3,
@@ -188,7 +188,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
     lineHeight: 1.02,
     letterSpacing: -1.2,
     fontWeight: 1000 as any,
-    color: "#E5E7EB",
+    color: "var(--text-primary)",
   }}
 >
   Practice interviews with structured, measurable feedback.
@@ -201,7 +201,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
     marginTop: 14,
     fontSize: 16,
     lineHeight: 1.7,
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     maxWidth: 620,
   }}
 >
@@ -244,7 +244,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
             borderRadius: 14,
             border: "1px solid rgba(255,255,255,0.14)",
             background: "rgba(255,255,255,0.04)",
-            color: "#E5E7EB",
+            color: "var(--text-primary)",
             fontWeight: 900,
             minWidth: 200,
             textAlign: "center",
@@ -279,7 +279,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
             borderRadius: 14,
             border: "1px solid rgba(255,255,255,0.14)",
             background: "rgba(255,255,255,0.04)",
-            color: "#E5E7EB",
+            color: "var(--text-primary)",
             textDecoration: "none",
             fontWeight: 900,
             minWidth: 120,
@@ -293,7 +293,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
   </div>
               </Reveal>
 
-              <div style={{ marginTop: 18, display: "flex", gap: 14, flexWrap: "wrap", color: "#9CA3AF", fontSize: 12 }}>
+              <div style={{ marginTop: 18, display: "flex", gap: 14, flexWrap: "wrap", color: "var(--text-muted)", fontSize: 12 }}>
                 <span>✓ 2 minutes to start</span>
                 <span>✓ No fluff, just signal</span>
                 <span>✓ Built for real interviews</span>
@@ -309,7 +309,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
     borderRadius: 20,
     border: "1px solid rgba(255,255,255,0.12)",
     background:
-      "linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03))",
+      "linear-gradient(180deg, var(--card-border-soft), var(--card-bg))",
     boxShadow: "0 35px 110px rgba(0,0,0,0.55)",
     overflow: "hidden",
     position: "relative",
@@ -327,9 +327,9 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
   />
 
   <div style={{ position: "relative" }}>
-    <div style={{ padding: 16, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+    <div style={{ padding: 16, borderBottom: "1px solid var(--card-border-soft)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.7 }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900, letterSpacing: 0.7 }}>
           SAMPLE FEEDBACK
         </div>
 
@@ -348,7 +348,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
         </div>
       </div>
 
-      <div style={{ marginTop: 10, fontSize: 14, color: "#E5E7EB", fontWeight: 900 }}>
+      <div style={{ marginTop: 10, fontSize: 14, color: "var(--text-primary)", fontWeight: 900 }}>
         “Tell me about a time you handled a difficult stakeholder.”
       </div>
     </div>
@@ -365,20 +365,20 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           marginTop: 2,
           padding: 14,
           borderRadius: 16,
-          border: "1px solid rgba(255,255,255,0.10)",
-          background: "rgba(255,255,255,0.03)",
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg)",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-          <div style={{ color: "#E5E7EB", fontWeight: 950, fontSize: 12 }}>Progress trend</div>
-          <div style={{ color: "#9CA3AF", fontSize: 12, fontWeight: 900 }}>Last 5 attempts</div>
+          <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>Progress trend</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 900 }}>Last 5 attempts</div>
         </div>
 
         <svg viewBox="0 0 320 90" width="100%" height="90" style={{ marginTop: 10, display: "block" }}>
           {/* grid */}
           <path
             d="M0 15 H320 M0 45 H320 M0 75 H320"
-            stroke="rgba(255,255,255,0.08)"
+            stroke="var(--card-border-soft)"
             strokeWidth="1"
             fill="none"
           />
@@ -413,7 +413,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           ))}
         </svg>
 
-        <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+        <div style={{ marginTop: 8, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>
           Upward trend. Biggest lift comes from ending with a measurable result.
         </div>
       </div>
@@ -430,7 +430,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
           <div style={{ color: "#A5F3FC", fontWeight: 950, fontSize: 12 }}>Keyword alignment</div>
-          <div style={{ color: "#9CA3AF", fontWeight: 900, fontSize: 12 }}>Missing: 2</div>
+          <div style={{ color: "var(--text-muted)", fontWeight: 900, fontSize: 12 }}>Missing: 2</div>
         </div>
 
         <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -448,7 +448,7 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           borderRadius: 16,
           border: "1px solid rgba(99,102,241,0.20)",
           background: "rgba(99,102,241,0.08)",
-          color: "#E5E7EB",
+          color: "var(--text-primary)",
           fontSize: 12,
           lineHeight: 1.7,
         }}
@@ -527,9 +527,9 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
           width: "100%",
           padding: "72px 24px",
           background: "rgba(3,7,18,1)",
-          color: "#E5E7EB",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          color: "var(--text-primary)",
+          borderTop: "1px solid var(--card-border-soft)",
+          borderBottom: "1px solid var(--card-border-soft)",
         }}
       >
         <div style={{ maxWidth: 1120, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
@@ -537,12 +537,12 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
             style={{
               padding: 18,
               borderRadius: 18,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(255,255,255,0.03)",
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg)",
             }}
           >
             <div style={{ fontWeight: 950, marginBottom: 8 }}>For job seekers</div>
-            <div style={{ color: "#9CA3AF", lineHeight: 1.7 }}>
+            <div style={{ color: "var(--text-muted)", lineHeight: 1.7 }}>
               Practice on your schedule, track progress, and walk into interviews with answers that are structured and confident.
             </div>
           </div>
@@ -551,12 +551,12 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
             style={{
               padding: 18,
               borderRadius: 18,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(255,255,255,0.03)",
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg)",
             }}
           >
             <div style={{ fontWeight: 950, marginBottom: 8 }}>For colleges (coming soon)</div>
-            <div style={{ color: "#9CA3AF", lineHeight: 1.7 }}>
+            <div style={{ color: "var(--text-muted)", lineHeight: 1.7 }}>
               Cohorts, reporting, and outcomes-ready metrics for career centers and programs.
             </div>
           </div>
@@ -648,8 +648,8 @@ const isPro = subscriptionStatus === "active"; // adjust if yours is "pro"
 function MiniRow({ label, value }: { label: string; value: string }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", gap: 14 }}>
-      <div style={{ color: "#9CA3AF", fontSize: 12, fontWeight: 900 }}>{label}</div>
-      <div style={{ color: "#E5E7EB", fontSize: 12, fontWeight: 900, textAlign: "right" }}>{value}</div>
+      <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 900 }}>{label}</div>
+      <div style={{ color: "var(--text-primary)", fontSize: 12, fontWeight: 900, textAlign: "right" }}>{value}</div>
     </div>
   );
 }
@@ -686,12 +686,12 @@ function BarMetric({
       style={{
         padding: 14,
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.03)",
+        border: "1px solid var(--card-border)",
+        background: "var(--card-bg)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-        <div style={{ color: "#E5E7EB", fontWeight: 950, fontSize: 12 }}>{label}</div>
+        <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>{label}</div>
         <div style={{ color: "#A5F3FC", fontWeight: 950, fontSize: 12 }}>{value.toFixed(1)}</div>
       </div>
 
@@ -700,7 +700,7 @@ function BarMetric({
           marginTop: 10,
           height: 10,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.08)",
+          background: "var(--card-border-soft)",
           overflow: "hidden",
         }}
       >
@@ -715,7 +715,7 @@ function BarMetric({
         />
       </div>
 
-      <div style={{ marginTop: 8, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>{hint}</div>
+      <div style={{ marginTop: 8, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>{hint}</div>
     </div>
   );
 }

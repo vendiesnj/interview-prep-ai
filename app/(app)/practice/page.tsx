@@ -108,7 +108,7 @@ function GaugeTile({
               width: 44,
               height: 44,
               borderRadius: 999,
-              background: `conic-gradient(var(--accent) ${deg}deg, rgba(255,255,255,0.10) 0deg)`,
+              background: `conic-gradient(var(--accent) ${deg}deg, var(--card-border) 0deg)`,
               display: "grid",
               placeItems: "center",
               boxShadow: "var(--shadow-glow)",
@@ -178,7 +178,7 @@ function MetricBar({
           marginTop: 8,
           height: 10,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.08)",
+          background: "var(--card-border-soft)",
           overflow: "hidden",
           border: "1px solid var(--card-border-soft)",
         }}
@@ -1445,7 +1445,7 @@ function drawWaveform() {
     ctxNow.clearRect(0, 0, canvasNow.width, canvasNow.height);
 
     // Background
-    ctxNow.fillStyle = "rgba(255,255,255,0.03)";
+    ctxNow.fillStyle = "var(--card-bg)";
     ctxNow.fillRect(0, 0, canvasNow.width, canvasNow.height);
 
     // Line
@@ -2183,7 +2183,7 @@ return (
     borderRadius: "var(--radius-lg)",
     border: "1px solid var(--accent-strong)",
     background: "var(--card-bg)",
-    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    boxShadow: "inset 0 1px 0 var(--card-bg)",
     transform: "translateY(0px)",
     opacity: 1,
     transition: "opacity 200ms ease, transform 200ms ease",
@@ -2539,8 +2539,8 @@ return (
         }}
         onMouseLeave={(e) => {
           if (!active) {
-            e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+            e.currentTarget.style.background = "var(--card-bg)";
+            e.currentTarget.style.borderColor = "var(--card-border-soft)";
           }
         }}
         style={{
@@ -2777,7 +2777,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
     justifyContent: "space-between",
     gap: 14,
     paddingBottom: 14,
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    borderBottom: "1px solid var(--card-bg-strong)",
   }}
 >
   <div>
@@ -2835,7 +2835,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
   defaultOpen={false}
 >
   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-    <div style={{ fontSize: 12, color: "#9CA3AF" }}>
+    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
       {focusGoal ? "Locked by you" : "Suggested from recent attempts"}
     </div>
 
@@ -2847,9 +2847,9 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         borderRadius: 999,
         border: focusGoal
           ? "1px solid rgba(34,211,238,0.40)"
-          : "1px solid rgba(255,255,255,0.10)",
-        color: focusGoal ? "#A5F3FC" : "#9CA3AF",
-        background: focusGoal ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.03)",
+          : "1px solid var(--card-border)",
+        color: focusGoal ? "#A5F3FC" : "var(--text-muted)",
+        background: focusGoal ? "rgba(34,211,238,0.10)" : "var(--card-bg)",
         whiteSpace: "nowrap",
       }}
     >
@@ -2857,13 +2857,13 @@ e.currentTarget.style.borderColor = "var(--card-border)";
     </span>
   </div>
 
-  <div style={{ marginTop: 10, fontSize: 13, color: "#E5E7EB", fontWeight: 900 }}>
+  <div style={{ marginTop: 10, fontSize: 13, color: "var(--text-primary)", fontWeight: 900 }}>
   {focusCopy[activeFocus].tip}
 </div>
 
-<div style={{ marginTop: 8, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+<div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
   Next attempt: focus on <span style={{ color: "#A5F3FC", fontWeight: 900 }}>{focusCopy[activeFocus].title}</span>{" "}
-  while recording, then hit <span style={{ color: "#E5E7EB", fontWeight: 900 }}>Analyze Answer</span>.
+  while recording, then hit <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>Analyze Answer</span>.
 </div>
 
   <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -2879,9 +2879,9 @@ e.currentTarget.style.borderColor = "var(--card-border)";
             borderRadius: 999,
             border: selected
               ? "1px solid rgba(34,211,238,0.45)"
-              : "1px solid rgba(255,255,255,0.10)",
+              : "1px solid var(--card-border)",
             background: selected ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.04)",
-            color: selected ? "#A5F3FC" : "#E5E7EB",
+            color: selected ? "#A5F3FC" : "var(--text-primary)",
             fontSize: 12,
             fontWeight: 900,
             cursor: "pointer",
@@ -2899,9 +2899,9 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         style={{
           padding: "7px 10px",
           borderRadius: 999,
-          border: "1px solid rgba(255,255,255,0.10)",
+          border: "1px solid var(--card-border)",
           background: "transparent",
-          color: "#9CA3AF",
+          color: "var(--text-muted)",
           fontSize: 12,
           fontWeight: 900,
           cursor: "pointer",
@@ -3394,9 +3394,9 @@ e.currentTarget.style.borderColor = "var(--card-border)";
             style={{
               padding: "6px 10px",
               borderRadius: 999,
-              border: active ? "1px solid rgba(34,211,238,0.45)" : "1px solid rgba(255,255,255,0.10)",
+              border: active ? "1px solid rgba(34,211,238,0.45)" : "1px solid var(--card-border)",
               background: active ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.04)",
-              color: active ? "#A5F3FC" : "#E5E7EB",
+              color: active ? "#A5F3FC" : "var(--text-primary)",
               fontSize: 12,
               fontWeight: 800,
               cursor: "pointer",
@@ -3415,15 +3415,15 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         viewBox={`0 0 ${sparkW} ${sparkH}`}
         style={{
           borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid var(--card-border-soft)",
           background:
-            "radial-gradient(900px 420px at 15% -10%, rgba(34,211,238,0.10), transparent 60%), rgba(255,255,255,0.03)",
+            "radial-gradient(900px 420px at 15% -10%, rgba(34,211,238,0.10), transparent 60%), var(--card-bg)",
           flex: "0 0 auto",
         }}
       >
         <path
           d={`M 6 ${(sparkH - 6).toFixed(1)} L ${(sparkW - 6).toFixed(1)} ${(sparkH - 6).toFixed(1)}`}
-          stroke="rgba(255,255,255,0.10)"
+          stroke="var(--card-border)"
           strokeWidth="1"
           fill="none"
         />
@@ -3440,20 +3440,20 @@ e.currentTarget.style.borderColor = "var(--card-border)";
       <div style={{ flex: "1 1 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
           <div>
-            <div style={{ fontSize: 11, color: "#9CA3AF" }}>Avg</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
             <div style={{ marginTop: 4, fontWeight: 900 }}>{avgScore ?? "—"}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: "#9CA3AF" }}>Min</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Min</div>
             <div style={{ marginTop: 4, fontWeight: 900 }}>{minScore ?? "—"}</div>
           </div>
           <div>
-            <div style={{ fontSize: 11, color: "#9CA3AF" }}>Max</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Max</div>
             <div style={{ marginTop: 4, fontWeight: 900 }}>{maxScore ?? "—"}</div>
           </div>
         </div>
 
-        <div style={{ marginTop: 10, fontSize: 12, color: "#9CA3AF" }}>
+        <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)" }}>
           {history.length < 2
             ? "Do a couple attempts to see the trend line."
             : "Trend updates as you practice — newest attempt is on the right."}
@@ -3478,7 +3478,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
     </div>
 
     {history.length === 0 ? (
-      <div style={{ marginTop: 10, fontSize: 12, color: "#9CA3AF" }}>
+      <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)" }}>
         No attempts yet. Record + Analyze to save one.
       </div>
     ) : (
@@ -3547,7 +3547,7 @@ onMouseLeave={(e) =>
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
                   <div style={{ fontWeight: 900 }}>Score: {h.score ?? "—"}/10</div>
-                  <div style={{ fontSize: 12, color: "#9CA3AF" }}>{when}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{when}</div>
                   {h.inputMethod === "spoken" ? (
                     <span
                       style={{
@@ -3564,8 +3564,8 @@ onMouseLeave={(e) =>
                     <span
                       style={{
                         fontSize: 11,
-                        color: "#9CA3AF",
-                        border: "1px solid rgba(255,255,255,0.10)",
+                        color: "var(--text-muted)",
+                        border: "1px solid var(--card-border)",
                         padding: "2px 8px",
                         borderRadius: 999,
                       }}
@@ -3574,7 +3574,7 @@ onMouseLeave={(e) =>
                     </span>
                   )}
                   {typeof h.wpm === "number" ? (
-                    <span style={{ fontSize: 11, color: "#9CA3AF" }}>· {h.wpm} wpm</span>
+                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>· {h.wpm} wpm</span>
                   ) : null}
                 </div>
 
@@ -3582,7 +3582,7 @@ onMouseLeave={(e) =>
                   style={{
                     marginTop: 6,
                     fontSize: 12,
-                    color: "#9CA3AF",
+                    color: "var(--text-muted)",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -3606,9 +3606,9 @@ onMouseLeave={(e) =>
                     style={{
                       padding: "6px 10px",
                       borderRadius: 999,
-                      border: "1px solid rgba(255,255,255,0.10)",
+                      border: "1px solid var(--card-border)",
                       background: isPlaying ? "rgba(34,211,238,0.12)" : "rgba(255,255,255,0.04)",
-                      color: isPlaying ? "#A5F3FC" : "#E5E7EB",
+                      color: isPlaying ? "#A5F3FC" : "var(--text-primary)",
                       fontSize: 12,
                       fontWeight: 800,
                       cursor: "pointer",
@@ -3618,7 +3618,7 @@ onMouseLeave={(e) =>
                     {isPlaying ? "Stop" : "Replay"}
                   </button>
                 ) : (
-                  <span style={{ fontSize: 12, color: "#6B7280" }}>No audio</span>
+                  <span style={{ fontSize: 12, color: "var(--text-soft)" }}>No audio</span>
                 )}
               </div>
             </div>
@@ -3657,8 +3657,8 @@ onMouseLeave={(e) =>
           <MetricBar label="Overall Score" value={feedback?.score ?? 0} max={10} />
           {wpm !== null && (
             <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 13, color: "#9CA3AF" }}>Pace</div>
-              <div style={{ marginTop: 6, color: "#E5E7EB", fontWeight: 700 }}>{wpm} wpm</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Pace</div>
+              <div style={{ marginTop: 6, color: "var(--text-primary)", fontWeight: 700 }}>{wpm} wpm</div>
             </div>
           )}
         </GaugeTile>
@@ -3666,7 +3666,7 @@ onMouseLeave={(e) =>
         <GaugeTile title="Communication" value={feedback?.communication_score ?? 0} max={10}>
           <MetricBar label="Communication" value={feedback?.communication_score ?? 0} max={10} />
           {feedback?.filler && (
-            <div style={{ marginTop: 10, fontSize: 12, color: "#9CA3AF" }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)" }}>
               Fillers: {feedback?.filler.total} ({feedback?.filler.per100}/100 words)
             </div>
           )}
@@ -3757,9 +3757,9 @@ onMouseLeave={(e) =>
           marginTop: 12,
           height: 12,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.10)",
+          background: "var(--card-border)",
           overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.10)",
+          border: "1px solid var(--card-border)",
         }}
       >
         <div

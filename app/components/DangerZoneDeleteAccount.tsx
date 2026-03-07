@@ -58,7 +58,7 @@ export default function DangerZoneDeleteAccount() {
         Danger zone
       </div>
 
-      <div style={{ color: "#E5E7EB", fontSize: 13, lineHeight: 1.5 }}>
+      <div style={{ color: "var(--text-primary)", fontSize: 13, lineHeight: 1.5 }}>
         Permanently deletes your account and all interview attempts. This cannot be undone.
       </div>
 
@@ -90,16 +90,16 @@ export default function DangerZoneDeleteAccount() {
             marginTop: 14,
             padding: 14,
             borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.10)",
+            border: "1px solid var(--card-border)",
             background: "rgba(17,24,39,0.55)",
           }}
         >
-          <div style={{ color: "#E5E7EB", fontWeight: 900, marginBottom: 8 }}>
+          <div style={{ color: "var(--text-primary)", fontWeight: 900, marginBottom: 8 }}>
             Confirm deletion
           </div>
 
-          <div style={{ color: "#9CA3AF", fontSize: 12, lineHeight: 1.5 }}>
-            Type <span style={{ color: "#E5E7EB", fontWeight: 900 }}>DELETE_MY_ACCOUNT</span> to confirm.
+          <div style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+            Type <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>DELETE_MY_ACCOUNT</span> to confirm.
           </div>
 
           <input
@@ -113,7 +113,7 @@ export default function DangerZoneDeleteAccount() {
               borderRadius: 12,
               border: "1px solid rgba(255,255,255,0.12)",
               background: "rgba(17,24,39,0.55)",
-              color: "#E5E7EB",
+              color: "var(--text-primary)",
               outline: "none",
               fontWeight: 800,
             }}
@@ -135,7 +135,7 @@ export default function DangerZoneDeleteAccount() {
                 borderRadius: 12,
                 border: "1px solid rgba(255,255,255,0.12)",
                 background: "rgba(255,255,255,0.04)",
-                color: "#E5E7EB",
+                color: "var(--text-primary)",
                 fontWeight: 900,
                 cursor: "pointer",
                 opacity: loading ? 0.7 : 1,

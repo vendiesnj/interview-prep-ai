@@ -21,8 +21,8 @@ function PracticeTopNav() {
         zIndex: 20,
         borderBottom: "1px solid var(--card-border-soft)",
         background: `
-          radial-gradient(900px 400px at 10% -10%, var(--accent-soft), transparent 55%),
-          rgba(17,24,39,0.92)
+          radial-gradient(900px 400px at 10% -10%, var(--app-bg-accent-a), transparent 55%),
+          var(--card-bg)
         `,
         padding: "12px 16px",
         boxSizing: "border-box",
@@ -63,7 +63,8 @@ function PracticeTopNav() {
         <nav style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {PRACTICE_NAV.map((item) => {
             const active =
-              pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href + "/"));
+              pathname === item.href ||
+              (item.href !== "/" && pathname?.startsWith(item.href + "/"));
 
             return (
               <Link
@@ -78,7 +79,7 @@ function PracticeTopNav() {
                   borderRadius: 12,
                   border: active
                     ? "1px solid var(--accent-strong)"
-                    : "1px solid var(--card-border-soft)",
+                    : "1px solid var(--card-border)",
                   background: active ? "var(--accent-soft)" : "var(--card-bg)",
                   color: active ? "var(--accent)" : "var(--text-primary)",
                   fontWeight: active ? 900 : 800,
@@ -91,7 +92,7 @@ function PracticeTopNav() {
                     width: 8,
                     height: 8,
                     borderRadius: 999,
-                    background: active ? "var(--accent)" : "rgba(255,255,255,0.18)",
+                    background: active ? "var(--accent)" : "var(--text-soft)",
                     boxShadow: active ? "var(--shadow-glow)" : "none",
                   }}
                 />
@@ -116,7 +117,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
-        background: "var(--app-bg)",
+        background: `
+          radial-gradient(900px 420px at 20% -10%, var(--app-bg-accent-a), transparent 60%),
+          radial-gradient(900px 420px at 100% 0%, var(--app-bg-accent-b), transparent 55%),
+          var(--app-bg)
+        `,
         color: "var(--text-primary)",
       }}
     >

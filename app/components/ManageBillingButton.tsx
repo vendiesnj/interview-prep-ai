@@ -47,7 +47,7 @@ export default function ManageBillingButton({
           borderRadius: 12,
           border: "1px solid rgba(255,255,255,0.12)",
           background: "rgba(255,255,255,0.06)",
-          color: "#E5E7EB",
+          color: "var(--text-primary)",
           fontWeight: 950,
           cursor: loading ? "not-allowed" : "pointer",
           opacity: loading ? 0.7 : 1,

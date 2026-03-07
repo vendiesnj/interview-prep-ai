@@ -430,7 +430,7 @@ export default function DashboardPage() {
               >
                 <path
                   d={`M 8 ${(sparkH - 8).toFixed(1)} L ${(sparkW - 8).toFixed(1)} ${(sparkH - 8).toFixed(1)}`}
-                  stroke="rgba(255,255,255,0.10)"
+                  stroke="var(--card-border)"
                   strokeWidth="1"
                   fill="none"
                 />

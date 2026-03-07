@@ -52,12 +52,12 @@ a {
  
   /* Hardcoded IPC dark theme */
   --background: #070a12;
-  --foreground: #e5e7eb;
+  --foreground: var(--text-primary);
 
   --card-bg: rgba(255, 255, 255, 0.03);
   --card-border: rgba(255, 255, 255, 0.10);
 
-  --muted: #9ca3af;
+  --muted: var(--text-muted);
   --accent: #a5f3fc;
 
   color-scheme: dark;

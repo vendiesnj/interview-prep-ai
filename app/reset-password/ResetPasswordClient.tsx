@@ -42,7 +42,7 @@ export default function ResetPasswordClient() {
         padding: 24,
         background:
           "radial-gradient(900px 500px at 15% 0%, rgba(34,211,238,0.18), transparent 55%), rgba(3,7,18,1)",
-        color: "#E5E7EB",
+        color: "var(--text-primary)",
       }}
     >
       <div
@@ -50,14 +50,14 @@ export default function ResetPasswordClient() {
           width: "100%",
           maxWidth: 440,
           borderRadius: 18,
-          border: "1px solid rgba(255,255,255,0.10)",
+          border: "1px solid var(--card-border)",
           background: "rgba(255,255,255,0.04)",
           boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
           padding: 18,
         }}
       >
         <div style={{ padding: 6 }}>
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>
+          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>
             INTERVIEW PERFORMANCE COACH
           </div>
 
@@ -65,7 +65,7 @@ export default function ResetPasswordClient() {
             Reset Password
           </h1>
 
-          <p style={{ marginTop: 8, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+          <p style={{ marginTop: 8, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
             Enter a new password (min 8 characters).
           </p>
 
@@ -79,9 +79,9 @@ export default function ResetPasswordClient() {
                 width: "100%",
                 padding: "12px 12px",
                 borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(255,255,255,0.03)",
-                color: "#E5E7EB",
+                border: "1px solid var(--card-border)",
+                background: "var(--card-bg)",
+                color: "var(--text-primary)",
                 outline: "none",
                 fontSize: 14,
                 boxSizing: "border-box",
@@ -114,12 +114,12 @@ export default function ResetPasswordClient() {
           ) : null}
 
           {message ? (
-            <div style={{ marginTop: 12, fontSize: 12, color: "#9CA3AF", textAlign: "center" }}>
+            <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
               {message}
             </div>
           ) : null}
 
-          <div style={{ marginTop: 12, fontSize: 12, color: "#9CA3AF", textAlign: "center" }}>
+          <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
             <a href="/login" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
               Back to login
             </a>

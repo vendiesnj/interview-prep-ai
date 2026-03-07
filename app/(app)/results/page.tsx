@@ -199,7 +199,7 @@ function MetricBar({
           marginTop: 8,
           height: 10,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.08)",
+          background: "var(--card-border-soft)",
           overflow: "hidden",
           border: "1px solid var(--card-border-soft)",
         }}
@@ -254,7 +254,7 @@ function TabButton({
         borderRadius: "var(--radius-sm)",
         border: active ? "1px solid var(--accent-strong)" : "1px solid var(--card-border)",
         background: active
-          ? "linear-gradient(180deg, var(--accent-2-soft), rgba(255,255,255,0.03))"
+          ? "linear-gradient(180deg, var(--accent-2-soft), var(--card-bg))"
           : "var(--card-bg)",
         color: active ? "var(--accent)" : "var(--text-primary)",
         fontWeight: 900,
@@ -302,7 +302,7 @@ function StarChip({
           placeItems: "center",
           fontWeight: 900,
           color: "var(--text-primary)",
-          background: "rgba(255,255,255,0.10)",
+          background: "var(--card-border)",
           border: "1px solid var(--card-border)",
         }}
       >
@@ -536,7 +536,7 @@ function HeadlineCard({
           marginTop: 10,
           height: 6,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.08)",
+          background: "var(--card-border-soft)",
           overflow: "hidden",
         }}
       >
@@ -1185,7 +1185,7 @@ export default function ResultsPage() {
                       </div>
                     </div>
 
-                    <div style={{ marginTop: 14, height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                    <div style={{ marginTop: 14, height: 8, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
                       <div
                         style={{
                           width: `${Math.max(0, Math.min(100, (Number(feedback.score ?? 0) / 10) * 100))}%`,
@@ -1226,7 +1226,7 @@ export default function ResultsPage() {
   {m.sub}
 </div>
 
-                        <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                        <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
                           <div
                             style={{
                               width: `${Math.max(0, Math.min(100, (Number(m.value ?? 0) / 10) * 100))}%`,
@@ -1335,7 +1335,7 @@ export default function ResultsPage() {
           marginTop: 14,
           height: 8,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.08)",
+          background: "var(--card-border-soft)",
           overflow: "hidden",
         }}
       >
@@ -1426,7 +1426,7 @@ export default function ResultsPage() {
                 marginTop: 10,
                 height: 6,
                 borderRadius: 999,
-                background: "rgba(255,255,255,0.08)",
+                background: "var(--card-border-soft)",
                 overflow: "hidden",
               }}
             >
@@ -1578,7 +1578,7 @@ export default function ResultsPage() {
                     </div>
                   </div>
 
-                  <div style={{ marginTop: 12, height: 8, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{ marginTop: 12, height: 8, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
                     <div
                       style={{
                         width: `${

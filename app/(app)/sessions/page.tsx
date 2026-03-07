@@ -283,7 +283,7 @@ async function ensureAudioUrl(audioId: string) {
     padding: "8px 14px",
     borderRadius: "var(--radius-sm)",
     border: "1px solid rgba(252,165,165,0.35)",
-    background: history.length === 0 ? "rgba(255,255,255,0.03)" : "rgba(252,165,165,0.10)",
+    background: history.length === 0 ? "var(--card-bg)" : "rgba(252,165,165,0.10)",
     color: history.length === 0 ? "var(--text-muted)" : "#FCA5A5",
     fontWeight: 900,
     cursor: history.length === 0 ? "not-allowed" : "pointer",

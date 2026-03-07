@@ -172,13 +172,13 @@ export default function QuestionBankPage() {
   }, [items, filter, onlyFav, bucketFilter]);
 
   return (
-    <div style={{ color: "#E5E7EB", maxWidth: 980 }}>
+    <div style={{ color: "var(--text-primary)", maxWidth: 980 }}>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
         <h1 style={{ fontSize: 28, fontWeight: 950, margin: 0 }}>Question Bank</h1>
-        <div style={{ fontSize: 12, color: "#9CA3AF" }}>{items.length} saved</div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{items.length} saved</div>
       </div>
 
-      <div style={{ marginTop: 10, color: "#9CA3AF", lineHeight: 1.6 }}>
+      <div style={{ marginTop: 10, color: "var(--text-muted)", lineHeight: 1.6 }}>
         Save your best questions, tag them, favorite them, and reuse them across roles.
       </div>
 
@@ -188,8 +188,8 @@ export default function QuestionBankPage() {
           marginTop: 18,
           padding: 14,
           borderRadius: 16,
-          border: "1px solid rgba(255,255,255,0.10)",
-          background: "rgba(255,255,255,0.03)",
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg)",
           display: "grid",
           gap: 10,
         }}
@@ -204,7 +204,7 @@ export default function QuestionBankPage() {
               borderRadius: 12,
               border: "1px solid rgba(34,211,238,0.35)",
               background: homePreview.hasGenerated ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.04)",
-              color: homePreview.hasGenerated ? "#A5F3FC" : "#9CA3AF",
+              color: homePreview.hasGenerated ? "#A5F3FC" : "var(--text-muted)",
               fontWeight: 900,
               cursor: homePreview.hasGenerated ? "pointer" : "not-allowed",
               fontSize: 13,
@@ -214,7 +214,7 @@ export default function QuestionBankPage() {
           </button>
 
           <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
-            <span style={{ fontSize: 12, color: "#9CA3AF" }}>Role tag (optional)</span>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Role tag (optional)</span>
             <input
               value={roleTag}
               onChange={(e) => setRoleTag(e.target.value)}
@@ -223,9 +223,9 @@ export default function QuestionBankPage() {
                 width: 220,
                 padding: "9px 10px",
                 borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.10)",
+                border: "1px solid var(--card-border)",
                 background: "rgba(17,24,39,0.55)",
-                color: "#E5E7EB",
+                color: "var(--text-primary)",
                 outline: "none",
                 fontSize: 13,
               }}
@@ -241,9 +241,9 @@ export default function QuestionBankPage() {
             style={{
               padding: "10px 12px",
               borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.10)",
+              border: "1px solid var(--card-border)",
               background: "rgba(17,24,39,0.55)",
-              color: "#E5E7EB",
+              color: "var(--text-primary)",
               outline: "none",
               fontSize: 13,
             }}
@@ -254,9 +254,9 @@ export default function QuestionBankPage() {
             style={{
               padding: "10px 12px",
               borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.10)",
+              border: "1px solid var(--card-border)",
               background: "rgba(255,255,255,0.04)",
-              color: "#E5E7EB",
+              color: "var(--text-primary)",
               fontWeight: 900,
               cursor: "pointer",
               fontSize: 13,
@@ -278,9 +278,9 @@ export default function QuestionBankPage() {
             width: 320,
             padding: "10px 12px",
             borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.10)",
+            border: "1px solid var(--card-border)",
             background: "rgba(17,24,39,0.55)",
-            color: "#E5E7EB",
+            color: "var(--text-primary)",
             outline: "none",
             fontSize: 13,
           }}
@@ -292,9 +292,9 @@ export default function QuestionBankPage() {
           style={{
             padding: "10px 12px",
             borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.10)",
+            border: "1px solid var(--card-border)",
             background: "rgba(17,24,39,0.55)",
-            color: "#E5E7EB",
+            color: "var(--text-primary)",
             outline: "none",
             fontSize: 13,
           }}
@@ -307,7 +307,7 @@ export default function QuestionBankPage() {
           <option value="other">Other</option>
         </select>
 
-        <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "#9CA3AF" }}>
+        <label style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text-muted)" }}>
           <input type="checkbox" checked={onlyFav} onChange={(e) => setOnlyFav(e.target.checked)} />
           Favorites only
         </label>
@@ -320,9 +320,9 @@ export default function QuestionBankPage() {
             style={{
               padding: "10px 12px",
               borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: items.length ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.03)",
-              color: items.length ? "#E5E7EB" : "#9CA3AF",
+              border: "1px solid var(--card-border)",
+              background: items.length ? "rgba(255,255,255,0.04)" : "var(--card-bg)",
+              color: items.length ? "var(--text-primary)" : "var(--text-muted)",
               fontWeight: 900,
               cursor: items.length ? "pointer" : "not-allowed",
               fontSize: 13,
@@ -339,8 +339,8 @@ export default function QuestionBankPage() {
               padding: "10px 12px",
               borderRadius: 12,
               border: "1px solid rgba(252,165,165,0.35)",
-              background: items.length ? "rgba(252,165,165,0.10)" : "rgba(255,255,255,0.03)",
-              color: items.length ? "#FCA5A5" : "#9CA3AF",
+              background: items.length ? "rgba(252,165,165,0.10)" : "var(--card-bg)",
+              color: items.length ? "#FCA5A5" : "var(--text-muted)",
               fontWeight: 900,
               cursor: items.length ? "pointer" : "not-allowed",
               fontSize: 13,
@@ -358,9 +358,9 @@ export default function QuestionBankPage() {
             style={{
               padding: 14,
               borderRadius: 14,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(255,255,255,0.03)",
-              color: "#9CA3AF",
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg)",
+              color: "var(--text-muted)",
             }}
           >
             No questions yet. Import from Practice (generate questions), or add one manually.
@@ -372,8 +372,8 @@ export default function QuestionBankPage() {
               style={{
                 padding: 14,
                 borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(255,255,255,0.03)",
+                border: "1px solid var(--card-border)",
+                background: "var(--card-bg)",
                 display: "grid",
                 gap: 8,
               }}
@@ -382,12 +382,12 @@ export default function QuestionBankPage() {
                 <div style={{ flex: "1 1 auto", minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 900, lineHeight: 1.5 }}>{x.question}</div>
 
-                  <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <span style={{ padding: "2px 8px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.10)" }}>
+                  <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ padding: "2px 8px", borderRadius: 999, border: "1px solid var(--card-border)" }}>
                       {x.bucket ?? "other"}
                     </span>
                     {x.role ? (
-                      <span style={{ padding: "2px 8px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.10)" }}>
+                      <span style={{ padding: "2px 8px", borderRadius: 999, border: "1px solid var(--card-border)" }}>
                         {x.role}
                       </span>
                     ) : null}
@@ -407,9 +407,9 @@ export default function QuestionBankPage() {
                       borderRadius: 12,
                       border: x.favorite
                         ? "1px solid rgba(34,211,238,0.45)"
-                        : "1px solid rgba(255,255,255,0.10)",
+                        : "1px solid var(--card-border)",
                       background: x.favorite ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.04)",
-                      color: x.favorite ? "#A5F3FC" : "#E5E7EB",
+                      color: x.favorite ? "#A5F3FC" : "var(--text-primary)",
                       fontWeight: 900,
                       cursor: "pointer",
                       fontSize: 12,

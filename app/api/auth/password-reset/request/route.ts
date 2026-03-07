@@ -143,7 +143,7 @@ if (!user?.id || !user.passwordHash) {
               Reset password
             </a>
           </p>
-          <p style="margin: 16px 0 0; color: #6b7280; font-size: 13px;">
+          <p style="margin: 16px 0 0; color: var(--text-soft); font-size: 13px;">
             If you didn’t request this, you can safely ignore this email.
           </p>
         </div>
