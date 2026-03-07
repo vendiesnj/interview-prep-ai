@@ -28,10 +28,12 @@ function MetricRow({
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 13, color: "#9CA3AF", letterSpacing: 0.2 }}>{label}</div>
-        <div style={{ fontSize: 14, color: "#E5E7EB", fontWeight: 700 }}>{value}</div>
+        <div style={{ fontSize: 13, color: "var(--text-muted)", letterSpacing: 0.2 }}>{label}</div>
+        <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 700 }}>{value}</div>
       </div>
-      {subtext && <div style={{ marginTop: 4, fontSize: 12, color: "#9CA3AF" }}>{subtext}</div>}
+      {subtext ? (
+        <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)" }}>{subtext}</div>
+      ) : null}
     </div>
   );
 }
@@ -65,9 +67,6 @@ function safeSetJSON(
 }
 
 
-
-
-
 function GaugeTile({
   title,
   value,
@@ -88,8 +87,8 @@ function GaugeTile({
     <details
       style={{
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(255,255,255,0.04)",
+        border: "1px solid var(--card-border-soft)",
+        background: "var(--card-bg)",
         padding: 14,
       }}
     >
@@ -104,16 +103,15 @@ function GaugeTile({
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {/* Gauge ring */}
           <div
             style={{
               width: 44,
               height: 44,
               borderRadius: 999,
-              background: `conic-gradient(rgba(34,211,238,0.95) ${deg}deg, rgba(255,255,255,0.10) 0deg)`,
+              background: `conic-gradient(var(--accent) ${deg}deg, rgba(255,255,255,0.10) 0deg)`,
               display: "grid",
               placeItems: "center",
-              boxShadow: "0 0 18px rgba(34,211,238,0.18)",
+              boxShadow: "var(--shadow-glow)",
               flex: "0 0 auto",
             }}
           >
@@ -122,11 +120,11 @@ function GaugeTile({
                 width: 34,
                 height: 34,
                 borderRadius: 999,
-                background: "rgba(17,24,39,0.95)",
+                background: "var(--card-bg-strong)",
                 display: "grid",
                 placeItems: "center",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#E5E7EB",
+                border: "1px solid var(--card-border-soft)",
+                color: "var(--text-primary)",
                 fontSize: 13,
                 fontWeight: 800,
               }}
@@ -136,19 +134,19 @@ function GaugeTile({
           </div>
 
           <div>
-            <div style={{ fontSize: 13, color: "#9CA3AF", letterSpacing: 0.2 }}>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", letterSpacing: 0.2 }}>
               {title}
             </div>
-            {subtitle && (
-              <div style={{ marginTop: 3, fontSize: 12, color: "#9CA3AF" }}>{subtitle}</div>
-            )}
+            {subtitle ? (
+              <div style={{ marginTop: 3, fontSize: 12, color: "var(--text-muted)" }}>{subtitle}</div>
+            ) : null}
           </div>
         </div>
 
-        <div style={{ color: "#9CA3AF", fontSize: 12 }}>Details ▾</div>
+        <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Details ▾</div>
       </summary>
 
-      {children && <div style={{ marginTop: 12 }}>{children}</div>}
+      {children ? <div style={{ marginTop: 12 }}>{children}</div> : null}
     </details>
   );
 }
@@ -169,8 +167,8 @@ function MetricBar({
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 13, color: "#9CA3AF", letterSpacing: 0.2 }}>{label}</div>
-        <div style={{ fontSize: 14, color: "#E5E7EB", fontWeight: 700 }}>
+        <div style={{ fontSize: 13, color: "var(--text-muted)", letterSpacing: 0.2 }}>{label}</div>
+        <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 700 }}>
           {value}/{max}
         </div>
       </div>
@@ -182,7 +180,7 @@ function MetricBar({
           borderRadius: 999,
           background: "rgba(255,255,255,0.08)",
           overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--card-border-soft)",
         }}
       >
         <div
@@ -190,14 +188,16 @@ function MetricBar({
             width: `${pct}%`,
             height: "100%",
             borderRadius: 999,
-            background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
-            boxShadow: "0 0 18px rgba(99,102,241,0.35)",
+            background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
+            boxShadow: "var(--shadow-glow)",
             transition: "width 250ms ease",
           }}
         />
       </div>
 
-      {subtext && <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>{subtext}</div>}
+      {subtext ? (
+        <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>{subtext}</div>
+      ) : null}
     </div>
   );
 }
@@ -319,8 +319,8 @@ function CollapsibleNoteCard({
       style={{
         marginTop: 16,
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "rgba(255,255,255,0.03)",
+        border: "1px solid var(--card-border-soft)",
+        background: "var(--card-bg)",
         overflow: "hidden",
       }}
     >
@@ -337,12 +337,12 @@ function CollapsibleNoteCard({
           cursor: "pointer",
           background: "transparent",
           border: "none",
-          color: "#E5E7EB",
+          color: "var(--text-primary)",
           textAlign: "left",
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.5 }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900, letterSpacing: 0.5 }}>
             {title}
           </div>
 
@@ -351,7 +351,7 @@ function CollapsibleNoteCard({
               style={{
                 marginTop: 6,
                 fontSize: 13,
-                color: "rgba(229,231,235,0.85)",
+                color: "var(--text-secondary)",
                 lineHeight: 1.35,
                 whiteSpace: "nowrap",
                 overflow: "hidden",
@@ -369,7 +369,7 @@ function CollapsibleNoteCard({
             flex: "0 0 auto",
             fontSize: 12,
             fontWeight: 900,
-            color: "#9CA3AF",
+            color: "var(--text-muted)",
             display: "flex",
             alignItems: "center",
             gap: 8,
@@ -393,9 +393,9 @@ function CollapsibleNoteCard({
         <div style={{ padding: "0 14px 14px 14px" }}>
           <div
             style={{
-              borderTop: "1px solid rgba(255,255,255,0.06)",
+              borderTop: "1px solid var(--card-border-soft)",
               paddingTop: 12,
-              color: "#E5E7EB",
+              color: "var(--text-primary)",
             }}
           >
             {children}
@@ -2138,61 +2138,61 @@ return (
   <PremiumShell hideHeader>
 <div style={{ marginTop: 6, marginBottom: 26 }}>
   <div
-    style={{
-      fontSize: 42,
-      fontWeight: 950,
-      color: "#E5E7EB",
-      letterSpacing: -0.9,
-      lineHeight: 1.02,
-      maxWidth: 820,
-    }}
-  >
-    Practice interviews with AI feedback
-  </div>
+  style={{
+    fontSize: 42,
+    fontWeight: 950,
+    color: "var(--text-primary)",
+    letterSpacing: -0.9,
+    lineHeight: 1.02,
+    maxWidth: 820,
+  }}
+>
+  Practice interviews with AI feedback
+</div>
 
   <div
-    style={{
-      marginTop: 8,
-      fontSize: 16,
-      color: "#9CA3AF",
-      maxWidth: 760,
-      lineHeight: 1.55,
-    }}
-  >
+  style={{
+    marginTop: 8,
+    fontSize: 16,
+    color: "var(--text-muted)",
+    maxWidth: 760,
+    lineHeight: 1.55,
+  }}
+>
     Record answers, get scoring on communication, confidence, STAR structure, fillers, pace, and vocal variety —
     then follow a game plan for your next attempt.
   </div>
 
   <div
-    style={{
-      marginTop: 12,
-      fontSize: 13,
-      color: "#6B7280",
-      lineHeight: 1.45,
-    }}
-  >
-    Paste a job description to begin generating tailored interview questions.
-  </div>
+  style={{
+    marginTop: 12,
+    fontSize: 13,
+    color: "var(--text-muted)",
+    lineHeight: 1.45,
+  }}
+>
+  Paste a job description to begin generating tailored interview questions.
+</div>
 </div>
     
 {mode === "answer" ? (
   <div
-    style={{
-      marginTop: 16,
-      padding: "16px 18px",
-      borderRadius: 18,
-      border: "1px solid rgba(34,211,238,0.22)",
-      background: "rgba(255,255,255,0.025)",
-      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
-      transform: "translateY(0px)",
-      opacity: 1,
-      transition: "opacity 200ms ease, transform 200ms ease",
-    }}
-  >
+  style={{
+    marginTop: 16,
+    padding: "16px 18px",
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--accent-strong)",
+    background: "var(--card-bg)",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)",
+    transform: "translateY(0px)",
+    opacity: 1,
+    transition: "opacity 200ms ease, transform 200ms ease",
+  }}
+>
 
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "#9CA3AF" }}>
+        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--text-muted)" }}>
   SELECTED QUESTION
 </div>
         <div
@@ -2201,7 +2201,7 @@ return (
     fontSize: 17,
     lineHeight: 1.55,
     fontWeight: 900,
-    color: "#E5E7EB",
+    color: "var(--text-primary)",
     wordBreak: "break-word",
     maxWidth: 820,
   }}
@@ -2221,10 +2221,10 @@ return (
   style={{
     flex: "0 0 auto",
     padding: "9px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
     background: "transparent",
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     cursor: "pointer",
     fontSize: 12,
     fontWeight: 800,
@@ -2275,16 +2275,16 @@ return (
 >
   
   {/* Section Label */}
-  <div
-    style={{
-      fontSize: 11,
-      fontWeight: 900,
-      letterSpacing: 0.8,
-      color: "#9CA3AF",
-    }}
-  >
-    SETUP
-  </div>
+ <div
+  style={{
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0.8,
+    color: "var(--text-muted)",
+  }}
+>
+  SETUP
+</div>
 
   {/* Title Row */}
   <div
@@ -2296,42 +2296,42 @@ return (
     }}
   >
     <h2
-      style={{
-        margin: 0,
-        fontSize: 18,
-        fontWeight: 900,
-        color: "#E5E7EB",
-      }}
-    >
-      Job Description
-    </h2>
+  style={{
+    margin: 0,
+    fontSize: 18,
+    fontWeight: 900,
+    color: "var(--text-primary)",
+  }}
+>
+  Job Description
+</h2>
 
-    <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-      {jobDesc.length.toLocaleString()} chars
-    </div>
+    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+  {jobDesc.length.toLocaleString()} chars
+</div>
   </div>
 
   {/* Helper */}
   <div
-    style={{
-      marginTop: 4,
-      fontSize: 13,
-      color: "#9CA3AF",
-      lineHeight: 1.5,
-    }}
-  >
-    Paste the role description. We’ll generate tailored interview questions.
-  </div>
+  style={{
+    marginTop: 4,
+    fontSize: 13,
+    color: "var(--text-muted)",
+    lineHeight: 1.5,
+  }}
+>
+  Paste the role description. We’ll generate tailored interview questions.
+</div>
 
   {/* Divider */}
   <div
-    style={{
-      marginTop: 14,
-      height: 1,
-      background: "rgba(255,255,255,0.06)",
-      borderRadius: 999,
-    }}
-  />
+  style={{
+    marginTop: 14,
+    height: 1,
+    background: "var(--card-border-soft)",
+    borderRadius: 999,
+  }}
+/>
 
   {/* Textarea */}
   <textarea
@@ -2356,10 +2356,10 @@ return (
   fontWeight: 500,
   letterSpacing: 0.15,
   lineHeight: 1.6,
-  color: "#E5E7EB",
-  background: "rgba(17,24,39,0.48)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 12,
+  color: "var(--text-primary)",
+  background: "var(--card-bg-strong)",
+  border: "1px solid var(--card-border)",
+  borderRadius: "var(--radius-sm)",
   outline: "none",
   resize: "vertical",
 }}
@@ -2383,19 +2383,19 @@ return (
     padding: "11px 18px",
     fontSize: 14,
     fontWeight: 900,
-    borderRadius: 12,
+    borderRadius: "var(--radius-sm)",
     border: jobDesc.trim().length < 30
-      ? "1px solid rgba(255,255,255,0.10)"
-      : "1px solid rgba(99,102,241,0.30)",
+      ? "1px solid var(--card-border)"
+      : "1px solid var(--accent-strong)",
     background:
       jobDesc.trim().length < 30
         ? "rgba(255,255,255,0.04)"
-        : "linear-gradient(135deg, rgba(99,102,241,0.58), rgba(34,211,238,0.34))",
+        : "linear-gradient(135deg, var(--accent-2), var(--accent))",
     boxShadow:
       jobDesc.trim().length < 30
         ? "none"
-        : "0 10px 30px rgba(34,211,238,0.12)",
-    color: "#E5E7EB",
+        : "var(--shadow-glow)",
+    color: "var(--text-primary)",
     cursor: jobDesc.trim().length < 30 ? "not-allowed" : "pointer",
     opacity: jobDesc.trim().length < 30 ? 0.55 : 1,
   })}
@@ -2419,26 +2419,26 @@ return (
     padding: "11px 16px",
     fontSize: 14,
     fontWeight: 800,
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
     background: "transparent",
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     cursor: "pointer",
   }}
 >
   Clear
 </button>
 
-    <div style={{ marginLeft: "auto", fontSize: 12, color: "#6B7280" }}>
+    <div style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)" }}>
   Minimum 30 characters
 </div>
-    <div style={{ marginTop: 10, fontSize: 12, color: "#6B7280", lineHeight: 1.5 }}>
+    <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
   By using this tool, you agree to our{" "}
-  <a href="/terms" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
+  <a href="/terms" style={{ color: "var(--accent)", fontWeight: 900, textDecoration: "none" }}>
     Terms
   </a>{" "}
   and{" "}
-  <a href="/privacy" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
+  <a href="/privacy" style={{ color: "var(--accent)", fontWeight: 900, textDecoration: "none" }}>
     Privacy Policy
   </a>
   .
@@ -2462,54 +2462,54 @@ return (
 
 <PremiumCard>
   <div
-    style={{
-      marginTop: 24,
-      padding: 18,
-      border: "1px solid rgba(255,255,255,0.06)",
-      borderRadius: 16,
-      background: "rgba(255,255,255,0.02)",
-      boxShadow: "none",
-      position: "relative",
-      overflow: "visible",
-    }}
-  >
+  style={{
+    marginTop: 24,
+    padding: 18,
+    border: "1px solid var(--card-border-soft)",
+    borderRadius: "var(--radius-lg)",
+    background: "var(--card-bg)",
+    boxShadow: "var(--shadow-card-soft)",
+    position: "relative",
+    overflow: "visible",
+  }}
+>
 
 
   {mode === "questions" ? (
   <div style={{ display: "grid", gap: 16 }}>
   <div style={{ display: "grid", gap: 6 }}>
   <div
-    style={{
-      fontSize: 11,
-      fontWeight: 900,
-      letterSpacing: 0.8,
-      color: "#9CA3AF",
-    }}
-  >
-    QUESTION SELECTION
-  </div>
+  style={{
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0.8,
+    color: "var(--text-muted)",
+  }}
+>
+  QUESTION SELECTION
+</div>
 
   <div
-    style={{
-      fontSize: 18,
-      fontWeight: 900,
-      color: "#E5E7EB",
-      letterSpacing: -0.2,
-    }}
-  >
-    Choose a question to practice
-  </div>
+  style={{
+    fontSize: 18,
+    fontWeight: 900,
+    color: "var(--text-primary)",
+    letterSpacing: -0.2,
+  }}
+>
+  Choose a question to practice
+</div>
 
   <div
-    style={{
-      fontSize: 13,
-      color: "#9CA3AF",
-      lineHeight: 1.5,
-      maxWidth: 620,
-    }}
-  >
-    Generate tailored questions, filter by type, or paste your own custom question.
-  </div>
+  style={{
+    fontSize: 13,
+    color: "var(--text-muted)",
+    lineHeight: 1.5,
+    maxWidth: 620,
+  }}
+>
+  Generate tailored questions, filter by type, or paste your own custom question.
+</div>
 </div>
 
 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -2544,20 +2544,20 @@ return (
           }
         }}
         style={{
-          padding: "7px 11px",
-          borderRadius: 999,
-          border: active
-            ? "1px solid rgba(34,211,238,0.38)"
-            : "1px solid rgba(255,255,255,0.08)",
-          background: active
-            ? "rgba(34,211,238,0.10)"
-            : "rgba(255,255,255,0.03)",
-          color: active ? "#67E8F9" : "#D1D5DB",
-          fontSize: 12,
-          fontWeight: 800,
-          cursor: "pointer",
-          transition: "background 140ms ease, border-color 140ms ease, color 140ms ease",
-        }}
+  padding: "7px 11px",
+  borderRadius: 999,
+  border: active
+    ? "1px solid var(--accent-strong)"
+    : "1px solid var(--card-border)",
+  background: active
+    ? "rgba(34,211,238,0.10)"
+    : "var(--card-bg-strong)",
+  color: active ? "var(--accent)" : "var(--text-secondary)",
+  fontSize: 12,
+  fontWeight: 800,
+  cursor: "pointer",
+  transition: "background 140ms ease, border-color 140ms ease, color 140ms ease",
+}}
       >
         {tab.label}
       </button>
@@ -2568,9 +2568,9 @@ return (
 
 
     {questions.length === 0 && !questionBuckets ? (
-      <div style={{ fontSize: 13, color: "#9CA3AF" }}>
-        No questions generated yet.
-      </div>
+      <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+  No questions generated yet.
+</div>
     ) : (
      <div style={{ display: "grid", gap: 18 }}>
   {visibleQuestionSections.map((section) => (
@@ -2581,11 +2581,11 @@ return (
       paddingBottom: 2,
     }}
   >
-              <div
+     <div
   style={{
     fontSize: 13,
     fontWeight: 800,
-    color: "#E5E7EB",
+    color: "var(--text-primary)",
     letterSpacing: 0,
     marginBottom: 10,
   }}
@@ -2610,51 +2610,51 @@ return (
   onMouseEnter={(e) => {
     if (!active) {
       e.currentTarget.style.background = "rgba(255,255,255,0.055)";
-      e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+e.currentTarget.style.borderColor = "var(--card-border)";
       e.currentTarget.style.transform = "translateY(-1px)";
     }
   }}
   onMouseLeave={(e) => {
-    if (!active) {
-      e.currentTarget.style.background = "rgba(255,255,255,0.025)";
-      e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)";
-      e.currentTarget.style.transform = "translateY(0px)";
-    }
-  }}
+  if (!active) {
+    e.currentTarget.style.background = "var(--card-bg)";
+    e.currentTarget.style.borderColor = "var(--card-border-soft)";
+    e.currentTarget.style.transform = "translateY(0px)";
+  }
+}}
   style={{
-    textAlign: "left",
-    width: "100%",
-    padding: "12px 14px",
-    borderRadius: 12,
-    border: active
-      ? "1px solid rgba(34,211,238,0.40)"
-      : "1px solid rgba(255,255,255,0.06)",
-    background: active
-      ? "linear-gradient(180deg, rgba(34,211,238,0.12), rgba(34,211,238,0.06))"
-      : "rgba(255,255,255,0.025)",
-    boxShadow: active ? "0 0 0 1px rgba(34,211,238,0.08) inset" : "none",
-    fontSize: 14,
-    lineHeight: 1.55,
-    color: "#E5E7EB",
-    cursor: "pointer",
-    transition: "background 140ms ease, border-color 140ms ease, transform 140ms ease",
-  }}
+  textAlign: "left",
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: "var(--radius-sm)",
+  border: active
+    ? "1px solid var(--accent-strong)"
+    : "1px solid var(--card-border-soft)",
+  background: active
+    ? "linear-gradient(180deg, rgba(34,211,238,0.12), rgba(34,211,238,0.06))"
+    : "var(--card-bg)",
+  boxShadow: active ? "0 0 0 1px rgba(34,211,238,0.08) inset" : "none",
+  fontSize: 14,
+  lineHeight: 1.55,
+  color: "var(--text-primary)",
+  cursor: "pointer",
+  transition: "background 140ms ease, border-color 140ms ease, transform 140ms ease",
+}}
 >
   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
     <span
-      style={{
-        color: active ? "#67E8F9" : "#6B7280",
-        fontWeight: 800,
-        minWidth: 18,
-        flex: "0 0 auto",
-      }}
-    >
-      {idx + 1}.
-    </span>
+  style={{
+    color: active ? "var(--accent)" : "var(--text-muted)",
+    fontWeight: 800,
+    minWidth: 18,
+    flex: "0 0 auto",
+  }}
+>
+  {idx + 1}.
+</span>
 
-    <span style={{ flex: 1, fontWeight: active ? 700 : 600 }}>
-      {q}
-    </span>
+    <span style={{ flex: 1, fontWeight: active ? 700 : 600, color: "var(--text-primary)" }}>
+  {q}
+</span>
   </div>
 </button> 
                   );
@@ -2669,16 +2669,16 @@ return (
   style={{
     marginTop: 6,
     padding: 14,
-    borderRadius: 14,
-    border: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(255,255,255,0.02)",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
   }}
 >
-      <div style={{ fontSize: 13, fontWeight: 800, color: "#E5E7EB" }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
   Use your own question
 </div>
 
-    <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+    <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
   If the generated options are not right, paste or write your own interview question.
 </div>
 
@@ -2693,10 +2693,10 @@ return (
   marginTop: 10,
   minHeight: 88,
   padding: 12,
-  borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.08)",
-  background: "rgba(17,24,39,0.48)",
-  color: "#E5E7EB",
+  borderRadius: "var(--radius-sm)",
+  border: "1px solid var(--card-border)",
+  background: "var(--card-bg-strong)",
+  color: "var(--text-primary)",
   fontSize: 14,
   fontWeight: 500,
   letterSpacing: 0.15,
@@ -2742,14 +2742,14 @@ return (
   }}
   style={{
     padding: "10px 14px",
-    borderRadius: 12,
+    borderRadius: "var(--radius-sm)",
     border: customQuestion.trim()
-      ? "1px solid rgba(34,211,238,0.28)"
-      : "1px solid rgba(255,255,255,0.08)",
+      ? "1px solid var(--accent-strong)"
+      : "1px solid var(--card-border)",
     background: customQuestion.trim()
       ? "rgba(34,211,238,0.08)"
       : "transparent",
-    color: customQuestion.trim() ? "#67E8F9" : "#9CA3AF",
+    color: customQuestion.trim() ? "var(--accent)" : "var(--text-muted)",
     fontWeight: 800,
     cursor: customQuestion.trim() ? "pointer" : "not-allowed",
     fontSize: 13,
@@ -2786,7 +2786,7 @@ return (
     fontSize: 11,
     fontWeight: 800,
     letterSpacing: 0.7,
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
   }}
 >
   PRACTICE
@@ -2798,15 +2798,15 @@ return (
     fontSize: 19,
     fontWeight: 900,
     letterSpacing: -0.2,
-    color: "#E5E7EB",
+    color: "var(--text-primary)",
   }}
 >
-      Voice Practice
-    </h2>
+  Voice Practice
+</h2>
 
-<div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.45 }}>
-      Record like a real interview. We’ll transcribe and score your answer.
-    </div>
+<div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.45 }}>
+  Record like a real interview. We’ll transcribe and score your answer.
+</div>
   </div>
 
   <button
@@ -2814,10 +2814,10 @@ return (
   onClick={() => setShowAdvanced((v) => !v)}
   style={{
     padding: "8px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
     background: showAdvanced ? "rgba(34,211,238,0.08)" : "transparent",
-    color: showAdvanced ? "#A5F3FC" : "#9CA3AF",
+    color: showAdvanced ? "var(--accent)" : "var(--text-muted)",
     cursor: "pointer",
     fontSize: 12,
     fontWeight: 800,
@@ -2915,7 +2915,7 @@ return (
 
 {wavUrlRef.current && (
   <div style={{ marginTop: 16 }}>
-    <div style={{ fontSize: 12, opacity: 0.75, marginBottom: 6 }}>Replay (WAV)</div>
+    <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>Replay (WAV)</div>
     <audio controls src={wavUrlRef.current} />
   </div>
 )}
@@ -2925,13 +2925,13 @@ return (
   const ss = timeLeft % 60;
   const label = `${mm}:${ss.toString().padStart(2, "0")}`;
   return (
-    <div
+   <div
   style={{
     marginTop: 14,
     padding: 14,
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.025)",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
@@ -2941,16 +2941,16 @@ return (
 >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
   <span style={{ opacity: 0.85 }}>⏱</span>
-  <span style={{ fontSize: 12, fontWeight: 800, color: "#9CA3AF", letterSpacing: 0.3 }}>
-    TIME LEFT
-  </span>
-  <span style={{ fontWeight: 900, color: "#E5E7EB" }}>{label}</span>
+  <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-muted)", letterSpacing: 0.3 }}>
+  TIME LEFT
+</span>
+<span style={{ fontWeight: 900, color: "var(--text-primary)" }}>{label}</span>
 </div>
 
       <div style={{ display: "flex", gap: 8, marginLeft: 8 }}>
         
 
-        <button
+  <button
   type="button"
   onClick={() => {
     setTimerRunning(false);
@@ -2960,9 +2960,9 @@ return (
     height: 30,
     padding: "0 10px",
     borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid var(--card-border)",
     background: "transparent",
-    color: "#9CA3AF",
+    color: "var(--text-muted)",
     fontWeight: 800,
     cursor: "pointer",
   }}
@@ -2982,19 +2982,19 @@ return (
       disabled={recording}
       {...hoverLiftHandlers()}
       style={withHoverLift({
-        flex: "1 1 0",
-        padding: "10px 12px",
-        borderRadius: 12,
-        border: recording
-          ? "1px solid rgba(255,255,255,0.10)"
-          : "1px solid rgba(34,211,238,0.35)",
-        background: recording ? "rgba(255,255,255,0.04)" : "rgba(34,211,238,0.10)",
-        color: recording ? "#9CA3AF" : "#A5F3FC",
-        fontSize: 14,
-        fontWeight: 900,
-        cursor: recording ? "not-allowed" : "pointer",
-        opacity: recording ? 0.7 : 1,
-      })}
+  flex: "1 1 0",
+  padding: "10px 12px",
+  borderRadius: "var(--radius-sm)",
+  border: recording
+    ? "1px solid var(--card-border)"
+    : "1px solid var(--accent-strong)",
+  background: recording ? "rgba(255,255,255,0.04)" : "rgba(34,211,238,0.10)",
+  color: recording ? "var(--text-muted)" : "var(--accent)",
+  fontSize: 14,
+  fontWeight: 900,
+  cursor: recording ? "not-allowed" : "pointer",
+  opacity: recording ? 0.7 : 1,
+})}
     >
       {recording ? "Recording…" : "Record"}
     </button>
@@ -3006,12 +3006,12 @@ return (
       style={{
   flex: "1 1 0",
   padding: "12px 14px",
-  borderRadius: 12,
+  borderRadius: "var(--radius-sm)",
   border: !recording
-    ? "1px solid rgba(255,255,255,0.08)"
-    : "1px solid rgba(255,255,255,0.14)",
-  background: !recording ? "transparent" : "rgba(255,255,255,0.06)",
-  color: !recording ? "#6B7280" : "#E5E7EB",
+    ? "1px solid var(--card-border)"
+    : "1px solid var(--card-border)",
+  background: !recording ? "transparent" : "var(--card-bg-strong)",
+  color: !recording ? "var(--text-muted)" : "var(--text-primary)",
   fontSize: 14,
   fontWeight: 800,
   cursor: !recording ? "not-allowed" : "pointer",
@@ -3027,33 +3027,33 @@ return (
   style={{
     marginTop: 14,
     padding: 14,
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.025)",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
   }}
 >
  {!entitlement?.isPro ? (
   <div
-    style={{
-      marginBottom: 12,
-      color: "#9CA3AF",
-      fontSize: 12,
-      display: "flex",
-      flexWrap: "wrap",
-      gap: 6,
-      alignItems: "center",
-    }}
-  >
-    <span style={{ color: "#9CA3AF" }}>Free attempts:</span>
-    <span style={{ color: "#A5F3FC", fontWeight: 900 }}>
-      {entitlement?.cap == null ? "—" : `${entitlement.used}/${entitlement.cap}`}
-    </span>
-    <span style={{ color: "#6B7280" }}>•</span>
-    <span style={{ color: "#9CA3AF" }}>Remaining:</span>
-    <span style={{ color: "#A5F3FC", fontWeight: 900 }}>
-      {entitlement?.remaining == null ? "—" : entitlement.remaining}
-    </span>
-  </div>
+  style={{
+    marginBottom: 12,
+    color: "var(--text-muted)",
+    fontSize: 12,
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 6,
+    alignItems: "center",
+  }}
+>
+  <span style={{ color: "var(--text-muted)" }}>Free attempts:</span>
+  <span style={{ color: "var(--accent)", fontWeight: 900 }}>
+    {entitlement?.cap == null ? "—" : `${entitlement.used}/${entitlement.cap}`}
+  </span>
+  <span style={{ color: "var(--text-muted)" }}>•</span>
+  <span style={{ color: "var(--text-muted)" }}>Remaining:</span>
+  <span style={{ color: "var(--accent)", fontWeight: 900 }}>
+    {entitlement?.remaining == null ? "—" : entitlement.remaining}
+  </span>
+</div>
 ) : null}
 
   <button
@@ -3062,27 +3062,27 @@ return (
   disabled={analyzeDisabled}
   {...hoverLiftHandlers()}
   style={withHoverLift({
-    width: "100%",
-    padding: "13px 16px",
-    fontSize: 14,
-    fontWeight: 900,
-    borderRadius: 12,
-    border: analyzeDisabled
-      ? "1px solid rgba(255,255,255,0.08)"
-      : "1px solid rgba(99,102,241,0.28)",
-    background: analyzeDisabled
-      ? "rgba(255,255,255,0.04)"
-      : "linear-gradient(135deg, rgba(99,102,241,0.56), rgba(34,211,238,0.30))",
-    boxShadow: analyzeDisabled ? "none" : "0 12px 28px rgba(34,211,238,0.12)",
-    color: analyzeDisabled ? "#9CA3AF" : "#E5E7EB",
-    cursor: analyzeDisabled ? "not-allowed" : "pointer",
-    opacity: analyzeDisabled ? 0.75 : 1,
-  })}
+  width: "100%",
+  padding: "13px 16px",
+  fontSize: 14,
+  fontWeight: 900,
+  borderRadius: "var(--radius-sm)",
+  border: analyzeDisabled
+    ? "1px solid var(--card-border)"
+    : "1px solid var(--accent-strong)",
+  background: analyzeDisabled
+    ? "rgba(255,255,255,0.04)"
+    : "linear-gradient(135deg, var(--accent-2), var(--accent))",
+  boxShadow: analyzeDisabled ? "none" : "var(--shadow-glow)",
+  color: analyzeDisabled ? "var(--text-muted)" : "var(--text-primary)",
+  cursor: analyzeDisabled ? "not-allowed" : "pointer",
+  opacity: analyzeDisabled ? 0.75 : 1,
+})}
 >
   {feedbackLoading ? "Analyzing…" : capHit ? "Upgrade to Continue" : "Analyze Answer"}
 </button>
 
-  <div style={{ marginTop: 9, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+  <div style={{ marginTop: 9, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
   {recording
     ? "Finish speaking, then press Stop."
     : !selectedQuestion.trim()
@@ -3099,41 +3099,41 @@ return (
 {/* Live waveform */}
   <div style={{ marginTop: 12 }}>
     <canvas
-      ref={waveformCanvasRef}
-      style={{
-  width: "100%",
-  height: 90,
-  borderRadius: 12,
-  border: "1px solid rgba(255,255,255,0.08)",
-  background: "rgba(17,24,39,0.48)",
-  display: recording ? "block" : "none",
-}}
-    />
+  ref={waveformCanvasRef}
+  style={{
+    width: "100%",
+    height: 90,
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    display: recording ? "block" : "none",
+  }}
+/>
   </div>
 
  {voiceError ? (
   <div
-    style={{
-      marginTop: 14,
-      padding: 10,
-      borderRadius: 12,
-      border: "1px solid rgba(252, 165, 165, 0.35)",
-      background: "rgba(252, 165, 165, 0.08)",
-      color: "#FCA5A5",
-      fontSize: 12,
-      fontWeight: 800,
-    }}
-  >
-    {voiceError}
-  </div>
+  style={{
+    marginTop: 14,
+    padding: 10,
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid rgba(252, 165, 165, 0.35)",
+    background: "rgba(252, 165, 165, 0.08)",
+    color: "#FCA5A5",
+    fontSize: 12,
+    fontWeight: 800,
+  }}
+>
+  {voiceError}
+</div>
 ) : null}
 
 <div
   style={{
     marginTop: 16,
-    borderRadius: 16,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.025)",
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
     overflow: "hidden",
   }}
 >
@@ -3146,15 +3146,15 @@ return (
     alignItems: "center",
     justifyContent: "space-between",
     gap: 12,
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(255,255,255,0.018)",
+    borderBottom: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
   }}
 >
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.7, color: "#9CA3AF" }}>
+      <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.7, color: "var(--text-muted)" }}>
   TRANSCRIPT
 </div>
-      <div style={{ fontSize: 12, color: "#9CA3AF", lineHeight: 1.4 }}>
+<div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
   {inputMethod === "spoken" ? "Auto-transcribed from your recording" : "Pasted/typed (pace disabled)"}
 </div>
     </div>
@@ -3165,9 +3165,9 @@ return (
     fontWeight: 800,
     padding: "4px 10px",
     borderRadius: 999,
-    border: "1px solid rgba(255,255,255,0.08)",
-    background: "rgba(255,255,255,0.02)",
-    color: "#9CA3AF",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    color: "var(--text-muted)",
     whiteSpace: "nowrap",
   }}
 >
@@ -3177,7 +3177,7 @@ return (
  
 
   {/* Body */}
-  <div style={{ padding: 13 }}>
+  <div style={{ padding: 14 }}>
     <textarea
   value={transcript}
   onChange={(e) => {
@@ -3204,10 +3204,10 @@ return (
   fontWeight: 500,
   letterSpacing: 0.15,
   lineHeight: 1.6,
-  color: "#E5E7EB",
-  background: "rgba(17,24,39,0.48)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 12,
+  color: "var(--text-primary)",
+  background: "var(--card-bg-strong)",
+  border: "1px solid var(--card-border)",
+  borderRadius: "var(--radius-sm)",
   outline: "none",
   resize: "vertical",
 }}
@@ -3238,34 +3238,34 @@ return (
         }}
       >
         <div
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            width: "min(980px, calc(100vw - 48px))",
-            maxHeight: "min(860px, calc(100vh - 48px))",
-            overflowY: "auto",
+  onClick={(e) => e.stopPropagation()}
+  style={{
+    width: "min(980px, calc(100vw - 48px))",
+    maxHeight: "min(860px, calc(100vh - 48px))",
+    overflowY: "auto",
 
-            borderRadius: 18,
-            border: "1px solid rgba(255,255,255,0.12)",
-            background: "rgba(17,24,39,0.92)", // ✅ matches base theme
-            boxShadow: "0 20px 80px rgba(0,0,0,0.55)",
-            padding: 16,
+    borderRadius: "var(--radius-xl)",
+    border: "1px solid var(--card-border)",
+    background: "rgba(5,7,11,0.96)",
+    boxShadow: "var(--shadow-card)",
+    padding: 16,
 
-            animation: "advSlideUp 220ms ease-out",
-            transformOrigin: "bottom center",
-          }}
-        >
+    animation: "advSlideUp 220ms ease-out",
+    transformOrigin: "bottom center",
+  }}
+>
           {/* Header */}
           <div
-            style={{
-              position: "sticky",
-              top: 0,
-              zIndex: 2,
-              paddingBottom: 12,
-              marginBottom: 12,
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(17,24,39,0.92)",
-            }}
-          >
+  style={{
+    position: "sticky",
+    top: 0,
+    zIndex: 2,
+    paddingBottom: 12,
+    marginBottom: 12,
+    borderBottom: "1px solid var(--card-border-soft)",
+    background: "rgba(5,7,11,0.96)",
+  }}
+>
             <div
               style={{
                 display: "flex",
@@ -3275,34 +3275,34 @@ return (
               }}
             >
               <div>
-                <div style={{ fontSize: 18, fontWeight: 900, color: "#E5E7EB" }}>
-                  Advanced Insights
-                </div>
-                <div style={{ marginTop: 4, fontSize: 12, color: "#9CA3AF" }}>
-                  Detailed metrics, coaching trends, and attempt history
-                </div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text-primary)" }}>
+  Advanced Insights
+</div>
+<div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)" }}>
+  Detailed metrics, coaching trends, and attempt history
+</div>
               </div>
 
               <button
-                type="button"
-                onClick={() => setShowAdvanced(false)}
-                aria-label="Close advanced"
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  background: "rgba(255,255,255,0.06)",
-                  color: "#E5E7EB",
-                  cursor: "pointer",
-                  fontSize: 20,
-                  fontWeight: 900,
-                  lineHeight: "34px",
-                  textAlign: "center",
-                }}
-              >
-                ×
-              </button>
+  type="button"
+  onClick={() => setShowAdvanced(false)}
+  aria-label="Close advanced"
+  style={{
+    width: 36,
+    height: 36,
+    borderRadius: 999,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    color: "var(--text-primary)",
+    cursor: "pointer",
+    fontSize: 20,
+    fontWeight: 900,
+    lineHeight: "34px",
+    textAlign: "center",
+  }}
+>
+  ×
+</button>
             </div>
           </div>
           {/* BODY */}
@@ -3311,22 +3311,22 @@ return (
   {/* Coach Insights */}
   {coachingInsights.length > 0 && (
     <div
-      style={{
-        padding: 16,
-        borderRadius: 16,
-        border: "1px solid rgba(34,211,238,0.25)",
-        background:
-          "radial-gradient(900px 420px at 15% -10%, rgba(34,211,238,0.18), transparent 60%), rgba(17,24,39,0.65)",
-        color: "#E5E7EB",
-      }}
-    >
+  style={{
+    padding: 16,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--accent-strong)",
+    background:
+      "radial-gradient(900px 420px at 15% -10%, var(--accent-soft), transparent 60%), var(--card-bg)",
+    color: "var(--text-primary)",
+  }}
+>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-        <div style={{ fontSize: 15, fontWeight: 900, letterSpacing: 0.3 }}>
-          Coach Insights
-        </div>
-        <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-          Based on your last 5 attempts
-        </div>
+        <div style={{ fontSize: 15, fontWeight: 900, letterSpacing: 0.3, color: "var(--text-primary)" }}>
+  Coach Insights
+</div>
+<div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+  Based on your last 5 attempts
+</div>
       </div>
 
       <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7 }}>
@@ -3342,33 +3342,33 @@ return (
  
   {/* Progress */}
   <div
-    style={{
-      padding: 14,
-      borderRadius: 14,
-      border: "1px solid rgba(255,255,255,0.08)",
-      background: "rgba(255,255,255,0.03)",
-      color: "#E5E7EB",
-    }}
-  >
+  style={{
+    padding: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
+    color: "var(--text-primary)",
+  }}
+>
     <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
   <button
-    type="button"
-    onClick={clearHistory}
-    disabled={history.length === 0}
-    style={{
-      padding: "9px 12px",
-      borderRadius: 12,
-      border: "1px solid rgba(255,255,255,0.12)",
-      background: history.length === 0 ? "rgba(255,255,255,0.04)" : "rgba(252,165,165,0.10)",
-      color: history.length === 0 ? "#9CA3AF" : "#FCA5A5",
-      cursor: history.length === 0 ? "not-allowed" : "pointer",
-      fontSize: 12,
-      fontWeight: 900,
-      whiteSpace: "nowrap",
-    }}
-  >
-    Clear history
-  </button>
+  type="button"
+  onClick={clearHistory}
+  disabled={history.length === 0}
+  style={{
+    padding: "9px 12px",
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
+    background: history.length === 0 ? "rgba(255,255,255,0.04)" : "rgba(252,165,165,0.10)",
+    color: history.length === 0 ? "var(--text-muted)" : "#FCA5A5",
+    cursor: history.length === 0 ? "not-allowed" : "pointer",
+    fontSize: 12,
+    fontWeight: 900,
+    whiteSpace: "nowrap",
+  }}
+>
+  Clear history
+</button>
 
   
 </div>
@@ -3464,17 +3464,17 @@ return (
 
   {/* Attempts */}
   <div
-    style={{
-      padding: 14,
-      borderRadius: 14,
-      border: "1px solid rgba(255,255,255,0.08)",
-      background: "rgba(255,255,255,0.03)",
-      color: "#E5E7EB",
-    }}
-  >
+  style={{
+    padding: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
+    color: "var(--text-primary)",
+  }}
+>
     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-      <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: 0.3 }}>Attempts</div>
-      <div style={{ fontSize: 12, color: "#9CA3AF" }}>{history.length} saved</div>
+      <div style={{ fontSize: 14, fontWeight: 900, letterSpacing: 0.3, color: "var(--text-primary)" }}>Attempts</div>
+<div style={{ fontSize: 12, color: "var(--text-muted)" }}>{history.length} saved</div>
     </div>
 
     {history.length === 0 ? (
@@ -3525,23 +3525,23 @@ try {
 }, 0);
 }}
                 style={{
-                  padding: 12,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  background: "rgba(255,255,255,0.03)",
-                  display: "grid",
-                  gridTemplateColumns: "1fr auto",
-                  gap: 12,
-                  alignItems: "center",
-                  cursor: "pointer",
-                  transition: "all 120ms ease",
-                }}
+  padding: 12,
+  borderRadius: "var(--radius-sm)",
+  border: "1px solid var(--card-border-soft)",
+  background: "var(--card-bg)",
+  display: "grid",
+  gridTemplateColumns: "1fr auto",
+  gap: 12,
+  alignItems: "center",
+  cursor: "pointer",
+  transition: "all 120ms ease",
+}}
                 onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "rgba(34,211,238,0.06)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.03)")
-                }
+  (e.currentTarget.style.background = "var(--card-bg-strong)")
+}
+onMouseLeave={(e) =>
+  (e.currentTarget.style.background = "var(--card-bg)")
+}
               >
 
               <div style={{ minWidth: 0 }}>
@@ -3633,17 +3633,17 @@ try {
   {/* Feedback */}
   { feedback && (
     <div
-      style={{
-        padding: 14,
-        borderRadius: 14,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.03)",
-        color: "#E5E7EB",
-      }}
-    >
-      <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-        Feedback (Score: {feedback?.score}/10)
-      </h3>
+  style={{
+    padding: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
+    color: "var(--text-primary)",
+  }}
+>
+      <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+  Feedback (Score: {feedback?.score}/10)
+</h3>
 
       <div
         style={{
@@ -3734,22 +3734,22 @@ try {
     }}
   >
     <div
-      style={{
-        width: "min(520px, calc(100vw - 48px))",
-        borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.12)",
-        background: "rgba(17,24,39,0.92)",
-        boxShadow: "0 20px 80px rgba(0,0,0,0.55)",
-        padding: 16,
-      }}
-    >
+  style={{
+    width: "min(520px, calc(100vw - 48px))",
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--card-border)",
+    background: "rgba(5,7,11,0.96)",
+    boxShadow: "var(--shadow-card)",
+    padding: 16,
+  }}
+>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 13, fontWeight: 900, color: "#E5E7EB" }}>
-          Analyzing your answer…
-        </div>
-        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 900 }}>
-          {Math.round(progress)}%
-        </div>
+        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
+  Analyzing your answer…
+</div>
+<div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900 }}>
+  {Math.round(progress)}%
+</div>
       </div>
 
       <div
@@ -3767,16 +3767,16 @@ try {
             width: `${progress}%`,
             height: "100%",
             borderRadius: 999,
-            background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
-            boxShadow: "0 0 18px rgba(34,211,238,0.22)",
+            background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
+boxShadow: "var(--shadow-glow)",
             transition: "width 220ms ease",
           }}
         />
       </div>
 
-      <div style={{ marginTop: 10, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
-        This can take a bit depending on answer length.
-      </div>
+      <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+  This can take a bit depending on answer length.
+</div>
     </div>
   </div>
 )}

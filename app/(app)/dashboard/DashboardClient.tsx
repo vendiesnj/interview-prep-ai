@@ -2,35 +2,29 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {useSession} from "next-auth/react";
-import {userScopedKey} from "@/app/lib/userStorage";
-
-
+import { useSession } from "next-auth/react";
+import { userScopedKey } from "@/app/lib/userStorage";
+import PremiumShell from "../../components/PremiumShell";
+import PremiumCard from "../../components/PremiumCard";
 
 type Attempt = {
   id?: string;
   ts?: number;
-
-  // saved at top-level in your practice page entry
   score?: number;
   communication_score?: number;
   confidence_score?: number;
   wpm?: number | null;
-
   prosody?: {
-    monotoneScore?: number; // 1-10
+    monotoneScore?: number;
   } | null;
-
   feedback?: {
     score?: number;
     communication_score?: number;
     confidence_score?: number;
-
     filler?: {
       per100?: number;
       total?: number;
     };
-
     star?: {
       situation?: number;
       task?: number;
@@ -117,58 +111,102 @@ function avg(nums: number[]) {
   return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
+function SectionEyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: 12,
+        color: "var(--text-muted)",
+        fontWeight: 900,
+        letterSpacing: 0.7,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function MetricChip({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        padding: "7px 10px",
+        borderRadius: 999,
+        border: active
+          ? "1px solid var(--accent-strong)"
+          : "1px solid var(--card-border-soft)",
+        background: active ? "var(--accent-soft)" : "var(--card-bg)",
+        color: active ? "var(--accent)" : "var(--text-primary)",
+        fontSize: 12,
+        fontWeight: 900,
+        cursor: "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 export default function DashboardPage() {
   const [history, setHistory] = useState<Attempt[]>([]);
   const [metric, setMetric] = useState<MetricKey>("overall");
   const { data: session } = useSession();
-const userKey =
-  (session?.user as any)?.id ||
-  session?.user?.email ||
-  "anon";
 
-const HISTORY_KEY = userScopedKey("ipc_history", session);
+  const HISTORY_KEY = userScopedKey("ipc_history", session);
 
+  useEffect(() => {
+    if (!session?.user) return;
 
-useEffect(() => {
-  if (!session?.user) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
 
-  (async () => {
-    try {
-      const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
-
-        // If DB is empty (common in local dev, auth mismatch, or DB not configured),
-        // fall back to localStorage history so Dashboard doesn't look broken.
-        if (attempts.length > 0) {
-          setHistory(attempts);
-          return;
+          if (attempts.length > 0) {
+            setHistory(attempts);
+            return;
+          }
         }
+      } catch {
+        // ignore and fall back
       }
-    } catch {
-      // ignore and fall back
-    }
 
-    // Fallback: localStorage history (scoped)
-    const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-    setHistory(Array.isArray(saved) ? saved : []);
-  })();
-}, [session?.user, HISTORY_KEY]);
+      const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+      setHistory(Array.isArray(saved) ? saved : []);
+    })();
+  }, [session?.user, HISTORY_KEY]);
+
   const last5 = useMemo(() => history.slice(0, 5), [history]);
 
   const series = useMemo(() => {
-    // last 20 attempts (old -> new for chart)
     const slice = history.slice(0, 20).reverse();
-    const vals = slice
+    return slice
       .map((h) => getMetricValue(h, metric))
       .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-    return vals;
   }, [history, metric]);
 
   const stats = useMemo(() => {
     const vals = series;
-    if (!vals.length) return { avg: null as number | null, min: null as number | null, max: null as number | null, last: null as number | null };
+    if (!vals.length) {
+      return {
+        avg: null as number | null,
+        min: null as number | null,
+        max: null as number | null,
+        last: null as number | null,
+      };
+    }
     return {
       avg: avg(vals),
       min: Math.min(...vals),
@@ -185,11 +223,18 @@ useEffect(() => {
     return a === null ? null : Math.round(a * 10) / 10;
   }, [last5]);
 
-  // Biggest issues (simple: lowest avg among key dims over last 5)
   const biggestIssues = useMemo(() => {
     if (!last5.length) return [];
 
-    const keys: MetricKey[] = ["communication", "confidence", "star_result", "fillers", "pace", "vocal_variety"];
+    const keys: MetricKey[] = [
+      "communication",
+      "confidence",
+      "star_result",
+      "fillers",
+      "pace",
+      "vocal_variety",
+    ];
+
     const scored = keys
       .map((k) => {
         const vals = last5
@@ -200,9 +245,8 @@ useEffect(() => {
       })
       .filter((x) => x.avg !== null) as Array<{ k: MetricKey; avg: number }>;
 
-    // For fillers, higher is worse; for pace, distance from 115–145 is worse; others lower is worse
     function badness(item: { k: MetricKey; avg: number }) {
-      if (item.k === "fillers") return item.avg; // higher = worse
+      if (item.k === "fillers") return item.avg;
       if (item.k === "pace") {
         const targetLo = 115;
         const targetHi = 145;
@@ -210,7 +254,7 @@ useEffect(() => {
         if (item.avg > targetHi) return item.avg - targetHi;
         return 0;
       }
-      return 10 - item.avg; // lower scores => higher badness
+      return 10 - item.avg;
     }
 
     scored.sort((a, b) => badness(b) - badness(a));
@@ -218,13 +262,34 @@ useEffect(() => {
   }, [last5]);
 
   const issueCopy: Record<MetricKey, { title: string; tip: string }> = {
-    overall: { title: "Overall", tip: "Tighten structure: 1 claim → 2 supports → 1 result line." },
-    communication: { title: "Communication", tip: "Shorter sentences. Cut softeners (“kind of”, “maybe”)." },
-    confidence: { title: "Confidence", tip: "Lead with a clear claim. Put one metric earlier." },
-    pace: { title: "Pace", tip: "Aim 115–145 WPM. Add micro-pauses after numbers." },
-    fillers: { title: "Fillers", tip: "Replace “um/like” with a one-beat pause." },
-    star_result: { title: "STAR Result", tip: "End with: “Result: improved X by Y% / saved $Z / reduced time by N days.”" },
-    vocal_variety: { title: "Vocal Variety", tip: "Emphasize outcomes + vary pitch at sentence ends." },
+    overall: {
+      title: "Overall",
+      tip: "Tighten structure: 1 claim → 2 supports → 1 result line.",
+    },
+    communication: {
+      title: "Communication",
+      tip: "Shorter sentences. Cut softeners (“kind of”, “maybe”).",
+    },
+    confidence: {
+      title: "Confidence",
+      tip: "Lead with a clear claim. Put one metric earlier.",
+    },
+    pace: {
+      title: "Pace",
+      tip: "Aim 115–145 WPM. Add micro-pauses after numbers.",
+    },
+    fillers: {
+      title: "Fillers",
+      tip: "Replace “um/like” with a one-beat pause.",
+    },
+    star_result: {
+      title: "STAR Result",
+      tip: "End with: “Result: improved X by Y% / saved $Z / reduced time by N days.”",
+    },
+    vocal_variety: {
+      title: "Vocal Variety",
+      tip: "Emphasize outcomes + vary pitch at sentence ends.",
+    },
   };
 
   const sparkW = 520;
@@ -240,215 +305,225 @@ useEffect(() => {
   };
 
   return (
-    <div style={{ maxWidth: 1100 }}>
-      <div style={{ fontSize: 34, fontWeight: 950, color: "#E5E7EB" }}>Dashboard</div>
-      <div style={{ marginTop: 8, color: "#9CA3AF", lineHeight: 1.5 }}>
-        Your interview performance at a glance.
-      </div>
+    <PremiumShell
+      title="Dashboard"
+      subtitle="Your interview performance at a glance."
+    >
+      <div style={{ maxWidth: 1100 }}>
+        <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+          <PremiumCard
+            style={{
+              padding: 18,
+              borderRadius: "var(--radius-lg)",
+            }}
+          >
+            <SectionEyebrow>OVERALL PERFORMANCE</SectionEyebrow>
 
-      <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
-        {/* Overall Summary (NO last score shown) */}
-        <div
-          style={{
-            padding: 18,
-            borderRadius: 18,
-            border: "1px solid rgba(255,255,255,0.10)",
-            background:
-              "radial-gradient(900px 400px at 15% -10%, rgba(99,102,241,0.18), transparent 60%), rgba(255,255,255,0.03)",
-          }}
-        >
-          <div style={{ fontSize: 13, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.6 }}>
-            OVERALL PERFORMANCE
-          </div>
-
-          <div style={{ marginTop: 10, fontSize: 14, color: "#9CA3AF" }}>
-            {history.length ? `Saved attempts: ${history.length}` : "No attempts saved yet."}
-          </div>
-
-          <div style={{ marginTop: 8, fontSize: 14, color: "#9CA3AF" }}>
-            {history.length
-              ? `Last ${Math.min(history.length, 5)} attempts avg: ${avgOverallLast5 ?? "—"}/10`
-              : "Record + analyze to start building trends."}
-          </div>
-        </div>
-
-        {/* Trends */}
-        <div
-          style={{
-            padding: 18,
-            borderRadius: 18,
-            border: "1px solid rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.03)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 13, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.6 }}>
-                TRENDS
-              </div>
-              <div style={{ marginTop: 6, fontSize: 15, fontWeight: 900, color: "#E5E7EB" }}>{label}</div>
-            </div>
-
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Avg</div>
-                <div style={{ marginTop: 3, fontWeight: 900, color: "#E5E7EB" }}>
-                  {formatValue(metric, stats.avg === null ? null : Math.round(stats.avg * 10) / 10)}
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Min</div>
-                <div style={{ marginTop: 3, fontWeight: 900, color: "#E5E7EB" }}>
-                  {formatValue(metric, stats.min)}
-                </div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 11, color: "#9CA3AF" }}>Max</div>
-                <div style={{ marginTop: 3, fontWeight: 900, color: "#E5E7EB" }}>
-                  {formatValue(metric, stats.max)}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Metric pills */}
-          <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {(
-              [
-                ["overall", "Overall"],
-                ["communication", "Communication"],
-                ["confidence", "Confidence"],
-                ["pace", "Pace"],
-                ["fillers", "Fillers"],
-                ["star_result", "STAR Result"],
-                ["vocal_variety", "Vocal Variety"],
-              ] as Array<[MetricKey, string]>
-            ).map(([k, txt]) => {
-              const active = metric === k;
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  onClick={() => setMetric(k)}
-                  style={{
-                    padding: "7px 10px",
-                    borderRadius: 999,
-                    border: active
-                      ? "1px solid rgba(34,211,238,0.45)"
-                      : "1px solid rgba(255,255,255,0.10)",
-                    background: active ? "rgba(34,211,238,0.10)" : "rgba(255,255,255,0.04)",
-                    color: active ? "#A5F3FC" : "#E5E7EB",
-                    fontSize: 12,
-                    fontWeight: 900,
-                    cursor: "pointer",
-                  }}
-                >
-                  {txt}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Chart */}
-          <div style={{ marginTop: 12 }}>
-            <svg
-              width="100%"
-              viewBox={`0 0 ${sparkW} ${sparkH}`}
+            <div
               style={{
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background:
-                  "radial-gradient(900px 420px at 15% -10%, rgba(34,211,238,0.10), transparent 60%), rgba(17,24,39,0.55)",
+                marginTop: 10,
+                fontSize: 14,
+                color: "var(--text-muted)",
+                lineHeight: 1.55,
               }}
             >
-              {/* baseline */}
-              <path
-                d={`M 8 ${(sparkH - 8).toFixed(1)} L ${(sparkW - 8).toFixed(1)} ${(sparkH - 8).toFixed(1)}`}
-                stroke="rgba(255,255,255,0.10)"
-                strokeWidth="1"
-                fill="none"
-              />
-
-              {/* line */}
-              {series.length ? (
-                <path
-                  d={sparkPath}
-                  stroke="rgba(34,211,238,0.95)"
-                  strokeWidth="3"
-                  fill="none"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ) : (
-                <text x="16" y="38" fill="rgba(156,163,175,0.9)" style={{ fontSize: 14, fontWeight: 800 }}>
-                  No data yet for this metric.
-                </text>
-              )}
-            </svg>
-
-            <div style={{ marginTop: 8, fontSize: 12, color: "#9CA3AF" }}>
-              Showing last {Math.min(history.length, 20)} attempts · newest is on the right
+              {history.length ? `Saved attempts: ${history.length}` : "No attempts saved yet."}
             </div>
-          </div>
-        </div>
 
-        {/* Biggest issues */}
-        <div
-          style={{
-            padding: 18,
-            borderRadius: 18,
-            border: "1px solid rgba(255,255,255,0.10)",
-            background: "rgba(255,255,255,0.03)",
-          }}
-        >
-          <div style={{ fontSize: 13, color: "#9CA3AF", fontWeight: 900, letterSpacing: 0.6 }}>
-            BIGGEST ISSUES
-          </div>
+            <div
+              style={{
+                marginTop: 8,
+                fontSize: 14,
+                color: "var(--text-muted)",
+                lineHeight: 1.55,
+              }}
+            >
+              {history.length
+                ? `Last ${Math.min(history.length, 5)} attempts avg: ${avgOverallLast5 ?? "—"}/10`
+                : "Record + analyze to start building trends."}
+            </div>
+          </PremiumCard>
 
-          {biggestIssues.length ? (
-            <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-              {biggestIssues.map((k) => (
+          <PremiumCard
+            style={{
+              padding: 18,
+              borderRadius: "var(--radius-lg)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                gap: 12,
+                flexWrap: "wrap",
+              }}
+            >
+              <div>
+                <SectionEyebrow>TRENDS</SectionEyebrow>
                 <div
-                  key={k}
                   style={{
-                    padding: 14,
-                    borderRadius: 14,
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    background: "rgba(17,24,39,0.45)",
+                    marginTop: 6,
+                    fontSize: 15,
+                    fontWeight: 900,
+                    color: "var(--text-primary)",
                   }}
                 >
-                  <div style={{ fontWeight: 950, color: "#E5E7EB" }}>{issueCopy[k].title}</div>
-                  <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
-                    {issueCopy[k].tip}
+                  {label}
+                </div>
+              </div>
+
+              <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
+                  <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
+                    {formatValue(metric, stats.avg === null ? null : Math.round(stats.avg * 10) / 10)}
                   </div>
                 </div>
+
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Min</div>
+                  <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
+                    {formatValue(metric, stats.min)}
+                  </div>
+                </div>
+
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Max</div>
+                  <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
+                    {formatValue(metric, stats.max)}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {(
+                [
+                  ["overall", "Overall"],
+                  ["communication", "Communication"],
+                  ["confidence", "Confidence"],
+                  ["pace", "Pace"],
+                  ["fillers", "Fillers"],
+                  ["star_result", "STAR Result"],
+                  ["vocal_variety", "Vocal Variety"],
+                ] as Array<[MetricKey, string]>
+              ).map(([k, txt]) => (
+                <MetricChip key={k} active={metric === k} onClick={() => setMetric(k)}>
+                  {txt}
+                </MetricChip>
               ))}
             </div>
-          ) : (
-            <div style={{ marginTop: 10, fontSize: 13, color: "#9CA3AF" }}>
-              Generate a few attempts to surface your biggest issues.
-            </div>
-          )}
-        </div>
 
-        {/* CTA */}
-        <Link
-          href="/practice"
-          style={{
-            textDecoration: "none",
-            padding: 16,
-            borderRadius: 16,
-            border: "1px solid rgba(34,211,238,0.35)",
-            background: "rgba(34,211,238,0.10)",
-            color: "#A5F3FC",
-            fontWeight: 950,
-            textAlign: "center",
-            fontSize: 14,
-          }}
-        >
-          Start Practice →
-        </Link>
+            <div style={{ marginTop: 12 }}>
+              <svg
+                width="100%"
+                viewBox={`0 0 ${sparkW} ${sparkH}`}
+                style={{
+                  borderRadius: 14,
+                  border: "1px solid var(--card-border)",
+                  background: `
+                    radial-gradient(900px 420px at 15% -10%, var(--accent-soft), transparent 60%),
+                    var(--input-bg)
+                  `,
+                }}
+              >
+                <path
+                  d={`M 8 ${(sparkH - 8).toFixed(1)} L ${(sparkW - 8).toFixed(1)} ${(sparkH - 8).toFixed(1)}`}
+                  stroke="rgba(255,255,255,0.10)"
+                  strokeWidth="1"
+                  fill="none"
+                />
+
+                {series.length ? (
+                  <path
+                    d={sparkPath}
+                    stroke="var(--accent)"
+                    strokeWidth="3"
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                ) : (
+                  <text
+                    x="16"
+                    y="38"
+                    fill="var(--text-muted)"
+                    style={{ fontSize: 14, fontWeight: 800 }}
+                  >
+                    No data yet for this metric.
+                  </text>
+                )}
+              </svg>
+
+              <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
+                Showing last {Math.min(history.length, 20)} attempts · newest is on the right
+              </div>
+            </div>
+          </PremiumCard>
+
+          <PremiumCard
+            style={{
+              padding: 18,
+              borderRadius: "var(--radius-lg)",
+            }}
+          >
+            <SectionEyebrow>BIGGEST ISSUES</SectionEyebrow>
+
+            {biggestIssues.length ? (
+              <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+                {biggestIssues.map((k) => (
+                  <div
+                    key={k}
+                    style={{
+                      padding: 14,
+                      borderRadius: 14,
+                      border: "1px solid var(--card-border)",
+                      background: "var(--input-bg)",
+                    }}
+                  >
+                    <div style={{ fontWeight: 950, color: "var(--text-primary)" }}>
+                      {issueCopy[k].title}
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 6,
+                        fontSize: 13,
+                        color: "var(--text-muted)",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {issueCopy[k].tip}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)" }}>
+                Generate a few attempts to surface your biggest issues.
+              </div>
+            )}
+          </PremiumCard>
+
+          <Link
+            href="/practice"
+            style={{
+              textDecoration: "none",
+              padding: 16,
+              borderRadius: "var(--radius-md)",
+              border: "1px solid var(--accent-strong)",
+              background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
+              color: "var(--text-primary)",
+              fontWeight: 950,
+              textAlign: "center",
+              fontSize: 14,
+              boxShadow: "var(--shadow-glow)",
+            }}
+          >
+            Start Practice →
+          </Link>
+        </div>
       </div>
-    </div>
+    </PremiumShell>
   );
 }

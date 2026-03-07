@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PremiumCard from "../../components/PremiumCard";
+import PremiumShell from "../../components/PremiumShell";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 
@@ -241,14 +242,12 @@ async function ensureAudioUrl(audioId: string) {
 }
 
   return (
+  <PremiumShell
+    title="Sessions"
+    subtitle="View and manage your saved interview attempts."
+  >
     <div style={{ maxWidth: 1100 }}>
-      <div style={{ fontSize: 34, fontWeight: 950, color: "#E5E7EB" }}>
-        Sessions
-      </div>
 
-      <div style={{ marginTop: 8, color: "#9CA3AF" }}>
-        View and manage your saved interview attempts.
-      </div>
 
       {/* Filter Buttons */}
       <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
@@ -257,20 +256,20 @@ async function ensureAudioUrl(audioId: string) {
             key={f}
             onClick={() => setFilter(f as any)}
             style={{
-              padding: "8px 14px",
-              borderRadius: 12,
-              border:
-                filter === f
-                  ? "1px solid rgba(34,211,238,0.45)"
-                  : "1px solid rgba(255,255,255,0.12)",
-              background:
-                filter === f
-                  ? "rgba(34,211,238,0.15)"
-                  : "rgba(255,255,255,0.04)",
-              color: filter === f ? "#A5F3FC" : "#E5E7EB",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
+  padding: "8px 14px",
+  borderRadius: "var(--radius-sm)",
+  border:
+    filter === f
+      ? "1px solid var(--accent-strong)"
+      : "1px solid var(--card-border)",
+  background:
+    filter === f
+      ? "rgba(34,211,238,0.15)"
+      : "var(--card-bg-strong)",
+  color: filter === f ? "var(--accent)" : "var(--text-primary)",
+  fontWeight: 800,
+  cursor: "pointer",
+}}
           >
             {f.toUpperCase()}
           </button>
@@ -282,10 +281,10 @@ async function ensureAudioUrl(audioId: string) {
   style={{
     marginLeft: "auto",
     padding: "8px 14px",
-    borderRadius: 12,
+    borderRadius: "var(--radius-sm)",
     border: "1px solid rgba(252,165,165,0.35)",
     background: history.length === 0 ? "rgba(255,255,255,0.03)" : "rgba(252,165,165,0.10)",
-    color: history.length === 0 ? "#6B7280" : "#FCA5A5",
+    color: history.length === 0 ? "var(--text-muted)" : "#FCA5A5",
     fontWeight: 900,
     cursor: history.length === 0 ? "not-allowed" : "pointer",
   }}
@@ -298,9 +297,9 @@ async function ensureAudioUrl(audioId: string) {
       <div style={{ marginTop: 18 }}>
         <PremiumCard>
           {filtered.length === 0 ? (
-            <div style={{ color: "#9CA3AF" }}>
-              No sessions yet. Go record an attempt.
-            </div>
+            <div style={{ color: "var(--text-muted)" }}>
+  No sessions yet. Go record an attempt.
+</div>
           ) : (
             <div style={{ display: "grid", gap: 10 }}>
               {filtered.map((attempt, i) => {
@@ -309,17 +308,17 @@ async function ensureAudioUrl(audioId: string) {
 
                 return (
                   <div
-                    key={attempt.id ?? attempt.ts ?? attempt.question ?? i}
-                    style={{
-                      padding: 14,
-                      borderRadius: 14,
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      background: "rgba(255,255,255,0.03)",
-                      display: "grid",
-                      gap: 8,
-                      cursor: "pointer",
-                    }}
-                    onClick={() => {
+  key={attempt.id ?? attempt.ts ?? attempt.question ?? i}
+  style={{
+    padding: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
+    display: "grid",
+    gap: 8,
+    cursor: "pointer",
+  }}
+  onClick={() => {
                      if (status === "loading") return; 
 
                       try {
@@ -332,8 +331,9 @@ async function ensureAudioUrl(audioId: string) {
                           prosody: attempt.prosody ?? null,
                           feedback: attempt.feedback ?? null,
                           
-                          audioId: attempt.audioPath ?? null,
-                          inputMethod: attempt.inputMethod ?? "pasted",
+                          audioId: attempt.audioId ?? null,
+audioPath: attempt.audioPath ?? null,
+inputMethod: attempt.inputMethod ?? "pasted",
 
                           jobDesc: (attempt as any).jobDesc ?? "",
                           questions: Array.isArray((attempt as any).questions) ? (attempt as any).questions : [],
@@ -359,131 +359,153 @@ async function ensureAudioUrl(audioId: string) {
                         router.push("/results");
                       }}
                   >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: 900,
-                          color: "#E5E7EB",
-                          fontSize: 15,
-                        }}
-                      >
-                        {attempt.question?.slice(0, 80) ?? "Interview Question"}
-                      </div>
+                   <div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+  }}
+>
+  <div
+    style={{
+      fontWeight: 900,
+      color: "var(--text-primary)",
+      fontSize: 15,
+      lineHeight: 1.45,
+      minWidth: 0,
+      flex: 1,
+    }}
+  >
+    {attempt.question?.slice(0, 80) ?? "Interview Question"}
+  </div>
 
-                      <div
-                        style={{
-                          fontWeight: 900,
-                          color: "#A5F3FC",
-                          fontSize: 14,
-                        }}
-                      >
-                        {overall !== null ? `${overall}/10` : "—"}
-                      </div>
-                    </div>
+  <div
+    style={{
+      fontWeight: 900,
+      color: "var(--accent)",
+      fontSize: 14,
+      flex: "0 0 auto",
+      whiteSpace: "nowrap",
+    }}
+  >
+    {overall !== null ? `${overall}/10` : "—"}
+  </div>
+</div>
 
-                    <div
-                      style={{
-                        fontSize: 12,
-                        color: "#9CA3AF",
-                        display: "flex",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div>
-                        {attempt.inputMethod ?? "unknown"} •{" "}
-                        {formatDate(attempt.ts)}
-                      </div>
+<div
+  style={{
+    fontSize: 12,
+    color: "var(--text-muted)",
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  }}
+>
+  <span>{attempt.inputMethod ?? "unknown"}</span>
+  <span>•</span>
+  <span>{formatDate(attempt.ts)}</span>
+</div>
 
-                      {attempt.inputMethod === "spoken" ? (
-  <div style={{ marginTop: 10 }}>
-    {/* ✅ Preferred: cross-device replay via Supabase signed URL */}
-    {attempt.audioPath ? (
-      !signedUrlByPath[attempt.audioPath] ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            ensureSignedUrl(attempt.audioPath!);
-          }}
-          style={{
-            padding: "8px 12px",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: "rgba(255,255,255,0.05)",
-            color: "#E5E7EB",
-            fontWeight: 800,
-            cursor: "pointer",
-          }}
-        >
-          Load recording
-        </button>
+<div
+  style={{
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    flexWrap: "wrap",
+    marginTop: 2,
+  }}
+>
+  <div style={{ flex: "1 1 420px", minWidth: 240 }}>
+    {attempt.inputMethod === "spoken" ? (
+      attempt.audioPath ? (
+        !signedUrlByPath[attempt.audioPath] ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              ensureSignedUrl(attempt.audioPath!);
+            }}
+            style={{
+              padding: "8px 12px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg-strong)",
+              color: "var(--text-primary)",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            Load recording
+          </button>
+        ) : (
+          <audio
+            controls
+            preload="none"
+            src={signedUrlByPath[attempt.audioPath]}
+            style={{ width: "100%" }}
+          />
+        )
+      ) : attempt.audioId ? (
+        !audioUrlById[attempt.audioId] ? (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              ensureAudioUrl(attempt.audioId!);
+            }}
+            style={{
+              padding: "8px 12px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--card-border)",
+              background: "var(--card-bg-strong)",
+              color: "var(--text-primary)",
+              fontWeight: 800,
+              cursor: "pointer",
+            }}
+          >
+            Load recording (this device)
+          </button>
+        ) : (
+          <audio
+            controls
+            preload="none"
+            src={audioUrlById[attempt.audioId]}
+            style={{ width: "100%" }}
+          />
+        )
       ) : (
-        <audio
-          controls
-          preload="none"
-          src={signedUrlByPath[attempt.audioPath]}
-          style={{ width: "100%" }}
-        />
-      )
-    ) : attempt.audioId ? (
-      /* Fallback: same-device replay via IndexedDB */
-      !audioUrlById[attempt.audioId] ? (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            ensureAudioUrl(attempt.audioId!);
-          }}
-          style={{
-            padding: "8px 12px",
-            borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.14)",
-            background: "rgba(255,255,255,0.05)",
-            color: "#E5E7EB",
-            fontWeight: 800,
-            cursor: "pointer",
-          }}
-        >
-          Load recording (this device)
-        </button>
-      ) : (
-        <audio
-          controls
-          preload="none"
-          src={audioUrlById[attempt.audioId]}
-          style={{ width: "100%" }}
-        />
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          No recording attached to this attempt.
+        </div>
       )
     ) : (
-      <div style={{ fontSize: 12, color: "#9CA3AF" }}>
-        No recording attached to this attempt.
+      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+        No audio for pasted responses.
       </div>
     )}
   </div>
-) : null}
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deleteAttempt(attempt);
-                        }}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#FCA5A5",
-                          fontWeight: 800,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Delete
-                      </button>
-                    </div>
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      deleteAttempt(attempt);
+    }}
+    style={{
+      background: "none",
+      border: "none",
+      color: "#FCA5A5",
+      fontWeight: 800,
+      cursor: "pointer",
+      flex: "0 0 auto",
+      whiteSpace: "nowrap",
+    }}
+  >
+    Delete
+  </button>
+</div>
                   </div>
                 );
               })}
@@ -492,5 +514,6 @@ async function ensureAudioUrl(audioId: string) {
         </PremiumCard>
       </div>
     </div>
+    </PremiumShell>
   );
 }

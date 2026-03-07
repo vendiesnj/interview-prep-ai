@@ -19,7 +19,6 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       });
 
-      // Always show same message (prevents account enumeration)
       if (!res.ok) {
         setMsg("If an account exists for that email, we sent a reset link.");
       } else {
@@ -39,32 +38,60 @@ export default function ForgotPasswordPage() {
         display: "grid",
         placeItems: "center",
         padding: 24,
-        background:
-          "radial-gradient(900px 500px at 15% 0%, rgba(34,211,238,0.18), transparent 55%), rgba(3,7,18,1)",
-        color: "#E5E7EB",
+        background: `
+          radial-gradient(900px 500px at 15% 0%, var(--app-bg-accent-b), transparent 55%),
+          var(--app-bg)
+        `,
+        color: "var(--text-primary)",
       }}
     >
       <div
         style={{
           width: "100%",
           maxWidth: 440,
-          borderRadius: 18,
-          border: "1px solid rgba(255,255,255,0.10)",
-          background: "rgba(255,255,255,0.04)",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
+          borderRadius: "var(--radius-lg)",
+          border: "1px solid var(--card-border)",
+          background: `
+            radial-gradient(800px 280px at 15% -20%, var(--accent-soft), transparent 55%),
+            var(--card-bg)
+          `,
+          boxShadow: "var(--shadow-card)",
           padding: 18,
         }}
       >
         <div style={{ padding: 6 }}>
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.8, color: "#9CA3AF" }}>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 900,
+              letterSpacing: 0.8,
+              color: "var(--text-muted)",
+            }}
+          >
             INTERVIEW PERFORMANCE COACH
           </div>
 
-          <h1 style={{ marginTop: 8, fontSize: 22, fontWeight: 950 }}>
+          <h1
+            style={{
+              margin: "8px 0 0 0",
+              fontSize: 22,
+              fontWeight: 950,
+              letterSpacing: -0.2,
+              color: "var(--text-primary)",
+            }}
+          >
             Reset your password
           </h1>
 
-          <p style={{ marginTop: 8, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+          <p
+            style={{
+              marginTop: 8,
+              marginBottom: 0,
+              fontSize: 13,
+              color: "var(--text-muted)",
+              lineHeight: 1.55,
+            }}
+          >
             Enter your email and we’ll send you a reset link.
           </p>
 
@@ -79,10 +106,10 @@ export default function ForgotPasswordPage() {
               style={{
                 width: "100%",
                 padding: "12px 12px",
-                borderRadius: 14,
-                border: "1px solid rgba(255,255,255,0.10)",
-                background: "rgba(255,255,255,0.03)",
-                color: "#E5E7EB",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--input-border)",
+                background: "var(--input-bg)",
+                color: "var(--text-primary)",
                 outline: "none",
                 fontSize: 14,
                 boxSizing: "border-box",
@@ -95,12 +122,17 @@ export default function ForgotPasswordPage() {
               style={{
                 width: "100%",
                 padding: "12px 14px",
-                borderRadius: 14,
-                border: "1px solid rgba(34,211,238,0.35)",
-                background: loading ? "rgba(34,211,238,0.10)" : "rgba(34,211,238,0.14)",
-                color: "#A5F3FC",
+                borderRadius: "var(--radius-sm)",
+                border: loading
+                  ? "1px solid var(--card-border)"
+                  : "1px solid var(--accent-strong)",
+                background: loading
+                  ? "var(--card-bg-strong)"
+                  : "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
+                color: "var(--text-primary)",
                 fontWeight: 950,
                 cursor: loading ? "not-allowed" : "pointer",
+                boxShadow: loading ? "none" : "var(--shadow-glow)",
               }}
             >
               {loading ? "Sending..." : "Send reset link"}
@@ -108,13 +140,35 @@ export default function ForgotPasswordPage() {
           </form>
 
           {msg ? (
-            <div style={{ marginTop: 12, fontSize: 12, color: "#9CA3AF", textAlign: "center" }}>
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 12,
+                color: "var(--text-muted)",
+                textAlign: "center",
+                lineHeight: 1.5,
+              }}
+            >
               {msg}
             </div>
           ) : null}
 
-          <div style={{ marginTop: 12, fontSize: 12, color: "#9CA3AF", textAlign: "center" }}>
-            <a href="/login" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 12,
+              color: "var(--text-muted)",
+              textAlign: "center",
+            }}
+          >
+            <a
+              href="/login"
+              style={{
+                color: "var(--accent)",
+                fontWeight: 900,
+                textDecoration: "none",
+              }}
+            >
               Back to login
             </a>
           </div>

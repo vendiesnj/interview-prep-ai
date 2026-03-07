@@ -188,8 +188,8 @@ function MetricBar({
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontSize: 13, color: "#9CA3AF", letterSpacing: 0.2 }}>{label}</div>
-        <div style={{ fontSize: 14, color: "#E5E7EB", fontWeight: 800 }}>
+        <div style={{ fontSize: 13, color: "var(--text-muted)", letterSpacing: 0.2 }}>{label}</div>
+        <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 800 }}>
           {value}/{max}
         </div>
       </div>
@@ -201,7 +201,7 @@ function MetricBar({
           borderRadius: 999,
           background: "rgba(255,255,255,0.08)",
           overflow: "hidden",
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--card-border-soft)",
         }}
       >
         <div
@@ -209,14 +209,16 @@ function MetricBar({
             width: `${pct}%`,
             height: "100%",
             borderRadius: 999,
-            background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
-            boxShadow: "0 0 18px rgba(99,102,241,0.30)",
+            background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
+            boxShadow: "var(--shadow-glow)",
             transition: "width 250ms ease",
           }}
         />
       </div>
 
-      {subtext ? <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF" }}>{subtext}</div> : null}
+      {subtext ? (
+        <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>{subtext}</div>
+      ) : null}
     </div>
   );
 }
@@ -224,7 +226,9 @@ function MetricBar({
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
     <PremiumCard style={{ marginTop: 14 }}>
-      <div style={{ fontSize: 16, fontWeight: 950, color: "#E5E7EB" }}>{title}</div>
+      <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.2 }}>
+        {title}
+      </div>
       <div style={{ marginTop: 10 }}>{children}</div>
     </PremiumCard>
   );
@@ -247,16 +251,16 @@ function TabButton({
       onClick={onClick}
       style={{
         padding: "10px 12px",
-        borderRadius: 12,
-        border: active ? "1px solid rgba(99,102,241,0.55)" : "1px solid rgba(255,255,255,0.10)",
+        borderRadius: "var(--radius-sm)",
+        border: active ? "1px solid var(--accent-strong)" : "1px solid var(--card-border)",
         background: active
-          ? "linear-gradient(180deg, rgba(99,102,241,0.18), rgba(255,255,255,0.04))"
-          : "rgba(255,255,255,0.03)",
-        color: "#E5E7EB",
+          ? "linear-gradient(180deg, var(--accent-2-soft), rgba(255,255,255,0.03))"
+          : "var(--card-bg)",
+        color: active ? "var(--accent)" : "var(--text-primary)",
         fontWeight: 900,
         fontSize: 13,
         cursor: "pointer",
-        boxShadow: active ? "0 0 18px rgba(99,102,241,0.18)" : "none",
+        boxShadow: active ? "var(--shadow-glow)" : "none",
         whiteSpace: "nowrap",
       }}
     >
@@ -283,7 +287,9 @@ function StarChip({
         gap: 10,
         padding: "10px 12px",
         borderRadius: 14,
-        border: isMissing ? "1px solid rgba(248,113,113,0.22)" : "1px solid rgba(34,197,94,0.18)",
+        border: isMissing
+          ? "1px solid rgba(248,113,113,0.22)"
+          : "1px solid rgba(34,197,94,0.18)",
         background: isMissing ? "rgba(248,113,113,0.08)" : "rgba(34,197,94,0.10)",
       }}
     >
@@ -295,16 +301,16 @@ function StarChip({
           display: "grid",
           placeItems: "center",
           fontWeight: 900,
-          color: "#E5E7EB",
+          color: "var(--text-primary)",
           background: "rgba(255,255,255,0.10)",
-          border: "1px solid rgba(255,255,255,0.10)",
+          border: "1px solid var(--card-border)",
         }}
       >
         {letter}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13 }}>{label}</div>
+        <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>{label}</div>
         <div
           style={{
             color: isMissing ? "rgba(248,113,113,0.95)" : "rgba(34,197,94,0.95)",
@@ -411,33 +417,33 @@ function SpeakingTimeline({
 
   return (
     <div
-      style={{
-        marginTop: 14,
-        borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(255,255,255,0.03)",
-        padding: 14,
-      }}
-    >
+  style={{
+    marginTop: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    padding: 14,
+  }}
+>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontWeight: 900, fontSize: 13, color: "#E5E7EB" }}>Speaking timeline</div>
-        <div style={{ fontSize: 12, color: "#9CA3AF" }}>{duration ? `${duration.toFixed(1)}s` : ""}</div>
+        <div style={{ fontWeight: 900, fontSize: 13, color: "var(--text-primary)" }}>Speaking timeline</div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{duration ? `${duration.toFixed(1)}s` : ""}</div>
       </div>
 
       <div style={{ marginTop: 10 }}>
         <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: "block" }}>
-          <polyline points={energyPath} fill="none" stroke="rgba(255,255,255,0.65)" strokeWidth="2" />
-          <polyline points={pitchPath} fill="none" stroke="rgba(99,102,241,0.85)" strokeWidth="2" />
+          <polyline points={energyPath} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="2" />
+<polyline points={pitchPath} fill="none" stroke="var(--accent-2)" strokeWidth="2" />
         </svg>
 
-        <div style={{ marginTop: 8, display: "flex", gap: 14, fontSize: 12, color: "#9CA3AF" }}>
+        <div style={{ marginTop: 8, display: "flex", gap: 14, fontSize: 12, color: "var(--text-muted)" }}>
           <div>
             <span
               style={{
                 display: "inline-block",
                 width: 10,
                 height: 2,
-                background: "rgba(255,255,255,0.65)",
+                background: "rgba(255,255,255,0.55)",
                 marginRight: 6,
               }}
             />
@@ -449,7 +455,7 @@ function SpeakingTimeline({
                 display: "inline-block",
                 width: 10,
                 height: 2,
-                background: "rgba(99,102,241,0.85)",
+                background: "var(--accent-2)",
                 marginRight: 6,
               }}
             />
@@ -506,33 +512,54 @@ function HeadlineCard({
       style={{
         padding: 16,
         borderRadius: 16,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background: "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+        border: "1px solid var(--card-border-soft)",
+        background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+        boxShadow: "var(--shadow-card-soft)",
         minWidth: 0,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>{title}</div>
-        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800 }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800, letterSpacing: 0.5 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800 }}>
           {s !== null ? `${Math.round(s * 10) / 10}/10 · ${scoreLabel(s)}` : "—"}
         </div>
       </div>
 
-      <div style={{ marginTop: 8, fontSize: 13, color: "#E5E7EB", fontWeight: 900 }}>{subtitle}</div>
+      <div style={{ marginTop: 8, fontSize: 13, color: "var(--text-primary)", fontWeight: 900 }}>
+        {subtitle}
+      </div>
 
-      <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+      <div
+        style={{
+          marginTop: 10,
+          height: 6,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.08)",
+          overflow: "hidden",
+        }}
+      >
         <div
           style={{
             width: `${s !== null ? Math.max(0, Math.min(100, (s / 10) * 100)) : 0}%`,
             height: "100%",
-            background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+            background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
             transition: "width 300ms ease",
           }}
         />
       </div>
 
-      <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, lineHeight: 1.6, color: "#9CA3AF", fontSize: 12 }}>
+      <ul
+        style={{
+          marginTop: 12,
+          marginBottom: 0,
+          paddingLeft: 18,
+          lineHeight: 1.6,
+          color: "var(--text-muted)",
+          fontSize: 12,
+        }}
+      >
         {bullets.slice(0, 3).map((b, i) => (
           <li key={i}>{b}</li>
         ))}
@@ -967,38 +994,42 @@ export default function ResultsPage() {
 
   return (
     <PremiumShell title="Results" subtitle="Review performance and iterate.">
-      <div
-        style={{
-          marginTop: 24,
-          padding: 18,
-          borderRadius: 20,
-          border: "1px solid rgba(255,255,255,0.08)",
-          background:
-            "radial-gradient(900px 400px at 20% -10%, rgba(99,102,241,0.14), transparent 60%), rgba(255,255,255,0.02)",
-        }}
-      >
+     <div
+  style={{
+    marginTop: 24,
+    padding: 18,
+    borderRadius: "var(--radius-xl)",
+    border: "1px solid var(--card-border-soft)",
+    background: `
+      radial-gradient(900px 400px at 20% -10%, var(--accent-2-soft), transparent 60%),
+      var(--card-bg)
+    `,
+  }}
+>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <button
-            onClick={() => {
-              try {
-                sessionStorage.setItem("ipc_force_restore", "1");
-              } catch {}
-              router.back();
-            }}
-            style={{
-              padding: "10px 14px",
-              cursor: "pointer",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.06)",
-              color: "#E5E7EB",
-              fontWeight: 800,
-            }}
-          >
-            ← Back
-          </button>
+  onClick={() => {
+    try {
+      sessionStorage.setItem("ipc_force_restore", "1");
+    } catch {}
+    router.back();
+  }}
+  style={{
+    padding: "10px 14px",
+    cursor: "pointer",
+    borderRadius: "var(--radius-sm)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    color: "var(--text-primary)",
+    fontWeight: 800,
+  }}
+>
+  ← Back
+</button>
 
-          <div style={{ color: "#9CA3AF", fontSize: 12 }}>{stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : ""}</div>
+          <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+  {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : ""}
+</div>
         </div>
 
         <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -1015,23 +1046,32 @@ export default function ResultsPage() {
             {replayUrl ? (
               <audio controls preload="none" src={replayUrl} style={{ width: "100%" }} />
             ) : (
-              <div style={{ color: "#9CA3AF", fontSize: 13 }}>Loading recording…</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading recording…</div>
             )}
           </div>
         ) : null}
 
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 32, fontWeight: 950, letterSpacing: -0.5 }}>Results</div>
-          <div style={{ marginTop: 6, color: "#9CA3AF" }}>
-            {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : "No saved result yet."}
-          </div>
-        </div>
+  <div
+    style={{
+      fontSize: 32,
+      fontWeight: 950,
+      letterSpacing: -0.5,
+      color: "var(--text-primary)",
+    }}
+  >
+    Results
+  </div>
+  <div style={{ marginTop: 6, color: "var(--text-muted)" }}>
+    {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : "No saved result yet."}
+  </div>
+</div>
 
         {!stored || !feedback ? (
           <SectionCard title="No results found">
-            <div style={{ color: "#9CA3AF", lineHeight: 1.6 }}>
-              Go back, record an answer, then click <strong>Analyze My Answer</strong>.
-            </div>
+            <div style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
+  Go back, record an answer, then click <strong style={{ color: "var(--text-primary)" }}>Analyze My Answer</strong>.
+</div>
           </SectionCard>
         ) : (
           <>
@@ -1051,13 +1091,13 @@ export default function ResultsPage() {
                     <div style={{ fontSize: 34, fontWeight: 950, letterSpacing: -0.5 }}>
                       {gradeFromScore(Number(feedback.score ?? 0)).grade}
                     </div>
-                    <div style={{ color: "#9CA3AF", fontSize: 13 }}>{gradeFromScore(Number(feedback.score ?? 0)).label}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{gradeFromScore(Number(feedback.score ?? 0)).label}</div>
                   </div>
 
                   {insightBullets ? (
                     <ul style={{ marginTop: 16, marginBottom: 0, paddingLeft: 18, lineHeight: 1.6 }}>
                       {insightBullets.map((t, i) => (
-                        <li key={i} style={{ marginTop: i === 0 ? 0 : 6, color: "#9CA3AF", fontSize: 13 }}>
+                        <li key={i} style={{ marginTop: i === 0 ? 0 : 6, color: "var(--text-muted)", fontSize: 13 }}>
                           {t}
                         </li>
                       ))}
@@ -1066,23 +1106,23 @@ export default function ResultsPage() {
 
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
                     <div
-                      style={{
-                        padding: "6px 10px",
-                        borderRadius: 999,
-                        border: "1px solid rgba(255,255,255,0.12)",
-                        background: "rgba(255,255,255,0.06)",
-                        color: "#E5E7EB",
-                        fontSize: 12,
-                        fontWeight: 800,
-                        display: "flex",
-                        gap: 8,
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={{ color: "#9CA3AF", fontWeight: 900 }}>Pace</span>
+  style={{
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    color: "var(--text-primary)",
+    fontSize: 12,
+    fontWeight: 800,
+    display: "flex",
+    gap: 8,
+    alignItems: "center",
+  }}
+>
+  <span style={{ color: "var(--text-muted)", fontWeight: 900 }}>Pace</span>
                       <span>{typeof stored?.wpm === "number" ? `${stored.wpm} wpm` : "—"}</span>
                       {typeof stored?.wpm === "number" ? (
-                        <span style={{ color: "#9CA3AF", fontWeight: 800 }}>· {paceContext(stored.wpm).label}</span>
+                        <span style={{ color: "var(--text-muted)", fontWeight: 800 }}>· {paceContext(stored.wpm).label}</span>
                       ) : null}
                     </div>
                   </div>
@@ -1090,40 +1130,58 @@ export default function ResultsPage() {
 
                 {stored?.question ? (
                   <div
-                    style={{
-                      marginTop: 16,
-                      marginBottom: 18,
-                      padding: 16,
-                      borderRadius: 16,
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      background: "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-                      minWidth: 0,
-                    }}
-                  >
-                    <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>Question</div>
-                    <div style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: "#E5E7EB" }}>{stored.question}</div>
+  style={{
+    marginTop: 16,
+    marginBottom: 18,
+    padding: 16,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    boxShadow: "var(--shadow-card-soft)",
+    minWidth: 0,
+  }}
+>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800, letterSpacing: 0.5 }}>
+  Question
+</div>
+                    <div style={{ marginTop: 8, fontSize: 14, lineHeight: 1.6, color: "var(--text-primary)" }}>
+  {stored.question}
+</div>
                   </div>
                 ) : null}
 
                 <div style={{ marginTop: 10 }}>
                   <div
-                    style={{
-                      padding: 22,
-                      borderRadius: 18,
-                      border: "1px solid rgba(255,255,255,0.10)",
-                      background:
-                        "radial-gradient(900px 420px at 15% -10%, rgba(99,102,241,0.18), transparent 60%), rgba(17,24,39,0.92)",
-                      boxShadow: "0 14px 50px rgba(0,0,0,0.35)",
-                    }}
-                  >
+  style={{
+    padding: 22,
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--card-border)",
+    background: `
+  radial-gradient(900px 420px at 15% -10%, var(--accent-2-soft), transparent 60%),
+  var(--card-bg)
+`,
+    boxShadow: "var(--shadow-card)",
+  }}
+>
                     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
                       <div>
-                        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>Overall</div>
-                        <div style={{ marginTop: 8, fontSize: 44, fontWeight: 950, letterSpacing: -0.8, color: "#E5E7EB" }}>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800, letterSpacing: 0.5 }}>
+                            Overall
+                          </div>
+                   <div
+                          style={{
+                            marginTop: 8,
+                            fontSize: 44,
+                            fontWeight: 950,
+                            letterSpacing: -0.8,
+                            color: "var(--text-primary)",
+                          }}
+                        >
                           {Number(feedback.score ?? 0)}/10
                         </div>
-                        <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF" }}>{gradeFromScore(Number(feedback.score ?? 0)).label}</div>
+                        <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
+                          {gradeFromScore(Number(feedback.score ?? 0)).label}
+                        </div>
                       </div>
                     </div>
 
@@ -1132,7 +1190,7 @@ export default function ResultsPage() {
                         style={{
                           width: `${Math.max(0, Math.min(100, (Number(feedback.score ?? 0) / 10) * 100))}%`,
                           height: "100%",
-                          background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+                          background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
                           transition: "width 300ms ease",
                         }}
                       />
@@ -1146,30 +1204,34 @@ export default function ResultsPage() {
                       { label: "STAR Avg", value: typeof starAvg === "number" ? starAvg : null, sub: "Situation/Task/Action/Result" },
                     ].map((m) => (
                       <div
-                        key={m.label}
-                        style={{
-                          padding: 18,
-                          borderRadius: 16,
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          background: "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-                          boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-                          minWidth: 0,
-                        }}
-                      >
-                        <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>{m.label}</div>
+  key={m.label}
+  style={{
+    padding: 18,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    boxShadow: "var(--shadow-card-soft)",
+    minWidth: 0,
+  }}
+>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800, letterSpacing: 0.5 }}>
+  {m.label}
+</div>
 
-                        <div style={{ marginTop: 8, fontSize: 28, fontWeight: 950, color: "#E5E7EB" }}>
+                        <div style={{ marginTop: 8, fontSize: 28, fontWeight: 950, color: "var(--text-primary)" }}>
                           {typeof m.value === "number" ? `${m.value}/10` : "—"}
                         </div>
 
-                        <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.4 }}>{m.sub}</div>
+                        <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
+  {m.sub}
+</div>
 
                         <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
                           <div
                             style={{
                               width: `${Math.max(0, Math.min(100, (Number(m.value ?? 0) / 10) * 100))}%`,
                               height: "100%",
-                              background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+                              background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
                               transition: "width 300ms ease",
                             }}
                           />
@@ -1184,28 +1246,27 @@ export default function ResultsPage() {
             {activeTab === "relevance" && feedback?.relevance ? (
   <SectionCard title="Question Relevance">
     <div
-      style={{
-        marginTop: 6,
-        color: "#9CA3AF",
-        fontSize: 13,
-        lineHeight: 1.6,
-      }}
-    >
-      This tab measures whether you actually answered the interviewer’s question directly and completely.
-    </div>
+  style={{
+    marginTop: 6,
+    color: "var(--text-muted)",
+    fontSize: 13,
+    lineHeight: 1.6,
+  }}
+>
+  This tab measures whether you actually answered the interviewer’s question directly and completely.
+</div>
 
     <div
-      style={{
-        marginTop: 18,
-        padding: 18,
-        borderRadius: 18,
-        border: "1px solid rgba(255,255,255,0.08)",
-        background:
-          "linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-        boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-        minWidth: 0,
-      }}
-    >
+  style={{
+    marginTop: 18,
+    padding: 16,
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--card-border-soft)",
+    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    boxShadow: "var(--shadow-card-soft)",
+    minWidth: 0,
+  }}
+>
       <div
         style={{
           display: "flex",
@@ -1219,7 +1280,7 @@ export default function ResultsPage() {
           <div
             style={{
               fontSize: 12,
-              color: "#9CA3AF",
+              color: "var(--text-muted)",
               fontWeight: 800,
               letterSpacing: 0.5,
             }}
@@ -1233,7 +1294,7 @@ export default function ResultsPage() {
               fontSize: 34,
               fontWeight: 950,
               letterSpacing: -0.5,
-              color: "#E5E7EB",
+              color: "var(--text-primary)",
             }}
           >
             {typeof feedback.relevance.relevance_score === "number"
@@ -1241,7 +1302,7 @@ export default function ResultsPage() {
               : "—"}
           </div>
 
-          <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF", lineHeight: 1.5 }}>
+          <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
             {feedback.relevance.answered_question
               ? "Answered the interviewer’s question"
               : "Did not fully answer the interviewer’s question"}
@@ -1285,8 +1346,7 @@ export default function ResultsPage() {
               Math.min(100, (Number(feedback.relevance.relevance_score ?? 0) / 10) * 100)
             )}%`,
             height: "100%",
-            background:
-              "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+              background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
             transition: "width 300ms ease",
           }}
         />
@@ -1318,21 +1378,20 @@ export default function ResultsPage() {
           },
         ].map((m) => (
           <div
-            key={m.label}
-            style={{
-              padding: 16,
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background:
-                "linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
-              boxShadow: "0 8px 24px rgba(0,0,0,0.28)",
-              minWidth: 0,
-            }}
-          >
+  key={m.label}
+  style={{
+    padding: 16,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    boxShadow: "var(--shadow-card-soft)",
+    minWidth: 0,
+  }}
+>
             <div
               style={{
                 fontSize: 12,
-                color: "#9CA3AF",
+                color: "var(--text-muted)",
                 fontWeight: 800,
                 letterSpacing: 0.5,
               }}
@@ -1345,7 +1404,7 @@ export default function ResultsPage() {
                 marginTop: 8,
                 fontSize: 24,
                 fontWeight: 950,
-                color: "#E5E7EB",
+                color: "var(--text-primary)",
               }}
             >
               {typeof m.value === "number" ? `${m.value}/10` : "—"}
@@ -1355,7 +1414,7 @@ export default function ResultsPage() {
               style={{
                 marginTop: 6,
                 fontSize: 12,
-                color: "#9CA3AF",
+                color: "var(--text-muted)",
                 lineHeight: 1.45,
               }}
             >
@@ -1376,7 +1435,7 @@ export default function ResultsPage() {
                   width: `${Math.max(0, Math.min(100, (Number(m.value ?? 0) / 10) * 100))}%`,
                   height: "100%",
                   background:
-                    "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+                    "linear-gradient(90deg, var(--accent-2), var(--accent))",
                   transition: "width 300ms ease",
                 }}
               />
@@ -1388,17 +1447,17 @@ export default function ResultsPage() {
       {Array.isArray(feedback.relevance.missed_parts) &&
       feedback.relevance.missed_parts.length > 0 ? (
         <div
-          style={{
-            marginTop: 16,
-            padding: 14,
-            borderRadius: 14,
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(255,255,255,0.03)",
-          }}
-        >
+  style={{
+    marginTop: 16,
+    padding: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border-soft)",
+    background: "var(--card-bg)",
+  }}
+>
           <div
             style={{
-              color: "#9CA3AF",
+              color: "var(--text-muted)",
               fontWeight: 800,
               fontSize: 12,
               letterSpacing: 0.4,
@@ -1413,7 +1472,7 @@ export default function ResultsPage() {
               marginBottom: 0,
               paddingLeft: 18,
               lineHeight: 1.7,
-              color: "#E5E7EB",
+              color: "var(--text-primary)",
             }}
           >
             {feedback.relevance.missed_parts.map((part: string, i: number) => (
@@ -1428,7 +1487,7 @@ export default function ResultsPage() {
         <div
           style={{
             marginTop: 14,
-            color: "#9CA3AF",
+            color: "var(--text-muted)",
             fontSize: 13,
             lineHeight: 1.7,
           }}
@@ -1442,30 +1501,42 @@ export default function ResultsPage() {
 
             {activeTab === "delivery" ? (
               <SectionCard title="Voice Delivery">
-                <div style={{ marginTop: 6, color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
-                  This tab focuses on <strong style={{ color: "#E5E7EB" }}>how you sounded</strong>: presence, rhythm, and clarity.
-                </div>
+                <div style={{ marginTop: 6, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
+  This tab focuses on <strong style={{ color: "var(--text-primary)" }}>how you sounded</strong>: presence, rhythm, and clarity.
+</div>
 
                 <div
-                  style={{
-                    marginTop: 14,
-                    padding: 16,
-                    borderRadius: 18,
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    background:
-                      "radial-gradient(900px 420px at 15% -10%, rgba(99,102,241,0.16), transparent 60%), rgba(255,255,255,0.03)",
-                    boxShadow: "0 14px 50px rgba(0,0,0,0.35)",
-                  }}
-                >
+  style={{
+    marginTop: 14,
+    padding: 16,
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--card-border)",
+    background: `
+      radial-gradient(900px 420px at 15% -10%, var(--accent-2-soft), transparent 60%),
+      var(--card-bg)
+    `,
+    boxShadow: "var(--shadow-card)",
+  }}
+>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 14, flexWrap: "wrap", alignItems: "baseline" }}>
                     <div>
-                      <div style={{ fontSize: 12, color: "#9CA3AF", fontWeight: 800, letterSpacing: 0.5 }}>Engagement score</div>
-                      <div style={{ marginTop: 8, fontSize: 38, fontWeight: 950, letterSpacing: -0.8, color: "#E5E7EB" }}>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800, letterSpacing: 0.5 }}>
+  Engagement score
+</div>
+                      <div
+  style={{
+    marginTop: 8,
+    fontSize: 38,
+    fontWeight: 950,
+    letterSpacing: -0.8,
+    color: "var(--text-primary)",
+  }}
+>
                         {typeof deliverySummary?.engagementScore === "number"
                           ? `${Math.round(deliverySummary.engagementScore * 10) / 10}/10`
                           : "—"}
                       </div>
-                      <div style={{ marginTop: 6, fontSize: 13, color: "#9CA3AF" }}>
+                      <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
                         {typeof deliverySummary?.engagementScore === "number"
                           ? scoreLabel(deliverySummary.engagementScore)
                           : "No acoustic signal detected yet."}
@@ -1475,33 +1546,33 @@ export default function ResultsPage() {
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
                       {deliverySummary?.energyDriftLabel ? (
                         <div
-                          style={{
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            border: "1px solid rgba(255,255,255,0.12)",
-                            background: "rgba(255,255,255,0.06)",
-                            color: "#E5E7EB",
-                            fontSize: 12,
-                            fontWeight: 800,
-                          }}
-                        >
-                          Energy: <span style={{ color: "#9CA3AF", fontWeight: 900 }}>{deliverySummary.energyDriftLabel}</span>
+  style={{
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    color: "var(--text-primary)",
+    fontSize: 12,
+    fontWeight: 800,
+  }}
+>
+                          Energy: <span style={{ color: "var(--text-muted)", fontWeight: 900 }}>{deliverySummary.energyDriftLabel}</span>
                         </div>
                       ) : null}
 
                       {deliverySummary?.pitchTrendLabel ? (
                         <div
-                          style={{
-                            padding: "6px 10px",
-                            borderRadius: 999,
-                            border: "1px solid rgba(255,255,255,0.12)",
-                            background: "rgba(255,255,255,0.06)",
-                            color: "#E5E7EB",
+  style={{
+    padding: "6px 10px",
+    borderRadius: 999,
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg-strong)",
+    color: "var(--text-primary)",
                             fontSize: 12,
                             fontWeight: 800,
                           }}
                         >
-                          Pitch trend: <span style={{ color: "#9CA3AF", fontWeight: 900 }}>{deliverySummary.pitchTrendLabel}</span>
+                          Pitch trend: <span style={{ color: "var(--text-muted)", fontWeight: 900 }}>{deliverySummary.pitchTrendLabel}</span>
                         </div>
                       ) : null}
                     </div>
@@ -1516,13 +1587,13 @@ export default function ResultsPage() {
                             : 0
                         }%`,
                         height: "100%",
-                        background: "linear-gradient(90deg, rgba(99,102,241,0.95), rgba(34,211,238,0.85))",
+                        background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
                         transition: "width 300ms ease",
                       }}
                     />
                   </div>
 
-                  <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
+                  <div style={{ marginTop: 12, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>
                     Built from your pitch + energy variation, rhythm, and clarity signals.
                   </div>
                 </div>
@@ -1562,22 +1633,24 @@ export default function ResultsPage() {
 
                 {(dm || deliverySummary) ? (
                   <div
-                    style={{
-                      marginTop: 14,
-                      borderRadius: 16,
-                      border: "1px solid rgba(255,255,255,0.10)",
-                      background: "rgba(255,255,255,0.03)",
-                      padding: 14,
-                    }}
-                  >
-                    <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 8 }}>Micro delivery signals</div>
+  style={{
+    marginTop: 14,
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    padding: 14,
+  }}
+>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 12, marginBottom: 8 }}>
+  Micro delivery signals
+</div>
 
                     <div
                       style={{
                         display: "grid",
                         gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
                         gap: 10,
-                        color: "#9CA3AF",
+                        color: "var(--text-muted)",
                         fontSize: 12,
                         lineHeight: 1.7,
                       }}
@@ -1585,7 +1658,7 @@ export default function ResultsPage() {
                       <div>
                         {typeof deliverySummary?.fillersPer100 === "number" ? (
                           <div>
-                            Fillers: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{deliverySummary.fillersPer100}</span> / 100 words
+                            Fillers: <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{deliverySummary.fillersPer100}</span> / 100 words
                           </div>
                         ) : (
                           <div>Fillers: —</div>
@@ -1594,7 +1667,7 @@ export default function ResultsPage() {
                         {typeof deliverySummary?.pauseDensity === "number" ? (
                           <div>
                             Pause density:{" "}
-                            <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{deliverySummary.pauseDensity.toFixed(3)}</span> pauses/sec
+                            <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{deliverySummary.pauseDensity.toFixed(3)}</span> pauses/sec
                           </div>
                         ) : (
                           <div>Pause density: —</div>
@@ -1602,7 +1675,7 @@ export default function ResultsPage() {
 
                         {typeof dm?.pauseCount === "number" ? (
                           <div>
-                            Pauses: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{dm.pauseCount}</span>
+                            Pauses: <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{dm.pauseCount}</span>
                           </div>
                         ) : null}
                       </div>
@@ -1610,14 +1683,14 @@ export default function ResultsPage() {
                       <div>
                         {typeof dm?.longPauseCount === "number" ? (
                           <div>
-                            Long pauses (≥0.9s): <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{dm.longPauseCount}</span>
+                            Long pauses (≥0.9s): <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{dm.longPauseCount}</span>
                           </div>
                         ) : null}
 
                         {typeof deliverySummary?.longPauseRatio === "number" ? (
                           <div>
                             Long pause ratio:{" "}
-                            <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{Math.round(deliverySummary.longPauseRatio * 100)}%</span>
+                            <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{Math.round(deliverySummary.longPauseRatio * 100)}%</span>
                           </div>
                         ) : (
                           <div>Long pause ratio: —</div>
@@ -1625,14 +1698,14 @@ export default function ResultsPage() {
 
                         {typeof dm?.avgPauseMs === "number" ? (
                           <div>
-                            Average pause: <span style={{ color: "#E5E7EB", fontWeight: 900 }}>{dm.avgPauseMs}</span> ms
+                            Average pause: <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{dm.avgPauseMs}</span> ms
                           </div>
                         ) : null}
                       </div>
                     </div>
 
                     {process.env.NODE_ENV !== "production" ? (
-                      <div style={{ fontSize: 12, color: "#9CA3AF", marginTop: 10 }}>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
                         acoustics debug:
                         <pre>{JSON.stringify(acoustics, null, 2)}</pre>
                       </div>
@@ -1642,7 +1715,7 @@ export default function ResultsPage() {
 
                 {acousticsNorm ? (
                   <div style={{ marginTop: 14 }}>
-                    <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>Voice dynamics</div>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>Voice dynamics</div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
                       {hasNum(acousticsNorm.monotoneScore) ? (
@@ -1678,9 +1751,9 @@ export default function ResultsPage() {
                     {series ? <SpeakingTimeline series={series} /> : null}
                   </div>
                 ) : (
-                  <div style={{ marginTop: 14, color: "#9CA3AF", fontSize: 13 }}>
-                    No acoustic features detected yet. Record a spoken answer to populate voice analytics.
-                  </div>
+                  <div style={{ marginTop: 14, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
+  No acoustic features detected yet. Record a spoken answer to populate voice analytics.
+</div>
                 )}
               </SectionCard>
             ) : null}
@@ -1689,13 +1762,13 @@ export default function ResultsPage() {
               <SectionCard title="Why this score">
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {typeof starAvg === "number" ? (
-                    <div style={{ color: "#E5E7EB", fontSize: 13 }}>
+                    <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
                       STAR average drove most of the score: <span style={{ fontWeight: 900 }}>{starAvg.toFixed(1)}</span>
                     </div>
                   ) : null}
 
                   {dm && (typeof dm.longPauseCount === "number" || typeof dm.maxPauseMs === "number") ? (
-                    <div style={{ color: "#9CA3AF", fontSize: 13 }}>
+                    <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
                       Delivery penalty applied:{" "}
                       {typeof dm.longPauseCount === "number" ? `long pauses=${dm.longPauseCount}` : ""}
                       {typeof dm.longPauseCount === "number" && typeof dm.maxPauseMs === "number" ? ", " : ""}
@@ -1703,24 +1776,24 @@ export default function ResultsPage() {
                     </div>
                   ) : null}
 
-                  {typeof stored?.wpm === "number" ? <div style={{ color: "#9CA3AF", fontSize: 13 }}>Delivery pace detected: {stored.wpm} words per minute</div> : null}
+                  {typeof stored?.wpm === "number" ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Delivery pace detected: {stored.wpm} words per minute</div> : null}
 
                   {Array.isArray(feedback?.keywords_missing) && feedback.keywords_missing.length > 0 ? (
-                    <div style={{ color: "#9CA3AF", fontSize: 13 }}>Missing role keywords also limited the score.</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Missing role keywords also limited the score.</div>
                   ) : null}
 
-                  <div style={{ color: "#9CA3AF", fontSize: 12 }}>Scores above 8 require strong STAR structure and measurable impact.</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Scores above 8 require strong STAR structure and measurable impact.</div>
                 </div>
               </SectionCard>
             ) : null}
 
             {activeTab === "coaching" && gamePlan ? (
               <SectionCard title="Next Attempt Game Plan">
-                <div style={{ color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
-                  <strong style={{ color: "#E5E7EB" }}>{gamePlan.summary}</strong>
+                <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
+                  <strong style={{ color: "var(--text-primary)" }}>{gamePlan.summary}</strong>
                 </div>
 
-                <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
+                <ul style={{ marginTop: 12, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
                   {gamePlan.tips.map((t, i) => (
                     <li key={i}>{t}</li>
                   ))}
@@ -1728,7 +1801,7 @@ export default function ResultsPage() {
               </SectionCard>
             ) : null}
 
-            <div style={{ marginTop: 32, borderTop: "1px solid rgba(255,255,255,0.06)" }} />
+            <div style={{ marginTop: 32, borderTop: "1px solid var(--card-border-soft)" }} />
 
             {activeTab === "structure" && feedback.star ? (
               <SectionCard title={`STAR Breakdown${starAvg !== null ? ` (avg ${starAvg}/10)` : ""}`}>
@@ -1740,17 +1813,17 @@ export default function ResultsPage() {
                 </div>
 
                 <div
-                  style={{
-                    borderRadius: 16,
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    background: "rgba(255,255,255,0.03)",
-                    padding: 14,
-                    marginBottom: 14,
-                  }}
-                >
+  style={{
+    borderRadius: "var(--radius-md)",
+    border: "1px solid var(--card-border)",
+    background: "var(--card-bg)",
+    padding: 14,
+    marginBottom: 14,
+  }}
+>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                    <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13, letterSpacing: 0.4 }}>Evidence excerpts</div>
-                    <div style={{ color: "#9CA3AF", fontSize: 12 }}>Based on your transcript (auto-selected)</div>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13, letterSpacing: 0.4 }}>Evidence excerpts</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Based on your transcript (auto-selected)</div>
                   </div>
 
                   <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -1773,32 +1846,32 @@ export default function ResultsPage() {
                         <div
                           key={row.key}
                           style={{
-                            borderRadius: 14,
-                            padding: 12,
-                            border: missing ? "1px solid rgba(248,113,113,0.18)" : "1px solid rgba(255,255,255,0.08)",
-                            background: missing ? "rgba(248,113,113,0.06)" : "rgba(255,255,255,0.02)",
-                          }}
+  borderRadius: 14,
+  padding: 12,
+  border: missing ? "1px solid rgba(248,113,113,0.18)" : "1px solid var(--card-border-soft)",
+  background: missing ? "rgba(248,113,113,0.06)" : "var(--card-bg)",
+}}
                         >
                           <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                            <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13 }}>{row.label}</div>
-                            <div style={{ color: missing ? "rgba(248,113,113,0.95)" : "#9CA3AF", fontSize: 12, fontWeight: 800 }}>
+                            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>{row.label}</div>
+                            <div style={{ color: missing ? "rgba(248,113,113,0.95)" : "var(--text-muted)", fontSize: 12, fontWeight: 800 }}>
                               {missing ? "Missing" : "Detected"}
                             </div>
                           </div>
 
-                          <div style={{ marginTop: 8, color: "#E5E7EB", fontSize: 13, lineHeight: 1.6 }}>
+                          <div style={{ marginTop: 8, color: "var(--text-primary)", fontSize: 13, lineHeight: 1.6 }}>
                             {excerpt ? (
                               <div style={{ fontStyle: "italic", opacity: 0.95 }}>&ldquo;{excerpt}&rdquo;</div>
                             ) : (
-                              <div style={{ color: "#9CA3AF" }}>
+                              <div style={{ color: "var(--text-muted)" }}>
                                 No clear excerpt detected. Add 1 sentence that explicitly states your {row.label.toLowerCase()}.
                               </div>
                             )}
                           </div>
 
                           {advice ? (
-                            <div style={{ marginTop: 10, color: "#9CA3AF", fontSize: 12, lineHeight: 1.6 }}>
-                              <span style={{ color: "#E5E7EB", fontWeight: 900 }}>Fix:</span> {advice}
+                            <div style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>
+                              <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>Fix:</span> {advice}
                             </div>
                           ) : null}
                         </div>
@@ -1813,8 +1886,8 @@ export default function ResultsPage() {
                 <MetricBar label="Result" value={feedback.star.result} max={10} />
 
                 {Array.isArray(feedback.star_missing) ? (
-                  <div style={{ marginTop: 12, color: "#9CA3AF", fontSize: 13 }}>
-                    <strong style={{ color: "#9CA3AF" }}>Missing:</strong> {feedback.star_missing.length ? feedback.star_missing.join(", ") : "None"}
+                  <div style={{ marginTop: 12, color: "var(--text-muted)", fontSize: 13 }}>
+                    <strong style={{ color: "var(--text-muted)" }}>Missing:</strong> {feedback.star_missing.length ? feedback.star_missing.join(", ") : "None"}
                   </div>
                 ) : null}
               </SectionCard>
@@ -1822,7 +1895,7 @@ export default function ResultsPage() {
 
             {activeTab === "coaching" ? (
               <SectionCard title="Strengths">
-                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
                   {(feedback.strengths ?? []).map((s: string, i: number) => (
                     <li key={i}>{s}</li>
                   ))}
@@ -1832,7 +1905,7 @@ export default function ResultsPage() {
 
             {activeTab === "coaching" ? (
               <SectionCard title="Improvements">
-                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "#E5E7EB" }}>
+                <ul style={{ margin: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
                   {(feedback.improvements ?? []).map((s: string, i: number) => (
                     <li key={i}>{s}</li>
                   ))}
@@ -1846,28 +1919,28 @@ export default function ResultsPage() {
               <SectionCard title="Missed opportunities">
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {(feedback as any).missed_opportunities.slice(0, 4).map((m: any, i: number) => (
-                    <div
-                      key={i}
-                      style={{
-                        borderRadius: 12,
-                        padding: 12,
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        background: "rgba(255,255,255,0.02)",
-                      }}
-                    >
+  <div
+    key={i}
+    style={{
+      borderRadius: "var(--radius-sm)",
+      padding: 12,
+      border: "1px solid var(--card-border-soft)",
+      background: "var(--card-bg)",
+    }}
+  >
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                        <div style={{ color: "#E5E7EB", fontWeight: 900, fontSize: 13 }}>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>
                           {m?.label ? String(m.label) : "Opportunity"}
                         </div>
                       </div>
 
                       {m?.why ? (
-                        <div style={{ marginTop: 6, color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>{String(m.why)}</div>
+                        <div style={{ marginTop: 6, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>{String(m.why)}</div>
                       ) : null}
 
                       {m?.add_sentence ? (
-                        <div style={{ marginTop: 10, color: "#E5E7EB", fontSize: 13, lineHeight: 1.7 }}>
-                          <span style={{ color: "#9CA3AF", fontWeight: 800 }}>Add this sentence:</span>{" "}
+                        <div style={{ marginTop: 10, color: "var(--text-primary)", fontSize: 13, lineHeight: 1.7 }}>
+                          <span style={{ color: "var(--text-muted)", fontWeight: 800 }}>Add this sentence:</span>{" "}
                           <span style={{ fontStyle: "italic" }}>&ldquo;{String(m.add_sentence)}&rdquo;</span>
                         </div>
                       ) : null}
@@ -1879,7 +1952,7 @@ export default function ResultsPage() {
 
             {activeTab === "coaching" && feedback.better_answer ? (
               <SectionCard title="Stronger version">
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#E5E7EB" }}>{feedback.better_answer}</div>
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "var(--text-primary)" }}>{feedback.better_answer}</div>
               </SectionCard>
             ) : null}
 
@@ -1888,7 +1961,7 @@ export default function ResultsPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {Array.isArray(feedback.keywords_used) && feedback.keywords_used.length > 0 ? (
                     <div>
-                      <div style={{ color: "#9CA3AF", fontWeight: 800, fontSize: 12, letterSpacing: 0.5 }}>Used effectively</div>
+                      <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: 12, letterSpacing: 0.5 }}>Used effectively</div>
                       <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
                         {feedback.keywords_used.map((k: string) => (
                           <div
@@ -1912,7 +1985,7 @@ export default function ResultsPage() {
 
                   {Array.isArray(feedback.keywords_missing) && feedback.keywords_missing.length > 0 ? (
                     <div>
-                      <div style={{ color: "#9CA3AF", fontWeight: 800, fontSize: 12, letterSpacing: 0.5 }}>Missing from your answer</div>
+                      <div style={{ color: "var(--text-muted)", fontWeight: 800, fontSize: 12, letterSpacing: 0.5 }}>Missing from your answer</div>
                       <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
                         {feedback.keywords_missing.map((k: string) => (
                           <div
@@ -1935,7 +2008,7 @@ export default function ResultsPage() {
                   ) : null}
 
                   {Array.isArray(feedback.keywords_used) && feedback.keywords_used.length === 0 ? (
-                    <div style={{ color: "#9CA3AF", fontSize: 13, lineHeight: 1.6 }}>
+                    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
                       No strong job-specific keywords detected yet. Try naming the system/tool/process you used (ERP/MRP, schedule adherence, KPIs).
                     </div>
                   ) : null}
@@ -1945,7 +2018,7 @@ export default function ResultsPage() {
 
             {activeTab === "transcript" ? (
               <SectionCard title="Transcript">
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "#E5E7EB" }}>{stored.transcript}</div>
+                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "var(--text-primary)" }}>{stored.transcript}</div>
               </SectionCard>
             ) : null}
           </>

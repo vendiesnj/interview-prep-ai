@@ -7,11 +7,60 @@ import ManageBillingButton from "@/app/components/ManageBillingButton";
 import DangerZoneDeleteAccount from "@/app/components/DangerZoneDeleteAccount";
 import BillingSyncOnReturn from "@/app/components/BillingSyncOnReturn";
 import PremiumShell from "../../components/PremiumShell";
+import PremiumCard from "../../components/PremiumCard";
 import { Suspense } from "react";
 import Link from "next/link";
 
 function label(v?: string | null) {
   return v && v.trim().length ? v : "—";
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontWeight: 900,
+        color: "var(--text-primary)",
+        marginBottom: 12,
+        fontSize: 15,
+        letterSpacing: -0.1,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function FieldRow({
+  label,
+  value,
+  valueColor,
+}: {
+  label: string;
+  value: React.ReactNode;
+  valueColor?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: 16,
+        alignItems: "flex-start",
+      }}
+    >
+      <div style={{ color: "var(--text-primary)", fontWeight: 800 }}>{label}</div>
+      <div
+        style={{
+          color: valueColor ?? "var(--text-muted)",
+          fontWeight: 900,
+          textAlign: "right",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
 }
 
 export default async function AccountPage() {
@@ -24,19 +73,19 @@ export default async function AccountPage() {
   const email = session.user.email;
 
   const user = await prisma.user.findUnique({
-  where: { email },
-  select: {
-    id: true,
-    name: true,
-    email: true,
-    image: true,
-    passwordHash: true,
-    subscriptionStatus: true,
-    stripePriceId: true,
-    currentPeriodEnd: true,
-    accounts: true,
-  },
-});
+    where: { email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      passwordHash: true,
+      subscriptionStatus: true,
+      stripePriceId: true,
+      currentPeriodEnd: true,
+      accounts: true,
+    },
+  });
 
   if (!user) {
     redirect("/login");
@@ -44,156 +93,148 @@ export default async function AccountPage() {
 
   type AccountRow = (typeof user.accounts)[number];
 
-const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google");
-
+  const hasGoogle = user.accounts.some((a: AccountRow) => a.provider === "google");
   const hasPassword = Boolean(user.passwordHash);
 
-  const now = new Date();
-
   const isPro =
-  user.subscriptionStatus === "active" ||
-  user.subscriptionStatus === "trialing";
+    user.subscriptionStatus === "active" ||
+    user.subscriptionStatus === "trialing";
 
-    return (
+  return (
     <PremiumShell
       title="Account"
       subtitle="Manage your profile, sign-in methods, and subscription."
     >
       <div style={{ maxWidth: 900 }}>
-        {/* BillingSyncOnReturn uses useSearchParams(), which requires a Suspense boundary */}
-<Suspense fallback={null}>
-  <BillingSyncOnReturn />
-</Suspense>
+        <Suspense fallback={null}>
+          <BillingSyncOnReturn />
+        </Suspense>
 
         <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
-          {/* Profile */}
-          <div
+          <PremiumCard
             style={{
               padding: 16,
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(255,255,255,0.03)",
+              borderRadius: "var(--radius-md)",
             }}
           >
-            <div style={{ fontWeight: 900, color: "#E5E7EB", marginBottom: 10 }}>
-              Profile
-            </div>
+            <SectionTitle>Profile</SectionTitle>
 
-            <div style={{ display: "grid", gap: 8, color: "#E5E7EB" }}>
+            <div style={{ display: "grid", gap: 12 }}>
               <div>
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>Name</div>
-                <div style={{ fontWeight: 800 }}>{label(user.name)}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
+                  Name
+                </div>
+                <div style={{ fontWeight: 800, color: "var(--text-primary)" }}>
+                  {label(user.name)}
+                </div>
               </div>
 
               <div>
-                <div style={{ fontSize: 12, color: "#9CA3AF" }}>Email</div>
-                <div style={{ fontWeight: 800 }}>{label(user.email)}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
+                  Email
+                </div>
+                <div style={{ fontWeight: 800, color: "var(--text-primary)" }}>
+                  {label(user.email)}
+                </div>
               </div>
             </div>
-          </div>
+          </PremiumCard>
 
-          {/* Sign-in methods */}
-          <div
+          <PremiumCard
             style={{
               padding: 16,
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(255,255,255,0.03)",
+              borderRadius: "var(--radius-md)",
             }}
           >
-            <div style={{ fontWeight: 900, color: "#E5E7EB", marginBottom: 10 }}>
-              Sign-in methods
-            </div>
+            <SectionTitle>Sign-in methods</SectionTitle>
 
-            <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div style={{ color: "#E5E7EB", fontWeight: 800 }}>Google</div>
-                <div style={{ color: hasGoogle ? "#A5F3FC" : "#9CA3AF", fontWeight: 900 }}>
-                  {hasGoogle ? "Connected" : "Not connected"}
-                </div>
+            <div style={{ display: "grid", gap: 10 }}>
+              <FieldRow
+                label="Google"
+                value={hasGoogle ? "Connected" : "Not connected"}
+                valueColor={hasGoogle ? "var(--accent)" : "var(--text-muted)"}
+              />
+
+              <FieldRow
+                label="Password"
+                value={hasPassword ? "Set" : "Not set"}
+                valueColor={hasPassword ? "var(--accent)" : "var(--text-muted)"}
+              />
+
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                {!hasPassword ? (
+                  <div style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                    No password is set yet. If you signed up with Google, you can set one to enable email login.
+                  </div>
+                ) : (
+                  <div style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
+                    Password is set. You can sign in with email + password.
+                  </div>
+                )}
+
+                {hasGoogle && !hasPassword ? (
+                  <Link
+                    href="/set-password"
+                    style={{
+                      marginLeft: "auto",
+                      padding: "10px 12px",
+                      borderRadius: "var(--radius-sm)",
+                      border: "1px solid var(--accent-strong)",
+                      background: "var(--accent-soft)",
+                      color: "var(--accent)",
+                      fontWeight: 900,
+                      textDecoration: "none",
+                      fontSize: 12,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Set password
+                  </Link>
+                ) : null}
               </div>
-
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div style={{ color: "#E5E7EB", fontWeight: 800 }}>Password</div>
-                <div style={{ color: hasPassword ? "#A5F3FC" : "#9CA3AF", fontWeight: 900 }}>
-                  {hasPassword ? "Set" : "Not set"}
-                </div>
-              </div>
-
-              <div style={{ marginTop: 10, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-  {!hasPassword ? (
-    <div style={{ color: "#9CA3AF", fontSize: 12 }}>
-      No password is set yet. If you signed up with Google, you can set one to enable email login.
-    </div>
-  ) : (
-    <div style={{ color: "#9CA3AF", fontSize: 12 }}>
-      Password is set. You can sign in with email + password.
-    </div>
-  )}
-
-  {hasGoogle && !hasPassword ? (
-    <Link
-      href="/set-password"
-      style={{
-        marginLeft: "auto",
-        padding: "10px 12px",
-        borderRadius: 12,
-        border: "1px solid rgba(34,211,238,0.35)",
-        background: "rgba(34,211,238,0.12)",
-        color: "#A5F3FC",
-        fontWeight: 900,
-        textDecoration: "none",
-        fontSize: 12,
-        whiteSpace: "nowrap",
-      }}
-    >
-      Set password
-    </Link>
-  ) : null}
-</div>
             </div>
-          </div>
+          </PremiumCard>
 
-          {/* Plan */}
-          <div
+          <PremiumCard
             style={{
               padding: 16,
-              borderRadius: 16,
-              border: "1px solid rgba(255,255,255,0.10)",
-              background: "rgba(255,255,255,0.03)",
+              borderRadius: "var(--radius-md)",
             }}
           >
-            <div style={{ fontWeight: 900, color: "#E5E7EB", marginBottom: 10 }}>
-              Plan
-            </div>
+            <SectionTitle>Plan</SectionTitle>
 
-            <div style={{ display: "grid", gap: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div style={{ color: "#E5E7EB", fontWeight: 800 }}>Status</div>
-                <div style={{ color: "#A5F3FC", fontWeight: 900 }}>
-                  {user.subscriptionStatus ?? "free"}
-                </div>
-              </div>
+            <div style={{ display: "grid", gap: 10 }}>
+              <FieldRow
+                label="Status"
+                value={user.subscriptionStatus ?? "free"}
+                valueColor="var(--accent)"
+              />
 
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <div style={{ color: "#E5E7EB", fontWeight: 800 }}>Renewal</div>
-                <div style={{ color: "#9CA3AF", fontWeight: 900 }}>
-                  {user.currentPeriodEnd ? user.currentPeriodEnd.toLocaleDateString() : "—"}
-                </div>
-              </div>
+              <FieldRow
+                label="Renewal"
+                value={user.currentPeriodEnd ? user.currentPeriodEnd.toLocaleDateString() : "—"}
+                valueColor="var(--text-muted)"
+              />
 
               {isPro ? (
-  <div style={{ marginTop: 12 }}>
-    <ManageBillingButton />
-  </div>
-) : (
-  <div style={{ marginTop: 12 }}>
-    <UpgradeButton mode="subscription" label="Upgrade to Pro" />
-  </div>
-)}
-              
+                <div style={{ marginTop: 12 }}>
+                  <ManageBillingButton />
+                </div>
+              ) : (
+                <div style={{ marginTop: 12 }}>
+                  <UpgradeButton mode="subscription" label="Upgrade to Pro" />
+                </div>
+              )}
             </div>
-          </div>
+          </PremiumCard>
 
           <DangerZoneDeleteAccount />
         </div>

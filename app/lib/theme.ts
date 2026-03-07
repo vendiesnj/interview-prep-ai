@@ -182,4 +182,5 @@ export const themePresets = {
 
 export type ThemePresetName = keyof typeof themePresets;
 
-export const ACTIVE_THEME_NAME: ThemePresetName = "virginiaTech";
+export const activeThemeName: ThemePresetName = "virginiaTech";
+export const activeTheme = themePresets[activeThemeName];

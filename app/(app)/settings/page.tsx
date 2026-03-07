@@ -24,31 +24,51 @@ function Toggle({
         alignItems: "flex-start",
         justifyContent: "space-between",
         padding: "12px 0",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid var(--card-border-soft)",
       }}
     >
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 900 }}>{label}</div>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 900,
+            color: "var(--text-primary)",
+          }}
+        >
+          {label}
+        </div>
+
         {description ? (
-          <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>{description}</div>
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              color: "var(--text-muted)",
+              lineHeight: 1.5,
+            }}
+          >
+            {description}
+          </div>
         ) : null}
       </div>
 
       <button
         type="button"
         onClick={() => onChange(!value)}
+        aria-pressed={value}
         style={{
           width: 46,
           height: 28,
           borderRadius: 999,
-          border: value ? "1px solid rgba(34,211,238,0.50)" : "1px solid rgba(255,255,255,0.14)",
-          background: value ? "rgba(34,211,238,0.20)" : "rgba(255,255,255,0.06)",
+          border: value
+            ? "1px solid var(--accent-strong)"
+            : "1px solid var(--card-border)",
+          background: value ? "var(--accent-soft)" : "var(--card-bg-strong)",
           position: "relative",
           cursor: "pointer",
           flex: "0 0 auto",
-          boxShadow: value ? "0 0 18px rgba(34,211,238,0.12)" : "none",
+          boxShadow: value ? "var(--shadow-glow)" : "none",
         }}
-        aria-pressed={value}
       >
         <span
           style={{
@@ -58,12 +78,27 @@ function Toggle({
             width: 22,
             height: 22,
             borderRadius: 999,
-            background: value ? "rgba(34,211,238,0.95)" : "rgba(229,231,235,0.75)",
+            background: value ? "var(--accent)" : "rgba(229,231,235,0.75)",
             transition: "left 140ms ease",
             boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
           }}
         />
       </button>
+    </div>
+  );
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: 16,
+        fontWeight: 950,
+        letterSpacing: -0.2,
+        color: "var(--text-primary)",
+      }}
+    >
+      {children}
     </div>
   );
 }
@@ -86,8 +121,6 @@ export default function SettingsPage() {
         },
       };
       saveProfile(next);
-      const t = next.settings.theme ?? "dark";
-
       return next;
     });
   }
@@ -95,10 +128,18 @@ export default function SettingsPage() {
   const s = profile?.settings;
 
   return (
-    <PremiumShell title="Settings" subtitle="Control scoring behavior, timing, privacy, and the app’s look & feel.">
+    <PremiumShell
+      title="Settings"
+      subtitle="Control scoring behavior, timing, and the app experience."
+    >
       <div style={{ display: "grid", gap: 16, maxWidth: 920 }}>
-        <PremiumCard>
-          <div style={{ fontSize: 16, fontWeight: 950 }}>Scoring</div>
+        <PremiumCard
+          style={{
+            padding: 16,
+            borderRadius: "var(--radius-md)",
+          }}
+        >
+          <SectionTitle>Scoring</SectionTitle>
 
           <Toggle
             label="Strict mode"
@@ -114,12 +155,29 @@ export default function SettingsPage() {
               justifyContent: "space-between",
               gap: 14,
               padding: "12px 0",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
+              borderTop: "1px solid var(--card-border-soft)",
+              flexWrap: "wrap",
             }}
           >
             <div>
-              <div style={{ fontSize: 14, fontWeight: 900 }}>Answer time limit</div>
-              <div style={{ marginTop: 6, fontSize: 12, color: "#9CA3AF", lineHeight: 1.5 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 900,
+                  color: "var(--text-primary)",
+                }}
+              >
+                Answer time limit
+              </div>
+
+              <div
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  color: "var(--text-muted)",
+                  lineHeight: 1.5,
+                }}
+              >
                 Sets the default countdown for practice answers.
               </div>
             </div>
@@ -129,11 +187,11 @@ export default function SettingsPage() {
               onChange={(e) => updateSettings({ answerTimeLimit: Number(e.target.value) })}
               style={{
                 height: 36,
-                borderRadius: 12,
+                borderRadius: "var(--radius-sm)",
                 padding: "0 12px",
-                border: "1px solid rgba(255,255,255,0.14)",
-                background: "rgba(255,255,255,0.06)",
-                color: "#E5E7EB",
+                border: "1px solid var(--input-border)",
+                background: "var(--input-bg)",
+                color: "var(--text-primary)",
                 fontWeight: 800,
               }}
             >
@@ -146,10 +204,6 @@ export default function SettingsPage() {
             </select>
           </div>
         </PremiumCard>
-
-       
-
-       
       </div>
     </PremiumShell>
   );
