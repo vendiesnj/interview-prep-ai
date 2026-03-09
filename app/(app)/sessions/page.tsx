@@ -11,9 +11,10 @@ import { userScopedKey } from "@/app/lib/userStorage";
 type Attempt = {
   id?: string;
   ts?: number;
-  question?: string;
-    questionCategory?: string | null;
+    question?: string;
+  questionCategory?: string | null;
   questionSource?: string | null;
+  evaluationFramework?: string | null;
   inputMethod?: "spoken" | "pasted";
   score?: number;
   audioId?: string | null;
@@ -509,8 +510,9 @@ async function ensureAudioUrl(audioId: string) {
                         const lastResult = {
   ts: attempt.ts ?? Date.now(),
   question: attempt.question ?? "",
-    questionCategory: attempt.questionCategory ?? "other",
+  questionCategory: attempt.questionCategory ?? "other",
   questionSource: attempt.questionSource ?? "generated",
+  evaluationFramework: attempt.evaluationFramework ?? "star",
   transcript: attempt.transcript ?? "",
   wpm: typeof attempt.wpm === "number" ? attempt.wpm : null,
   prosody: attempt.prosody ?? null,
@@ -571,16 +573,16 @@ async function ensureAudioUrl(audioId: string) {
   </div>
 
   <div
-    style={{
-      fontWeight: 900,
-      color: "var(--accent)",
-      fontSize: 14,
-      flex: "0 0 auto",
-      whiteSpace: "nowrap",
-    }}
-  >
-    {overall !== null ? `${overall}/10` : "—"}
-  </div>
+  style={{
+    fontWeight: 900,
+    color: "var(--accent)",
+    fontSize: 14,
+    flex: "0 0 auto",
+    whiteSpace: "nowrap",
+  }}
+>
+  {overall !== null ? `${Math.round(Number(overall) * 10)}/100` : "—"}
+</div>
 </div>
 
 <div

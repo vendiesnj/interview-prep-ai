@@ -699,7 +699,7 @@ const focusCopy: Record<FocusGoal, { title: string; tip: string }> = {
     tip: "Replace “um/like” with a one-beat pause. Keep sentences shorter.",
   },
   star_result: {
-    title: "STAR Result",
+    title: "Closing Impact",
     tip: "End with 1 crisp outcome + metric (%, $, time, SLA).",
   },
   vocal_variety: {
@@ -769,7 +769,7 @@ function trendMeta(metric: TrendMetric) {
     case "fillers":
       return { label: "Fillers (per 100 words)", max: 20 }; // typical range
     case "star_result":
-      return { label: "STAR – Result (0–10)", max: 10 };
+      return { label: "Closing Impact (rubric score)", max: 10 };
     case "vocal_variety":
       return { label: "Vocal variety (0–10)", max: 10 };
     default:
@@ -827,7 +827,7 @@ const coachingInsights = useMemo(() => {
   if (overall.length >= 2) {
     const d = trend(overall);
     if (d >= 1) tips.push(`Up ${d.toFixed(1)} overall in your last ${overall.length} attempts — keep the same structure and tighten the close.`);
-    else if (d <= -1) tips.push(`Down ${Math.abs(d).toFixed(1)} overall recently — simplify: 1 claim → 2 support points → 1 result line.`);
+        else if (d <= -1) tips.push(`Down ${Math.abs(d).toFixed(1)} overall recently — simplify: 1 clear claim → 2 support points → 1 strong close.`);
     else tips.push(`Stable overall lately — pick ONE lever next attempt (STAR result, fillers, pace, or vocal variety).`);
   }
 
@@ -849,10 +849,13 @@ const coachingInsights = useMemo(() => {
     if (weakest.k === "overall") tips.push(`Biggest lever: Overall (avg ${aOverall.toFixed(1)}/10). Add a crisp “Result” sentence with a measurable outcome.`);
   }
 
-  // 3) STAR Result weakness (only if it’s truly showing up)
+   // 3) Behavioral closing weakness (only if it’s truly showing up)
   const aStarR = avg(starResultSeries);
   if (aStarR !== null && aStarR <= 6) {
-    tips.push(`STAR “Result” is weak (avg ${aStarR.toFixed(1)}/10). End with: “Result: improved X by Y% / saved $Z / reduced time by N days.”`);
+    const lastFramework = last?.evaluationFramework ?? "star";
+    if (lastFramework === "star") {
+      tips.push(`Behavioral closing impact is weak (avg ${aStarR.toFixed(1)}/10). End with a measurable outcome or business impact.`);
+    }
   }
 
   // 4) Fillers pattern
@@ -874,9 +877,13 @@ const coachingInsights = useMemo(() => {
     tips.push(`Vocal variety is low (avg ${aMono.toFixed(1)}/10). Lift pitch on outcomes + emphasize numbers.`);
   }
 
-  // Optional: last-attempt “next action” (super specific)
-  if (last?.feedback?.star && isNum(last.feedback?.star.result) && last.feedback?.star.result <= 6) {
-    tips.push(`Next attempt: add ONE final result line (“Result: …”) even if it’s a rough estimate.`);
+    if (
+    last?.evaluationFramework === "star" &&
+    last?.feedback?.star &&
+    isNum(last.feedback?.star.result) &&
+    last.feedback?.star.result <= 6
+  ) {
+    tips.push(`Next attempt: end with one clear impact statement, even if the metric is a rough estimate.`);
   }
 
   return tips.slice(0, 4);
@@ -1914,6 +1921,55 @@ function inferQuestionCategory(
   return "other";
 }
 
+function inferEvaluationFramework(
+  question: string,
+  category: "behavioral" | "technical" | "role_specific" | "custom" | "other"
+): "star" | "technical_explanation" | "experience_depth" {
+  const q = question.trim().toLowerCase();
+
+  // Behavioral questions should stay STAR-based
+  if (category === "behavioral") return "star";
+
+  // Technical questions should not use STAR
+  if (category === "technical") return "technical_explanation";
+
+  // For role-specific/custom/other, inspect wording
+  const experiencePatterns = [
+    "experience with",
+    "worked with",
+    "used",
+    "familiar with",
+    "knowledge of",
+    "background in",
+    "proficiency in",
+    "tell me about your experience",
+  ];
+
+  const explanationPatterns = [
+    "how would you",
+    "walk me through",
+    "explain",
+    "what is",
+    "how do you",
+    "how would",
+    "describe how",
+  ];
+
+  if (experiencePatterns.some((p) => q.includes(p))) {
+    return "experience_depth";
+  }
+
+  if (explanationPatterns.some((p) => q.includes(p))) {
+    return "technical_explanation";
+  }
+
+  // Default role-specific/custom fallback:
+  // role-specific usually benefits more from experience scoring than STAR
+  if (category === "role_specific") return "experience_depth";
+
+  return "star";
+}
+
 async function analyzeAnswer() {
   if (capHit) {
   setError("Redirecting to upgrade...");
@@ -2062,14 +2118,26 @@ const normalizedVoiceMetrics = freshestVoiceMetrics
 
   setAnalysisProgress("Generating AI feedback…");
 
+const questionCategory = inferQuestionCategory(
+  selectedQuestion,
+  questionBuckets
+);
+
+const evaluationFramework = inferEvaluationFramework(
+  selectedQuestion,
+  questionCategory
+);
+
 const res = await fetch("/api/feedback", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     jobDesc,
     question: selectedQuestion,
+    questionCategory,
+    evaluationFramework,
     transcript,
-    deliveryMetrics: normalizedVoiceMetrics,
+    deliveryMetrics: voiceMetricsRef.current,
   }),
 });
 
@@ -2087,26 +2155,21 @@ if (!res.ok) {
   return;
 }
 
-    setFeedback(data);
-    const activeProfileId = activeJobProfile?.id ?? null;
+setFeedback(data);
+const activeProfileId = activeJobProfile?.id ?? null;
 const activeProfileTitle = activeJobProfile?.title ?? null;
 const activeProfileCompany = activeJobProfile?.company ?? null;
 const activeProfileRoleType = activeJobProfile?.roleType ?? null;
 
-const questionCategory = inferQuestionCategory(
-  selectedQuestion,
-  questionBuckets
-);
+
 
   const entry = {
   id: crypto.randomUUID(),
   ts: Date.now(),
   question: selectedQuestion || "",
-questionCategory,
-questionSource:
-  selectedQuestion === customQuestion.trim()
-    ? "custom"
-    : "generated",
+  questionCategory,
+  questionSource: questionCategory === "custom" ? "custom" : "generated",
+  evaluationFramework,
   transcript,
   wpm: inputMethod === "spoken" ? wpm : null,
   inputMethod,
@@ -2181,10 +2244,10 @@ const lastResult = {
   ts: entry.ts,
   question: entry.question,
   questionCategory: entry.questionCategory ?? "other",
-questionSource: entry.questionSource ?? "generated",
+  questionSource: entry.questionSource ?? "generated",
+  evaluationFramework: entry.evaluationFramework ?? "star",
   transcript: entry.transcript ?? "",
   wpm: typeof entry.wpm === "number" ? entry.wpm : null,
-
   // ✅ make acoustics explicit for Results
   prosody: freshestProsody,
 
@@ -2253,11 +2316,12 @@ void (async () => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        ts: entry.ts,
-        question: entry.question,
-        questionCategory: entry.questionCategory ?? "other",
-questionSource: entry.questionSource ?? "generated",
-        transcript: entry.transcript,
+  ts: entry.ts,
+  question: entry.question,
+  questionCategory: entry.questionCategory ?? "other",
+  questionSource: entry.questionSource ?? "generated",
+  evaluationFramework: entry.evaluationFramework ?? "star",
+  transcript: entry.transcript,
         inputMethod: entry.inputMethod,
         wpm: entry.wpm,
         prosody: entry.prosody ?? null,
@@ -2345,7 +2409,7 @@ return (
     lineHeight: 1.55,
   }}
 >
-    Record answers, get scoring on communication, confidence, STAR structure, fillers, pace, and vocal variety —
+        Record answers, get scoring on communication, confidence, answer structure, fillers, pace, and vocal variety —
     then follow a game plan for your next attempt.
   </div>
 
@@ -3743,7 +3807,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
           ["confidence", "Confidence"],
           ["pace", "Pace"],
           ["fillers", "Fillers"],
-          ["star_result", "STAR Result"],
+          ["star_result", "Closing Impact"],
           ["vocal_variety", "Vocal Variety"],
         ] as Array<[TrendMetric, string]>
       ).map(([k, label]) => {
@@ -3908,7 +3972,7 @@ onMouseLeave={(e) =>
 
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
-                  <div style={{ fontWeight: 900 }}>Score: {h.score ?? "—"}/10</div>
+                  <div style={{ fontWeight: 900 }}>Score: {typeof h.score === "number" ? Math.round(h.score * 10) : "—"}/100</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{when}</div>
                   {h.inputMethod === "spoken" ? (
                     <span
@@ -4003,8 +4067,8 @@ onMouseLeave={(e) =>
     color: "var(--text-primary)",
   }}
 >
-      <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-  Feedback (Score: {feedback?.score}/10)
+            <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+  Feedback (Score: {typeof feedback?.score === "number" ? Math.round(feedback.score * 10) : "—"}/100)
 </h3>
 
       <div

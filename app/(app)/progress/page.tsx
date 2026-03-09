@@ -70,6 +70,11 @@ function avg(nums: number[]) {
 function round1(x: number | null) {
   return x === null ? null : Math.round(x * 10) / 10;
 }
+function toPercentScore(score: number | null | undefined) {
+  if (typeof score !== "number" || !Number.isFinite(score)) return null;
+  return Math.round(score * 10);
+}
+
 
 function titleCaseLabel(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -259,8 +264,8 @@ function ScoreBarRow({
         </div>
 
         <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>
-          {avgScore === null ? "—" : `${avgScore}/10`}
-        </div>
+  {avgScore === null ? "—" : `${toPercentScore(avgScore)}/100`}
+</div>
       </div>
 
       <div
@@ -425,13 +430,13 @@ export default function ProgressPage() {
 
     if (categoryStats.length > 0 && categoryStats[0].avgScore !== null) {
       items.push(
-        `${categoryStats[0].label} questions are your strongest category (${categoryStats[0].avgScore}/10 average).`
+        `${categoryStats[0].label} questions are your strongest category (${toPercentScore(categoryStats[0].avgScore)}/100 average).`
       );
     }
 
     if (profileStats.length > 0 && profileStats[0].avgScore !== null) {
       items.push(
-        `${profileStats[0].label} is your strongest job profile (${profileStats[0].avgScore}/10 average).`
+        `${profileStats[0].label} is your strongest job profile (${toPercentScore(profileStats[0].avgScore)}/100 average).`
       );
     }
 
@@ -463,13 +468,13 @@ export default function ProgressPage() {
 
     if (weakestCategory?.avgScore !== null && weakestCategory?.label) {
   items.push(
-    `${weakestCategory.label} questions need the most work (${weakestCategory.avgScore}/10 average).`
+    `${weakestCategory.label} questions need the most work (${toPercentScore(weakestCategory.avgScore)}/100 average).`
   );
 }
 
     if (weakestProfile?.avgScore !== null && weakestProfile?.label && profileStats.length > 1) {
   items.push(
-    `${weakestProfile.label} is your weakest tracked job profile (${weakestProfile.avgScore}/10 average).`
+    `${weakestProfile.label} is your weakest tracked job profile (${toPercentScore(weakestProfile.avgScore)}/100 average).`
   );
 }
 
@@ -549,29 +554,29 @@ export default function ProgressPage() {
               }}
             >
               <StatCard
-                label="AVG OVERALL"
-                value={
-                  overview.avgOverall === null ? "—" : (
-                    <>
-                      {overview.avgOverall}
-                      <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>/10</span>
-                    </>
-                  )
-                }
-                subtext={scoreLabel(overview.avgOverall)}
-              />
+  label="AVG OVERALL"
+  value={
+    overview.avgOverall === null ? "—" : (
+      <>
+        {toPercentScore(overview.avgOverall)}
+        <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>/100</span>
+      </>
+    )
+  }
+  subtext={scoreLabel(overview.avgOverall)}
+/>
 
               <StatCard
-                label="COMMUNICATION"
-                value={overview.avgComm === null ? "—" : `${overview.avgComm}/10`}
-                subtext="Average communication score"
-              />
+  label="COMMUNICATION"
+  value={overview.avgComm === null ? "—" : `${toPercentScore(overview.avgComm)}/100`}
+  subtext="Average communication score"
+/>
 
               <StatCard
-                label="CONFIDENCE"
-                value={overview.avgConf === null ? "—" : `${overview.avgConf}/10`}
-                subtext="Average confidence score"
-              />
+  label="CONFIDENCE"
+  value={overview.avgConf === null ? "—" : `${toPercentScore(overview.avgConf)}/100`}
+  subtext="Average confidence score"
+/>
 
               <StatCard
                 label="TOTAL ATTEMPTS"
@@ -632,7 +637,7 @@ export default function ProgressPage() {
                       avgScore={row.avgScore}
                       subtitle={
                         row.avgComm !== null && row.avgConf !== null
-                          ? `Comm ${row.avgComm}/10 · Conf ${row.avgConf}/10`
+                          ? `Comm ${toPercentScore(row.avgComm)}/100 · Conf ${toPercentScore(row.avgConf)}/100`
                           : undefined
                       }
                     />
@@ -698,7 +703,7 @@ export default function ProgressPage() {
 
               <StatCard
                 label="MONOTONE RISK"
-                value={overview.avgMonotone === null ? "—" : `${overview.avgMonotone}/10`}
+                value={overview.avgMonotone === null ? "—" : `${overview.avgMonotone.toFixed(1)}/10`}
                 subtext="Lower is generally better"
               />
 

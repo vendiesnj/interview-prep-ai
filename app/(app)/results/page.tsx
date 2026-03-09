@@ -36,10 +36,11 @@ type Prosody = {
 type StoredResult = {
   ts: number;
   question: string;
-    questionCategory?: string | null;
-  questionSource?: string | null;
-  transcript: string;
-  wpm: number | null;
+  questionCategory?: string;
+  questionSource?: string;
+  evaluationFramework?: string;
+  transcript?: string;
+  wpm?: number | null;
   jobDesc?: string;
   questions?: string[];
   questionBuckets?: {
@@ -178,6 +179,11 @@ function gradeFromScore(score: number) {
   if (score >= 7) return { grade: "B", label: "Good" };
   if (score >= 6) return { grade: "C", label: "Needs polish" };
   return { grade: "D", label: "Needs work" };
+}
+
+function toPercentScore(score: number | null | undefined) {
+  if (typeof score !== "number" || !Number.isFinite(score)) return null;
+  return Math.round(score * 10);
 }
 
 // -------------------- UI components --------------------
@@ -635,6 +641,9 @@ export default function ResultsPage() {
 
   const feedback = stored?.feedback ?? null;
 
+const isStarFramework = stored?.evaluationFramework === "star";
+const isTechnicalFramework = stored?.evaluationFramework === "technical_explanation";
+const isExperienceFramework = stored?.evaluationFramework === "experience_depth";
   const starAvg = useMemo(() => {
     if (!feedback?.star) return null;
     const s = feedback.star;
@@ -916,9 +925,11 @@ export default function ResultsPage() {
     const hasProsody = !!stored.prosody && typeof stored.prosody?.monotoneScore === "number";
     const vocal = hasProsody ? Number(stored.prosody!.monotoneScore) : null;
 
-    let lever: "STAR Result" | "Fillers" | "Confidence" | "Communication" | "Vocal variety" | "Polish" = "Polish";
+    let lever: "Closing impact" | "Fillers" | "Confidence" | "Communication" | "Vocal variety" | "Polish" = "Polish";
 
-    if (star && (starMissing.includes("result") || (starResult !== null && starResult <= 6))) lever = "STAR Result";
+    if (isStarFramework && star && (starMissing.includes("result") || (starResult !== null && starResult <= 6))) lever = "Closing impact";
+    else if (isTechnicalFramework) lever = "Communication";
+else if (isExperienceFramework) lever = "Communication";
     else if (hasFillers && fillerPer100 >= 3) lever = "Fillers";
     else if (conf > 0 && conf <= 6) lever = "Confidence";
     else if (comm > 0 && comm <= 6) lever = "Communication";
@@ -934,7 +945,7 @@ export default function ResultsPage() {
     };
 
     const leverPools: Record<string, string[]> = {
-      "STAR Result": ["Biggest lever: strengthen the RESULT with a metric and business impact.", "Biggest lever: end with a concrete outcome (%, $, time, SLA).", "Biggest lever: make the result measurable and unmistakable."],
+      "Closing impact": ["Biggest lever: strengthen the closing impact with a metric and business outcome.", "Biggest lever: end with a concrete outcome (%, $, time, SLA).", "Biggest lever: make the impact measurable and unmistakable."],
       Fillers: ["Biggest lever: reduce fillers by using intentional pauses.", "Biggest lever: shorter sentences → fewer fillers.", "Biggest lever: tighten delivery to sound more confident."],
       Confidence: ["Biggest lever: lead with a decisive claim early.", "Biggest lever: use stronger verbs and fewer qualifiers.", "Biggest lever: sound more certain—claim → proof → result."],
       Communication: ["Biggest lever: simplify structure (Context → Action → Result).", "Biggest lever: cut setup and keep only decision-driving details.", "Biggest lever: make the narrative more linear and scannable."],
@@ -947,7 +958,7 @@ export default function ResultsPage() {
       strong: ["One iteration away from a standout answer.", "With one stronger metric, this becomes final-round quality.", "Very close—tighten the result line and you’re there."],
       good: ["A couple iterations away from being interview-ready.", "Add specificity + a metric and it improves fast.", "Good base—refine and you’ll gain points quickly."],
       polish: ["Not quite interview-ready yet—needs a clearer impact line.", "Fix the main lever first, then re-run.", "One focused revision will noticeably improve this."],
-      work: ["Rebuild with STAR structure first, then add metrics.", "Focus on clarity and outcome before style.", "Get the skeleton right—results will follow."],
+            work: ["Rebuild the answer structure first, then add metrics.", "Focus on clarity and outcome before style.", "Get the skeleton right—results will follow."],
     };
 
     const snapshot = pickVariant(snapshotPools[band] ?? [], seed + 1);
@@ -976,16 +987,18 @@ export default function ResultsPage() {
     const hasProsody = !!stored.prosody && typeof stored.prosody?.monotoneScore === "number";
     const vocal = hasProsody ? Number(stored.prosody!.monotoneScore) : null;
 
-    let lever: "STAR Result" | "Fillers" | "Confidence" | "Communication" | "Vocal variety" | "Polish" = "Polish";
+    let lever: "Closing impact" | "Fillers" | "Confidence" | "Communication" | "Vocal variety" | "Polish" = "Polish";
 
-    if (star && (starMissing.includes("result") || (starResult !== null && starResult <= 6))) lever = "STAR Result";
+    if (isStarFramework && star && (starMissing.includes("result") || (starResult !== null && starResult <= 6))) lever = "Closing impact";
+    else if (isTechnicalFramework) lever = "Communication";
+else if (isExperienceFramework) lever = "Communication";
     else if (hasFillers && fillerPer100 >= 3) lever = "Fillers";
     else if (conf > 0 && conf <= 6) lever = "Confidence";
     else if (comm > 0 && comm <= 6) lever = "Communication";
     else if (vocal !== null && vocal <= 4) lever = "Vocal variety";
     else lever = "Polish";
 
-    if (lever === "STAR Result") {
+    if (lever === "Closing impact") {
       tips.push("End with one crisp RESULT line: impact + metric (%, $, time, SLA).");
       tips.push("Use this sentence starter: “The outcome was ___, measured by ___, which improved ___ by ___.”");
       tips.push("If you can’t quantify, use scope + speed: “shipped in X days / reduced rework / improved visibility.”");
@@ -1016,7 +1029,10 @@ export default function ResultsPage() {
       else if (stored.wpm > 165) tips.unshift("Pace is fast: pause after results and numbers for clarity.");
     }
 
-    const summary = lever === "Polish" ? `Next attempt: small polish (overall ${overall}/10).` : `Biggest lever: ${lever}.`;
+    const summary =
+  lever === "Polish"
+    ? `Next attempt: small polish (overall ${toPercentScore(overall) ?? overall}/100).`
+    : `Biggest lever: ${lever}.`;
 
     return { lever, summary, tips: tips.slice(0, 4) };
   }, [stored, feedback]);
@@ -1217,12 +1233,38 @@ export default function ResultsPage() {
                     flexWrap: "wrap",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                    <div style={{ fontSize: 34, fontWeight: 950, letterSpacing: -0.5 }}>
-                      {gradeFromScore(Number(feedback.score ?? 0)).grade}
-                    </div>
-                    <div style={{ color: "var(--text-muted)", fontSize: 13 }}>{gradeFromScore(Number(feedback.score ?? 0)).label}</div>
-                  </div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+  <div
+    style={{
+      fontSize: 34,
+      fontWeight: 950,
+      letterSpacing: -0.5,
+      color: "var(--text-primary)",
+    }}
+  >
+    {toPercentScore(Number(feedback.score ?? 0)) ?? "—"}/100
+  </div>
+
+  <div
+    style={{
+      color: "var(--text-muted)",
+      fontSize: 13,
+      fontWeight: 800,
+    }}
+  >
+    {gradeFromScore(Number(feedback.score ?? 0)).label}
+  </div>
+
+  <div
+    style={{
+      color: "var(--text-soft, var(--text-muted))",
+      fontSize: 12,
+      fontWeight: 700,
+    }}
+  >
+    {gradeFromScore(Number(feedback.score ?? 0)).grade}
+  </div>
+</div>
 
                   {insightBullets ? (
                     <ul style={{ marginTop: 16, marginBottom: 0, paddingLeft: 18, lineHeight: 1.6 }}>
@@ -1293,51 +1335,73 @@ export default function ResultsPage() {
       {stored.question}
     </div>
 
-    {stored.questionCategory || stored.questionSource ? (
-      <div
+   {stored.questionCategory || stored.questionSource || stored.evaluationFramework ? (
+  <div
+    style={{
+      marginTop: 10,
+      display: "flex",
+      gap: 8,
+      flexWrap: "wrap",
+      alignItems: "center",
+    }}
+  >
+    {stored.questionCategory ? (
+      <span
         style={{
-          marginTop: 10,
-          display: "flex",
-          gap: 8,
-          flexWrap: "wrap",
-          alignItems: "center",
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg)",
+          color: "var(--text-primary)",
+          fontSize: 12,
+          fontWeight: 800,
+          textTransform: "capitalize",
         }}
       >
-        {stored.questionCategory ? (
-          <span
-            style={{
-              padding: "4px 9px",
-              borderRadius: 999,
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg)",
-              color: "var(--text-primary)",
-              fontSize: 12,
-              fontWeight: 800,
-              textTransform: "capitalize",
-            }}
-          >
-            {stored.questionCategory.replace(/_/g, " ")}
-          </span>
-        ) : null}
-
-        {stored.questionSource ? (
-          <span
-            style={{
-              padding: "4px 9px",
-              borderRadius: 999,
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg)",
-              color: "var(--text-muted)",
-              fontSize: 12,
-              fontWeight: 800,
-              textTransform: "capitalize",
-            }}
-          >
-            {stored.questionSource}
-          </span>
-        ) : null}
-      </div>
+        {stored.questionCategory.replace(/_/g, " ")}
+      </span>
     ) : null}
+
+    {stored.questionSource ? (
+      <span
+        style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--card-border)",
+          background: "var(--card-bg)",
+          color: "var(--text-muted)",
+          fontSize: 12,
+          fontWeight: 800,
+          textTransform: "capitalize",
+        }}
+      >
+        {stored.questionSource}
+      </span>
+    ) : null}
+
+    {stored.evaluationFramework ? (
+      <span
+        style={{
+          padding: "4px 9px",
+          borderRadius: 999,
+          border: "1px solid var(--accent-strong)",
+          background: "var(--accent-soft)",
+          color: "var(--accent)",
+          fontSize: 12,
+          fontWeight: 900,
+        }}
+      >
+        {stored.evaluationFramework === "star"
+          ? "Behavioral (STAR)"
+          : stored.evaluationFramework === "technical_explanation"
+          ? "Technical explanation"
+          : stored.evaluationFramework === "experience_depth"
+          ? "Experience depth"
+          : stored.evaluationFramework}
+      </span>
+    ) : null}
+  </div>
+) : null}
   </div>
 ) : null}
 
@@ -1360,16 +1424,16 @@ export default function ResultsPage() {
                             Overall
                           </div>
                    <div
-                          style={{
-                            marginTop: 8,
-                            fontSize: 44,
-                            fontWeight: 950,
-                            letterSpacing: -0.8,
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {Number(feedback.score ?? 0)}/10
-                        </div>
+  style={{
+    marginTop: 8,
+    fontSize: 44,
+    fontWeight: 950,
+    letterSpacing: -0.8,
+    color: "var(--text-primary)",
+  }}
+>
+  {toPercentScore(Number(feedback.score ?? 0)) ?? "—"}/100
+</div>
                         <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
                           {gradeFromScore(Number(feedback.score ?? 0)).label}
                         </div>
@@ -1389,11 +1453,34 @@ export default function ResultsPage() {
                   </div>
 
                   <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
-                    {[
-                      { label: "Communication", value: Number(feedback.communication_score ?? 0), sub: "Clarity + structure" },
-                      { label: "Confidence", value: Number(feedback.confidence_score ?? 0), sub: "Tone + decisiveness" },
-                      { label: "STAR Avg", value: typeof starAvg === "number" ? starAvg : null, sub: "Situation/Task/Action/Result" },
-                    ].map((m) => (
+{[
+  {
+    label: "Communication",
+    value: Number(feedback.communication_score ?? 0),
+    displayValue:
+      toPercentScore(Number(feedback.communication_score ?? 0)) ?? "—",
+    displaySuffix: "/100",
+    barValue: Number(feedback.communication_score ?? 0),
+    sub: "Clarity + structure",
+  },
+  {
+    label: "Confidence",
+    value: Number(feedback.confidence_score ?? 0),
+    displayValue:
+      toPercentScore(Number(feedback.confidence_score ?? 0)) ?? "—",
+    displaySuffix: "/100",
+    barValue: Number(feedback.confidence_score ?? 0),
+    sub: "Tone + decisiveness",
+  },
+  {
+    label: "STAR Avg",
+    value: typeof starAvg === "number" ? starAvg : null,
+    displayValue: typeof starAvg === "number" ? `${starAvg}` : "—",
+    displaySuffix: "/10",
+    barValue: typeof starAvg === "number" ? starAvg : 0,
+    sub: "Situation/Task/Action/Result",
+  },
+].map((m) => (
                       <div
   key={m.label}
   style={{
@@ -1410,8 +1497,9 @@ export default function ResultsPage() {
 </div>
 
                         <div style={{ marginTop: 8, fontSize: 28, fontWeight: 950, color: "var(--text-primary)" }}>
-                          {typeof m.value === "number" ? `${m.value}/10` : "—"}
-                        </div>
+  {m.displayValue}
+  {m.displayValue !== "—" ? m.displaySuffix : ""}
+</div>
 
                         <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
   {m.sub}
@@ -1420,7 +1508,7 @@ export default function ResultsPage() {
                         <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
                           <div
                             style={{
-                              width: `${Math.max(0, Math.min(100, (Number(m.value ?? 0) / 10) * 100))}%`,
+                              width: `${Math.max(0, Math.min(100, (Number(m.barValue ?? 0) / 10) * 100))}%`,
                               height: "100%",
                               background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
                               transition: "width 300ms ease",
@@ -1489,8 +1577,8 @@ export default function ResultsPage() {
             }}
           >
             {typeof feedback.relevance.relevance_score === "number"
-              ? `${feedback.relevance.relevance_score}/10`
-              : "—"}
+  ? `${toPercentScore(feedback.relevance.relevance_score)}/100`
+  : "—"}
           </div>
 
           <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
@@ -1598,7 +1686,7 @@ export default function ResultsPage() {
                 color: "var(--text-primary)",
               }}
             >
-              {typeof m.value === "number" ? `${m.value}/10` : "—"}
+              {typeof m.value === "number" ? `${toPercentScore(m.value)}/100` : "—"}
             </div>
 
             <div
@@ -1724,8 +1812,8 @@ export default function ResultsPage() {
   }}
 >
                         {typeof deliverySummary?.engagementScore === "number"
-                          ? `${Math.round(deliverySummary.engagementScore * 10) / 10}/10`
-                          : "—"}
+  ? `${toPercentScore(deliverySummary.engagementScore)}/100`
+  : "—"}
                       </div>
                       <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
                         {typeof deliverySummary?.engagementScore === "number"
@@ -1957,11 +2045,19 @@ export default function ResultsPage() {
             {activeTab === "coaching" ? (
               <SectionCard title="Why this score">
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {typeof starAvg === "number" ? (
-                    <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
-                      STAR average drove most of the score: <span style={{ fontWeight: 900 }}>{starAvg.toFixed(1)}</span>
-                    </div>
-                  ) : null}
+                  {isStarFramework && typeof starAvg === "number" ? (
+  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
+    Behavioral structure drove most of the score (avg <span style={{ fontWeight: 900 }}>{Math.round(starAvg * 10)}/100</span>).
+  </div>
+) : isTechnicalFramework && (feedback as any)?.technical_explanation ? (
+  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
+    Technical explanation quality drove most of the score.
+  </div>
+) : isExperienceFramework && (feedback as any)?.experience_depth ? (
+  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
+    Experience depth and specificity drove most of the score.
+  </div>
+) : null}
 
                   {dm && (typeof dm.longPauseCount === "number" || typeof dm.maxPauseMs === "number") ? (
                     <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
@@ -1978,7 +2074,15 @@ export default function ResultsPage() {
                     <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Missing role keywords also limited the score.</div>
                   ) : null}
 
-                  <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Scores above 8 require strong STAR structure and measurable impact.</div>
+                  <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
+  {isStarFramework
+    ? "Higher scores require strong behavioral structure and measurable impact."
+    : isTechnicalFramework
+    ? "Higher scores require clear technical reasoning, structure, and credible depth."
+    : isExperienceFramework
+    ? "Higher scores require specific examples, tool fluency, and clear business impact."
+    : "Higher scores require clear, specific, and relevant answers."}
+</div>
                 </div>
               </SectionCard>
             ) : null}
@@ -1999,7 +2103,9 @@ export default function ResultsPage() {
 
             <div style={{ marginTop: 32, borderTop: "1px solid var(--card-border-soft)" }} />
 
-            {activeTab === "structure" && feedback.star ? (
+            {activeTab === "structure" &&
+stored.evaluationFramework === "star" &&
+feedback.star ? (
               <SectionCard title={`STAR Breakdown${starAvg !== null ? ` (avg ${starAvg}/10)` : ""}`}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
                   <StarChip letter="S" label="Situation" status={starMissingList.includes("situation") ? "missing" : "detected"} />
@@ -2088,6 +2194,155 @@ export default function ResultsPage() {
                 ) : null}
               </SectionCard>
             ) : null}
+
+           {activeTab === "structure" &&
+stored.evaluationFramework === "technical_explanation" ? (
+  <SectionCard title="Technical Explanation Breakdown">
+    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
+      This answer is being evaluated as a technical explanation, so STAR structure is not the primary rubric.
+      Focus is placed on clarity, technical accuracy, structure, depth, and practical reasoning.
+    </div>
+
+    {(feedback as any)?.technical_explanation ? (
+      <>
+        <MetricBar
+          label="Technical clarity"
+          value={Number((feedback as any).technical_explanation.technical_clarity ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Technical accuracy"
+          value={Number((feedback as any).technical_explanation.technical_accuracy ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Structure"
+          value={Number((feedback as any).technical_explanation.structure ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Depth"
+          value={Number((feedback as any).technical_explanation.depth ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Practical reasoning"
+          value={Number((feedback as any).technical_explanation.practical_reasoning ?? 0)}
+          max={10}
+        />
+
+        {Array.isArray((feedback as any)?.technical_strengths) &&
+        (feedback as any).technical_strengths.length > 0 ? (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>
+              Technical strengths
+            </div>
+            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
+              {(feedback as any).technical_strengths.map((s: string, i: number) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {Array.isArray((feedback as any)?.technical_improvements) &&
+        (feedback as any).technical_improvements.length > 0 ? (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>
+              Technical improvements
+            </div>
+            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
+              {(feedback as any).technical_improvements.map((s: string, i: number) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </>
+    ) : (
+      <div style={{ marginTop: 14, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
+        Detailed technical rubric fields were not returned for this attempt yet.
+      </div>
+    )}
+  </SectionCard>
+) : activeTab === "structure" &&
+  stored.evaluationFramework === "experience_depth" ? (
+  <SectionCard title="Experience Depth Breakdown">
+    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
+      This answer is being evaluated for experience depth, so STAR structure is not the primary rubric.
+      Focus is placed on specificity, real examples, tool fluency, and business impact.
+    </div>
+
+    {(feedback as any)?.experience_depth ? (
+      <>
+        <MetricBar
+          label="Experience depth"
+          value={Number((feedback as any).experience_depth.experience_depth ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Specificity"
+          value={Number((feedback as any).experience_depth.specificity ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Tool fluency"
+          value={Number((feedback as any).experience_depth.tool_fluency ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Business impact"
+          value={Number((feedback as any).experience_depth.business_impact ?? 0)}
+          max={10}
+        />
+        <MetricBar
+          label="Example quality"
+          value={Number((feedback as any).experience_depth.example_quality ?? 0)}
+          max={10}
+        />
+
+        {Array.isArray((feedback as any)?.experience_strengths) &&
+        (feedback as any).experience_strengths.length > 0 ? (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>
+              Experience strengths
+            </div>
+            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
+              {(feedback as any).experience_strengths.map((s: string, i: number) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {Array.isArray((feedback as any)?.experience_improvements) &&
+        (feedback as any).experience_improvements.length > 0 ? (
+          <div style={{ marginTop: 14 }}>
+            <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 13 }}>
+              Experience improvements
+            </div>
+            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
+              {(feedback as any).experience_improvements.map((s: string, i: number) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+      </>
+    ) : (
+      <div style={{ marginTop: 14, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
+        Detailed experience rubric fields were not returned for this attempt yet.
+      </div>
+    )}
+  </SectionCard>
+) : activeTab === "structure" &&
+  stored.evaluationFramework !== "star" ? (
+  <SectionCard title="Evaluation Breakdown">
+    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
+      This answer is using a non-STAR evaluation framework.
+    </div>
+  </SectionCard>
+) : null} 
 
             {activeTab === "coaching" ? (
               <SectionCard title="Strengths">

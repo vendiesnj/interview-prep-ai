@@ -143,7 +143,7 @@ export default function SettingsPage() {
 
           <Toggle
             label="Strict mode"
-            description="Harsher scoring that demands clear STAR structure and measurable impact."
+            description="Harsher scoring that demands clear structure, specificity, and measurable impact when appropriate to the question type."
             value={!!s?.strictMode}
             onChange={(next) => updateSettings({ strictMode: next })}
           />

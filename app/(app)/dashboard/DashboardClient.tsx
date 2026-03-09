@@ -76,19 +76,19 @@ function buildSparkPath(values: number[], w: number, h: number, pad = 6, fixedMa
 function metricMeta(metric: MetricKey) {
   switch (metric) {
     case "communication":
-      return { label: "Communication (0–10)", max: 10 };
+      return { label: "Communication (rubric score)", max: 10 };
     case "confidence":
-      return { label: "Confidence (0–10)", max: 10 };
+      return { label: "Confidence (rubric score)", max: 10 };
     case "pace":
       return { label: "Pace (WPM)", max: 220 };
     case "fillers":
       return { label: "Fillers (per 100 words)", max: 20 };
     case "star_result":
-      return { label: "STAR Result (0–10)", max: 10 };
+       return { label: "Closing Impact (rubric score)", max: 10 };
     case "vocal_variety":
-      return { label: "Vocal Variety (0–10)", max: 10 };
+      return { label: "Vocal Variety (rubric score)", max: 10 };
     default:
-      return { label: "Overall (0–10)", max: 10 };
+      return { label: "Overall (internal score)", max: 10 };
   }
 }
 
@@ -264,7 +264,7 @@ export default function DashboardPage() {
   const issueCopy: Record<MetricKey, { title: string; tip: string }> = {
     overall: {
       title: "Overall",
-      tip: "Tighten structure: 1 claim → 2 supports → 1 result line.",
+            tip: "Tighten structure: 1 clear claim → 2 supports → 1 strong close.",
     },
     communication: {
       title: "Communication",
@@ -283,7 +283,7 @@ export default function DashboardPage() {
       tip: "Replace “um/like” with a one-beat pause.",
     },
     star_result: {
-      title: "STAR Result",
+            title: "Closing Impact",
       tip: "End with: “Result: improved X by Y% / saved $Z / reduced time by N days.”",
     },
     vocal_variety: {
@@ -301,7 +301,7 @@ export default function DashboardPage() {
     if (v === null) return "—";
     if (k === "pace") return `${Math.round(v)} wpm`;
     if (k === "fillers") return `${Math.round(v * 10) / 10}/100`;
-    return `${Math.round(v * 10) / 10}/10`;
+        return `${Math.round(v * 10)}/100`;
   };
 
   return (
@@ -339,7 +339,7 @@ export default function DashboardPage() {
               }}
             >
               {history.length
-                ? `Last ${Math.min(history.length, 5)} attempts avg: ${avgOverallLast5 ?? "—"}/10`
+                ? `Last ${Math.min(history.length, 5)} attempts avg: ${typeof avgOverallLast5 === "number" ? Math.round(avgOverallLast5 * 10) : "—"}/100`
                 : "Record + analyze to start building trends."}
             </div>
           </PremiumCard>
@@ -405,7 +405,7 @@ export default function DashboardPage() {
                   ["confidence", "Confidence"],
                   ["pace", "Pace"],
                   ["fillers", "Fillers"],
-                  ["star_result", "STAR Result"],
+                  ["star_result", "Closing Impact"],
                   ["vocal_variety", "Vocal Variety"],
                 ] as Array<[MetricKey, string]>
               ).map(([k, txt]) => (

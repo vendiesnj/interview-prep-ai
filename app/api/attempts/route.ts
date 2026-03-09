@@ -11,7 +11,8 @@ type Body = {
   ts: number;
   question: string;
   questionCategory?: string | null;
-questionSource?: string | null;
+  questionSource?: string | null;
+  evaluationFramework?: string | null;
   transcript: string;
   inputMethod?: "spoken" | "pasted";
   wpm?: number | null;
@@ -69,7 +70,8 @@ if (!userId) {
   ts: true,
   question: true,
   questionCategory: true,
-questionSource: true,
+  questionSource: true,
+  evaluationFramework: true,
   transcript: true,
   inputMethod: true,
   score: true,
@@ -130,8 +132,8 @@ if (!rlUser.ok || !rlIp.ok) {
   ts: a.ts.getTime(),
   question: a.question,
   questionCategory: a.questionCategory ?? "other",
-questionSource: a.questionSource ?? "generated",
-  transcript: a.transcript ?? "",
+  questionSource: a.questionSource ?? "generated",
+  evaluationFramework: a.evaluationFramework ?? "star",
   inputMethod: (a.inputMethod as "spoken" | "pasted" | undefined) ?? undefined,
   score: a.score ?? (a.feedback as any)?.score ?? null,
   feedback: a.feedback as any,
@@ -270,13 +272,14 @@ const user = rows[0] ?? null;
     }
 
     const attempt = await tx.attempt.create({
-      data: {
-        userId,
-        ts: new Date(body.ts),
-        question: body.question,
-        questionCategory: body.questionCategory ?? null,
-questionSource: body.questionSource ?? null,
-        transcript: body.transcript,
+  data: {
+    userId,
+    ts: new Date(body.ts),
+    question: body.question,
+    questionCategory: body.questionCategory ?? null,
+    questionSource: body.questionSource ?? null,
+    evaluationFramework: body.evaluationFramework ?? null,
+    transcript: body.transcript,
         inputMethod: body.inputMethod,
 
         wpm: typeof body.wpm === "number" ? Math.round(body.wpm) : null,

@@ -97,6 +97,7 @@ model Attempt {
   jobProfileRoleType String?
   questionCategory   String?
   questionSource     String?
+  evaluationFramework String?
 
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])
