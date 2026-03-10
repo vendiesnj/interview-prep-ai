@@ -76,9 +76,9 @@ model Attempt {
   prosody            Json?
   deliveryMetrics    Json?
   feedback           Json?
-  score              Int?
-  communicationScore Int?
-  confidenceScore    Int?
+  score              Float?
+  communicationScore Float?
+  confidenceScore    Float?
   jobDesc            String?
   focusGoal          String?
   audioId            String?

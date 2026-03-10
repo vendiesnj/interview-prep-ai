@@ -18,6 +18,7 @@ import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 import type { AttemptEntitlement } from "@/app/lib/entitlements";
 import { posthog } from "@/app/lib/posthog-client";
+import { classifyEvaluationFramework } from "@/app/lib/questionFramework";
 
 function MetricRow({
   label,
@@ -1921,54 +1922,8 @@ function inferQuestionCategory(
   return "other";
 }
 
-function inferEvaluationFramework(
-  question: string,
-  category: "behavioral" | "technical" | "role_specific" | "custom" | "other"
-): "star" | "technical_explanation" | "experience_depth" {
-  const q = question.trim().toLowerCase();
 
-  // Behavioral questions should stay STAR-based
-  if (category === "behavioral") return "star";
 
-  // Technical questions should not use STAR
-  if (category === "technical") return "technical_explanation";
-
-  // For role-specific/custom/other, inspect wording
-  const experiencePatterns = [
-    "experience with",
-    "worked with",
-    "used",
-    "familiar with",
-    "knowledge of",
-    "background in",
-    "proficiency in",
-    "tell me about your experience",
-  ];
-
-  const explanationPatterns = [
-    "how would you",
-    "walk me through",
-    "explain",
-    "what is",
-    "how do you",
-    "how would",
-    "describe how",
-  ];
-
-  if (experiencePatterns.some((p) => q.includes(p))) {
-    return "experience_depth";
-  }
-
-  if (explanationPatterns.some((p) => q.includes(p))) {
-    return "technical_explanation";
-  }
-
-  // Default role-specific/custom fallback:
-  // role-specific usually benefits more from experience scoring than STAR
-  if (category === "role_specific") return "experience_depth";
-
-  return "star";
-}
 
 async function analyzeAnswer() {
   if (capHit) {
@@ -2123,10 +2078,12 @@ const questionCategory = inferQuestionCategory(
   questionBuckets
 );
 
-const evaluationFramework = inferEvaluationFramework(
-  selectedQuestion,
-  questionCategory
-);
+const evaluationFramework =
+  questionCategory === "behavioral"
+    ? "star"
+    : questionCategory === "technical"
+    ? "technical_explanation"
+    : classifyEvaluationFramework(selectedQuestion);
 
 const res = await fetch("/api/feedback", {
   method: "POST",

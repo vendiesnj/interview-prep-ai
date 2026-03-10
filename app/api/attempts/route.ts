@@ -287,15 +287,18 @@ const user = rows[0] ?? null;
         deliveryMetrics: body.deliveryMetrics ?? null,
         feedback: body.feedback ?? null,
 
-        score: typeof body.score === "number" ? Math.round(body.score) : null,
-        communicationScore:
-          typeof body.communication_score === "number"
-            ? Math.round(body.communication_score)
-            : null,
-        confidenceScore:
-          typeof body.confidence_score === "number"
-            ? Math.round(body.confidence_score)
-            : null,
+        score:
+  typeof body.score === "number"
+    ? Math.round(body.score * 10) / 10
+    : null,
+communicationScore:
+  typeof body.communication_score === "number"
+    ? Math.round(body.communication_score * 10) / 10
+    : null,
+confidenceScore:
+  typeof body.confidence_score === "number"
+    ? Math.round(body.confidence_score * 10) / 10
+    : null,
 
         focusGoal: body.focusGoal ?? null,
 jobDesc: body.jobDesc ?? null,

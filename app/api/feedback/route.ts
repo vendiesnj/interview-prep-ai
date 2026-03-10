@@ -7,7 +7,10 @@ import { logInfo, logError } from "@/app/lib/logger";
 
 export const runtime = "nodejs";
 
-// ---- concurrency gate (simple semaphore) ----
+// -------------------------
+// Concurrency gate
+// -------------------------
+
 const MAX_CONCURRENT_FEEDBACK = 8;
 let activeFeedbackJobs = 0;
 
@@ -20,6 +23,10 @@ async function acquireFeedbackSlot() {
 function releaseFeedbackSlot() {
   activeFeedbackJobs = Math.max(0, activeFeedbackJobs - 1);
 }
+
+// -------------------------
+// Types
+// -------------------------
 
 type EvaluationFramework = "star" | "technical_explanation" | "experience_depth";
 
@@ -135,6 +142,42 @@ function extractFirstJsonObject(text: string) {
   return text.slice(start, end + 1);
 }
 
+function getResponseText(resp: any) {
+  if (typeof resp?.output_text === "string" && resp.output_text.trim()) {
+    return resp.output_text.trim();
+  }
+
+  const parts = Array.isArray(resp?.output) ? resp.output : [];
+
+  for (const item of parts) {
+    const content = Array.isArray(item?.content) ? item.content : [];
+
+    for (const c of content) {
+      if (typeof c?.text === "string" && c.text.trim()) {
+        return c.text.trim();
+      }
+
+      if (typeof c?.json === "object" && c.json !== null) {
+        try {
+          return JSON.stringify(c.json);
+        } catch {}
+      }
+
+      if (typeof c?.parsed === "object" && c.parsed !== null) {
+        try {
+          return JSON.stringify(c.parsed);
+        } catch {}
+      }
+    }
+  }
+
+  if (typeof resp?.text === "string" && resp.text.trim()) {
+    return resp.text.trim();
+  }
+
+  return "";
+}
+
 function isNonEmptyString(x: unknown) {
   return typeof x === "string" && x.trim().length > 0;
 }
@@ -156,16 +199,12 @@ function toScore1dp(value: unknown, fallback: number, min = 0, max = 10) {
   return Math.round(clamped * 10) / 10;
 }
 
-function clampInt(value: unknown, fallback: number, min: number, max: number) {
-  const n =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-      ? Number(value)
-      : NaN;
+function round1(n: number) {
+  return Math.round(n * 10) / 10;
+}
 
-  if (!Number.isFinite(n)) return fallback;
-  return Math.max(min, Math.min(max, Math.round(n)));
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
 }
 
 function ensureStringArray(value: unknown, min = 0, max = 5, fallback: string[] = []) {
@@ -358,7 +397,7 @@ function countFillers(transcript: string) {
     perFiller,
     wordCount,
     fillersPer100Words: per100,
-    penaltyPoints: Math.min(2.0, per100 * 0.15),
+    penaltyPoints: Math.min(1.2, per100 * 0.08),
   };
 }
 
@@ -393,7 +432,7 @@ function extractQuestionSignals(question: string) {
 
   const INTENT_TAGS: Array<{ tag: string; re: RegExp }> = [
     { tag: "conflict", re: /\b(conflict|disagree|pushback|difficult|challenge|tough)\b/i },
-    { tag: "leadership", re: /\b(lead|led|leadership|influence|align|coach|mentor)\b/i },
+    { tag: "leadership", re: /\b(lead|led|leadership|influence|coach|mentor|align)\b/i },
     { tag: "ownership", re: /\b(own|ownership|accountable|responsible)\b/i },
     { tag: "tradeoffs", re: /\b(tradeoff|trade-offs|prioriti|decision|choose|evaluate)\b/i },
     { tag: "impact", re: /\b(impact|result|outcome|metric|improve|increase|decrease|reduce)\b/i },
@@ -443,10 +482,72 @@ function computeQuestionAlignment(question: string, transcript: string) {
 }
 
 // -------------------------
-// Prompt builder
+// Prompt architecture
 // -------------------------
 
-function buildPrompt(args: {
+function buildSystemMessage(framework: EvaluationFramework) {
+  const common = `
+You are an interview evaluator for a production SaaS coaching product.
+
+You must return valid JSON only and exactly match the provided schema.
+
+Scoring calibration rules:
+- Be honest, somewhat strict, and discriminating.
+- A decent first attempt usually lands in the upper 5s or low-to-mid 6s.
+- Scores above 8.0 should be uncommon and must feel clearly earned.
+- Scores above 9.0 should be very rare.
+- Polished but vague answers should not score highly.
+- Use one decimal place when useful.
+- Behavioral questions must use STAR.
+- Technical questions must NOT use STAR.
+- Experience questions must NOT use STAR.
+
+Evidence rules:
+- Use concise, specific evidence.
+- communication_evidence and confidence_evidence must not be duplicates.
+- strengths and improvements must be answer-specific, not generic.
+- better_answer must preserve the same story/topic but improve it.
+
+Output rules:
+- Return exactly one JSON object
+- Do not wrap it in markdown
+- Do not add commentary before or after
+- Do not use code fences
+- Do not omit required keys
+- If unsure, still return the required schema with best-effort values
+`.trim();
+
+  if (framework === "star") {
+    return `${common}
+
+Behavioral rules:
+- Evaluate Situation, Task, Action, and Result.
+- Overall quality should be driven mostly by STAR completeness, ownership, and specificity.
+- Weak or missing Result should keep the answer from scoring like a strong answer.
+- If STAR average is below 6.0, the answer should not look strong overall.
+`;
+  }
+
+  if (framework === "technical_explanation") {
+    return `${common}
+
+Technical explanation rules:
+- Do NOT use STAR framing.
+- Evaluate clarity, accuracy, structure, depth, and practical reasoning.
+- Buzzword-heavy but shallow answers should stay in the 5s or low 6s.
+`;
+  }
+
+  return `${common}
+
+Experience depth rules:
+- Do NOT use STAR framing.
+- Evaluate depth, specificity, tool fluency, business impact, and example quality.
+- Generic claims without concrete examples should not score highly.
+`;
+}
+
+function buildUserMessage(args: {
   framework: EvaluationFramework;
   jobDesc: string;
   question: string;
@@ -456,219 +557,296 @@ function buildPrompt(args: {
 }) {
   const { framework, jobDesc, question, transcript, deliveryMetrics, fillerStats } = args;
 
-  const commonIntro = `
-You are a rigorous interview evaluator. Be fair, honest, and specific.
-
-Important calibration:
-- Do NOT inflate scores for answers that merely sound polished.
-- Vague but polished answers should land in the 5.0–6.9 range.
-- Strong answers with specificity and clear ownership can land in the 7.0–8.4 range.
-- Scores above 8.5 should be rare.
-- 9.0+ requires unusually strong evidence, specificity, and impact.
-- Use decimal scoring when appropriate (for example 5.6, 6.8, 7.3).
-
-JOB DESCRIPTION:
-${jobDesc ?? ""}
-
-QUESTION:
-${question ?? ""}
-
-CANDIDATE ANSWER (TRANSCRIPT):
-${transcript}
-
-QUESTION RELEVANCE EVALUATION:
-Judge whether the candidate actually answered the interview question being asked.
-
-Return:
-- answered_question: boolean
-- relevance_score (1-10, allow one decimal place)
-- directness_score (1-10, allow one decimal place)
-- completeness_score (1-10, allow one decimal place)
-- off_topic_score (1-10, allow one decimal place)
-- missed_parts: array of strings
-- relevance_explanation: 1-2 sentences
-
-Important relevance rules:
-- Judge relevance primarily against the QUESTION, not the job description.
-- Multi-part questions must be graded strictly.
-- If the candidate answers only one part of a multi-part question, completeness_score must be <= 5.5.
-- If the answer is polished but does not answer the question, relevance_score must be <= 5.5.
-- directness_score should be lower if the candidate takes too long to get to the point.
-
-FILLER WORD ANALYSIS (precomputed):
-- total_fillers: ${fillerStats.total}
-- words: ${fillerStats.wordCount}
-- fillers_per_100_words: ${fillerStats.fillersPer100Words.toFixed(1)}
-
-VOICE DELIVERY METRICS (from audio; may be null):
-${deliveryMetrics ? JSON.stringify(deliveryMetrics) : "null"}
-
-Communication and confidence rules:
-- communication_score (1-10, allow one decimal place) is ONLY about clarity, sequencing, signposting, and ease of following the answer.
-- confidence_score (1-10, allow one decimal place) is ONLY about ownership language vs hedging.
-- communication_score and confidence_score must not be justified using the same evidence.
-- If fillers_per_100_words >= 8, reduce communication_score and confidence_score modestly.
-- If long pauses or obvious hesitation are present, reduce confidence_score modestly.
-
-Required common JSON fields:
-{
-  "score": 1-10,
-  "communication_score": 1-10,
-  "confidence_score": 1-10,
-  "communication_evidence": ["string"],
-  "confidence_evidence": ["string"],
-  "confidence_explanation": "string",
-  "relevance": {
-    "answered_question": true,
-    "relevance_score": 1-10,
-    "directness_score": 1-10,
-    "completeness_score": 1-10,
-    "off_topic_score": 1-10,
-    "missed_parts": ["string"],
-    "relevance_explanation": "string"
-  },
-  "strengths": ["string"],
-  "improvements": ["string"],
-  "missed_opportunities": [
-    { "label": "string", "why": "string", "add_sentence": "string" }
-  ],
-  "better_answer": "string"
+  return JSON.stringify(
+    {
+      framework,
+      job_description: jobDesc ?? "",
+      question: question ?? "",
+      transcript,
+      filler_analysis: {
+        total_fillers: fillerStats.total,
+        word_count: fillerStats.wordCount,
+        fillers_per_100_words: round1(fillerStats.fillersPer100Words),
+      },
+      delivery_metrics: deliveryMetrics ?? null,
+      grading_instructions: {
+        score_scale: "All scores are 1.0 to 10.0 with decimals allowed.",
+        communication_score_definition:
+          "clarity, sequencing, signposting, and ease of following the answer",
+        confidence_score_definition:
+          "ownership language vs hedging, hesitation, and assertiveness",
+        relevance_rules: [
+          "Judge relevance primarily against the interview question.",
+          "If the candidate answers only part of a multi-part question, completeness should fall meaningfully.",
+          "If the answer sounds polished but misses the actual question, relevance should stay low.",
+        ],
+        answer_lists: {
+          communication_evidence: "2 to 4 short snippets or concrete paraphrases",
+          confidence_evidence: "2 to 4 short snippets or concrete paraphrases",
+          strengths: "3 to 5 answer-specific items",
+          improvements: "3 to 5 answer-specific items",
+          missed_opportunities: "2 to 4 answer-specific items",
+        },
+        better_answer_target: "120 to 180 words",
+      },
+    },
+    null,
+    2
+  );
 }
 
-Common rules:
-- strengths: 3-5 items, specific to this answer
-- improvements: 3-5 items, specific to this answer
-- communication_evidence: 2-4 short verbatim quotes (or fallback phrases if evidence is weak)
-- confidence_evidence: 2-4 short verbatim quotes (or fallback phrases if evidence is weak)
-- missed_opportunities: 2-4 items
-- better_answer: 120-180 words
-- Do not include markdown
-- Output JSON only
-`.trim();
+// -------------------------
+// JSON schema builders
+// -------------------------
 
-  const starPrompt = `
-${commonIntro}
+function baseSchema() {
+  return {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      score: { type: "number" },
+      communication_score: { type: "number" },
+      confidence_score: { type: "number" },
+      communication_evidence: {
+        type: "array",
+        minItems: 2,
+        maxItems: 4,
+        items: { type: "string" },
+      },
+      confidence_evidence: {
+        type: "array",
+        minItems: 2,
+        maxItems: 4,
+        items: { type: "string" },
+      },
+      confidence_explanation: { type: "string" },
+      relevance: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          answered_question: { type: "boolean" },
+          relevance_score: { type: "number" },
+          directness_score: { type: "number" },
+          completeness_score: { type: "number" },
+          off_topic_score: { type: "number" },
+          missed_parts: {
+            type: "array",
+            maxItems: 6,
+            items: { type: "string" },
+          },
+          relevance_explanation: { type: "string" },
+        },
+        required: [
+          "answered_question",
+          "relevance_score",
+          "directness_score",
+          "completeness_score",
+          "off_topic_score",
+          "missed_parts",
+          "relevance_explanation",
+        ],
+      },
+      strengths: {
+        type: "array",
+        minItems: 3,
+        maxItems: 5,
+        items: { type: "string" },
+      },
+      improvements: {
+        type: "array",
+        minItems: 3,
+        maxItems: 5,
+        items: { type: "string" },
+      },
+      missed_opportunities: {
+        type: "array",
+        maxItems: 4,
+        items: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            label: { type: "string" },
+            why: { type: "string" },
+            add_sentence: { type: "string" },
+          },
+          required: ["label", "why", "add_sentence"],
+        },
+      },
+      better_answer: { type: "string" },
+    },
+    required: [
+      "score",
+      "communication_score",
+      "confidence_score",
+      "communication_evidence",
+      "confidence_evidence",
+      "confidence_explanation",
+      "relevance",
+      "strengths",
+      "improvements",
+      "missed_opportunities",
+      "better_answer",
+    ],
+  };
+}
 
-This is a behavioral STAR question.
+function buildSchema(framework: EvaluationFramework) {
+  const base = baseSchema();
 
-Behavioral rubric:
-- Evaluate Situation, Task, Action, and Result on a 0-10 scale with one decimal place allowed.
-- Missing or vague elements should score low.
-- Strong answers require clear ownership and concrete details.
-- Higher overall scores require a meaningful result or impact.
-- 8.0+ requires strong structure and specificity.
-- 9.0+ should be rare and require strong measurable impact.
-
-Behavioral-specific JSON fields:
-{
-  "star": {
-    "situation": 0-10,
-    "task": 0-10,
-    "action": 0-10,
-    "result": 0-10
-  },
-  "star_missing": ["situation" | "task" | "action" | "result"],
-  "star_evidence": {
-    "situation": ["string"],
-    "task": ["string"],
-    "action": ["string"],
-    "result": ["string"]
-  },
-  "star_advice": {
-    "situation": "string",
-    "task": "string",
-    "action": "string",
-    "result": "string"
+  if (framework === "star") {
+    return {
+      ...base,
+      properties: {
+        ...base.properties,
+        star: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            situation: { type: "number" },
+            task: { type: "number" },
+            action: { type: "number" },
+            result: { type: "number" },
+          },
+          required: ["situation", "task", "action", "result"],
+        },
+        star_evidence: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            situation: {
+              type: "array",
+              maxItems: 2,
+              items: { type: "string" },
+            },
+            task: {
+              type: "array",
+              maxItems: 2,
+              items: { type: "string" },
+            },
+            action: {
+              type: "array",
+              maxItems: 2,
+              items: { type: "string" },
+            },
+            result: {
+              type: "array",
+              maxItems: 2,
+              items: { type: "string" },
+            },
+          },
+          required: ["situation", "task", "action", "result"],
+        },
+        star_missing: {
+          type: "array",
+          maxItems: 4,
+          items: {
+            type: "string",
+            enum: ["situation", "task", "action", "result"],
+          },
+        },
+        star_advice: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            situation: { type: "string" },
+            task: { type: "string" },
+            action: { type: "string" },
+            result: { type: "string" },
+          },
+          required: ["situation", "task", "action", "result"],
+        },
+      },
+      required: [...base.required, "star", "star_evidence", "star_missing", "star_advice"],
+    };
   }
-}
 
-Behavioral-specific rules:
-- Overall score should be driven mainly by STAR quality, with communication/confidence as secondary adjustments.
-- If STAR average is below 6.0, overall score should usually stay below 6.5.
-- If the result is weak or non-measurable, overall score should usually stay below 8.0.
-- better_answer should rewrite the answer into a stronger behavioral response using the same story.
-- strengths and improvements may reference Situation, Task, Action, and Result.
-`.trim();
+  if (framework === "technical_explanation") {
+    return {
+      ...base,
+      properties: {
+        ...base.properties,
+        technical_explanation: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            technical_clarity: { type: "number" },
+            technical_accuracy: { type: "number" },
+            structure: { type: "number" },
+            depth: { type: "number" },
+            practical_reasoning: { type: "number" },
+          },
+          required: [
+            "technical_clarity",
+            "technical_accuracy",
+            "structure",
+            "depth",
+            "practical_reasoning",
+          ],
+        },
+        technical_strengths: {
+          type: "array",
+          minItems: 2,
+          maxItems: 4,
+          items: { type: "string" },
+        },
+        technical_improvements: {
+          type: "array",
+          minItems: 2,
+          maxItems: 4,
+          items: { type: "string" },
+        },
+      },
+      required: [
+        ...base.required,
+        "technical_explanation",
+        "technical_strengths",
+        "technical_improvements",
+      ],
+    };
+  }
 
-  const technicalPrompt = `
-${commonIntro}
-
-This is a technical explanation question.
-
-Technical rubric:
-- Do NOT force STAR.
-- Evaluate:
-  - technical_clarity
-  - technical_accuracy
-  - structure
-  - depth
-  - practical_reasoning
-- Use a 0-10 scale with one decimal place allowed.
-- Strong answers should explain the concept correctly, clearly, and with practical reasoning.
-- Buzzword-heavy but shallow answers should score in the 5s or low 6s.
-- 8.0+ requires real clarity, credible depth, and practical reasoning.
-- 9.0+ should be rare.
-
-Technical-specific JSON fields:
-{
-  "technical_explanation": {
-    "technical_clarity": 0-10,
-    "technical_accuracy": 0-10,
-    "structure": 0-10,
-    "depth": 0-10,
-    "practical_reasoning": 0-10
-  },
-  "technical_strengths": ["string"],
-  "technical_improvements": ["string"]
-}
-
-Technical-specific rules:
-- Do not return STAR fields.
-- better_answer should rewrite the answer as a stronger technical explanation, not a STAR story.
-- strengths and improvements should focus on explanation quality, specificity, and reasoning.
-`.trim();
-
-  const experiencePrompt = `
-${commonIntro}
-
-This is an experience depth question.
-
-Experience rubric:
-- Do NOT force STAR.
-- Evaluate:
-  - experience_depth
-  - specificity
-  - tool_fluency
-  - business_impact
-  - example_quality
-- Use a 0-10 scale with one decimal place allowed.
-- Generic claims like "I have experience with X" should not score highly.
-- Strong answers require concrete examples, credible familiarity, and practical business relevance.
-- 8.0+ requires clear specificity and credible impact.
-- 9.0+ should be rare.
-
-Experience-specific JSON fields:
-{
-  "experience_depth": {
-    "experience_depth": 0-10,
-    "specificity": 0-10,
-    "tool_fluency": 0-10,
-    "business_impact": 0-10,
-    "example_quality": 0-10
-  },
-  "experience_strengths": ["string"],
-  "experience_improvements": ["string"]
-}
-
-Experience-specific rules:
-- Do not return STAR fields.
-- better_answer should rewrite the answer as a stronger experience-based answer, not a STAR story.
-- strengths and improvements should focus on specificity, fluency, examples, and impact.
-`.trim();
-
-  if (framework === "technical_explanation") return technicalPrompt;
-  if (framework === "experience_depth") return experiencePrompt;
-  return starPrompt;
+  return {
+    ...base,
+    properties: {
+      ...base.properties,
+      experience_depth: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          experience_depth: { type: "number" },
+          specificity: { type: "number" },
+          tool_fluency: { type: "number" },
+          business_impact: { type: "number" },
+          example_quality: { type: "number" },
+        },
+        required: [
+          "experience_depth",
+          "specificity",
+          "tool_fluency",
+          "business_impact",
+          "example_quality",
+        ],
+      },
+      experience_strengths: {
+        type: "array",
+        minItems: 2,
+        maxItems: 4,
+        items: { type: "string" },
+      },
+      experience_improvements: {
+        type: "array",
+        minItems: 2,
+        maxItems: 4,
+        items: { type: "string" },
+      },
+    },
+    required: [
+      ...base.required,
+      "experience_depth",
+      "experience_strengths",
+      "experience_improvements",
+    ],
+  };
 }
 
 // -------------------------
@@ -676,27 +854,27 @@ Experience-specific rules:
 // -------------------------
 
 function normalizeBaseFeedback(json: any): BaseFeedbackJSON {
-  const base: BaseFeedbackJSON = {
-    score: toScore1dp(json.score, 5, 1, 10),
-    communication_score: toScore1dp(json.communication_score, 5, 1, 10),
-    confidence_score: toScore1dp(json.confidence_score, 5, 1, 10),
+  return {
+    score: toScore1dp(json.score, 5.8, 1, 10),
+    communication_score: toScore1dp(json.communication_score, 5.8, 1, 10),
+    confidence_score: toScore1dp(json.confidence_score, 5.8, 1, 10),
     communication_evidence: ensureStringArray(json.communication_evidence, 2, 4, [
-      "No clear signposting detected",
-      "Sequencing was hard to follow",
+      "The answer had some structure but could be easier to follow.",
+      "Clearer signposting would improve flow.",
     ]),
     confidence_evidence: ensureStringArray(json.confidence_evidence, 2, 4, [
-      "Limited ownership language detected",
-      "Some hedging reduced assertiveness",
+      "Some ownership language was present.",
+      "There was some hesitation or hedging.",
     ]),
     confidence_explanation: isNonEmptyString(json.confidence_explanation)
       ? json.confidence_explanation.trim()
       : "Confidence evidence was limited.",
     relevance: {
       answered_question: Boolean(json?.relevance?.answered_question),
-      relevance_score: toScore1dp(json?.relevance?.relevance_score, 5, 1, 10),
-      directness_score: toScore1dp(json?.relevance?.directness_score, 5, 1, 10),
-      completeness_score: toScore1dp(json?.relevance?.completeness_score, 5, 1, 10),
-      off_topic_score: toScore1dp(json?.relevance?.off_topic_score, 5, 1, 10),
+      relevance_score: toScore1dp(json?.relevance?.relevance_score, 5.8, 1, 10),
+      directness_score: toScore1dp(json?.relevance?.directness_score, 5.8, 1, 10),
+      completeness_score: toScore1dp(json?.relevance?.completeness_score, 5.8, 1, 10),
+      off_topic_score: toScore1dp(json?.relevance?.off_topic_score, 5.8, 1, 10),
       missed_parts: ensureStringArray(json?.relevance?.missed_parts, 0, 6),
       relevance_explanation: isNonEmptyString(json?.relevance?.relevance_explanation)
         ? json.relevance.relevance_explanation.trim()
@@ -704,21 +882,19 @@ function normalizeBaseFeedback(json: any): BaseFeedbackJSON {
     },
     missed_opportunities: ensureMissedOpportunities(json.missed_opportunities),
     strengths: ensureStringArray(json.strengths, 3, 5, [
-      "Some relevant detail was included.",
-      "The answer addressed part of the question.",
-      "There was at least some evidence of ownership or structure.",
+      "The answer included at least some relevant substance.",
+      "There was some attempt at structure.",
+      "Parts of the response showed ownership or familiarity.",
     ]),
     improvements: ensureStringArray(json.improvements, 3, 5, [
-      "Add more specific detail tied to the question asked.",
+      "Add more specific detail tied directly to the question.",
       "Make the answer easier to follow with clearer sequencing.",
-      "Strengthen the close with clearer impact or takeaway.",
+      "Close with clearer impact, takeaway, or reasoning.",
     ]),
     better_answer: isNonEmptyString(json.better_answer)
       ? json.better_answer.trim()
-      : "A stronger answer would be more specific, more structured, and more clearly tied to the question.",
+      : "A stronger answer would be more specific, more structured, and more directly tied to the question.",
   };
-
-  return base;
 }
 
 function normalizeStarFeedback(json: any): StarFeedbackJSON {
@@ -745,16 +921,16 @@ function normalizeStarFeedback(json: any): StarFeedbackJSON {
     star_advice: {
       situation: isNonEmptyString(json?.star_advice?.situation)
         ? json.star_advice.situation.trim()
-        : "Not mentioned.",
+        : "Add more context.",
       task: isNonEmptyString(json?.star_advice?.task)
         ? json.star_advice.task.trim()
-        : "Not mentioned.",
+        : "Clarify the goal or responsibility.",
       action: isNonEmptyString(json?.star_advice?.action)
         ? json.star_advice.action.trim()
-        : "Not mentioned.",
+        : "Explain exactly what you did.",
       result: isNonEmptyString(json?.star_advice?.result)
         ? json.star_advice.result.trim()
-        : "Not mentioned.",
+        : "State the outcome and impact.",
     },
   };
 }
@@ -773,7 +949,7 @@ function normalizeTechnicalFeedback(json: any): TechnicalFeedbackJSON {
     },
     technical_strengths: ensureStringArray(json?.technical_strengths, 2, 4, [
       "Some technically relevant detail was included.",
-      "The answer showed at least partial familiarity with the topic.",
+      "The answer showed partial familiarity with the topic.",
     ]),
     technical_improvements: ensureStringArray(json?.technical_improvements, 2, 4, [
       "Add more concrete technical detail.",
@@ -796,13 +972,242 @@ function normalizeExperienceFeedback(json: any): ExperienceFeedbackJSON {
     },
     experience_strengths: ensureStringArray(json?.experience_strengths, 2, 4, [
       "Some relevant experience was described.",
-      "The answer showed at least partial familiarity with the work.",
+      "The answer showed partial familiarity with the work.",
     ]),
     experience_improvements: ensureStringArray(json?.experience_improvements, 2, 4, [
       "Add more concrete examples.",
       "Show stronger specificity and business relevance.",
     ]),
   };
+}
+
+// -------------------------
+// Deterministic calibration
+// -------------------------
+
+function deliveryPenalty(deliveryMetrics: any, fillerStats: ReturnType<typeof countFillers>) {
+  let penalty = 0;
+
+  const fillersPer100 = fillerStats.fillersPer100Words;
+  if (fillersPer100 >= 12) penalty += 0.6;
+  else if (fillersPer100 >= 8) penalty += 0.35;
+  else if (fillersPer100 >= 5) penalty += 0.15;
+
+  const avgPauseMs =
+    typeof deliveryMetrics?.avgPauseMs === "number"
+      ? deliveryMetrics.avgPauseMs
+      : typeof deliveryMetrics?.avg_pause_ms === "number"
+      ? deliveryMetrics.avg_pause_ms
+      : null;
+
+  if (typeof avgPauseMs === "number") {
+    if (avgPauseMs >= 1800) penalty += 0.35;
+    else if (avgPauseMs >= 1200) penalty += 0.2;
+  }
+
+  return round1(Math.min(1.2, penalty));
+}
+
+function computeHeadlineScore(
+  framework: EvaluationFramework,
+  normalized: AnyFeedbackJSON,
+  fillerStats: ReturnType<typeof countFillers>,
+  deliveryMetrics: any
+) {
+  const relevanceAvg = round1(
+    (normalized.relevance.relevance_score +
+      normalized.relevance.directness_score +
+      normalized.relevance.completeness_score) / 3
+  );
+
+  const deliveryAvg = round1(
+    (normalized.communication_score + normalized.confidence_score) / 2
+  );
+
+  const penalty = deliveryPenalty(deliveryMetrics, fillerStats);
+
+  let raw = 5.8;
+
+  if (framework === "star") {
+    const n = normalized as StarFeedbackJSON;
+    const starAvg = round1(
+      (n.star.situation + n.star.task + n.star.action + n.star.result) / 4
+    );
+
+    raw =
+      starAvg * 0.64 +
+      relevanceAvg * 0.22 +
+      deliveryAvg * 0.14 -
+      penalty;
+
+    let capped = raw;
+
+    if (!n.relevance.answered_question) capped = Math.min(capped, 5.8);
+    if (n.relevance.completeness_score < 5.8) capped = Math.min(capped, 6.1);
+    if (starAvg < 6.0) capped = Math.min(capped, 6.4);
+    if (n.star.result < 5.5) capped = Math.min(capped, 7.7);
+    if (n.star.action < 5.8) capped = Math.min(capped, 6.8);
+    if (n.star_missing.length >= 2) capped = Math.min(capped, 6.5);
+
+    return round1(clamp(capped, 1, 10));
+  }
+
+  if (framework === "technical_explanation") {
+    const n = normalized as TechnicalFeedbackJSON;
+    const techAvg = round1(
+      (n.technical_explanation.technical_clarity +
+        n.technical_explanation.technical_accuracy +
+        n.technical_explanation.structure +
+        n.technical_explanation.depth +
+        n.technical_explanation.practical_reasoning) / 5
+    );
+
+    raw =
+      techAvg * 0.66 +
+      relevanceAvg * 0.20 +
+      deliveryAvg * 0.14 -
+      penalty;
+
+    let capped = raw;
+
+    if (!n.relevance.answered_question) capped = Math.min(capped, 5.8);
+    if (n.relevance.completeness_score < 5.8) capped = Math.min(capped, 6.2);
+    if (n.technical_explanation.depth < 5.8) capped = Math.min(capped, 6.8);
+    if (n.technical_explanation.technical_accuracy < 6.0) capped = Math.min(capped, 6.6);
+    if (n.technical_explanation.practical_reasoning < 5.8) capped = Math.min(capped, 6.9);
+
+    return round1(clamp(capped, 1, 10));
+  }
+
+  const n = normalized as ExperienceFeedbackJSON;
+  const expAvg = round1(
+    (n.experience_depth.experience_depth +
+      n.experience_depth.specificity +
+      n.experience_depth.tool_fluency +
+      n.experience_depth.business_impact +
+      n.experience_depth.example_quality) / 5
+  );
+
+  raw =
+    expAvg * 0.66 +
+    relevanceAvg * 0.20 +
+    deliveryAvg * 0.14 -
+    penalty;
+
+  let capped = raw;
+
+  if (!n.relevance.answered_question) capped = Math.min(capped, 5.8);
+  if (n.relevance.completeness_score < 5.8) capped = Math.min(capped, 6.2);
+  if (n.experience_depth.specificity < 5.8) capped = Math.min(capped, 6.6);
+  if (n.experience_depth.example_quality < 5.8) capped = Math.min(capped, 6.8);
+  if (n.experience_depth.business_impact < 5.5) capped = Math.min(capped, 7.2);
+
+  return round1(clamp(capped, 1, 10));
+}
+
+function applyDeterministicCalibration(
+  framework: EvaluationFramework,
+  normalized: AnyFeedbackJSON,
+  fillerStats: ReturnType<typeof countFillers>,
+  deliveryMetrics: any
+): AnyFeedbackJSON {
+  const score = computeHeadlineScore(framework, normalized, fillerStats, deliveryMetrics);
+  return {
+    ...normalized,
+    score,
+    communication_score: toScore1dp(normalized.communication_score, 5.8, 1, 10),
+    confidence_score: toScore1dp(normalized.confidence_score, 5.8, 1, 10),
+  };
+}
+
+
+
+// -------------------------
+// Model call
+// -------------------------
+
+async function callFeedbackModel(args: {
+  client: OpenAI;
+  framework: EvaluationFramework;
+  jobDesc: string;
+  question: string;
+  transcript: string;
+  deliveryMetrics: any;
+  fillerStats: ReturnType<typeof countFillers>;
+}) {
+  const { client, framework, jobDesc, question, transcript, deliveryMetrics, fillerStats } = args;
+
+  const schema = buildSchema(framework);
+  const system = buildSystemMessage(framework);
+  const user = buildUserMessage({
+    framework,
+    jobDesc,
+    question,
+    transcript,
+    deliveryMetrics,
+    fillerStats,
+  });
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const retryNote =
+      attempt === 1
+        ? ""
+        : "\n\nRetry note: your prior response failed validation. Return schema-compliant JSON only.";
+
+// IMPORTANT: keep strict json_schema here.
+// Do not switch this to plain text output or the parser will become unreliable.
+
+const resp = await client.responses.create({
+  model: "gpt-4.1-mini",
+  temperature: 0,
+  max_output_tokens: 2200,
+  input: [
+    {
+      role: "system",
+      content: [{ type: "input_text", text: system }],
+    },
+    {
+      role: "user",
+      content: [{ type: "input_text", text: user + retryNote }],
+    },
+  ],
+  text: {
+    format: {
+      type: "json_schema",
+      name: "feedback_response",
+      strict: true,
+      schema,
+    } as any,
+  },
+});
+
+const text = getResponseText(resp);
+let parsed = tryParseJson(text);
+
+if (!parsed && text) {
+  const candidate = extractFirstJsonObject(text);
+  if (candidate) parsed = tryParseJson(candidate);
+}
+
+// Final fallback for SDK variants that may expose parsed output directly
+if (!parsed && typeof (resp as any)?.output_parsed === "object" && (resp as any).output_parsed !== null) {
+  parsed = (resp as any).output_parsed;
+}
+
+if (parsed && typeof parsed === "object") {
+  return { parsed, rawText: text };
+}
+
+ logError("feedback_parse_attempt_failed", {
+  framework,
+  attempt,
+  raw: text.slice(0, 1200),
+  hasOutputText: typeof (resp as any)?.output_text === "string",
+  hasOutputParsed: typeof (resp as any)?.output_parsed === "object" && (resp as any).output_parsed !== null,
+});
+  }
+
+  return { parsed: null, rawText: "" };
 }
 
 // -------------------------
@@ -823,21 +1228,21 @@ export async function POST(req: Request) {
 
   const start = Date.now();
 
-  const cl = req.headers.get("content-length");
-  if (cl && Number(cl) > 40_000) {
-    releaseFeedbackSlot();
-    return new Response(JSON.stringify({ error: "PAYLOAD_TOO_LARGE" }), {
-      status: 413,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   try {
+    const cl = req.headers.get("content-length");
+    if (cl && Number(cl) > 40_000) {
+      return new Response(JSON.stringify({ error: "PAYLOAD_TOO_LARGE" }), {
+        status: 413,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const jobDesc = typeof body.jobDesc === "string" ? body.jobDesc : "";
     const question = typeof body.question === "string" ? body.question : "";
     const transcript = typeof body.transcript === "string" ? body.transcript : "";
     const deliveryMetrics = body.deliveryMetrics ?? null;
+
     const evaluationFramework: EvaluationFramework =
       body.evaluationFramework === "technical_explanation"
         ? "technical_explanation"
@@ -900,7 +1305,7 @@ export async function POST(req: Request) {
         counts.set(t, (counts.get(t) ?? 0) + 1);
       }
 
-      (fillerStats as any).perFiller = Object.fromEntries(counts.entries());
+      fillerStats.perFiller = Object.fromEntries(counts.entries());
     }
 
     const qa = computeQuestionAlignment(question, transcript);
@@ -985,7 +1390,8 @@ export async function POST(req: Request) {
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    const prompt = buildPrompt({
+    const modelResult = await callFeedbackModel({
+      client,
       framework: evaluationFramework,
       jobDesc,
       question,
@@ -994,24 +1400,14 @@ export async function POST(req: Request) {
       fillerStats,
     });
 
-    const resp = await client.responses.create({
-      model: "gpt-4.1-mini",
-      input: prompt,
-      temperature: 0,
-    });
+    if (!modelResult.parsed) {
+      logError("feedback_non_json_output", {
+        framework: evaluationFramework,
+        raw: modelResult.rawText.slice(0, 1200),
+      });
 
-    const text = resp.output_text?.trim() ?? "";
-
-    let parsed: any = tryParseJson(text);
-    if (!parsed) {
-      const candidate = extractFirstJsonObject(text);
-      if (candidate) parsed = tryParseJson(candidate);
-    }
-
-    if (!parsed) {
-      logError("feedback_non_json_output", { raw: text.slice(0, 1200) });
       return new Response(
-        JSON.stringify({ error: "Model returned non-JSON output.", raw: text }),
+        JSON.stringify({ error: "Model returned non-JSON output." }),
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -1019,34 +1415,52 @@ export async function POST(req: Request) {
     let normalized: AnyFeedbackJSON;
 
     if (evaluationFramework === "technical_explanation") {
-      normalized = normalizeTechnicalFeedback(parsed);
+      normalized = normalizeTechnicalFeedback(modelResult.parsed);
+      normalized = applyDeterministicCalibration(
+        evaluationFramework,
+        normalized,
+        fillerStats,
+        deliveryMetrics
+      );
+
       if (!validateTechnicalFeedback(normalized)) {
         return new Response(
           JSON.stringify({
             error: "Model returned invalid technical feedback shape.",
-            parsed: normalized,
           }),
           { status: 500, headers: { "Content-Type": "application/json" } }
         );
       }
     } else if (evaluationFramework === "experience_depth") {
-      normalized = normalizeExperienceFeedback(parsed);
+      normalized = normalizeExperienceFeedback(modelResult.parsed);
+      normalized = applyDeterministicCalibration(
+        evaluationFramework,
+        normalized,
+        fillerStats,
+        deliveryMetrics
+      );
+
       if (!validateExperienceFeedback(normalized)) {
         return new Response(
           JSON.stringify({
             error: "Model returned invalid experience feedback shape.",
-            parsed: normalized,
           }),
           { status: 500, headers: { "Content-Type": "application/json" } }
         );
       }
     } else {
-      normalized = normalizeStarFeedback(parsed);
+      normalized = normalizeStarFeedback(modelResult.parsed);
+      normalized = applyDeterministicCalibration(
+        evaluationFramework,
+        normalized,
+        fillerStats,
+        deliveryMetrics
+      );
+
       if (!validateStarFeedback(normalized)) {
         return new Response(
           JSON.stringify({
             error: "Model returned invalid behavioral feedback shape.",
-            parsed: normalized,
           }),
           { status: 500, headers: { "Content-Type": "application/json" } }
         );
@@ -1065,6 +1479,8 @@ export async function POST(req: Request) {
       framework: evaluationFramework,
       elapsedMs: Date.now() - start,
       score: normalized.score,
+      communicationScore: normalized.communication_score,
+      confidenceScore: normalized.confidence_score,
     });
 
     const response: FeedbackResponse = {

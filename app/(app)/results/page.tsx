@@ -43,11 +43,12 @@ type StoredResult = {
   wpm?: number | null;
   jobDesc?: string;
   questions?: string[];
-  questionBuckets?: {
-    behavioral: string[];
-    technical: string[];
-    culture: string[];
-  } | null;
+questionBuckets?: {
+  behavioral: string[];
+  technical: string[];
+  role_specific?: string[];
+  custom?: string[];
+} | null;
   prosody?: Prosody | null;
   feedback: any;
   audioId?: string | null;
@@ -639,11 +640,25 @@ export default function ResultsPage() {
     }
   }, [status, SELECTED_KEY, LAST_RESULT_KEY]);
 
-  const feedback = stored?.feedback ?? null;
+const feedback = stored?.feedback ?? null;
 
-const isStarFramework = stored?.evaluationFramework === "star";
-const isTechnicalFramework = stored?.evaluationFramework === "technical_explanation";
-const isExperienceFramework = stored?.evaluationFramework === "experience_depth";
+const resolvedFramework =
+  stored?.evaluationFramework === "star" ||
+  stored?.evaluationFramework === "technical_explanation" ||
+  stored?.evaluationFramework === "experience_depth"
+    ? stored.evaluationFramework
+    : feedback?.star
+    ? "star"
+    : feedback?.technical_explanation
+    ? "technical_explanation"
+    : feedback?.experience_depth
+    ? "experience_depth"
+    : "star";
+
+const isStarFramework = resolvedFramework === "star";
+const isTechnicalFramework = resolvedFramework === "technical_explanation";
+const isExperienceFramework = resolvedFramework === "experience_depth";
+
   const starAvg = useMemo(() => {
     if (!feedback?.star) return null;
     const s = feedback.star;
@@ -1379,27 +1394,29 @@ else if (isExperienceFramework) lever = "Communication";
       </span>
     ) : null}
 
-    {stored.evaluationFramework ? (
-      <span
-        style={{
-          padding: "4px 9px",
-          borderRadius: 999,
-          border: "1px solid var(--accent-strong)",
-          background: "var(--accent-soft)",
-          color: "var(--accent)",
-          fontSize: 12,
-          fontWeight: 900,
-        }}
-      >
-        {stored.evaluationFramework === "star"
-          ? "Behavioral (STAR)"
-          : stored.evaluationFramework === "technical_explanation"
-          ? "Technical explanation"
-          : stored.evaluationFramework === "experience_depth"
-          ? "Experience depth"
-          : stored.evaluationFramework}
-      </span>
-    ) : null}
+   {resolvedFramework ? (
+  <span
+    style={{
+      padding: "4px 9px",
+      borderRadius: 999,
+      border: "1px solid var(--accent-strong)",
+      background: "var(--accent-soft)",
+      color: "var(--accent)",
+      fontSize: 12,
+      fontWeight: 900,
+    }}
+  >
+    {resolvedFramework === "star"
+      ? "Behavioral (STAR)"
+      : resolvedFramework === "technical_explanation"
+      ? "Technical explanation"
+      : resolvedFramework === "experience_depth"
+      ? "Experience depth"
+      : resolvedFramework}
+  </span>
+) : null} 
+
+
   </div>
 ) : null}
   </div>
@@ -2104,7 +2121,7 @@ else if (isExperienceFramework) lever = "Communication";
             <div style={{ marginTop: 32, borderTop: "1px solid var(--card-border-soft)" }} />
 
             {activeTab === "structure" &&
-stored.evaluationFramework === "star" &&
+isStarFramework &&
 feedback.star ? (
               <SectionCard title={`STAR Breakdown${starAvg !== null ? ` (avg ${starAvg}/10)` : ""}`}>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
@@ -2195,8 +2212,8 @@ feedback.star ? (
               </SectionCard>
             ) : null}
 
-           {activeTab === "structure" &&
-stored.evaluationFramework === "technical_explanation" ? (
+{activeTab === "structure" &&
+isTechnicalFramework ? (
   <SectionCard title="Technical Explanation Breakdown">
     <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
       This answer is being evaluated as a technical explanation, so STAR structure is not the primary rubric.
@@ -2265,8 +2282,10 @@ stored.evaluationFramework === "technical_explanation" ? (
       </div>
     )}
   </SectionCard>
+
+
 ) : activeTab === "structure" &&
-  stored.evaluationFramework === "experience_depth" ? (
+  isExperienceFramework ? (
   <SectionCard title="Experience Depth Breakdown">
     <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
       This answer is being evaluated for experience depth, so STAR structure is not the primary rubric.
@@ -2336,7 +2355,7 @@ stored.evaluationFramework === "technical_explanation" ? (
     )}
   </SectionCard>
 ) : activeTab === "structure" &&
-  stored.evaluationFramework !== "star" ? (
+  !isStarFramework ? (
   <SectionCard title="Evaluation Breakdown">
     <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
       This answer is using a non-STAR evaluation framework.
