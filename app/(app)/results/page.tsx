@@ -386,6 +386,7 @@ function extractStarEvidence(transcript: string) {
 }
 
 // -------------------- Speaking timeline --------------------
+// -------------------- Speaking timeline --------------------
 function SpeakingTimeline({
   series,
   height = 110,
@@ -441,9 +442,13 @@ function SpeakingTimeline({
   }}
 >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <div style={{ fontWeight: 900, fontSize: 13, color: "var(--text-primary)" }}>Speaking timeline</div>
+        <div style={{ fontWeight: 900, fontSize: 13, color: "var(--text-primary)" }}>How your voice moved</div>
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{duration ? `${duration.toFixed(1)}s` : ""}</div>
       </div>
+
+    <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+  The white line shows energy. The colored line shows pitch. More healthy variation usually sounds more engaging.
+</div>  
 
       <div style={{ marginTop: 10 }}>
         <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: "block" }}>
@@ -482,6 +487,8 @@ function SpeakingTimeline({
   );
 }
 
+
+
 function mean(arr: number[]) {
   if (!arr.length) return 0;
   return arr.reduce((a, b) => a + b, 0) / arr.length;
@@ -500,6 +507,75 @@ function scoreLabel(score: number) {
   if (score >= 5.5) return "Good";
   if (score >= 4.0) return "Needs polish";
   return "Needs work";
+}
+
+function deliveryBand(score: number | null) {
+  if (score === null) return "Unavailable";
+  if (score >= 8.5) return "Excellent";
+  if (score >= 7.0) return "Strong";
+  if (score >= 5.5) return "Solid";
+  if (score >= 4.0) return "Needs polish";
+  return "Needs work";
+}
+
+function clarityLabel(fillersPer100: number | null) {
+  if (fillersPer100 === null) return "Unavailable";
+  if (fillersPer100 <= 1.5) return "Clean";
+  if (fillersPer100 <= 3) return "Mostly clean";
+  if (fillersPer100 <= 5) return "A little filler-heavy";
+  return "Too many fillers";
+}
+
+function rhythmLabel(rhythmScore: number | null) {
+  if (rhythmScore === null) return "Unavailable";
+  if (rhythmScore >= 8) return "Smooth";
+  if (rhythmScore >= 6) return "Mostly steady";
+  if (rhythmScore >= 4.5) return "A bit uneven";
+  return "Choppy";
+}
+
+function vocalPresenceLabel(score: number | null) {
+  if (score === null) return "Unavailable";
+  if (score >= 8) return "Engaging";
+  if (score >= 6) return "Decent";
+  if (score >= 4.5) return "Somewhat flat";
+  return "Flat";
+}
+
+function biggestDeliveryLever(args: {
+  fillersPer100: number | null;
+  rhythmScore: number | null;
+  vocalPresenceScore: number | null;
+  storedWpm: number | null | undefined;
+  monotoneScore: number | null;
+}) {
+  const { fillersPer100, rhythmScore, vocalPresenceScore, storedWpm, monotoneScore } = args;
+
+  if (typeof fillersPer100 === "number" && fillersPer100 >= 3) {
+    return "Replace fillers with pauses";
+  }
+
+  if (typeof storedWpm === "number" && storedWpm > 165) {
+    return "Slow down after metrics";
+  }
+
+  if (typeof storedWpm === "number" && storedWpm < 100) {
+    return "Get to the point earlier";
+  }
+
+  if (typeof monotoneScore === "number" && monotoneScore >= 6) {
+    return "Add more vocal lift";
+  }
+
+  if (typeof rhythmScore === "number" && rhythmScore < 6) {
+    return "Smooth out your pacing";
+  }
+
+  if (typeof vocalPresenceScore === "number" && vocalPresenceScore < 6) {
+    return "Emphasize outcomes more";
+  }
+
+  return "Keep the same delivery pattern";
 }
 
 const numOrNull = (v: any): number | null => {
@@ -585,60 +661,66 @@ function HeadlineCard({
 
 // -------------------- Main page --------------------
 export default function ResultsPage() {
-  const router = useRouter();
-  const [stored, setStored] = useState<StoredResult | null>(null);
-  const [activeTab, setActiveTab] = useState<ResultsTab>("overview");
-  const { data: session, status } = useSession();
+const router = useRouter();
+const [stored, setStored] = useState<StoredResult | null>(null);
+const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+const [activeTab, setActiveTab] = useState<ResultsTab>("overview");
+const { data: session, status } = useSession();
 
-  const [replayUrl, setReplayUrl] = useState<string | null>(null);
-
+const [replayUrl, setReplayUrl] = useState<string | null>(null);
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
   const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
 
-    useEffect(() => {
-    if (status === "loading") return;
+useEffect(() => {
+  if (status === "loading") return;
 
-    try {
-      const fromPractice = sessionStorage.getItem("ipc_from_practice") === "1";
+  setLoadState("hydrating");
 
-      if (fromPractice) {
-        sessionStorage.removeItem("ipc_from_practice");
+  try {
+    const fromPractice = sessionStorage.getItem("ipc_from_practice") === "1";
 
-        const practiceRaw =
-          sessionStorage.getItem(LAST_RESULT_KEY) ||
-          localStorage.getItem(LAST_RESULT_KEY) ||
-          sessionStorage.getItem("ipc_last_result") ||
-          localStorage.getItem("ipc_last_result");
+    if (fromPractice) {
+      sessionStorage.removeItem("ipc_from_practice");
 
-        if (practiceRaw) {
-          setStored(JSON.parse(practiceRaw));
-          return;
-        }
-      }
-
-      const selectedRaw =
-        sessionStorage.getItem(SELECTED_KEY) ||
-        localStorage.getItem(SELECTED_KEY) ||
-        sessionStorage.getItem("ipc_selected_attempt") ||
-        localStorage.getItem("ipc_selected_attempt");
-
-      if (selectedRaw) {
-        setStored(JSON.parse(selectedRaw));
-        return;
-      }
-
-      const raw =
+      const practiceRaw =
         sessionStorage.getItem(LAST_RESULT_KEY) ||
         localStorage.getItem(LAST_RESULT_KEY) ||
         sessionStorage.getItem("ipc_last_result") ||
         localStorage.getItem("ipc_last_result");
 
-      if (raw) setStored(JSON.parse(raw));
-      else setStored(null);
-    } catch {
-      setStored(null);
+      if (practiceRaw) {
+        setStored(JSON.parse(practiceRaw));
+        setLoadState("ready");
+        return;
+      }
     }
-  }, [status, SELECTED_KEY, LAST_RESULT_KEY]);
+
+    const selectedRaw =
+      sessionStorage.getItem(SELECTED_KEY) ||
+      localStorage.getItem(SELECTED_KEY) ||
+      sessionStorage.getItem("ipc_selected_attempt") ||
+      localStorage.getItem("ipc_selected_attempt");
+
+    if (selectedRaw) {
+      setStored(JSON.parse(selectedRaw));
+      setLoadState("ready");
+      return;
+    }
+
+    const raw =
+      sessionStorage.getItem(LAST_RESULT_KEY) ||
+      localStorage.getItem(LAST_RESULT_KEY) ||
+      sessionStorage.getItem("ipc_last_result") ||
+      localStorage.getItem("ipc_last_result");
+
+    if (raw) setStored(JSON.parse(raw));
+    else setStored(null);
+  } catch {
+    setStored(null);
+  } finally {
+    setLoadState("ready");
+  }
+}, [status, SELECTED_KEY, LAST_RESULT_KEY]);
 
 const feedback = stored?.feedback ?? null;
 
@@ -983,6 +1065,114 @@ else if (isExperienceFramework) lever = "Communication";
     return [snapshot, leverLine, readiness].filter(Boolean);
   }, [stored, feedback]);
 
+
+function deliveryCoachSummary(args: {
+  engagementScore: number | null;
+  vocalPresenceScore: number | null;
+  rhythmScore: number | null;
+  clarityScore: number | null;
+  fillersPer100: number | null;
+  storedWpm: number | null | undefined;
+  monotoneScore: number | null;
+}) {
+  const {
+    engagementScore,
+    vocalPresenceScore,
+    rhythmScore,
+    clarityScore,
+    fillersPer100,
+    storedWpm,
+    monotoneScore,
+  } = args;
+
+  const strengths: string[] = [];
+  const risks: string[] = [];
+  const fixes: string[] = [];
+
+  if (typeof storedWpm === "number") {
+    if (storedWpm >= 115 && storedWpm <= 145) strengths.push("your pace is in a strong range");
+    else if (storedWpm > 165) risks.push("you may be rushing key points");
+    else if (storedWpm < 100) risks.push("your pace may feel hesitant or slow");
+  }
+
+  if (typeof fillersPer100 === "number") {
+    if (fillersPer100 <= 1.5) strengths.push("your delivery sounds fairly clean");
+    else if (fillersPer100 >= 3) risks.push("fillers may reduce polish");
+  }
+
+  if (typeof monotoneScore === "number") {
+    if (monotoneScore <= 4) strengths.push("your voice has enough variation");
+    else if (monotoneScore >= 6) risks.push("your tone may sound too flat");
+  }
+
+  if (typeof rhythmScore === "number" && rhythmScore < 6) {
+    fixes.push("pause more intentionally after results and numbers");
+  }
+
+  if (typeof clarityScore === "number" && clarityScore < 6) {
+    fixes.push("shorten sentences to make your delivery cleaner");
+  }
+
+  if (typeof vocalPresenceScore === "number" && vocalPresenceScore < 6) {
+    fixes.push("add more emphasis when you land outcomes");
+  }
+
+  if (typeof storedWpm === "number" && storedWpm > 165) {
+    fixes.push("slow down slightly when you reach metrics or impact");
+  }
+
+  if (typeof storedWpm === "number" && storedWpm < 100) {
+    fixes.push("start more directly and reduce extra setup");
+  }
+
+  const opener =
+    engagementScore === null
+      ? "We do not have enough acoustic signal to summarize delivery yet."
+      : engagementScore >= 7
+      ? "You come across fairly well overall."
+      : engagementScore >= 5.5
+      ? "Your delivery is solid, but not fully polished yet."
+      : "Your delivery is likely costing you points right now.";
+
+  const strengthLine =
+    strengths.length > 0 ? `Best signal: ${strengths[0]}.` : "Best signal: your delivery has workable foundations.";
+
+  const riskLine =
+    risks.length > 0 ? `Main risk: ${risks[0]}.` : "Main risk: no major delivery issue stands out strongly.";
+
+  const fixLine =
+    fixes.length > 0 ? `Next fix: ${fixes[0]}.` : "Next fix: keep the same delivery pattern and tighten your close.";
+
+  return {
+    opener,
+    strengthLine,
+    riskLine,
+    fixLine,
+  };
+}
+
+const deliveryCoach = useMemo(() => {
+  return deliveryCoachSummary({
+    engagementScore: deliverySummary?.engagementScore ?? null,
+    vocalPresenceScore: deliverySummary?.vocalPresenceScore ?? null,
+    rhythmScore: deliverySummary?.rhythmScore ?? null,
+    clarityScore: deliverySummary?.clarityScore ?? null,
+    fillersPer100: deliverySummary?.fillersPer100 ?? null,
+    storedWpm: stored?.wpm ?? null,
+    monotoneScore: acousticsNorm?.monotoneScore ?? null,
+  });
+}, [deliverySummary, stored?.wpm, acousticsNorm]);
+
+const deliveryLever = useMemo(() => {
+  return biggestDeliveryLever({
+    fillersPer100: deliverySummary?.fillersPer100 ?? null,
+    rhythmScore: deliverySummary?.rhythmScore ?? null,
+    vocalPresenceScore: deliverySummary?.vocalPresenceScore ?? null,
+    storedWpm: stored?.wpm ?? null,
+    monotoneScore: acousticsNorm?.monotoneScore ?? null,
+  });
+}, [deliverySummary, stored?.wpm, acousticsNorm]);
+
   const gamePlan = useMemo(() => {
     if (!stored || !feedback) return null;
 
@@ -1051,6 +1241,8 @@ else if (isExperienceFramework) lever = "Communication";
 
     return { lever, summary, tips: tips.slice(0, 4) };
   }, [stored, feedback]);
+
+
 
   return (
     <PremiumShell title="Results" subtitle="Review performance and iterate.">
@@ -1228,13 +1420,42 @@ else if (isExperienceFramework) lever = "Communication";
           </div>
         ) : null}
 
-        {!stored || !feedback ? (
-          <SectionCard title="No results found">
-            <div style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
-  Go back, record an answer, then click <strong style={{ color: "var(--text-primary)" }}>Analyze My Answer</strong>.
-</div>
-          </SectionCard>
-        ) : (
+        {loadState === "hydrating" ? (
+  <SectionCard title="Loading results">
+    <div style={{ display: "grid", gap: 10 }}>
+      <div
+        style={{
+          height: 14,
+          width: "34%",
+          borderRadius: 999,
+          background: "var(--card-border-soft)",
+        }}
+      />
+      <div
+        style={{
+          height: 14,
+          width: "56%",
+          borderRadius: 999,
+          background: "var(--card-border-soft)",
+        }}
+      />
+      <div
+        style={{
+          height: 120,
+          width: "100%",
+          borderRadius: "var(--radius-md)",
+          background: "var(--card-border-soft)",
+        }}
+      />
+    </div>
+  </SectionCard>
+) : !stored || !feedback ? (
+  <SectionCard title="No results found">
+    <div style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
+      Go back, record an answer, then click <strong style={{ color: "var(--text-primary)" }}>Analyze My Answer</strong>.
+    </div>
+  </SectionCard>
+) : (
           <>
             {activeTab === "overview" ? (
               <SectionCard title="Performance Overview">
@@ -1801,6 +2022,106 @@ else if (isExperienceFramework) lever = "Communication";
   This tab focuses on <strong style={{ color: "var(--text-primary)" }}>how you sounded</strong>: presence, rhythm, and clarity.
 </div>
 
+<div
+  style={{
+    marginTop: 14,
+    display: "grid",
+    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+    gap: 12,
+  }}
+>
+  <div
+    style={{
+      padding: 14,
+      borderRadius: "var(--radius-md)",
+      border: "1px solid var(--card-border-soft)",
+      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    }}
+  >
+    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+      Pacing
+    </div>
+    <div style={{ marginTop: 8, fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>
+      {typeof stored?.wpm === "number" ? paceContext(stored.wpm).label : "—"}
+    </div>
+    <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+      {typeof stored?.wpm === "number" ? `${stored.wpm} WPM` : "No spoken pace captured"}
+    </div>
+  </div>
+
+  <div
+    style={{
+      padding: 14,
+      borderRadius: "var(--radius-md)",
+      border: "1px solid var(--card-border-soft)",
+      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    }}
+  >
+    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+      Vocal presence
+    </div>
+    <div style={{ marginTop: 8, fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>
+      {vocalPresenceLabel(deliverySummary?.vocalPresenceScore ?? null)}
+    </div>
+    <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+      {deliverySummary?.vocalPresenceScore !== null && deliverySummary?.vocalPresenceScore !== undefined
+        ? `${Math.round(deliverySummary.vocalPresenceScore * 10)}/100 signal`
+        : "No vocal presence score yet"}
+    </div>
+  </div>
+
+  <div
+    style={{
+      padding: 14,
+      borderRadius: "var(--radius-md)",
+      border: "1px solid var(--card-border-soft)",
+      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    }}
+  >
+    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+      Fluency
+    </div>
+    <div style={{ marginTop: 8, fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>
+      {clarityLabel(deliverySummary?.fillersPer100 ?? null)}
+    </div>
+    <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+      {typeof deliverySummary?.fillersPer100 === "number"
+        ? `${deliverySummary.fillersPer100}/100 words`
+        : "No filler signal yet"}
+    </div>
+  </div>
+
+  <div
+    style={{
+      padding: 14,
+      borderRadius: "var(--radius-md)",
+      border: "1px solid rgba(99,102,241,0.22)",
+      background: "rgba(99,102,241,0.08)",
+    }}
+  >
+    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+      Biggest delivery fix
+    </div>
+    <div
+  style={{
+    marginTop: 8,
+    fontSize: 18,
+    fontWeight: 950,
+    color: "var(--text-primary)",
+    lineHeight: 1.2,
+    letterSpacing: -0.2,
+  }}
+>
+  {deliveryLever}
+</div>
+    <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+      Most likely to improve your next spoken rep
+    </div>
+  </div>
+</div>
+
+
+
                 <div
   style={{
     marginTop: 14,
@@ -1894,6 +2215,39 @@ else if (isExperienceFramework) lever = "Communication";
                   </div>
                 </div>
 
+                <div
+  style={{
+    marginTop: 14,
+    padding: 16,
+    borderRadius: "var(--radius-lg)",
+    border: "1px solid var(--card-border-soft)",
+    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+    boxShadow: "var(--shadow-card-soft)",
+  }}
+>
+  <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+    Coach interpretation
+  </div>
+
+  <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+    <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 900 }}>
+      {deliveryCoach.opener}
+    </div>
+
+    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>
+      {deliveryCoach.strengthLine}
+    </div>
+
+    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>
+      {deliveryCoach.riskLine}
+    </div>
+
+    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>
+      {deliveryCoach.fixLine}
+    </div>
+  </div>
+</div>
+
                 <div style={{ marginTop: 14, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
                   <HeadlineCard
                     title="Vocal Presence"
@@ -1926,8 +2280,8 @@ else if (isExperienceFramework) lever = "Communication";
                     ]}
                   />
                 </div>
-
-                {(dm || deliverySummary) ? (
+              
+                {process.env.NODE_ENV !== "production" && (dm || deliverySummary) ? (
                   <div
   style={{
     marginTop: 14,
@@ -2000,18 +2354,17 @@ else if (isExperienceFramework) lever = "Communication";
                       </div>
                     </div>
 
-                    {process.env.NODE_ENV !== "production" ? (
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>
-                        acoustics debug:
-                        <pre>{JSON.stringify(acoustics, null, 2)}</pre>
-                      </div>
-                    ) : null}
                   </div>
                 ) : null}
 
                 {acousticsNorm ? (
                   <div style={{ marginTop: 14 }}>
-                    <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>Voice dynamics</div>
+                    <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 12, marginBottom: 6 }}>
+  Delivery breakdown
+</div>
+<div style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>
+  These signals explain why your answer sounded more expressive, flat, smooth, or uneven.
+</div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
                       {hasNum(acousticsNorm.monotoneScore) ? (

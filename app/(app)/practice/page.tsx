@@ -1368,9 +1368,7 @@ function clearJobDescAndQuestions() {
       return;
     }
 
-    const b = data?.buckets ?? null;
-    console.log("questions API data:", data);
-console.log("role_specific bucket:", data?.buckets?.role_specific);
+      const b = data?.buckets ?? null;
 
 const qs =
   Array.isArray(data?.questions)
@@ -1718,10 +1716,8 @@ audioUploadPromiseRef.current = (async () => {
 
     const uj = await up.json().catch(() => ({}));
 
-    // Your upload route returns { audioPath: path }
     if (up.ok && typeof uj?.audioPath === "string") {
       audioPathRef.current = uj.audioPath;
-      console.log("[audio/upload] OK:", uj.audioPath);
     } else {
       console.warn("[audio/upload] failed:", uj);
     }
@@ -1791,10 +1787,10 @@ voiceMetricsPromiseRef.current = (async () => {
       signal: controller.signal,
     }).finally(() => clearTimeout(timeout));
 
-    const vmJson = await vmRes.json().catch(() => null);
-    console.log("voice-metrics response", vmRes.status, vmJson);
+      const vmJson = await vmRes.json().catch(() => null);
 
     const metrics = vmJson?.metrics ?? null;
+
     voiceMetricsRef.current = metrics;
     return vmJson;
   } catch (e) {
@@ -2191,12 +2187,7 @@ const freshestProsody =
   (data as any)?.prosody ??
   null;
 
-  console.log("entry.prosody", entry.prosody);
-console.log("entry.deliveryMetrics", entry.deliveryMetrics);
-console.log("data.deliveryMetrics", (data as any)?.deliveryMetrics);
-console.log("voiceMetricsRef.current", voiceMetricsRef.current);
-console.log("normalizedVoiceMetrics", normalizedVoiceMetrics);
-console.log("normalizedAcoustics", normalizedAcoustics);
+
 const lastResult = {
   ts: entry.ts,
   question: entry.question,
@@ -2263,9 +2254,8 @@ router.push("/results");
 
 // Save to DB in the background (best-effort)
 void (async () => {
-  try {
+    try {
     if (audioUploadPromiseRef.current) {
-      console.log("[audio/upload] waiting before saving attempt…");
       await audioUploadPromiseRef.current;
     }
 

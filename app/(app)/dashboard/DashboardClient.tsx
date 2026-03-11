@@ -158,35 +158,52 @@ function MetricChip({
 }
 
 export default function DashboardPage() {
-  const [history, setHistory] = useState<Attempt[]>([]);
-  const [metric, setMetric] = useState<MetricKey>("overall");
-  const { data: session } = useSession();
+ const [history, setHistory] = useState<Attempt[]>([]);
+const [metric, setMetric] = useState<MetricKey>("overall");
+const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+const { data: session, status } = useSession();
 
-  const HISTORY_KEY = userScopedKey("ipc_history", session);
+const HISTORY_KEY = userScopedKey("ipc_history", session);
 
-  useEffect(() => {
-    if (!session?.user) return;
+useEffect(() => {
+  if (status === "loading") return;
 
-    (async () => {
-      try {
+  let cancelled = false;
+  setLoadState("hydrating");
+
+  (async () => {
+    try {
+      if (session?.user) {
         const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
 
-          if (attempts.length > 0) {
+          if (!cancelled && attempts.length > 0) {
             setHistory(attempts);
             return;
           }
         }
-      } catch {
-        // ignore and fall back
       }
 
       const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-      setHistory(Array.isArray(saved) ? saved : []);
-    })();
-  }, [session?.user, HISTORY_KEY]);
+      if (!cancelled) {
+        setHistory(Array.isArray(saved) ? saved : []);
+      }
+    } catch {
+      const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+      if (!cancelled) {
+        setHistory(Array.isArray(saved) ? saved : []);
+      }
+    } finally {
+      if (!cancelled) setLoadState("ready");
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [status, session?.user, HISTORY_KEY]); 
 
   const last5 = useMemo(() => history.slice(0, 5), [history]);
 
@@ -296,6 +313,65 @@ export default function DashboardPage() {
   const sparkH = 110;
   const { label, max: yMax } = metricMeta(metric);
   const sparkPath = buildSparkPath(series, sparkW, sparkH, 8, yMax);
+
+    if (loadState === "hydrating") {
+    return (
+      <PremiumShell
+        title="Dashboard"
+        subtitle="Your interview performance at a glance."
+      >
+        <div style={{ maxWidth: 1100 }}>
+          <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+            <PremiumCard
+              style={{
+                padding: 18,
+                borderRadius: "var(--radius-lg)",
+              }}
+            >
+              <SectionEyebrow>LOADING</SectionEyebrow>
+
+              <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+                <div
+                  style={{
+                    height: 14,
+                    width: "38%",
+                    borderRadius: 999,
+                    background: "var(--card-border-soft)",
+                  }}
+                />
+                <div
+                  style={{
+                    height: 14,
+                    width: "54%",
+                    borderRadius: 999,
+                    background: "var(--card-border-soft)",
+                  }}
+                />
+              </div>
+            </PremiumCard>
+
+            <PremiumCard
+              style={{
+                padding: 18,
+                borderRadius: "var(--radius-lg)",
+              }}
+            >
+              <SectionEyebrow>TRENDS</SectionEyebrow>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  height: 120,
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--card-border-soft)",
+                }}
+              />
+            </PremiumCard>
+          </div>
+        </div>
+      </PremiumShell>
+    );
+  }
 
   const formatValue = (k: MetricKey, v: number | null) => {
     if (v === null) return "—";

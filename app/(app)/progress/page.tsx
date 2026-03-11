@@ -77,6 +77,17 @@ function toPercentScore(score: number | null | undefined) {
   return Math.round(score * 10);
 }
 
+
+
+function percentileRank(value: number | null, population: number[]) {
+  if (value === null || population.length === 0) return null;
+
+  const below = population.filter((v) => v <= value).length;
+  const pct = (below / population.length) * 100;
+
+  return Math.round(pct);
+}
+
 function titleCaseLabel(value: string) {
   return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -506,26 +517,31 @@ function MiniSparkline({
         style={{ display: "block" }}
       >
         <path
-          d={path}
-          fill={
-  values[values.length - 1] - values[0] > 0
-    ? "#22C55E"
-    : values[values.length - 1] - values[0] < 0
-    ? "#F87171"
-    : "var(--accent)"
-}
-          stroke={
-  values[values.length - 1] - values[0] > 0
-    ? "#22C55E"
-    : values[values.length - 1] - values[0] < 0
-    ? "#F87171"
-    : "var(--accent)"
-}
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <circle cx={last[0]} cy={last[1]} r="4" fill="var(--accent)" />
+  d={path}
+  fill="none"
+  stroke={
+    values[values.length - 1] - values[0] > 0
+      ? "#22C55E"
+      : values[values.length - 1] - values[0] < 0
+      ? "#F87171"
+      : "var(--accent)"
+  }
+  strokeWidth="3"
+  strokeLinecap="round"
+  strokeLinejoin="round"
+/>
+        <circle
+  cx={last[0]}
+  cy={last[1]}
+  r="4"
+  fill={
+    values[values.length - 1] - values[0] > 0
+      ? "#22C55E"
+      : values[values.length - 1] - values[0] < 0
+      ? "#F87171"
+      : "var(--accent)"
+  }
+/>
       </svg>
     </div>
   );
@@ -645,33 +661,91 @@ function InsightsTabButton({
 }
 
 export default function ProgressPage() {
-  const [history, setHistory] = useState<Attempt[]>([]);
-  const { data: session } = useSession();
-  const HISTORY_KEY = userScopedKey("ipc_history", session);
-  const [activeTab, setActiveTab] = useState<InsightsTab>("overview");
+ const [history, setHistory] = useState<Attempt[]>([]);
+const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+const { data: session, status } = useSession();
+const HISTORY_KEY = userScopedKey("ipc_history", session);
+const [activeTab, setActiveTab] = useState<InsightsTab>("overview");
 
-  useEffect(() => {
-    if (!session?.user) return;
+useEffect(() => {
+  if (status === "loading") return;
 
-    (async () => {
-      try {
+  let cancelled = false;
+  setLoadState("hydrating");
+
+  (async () => {
+    try {
+      if (session?.user) {
         const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
           const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
-          if (attempts.length > 0) {
+
+          if (!cancelled && attempts.length > 0) {
             setHistory(attempts);
             return;
           }
         }
-      } catch {
-        // ignore and fall back
       }
 
       const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-      setHistory(Array.isArray(saved) ? saved : []);
-    })();
-  }, [session?.user, HISTORY_KEY]);
+      if (!cancelled) {
+        setHistory(Array.isArray(saved) ? saved : []);
+      }
+    } catch {
+      const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+      if (!cancelled) {
+        setHistory(Array.isArray(saved) ? saved : []);
+      }
+    } finally {
+      if (!cancelled) setLoadState("ready");
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [status, session?.user, HISTORY_KEY]);
+
+    if (loadState === "hydrating") {
+    return (
+      <PremiumShell
+        title="Insights"
+        subtitle="See performance patterns across question types, job profiles, and speaking delivery."
+      >
+        <div style={{ display: "grid", gap: 16 }}>
+          <PremiumCard>
+            <div style={{ display: "grid", gap: 10 }}>
+              <div
+                style={{
+                  height: 14,
+                  width: "28%",
+                  borderRadius: 999,
+                  background: "var(--card-border-soft)",
+                }}
+              />
+              <div
+                style={{
+                  height: 18,
+                  width: "52%",
+                  borderRadius: 999,
+                  background: "var(--card-border-soft)",
+                }}
+              />
+              <div
+                style={{
+                  height: 96,
+                  width: "100%",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--card-border-soft)",
+                }}
+              />
+            </div>
+          </PremiumCard>
+        </div>
+      </PremiumShell>
+    );
+  }
 
   const attemptsNewestFirst = history;
   const attemptsOldestFirst = useMemo(() => [...history].reverse(), [history]);
@@ -715,6 +789,68 @@ export default function ProgressPage() {
       topProfile,
     };
   }, [attemptsNewestFirst]);
+
+
+const metricPopulations = useMemo(() => {
+  const metrics = {
+    overall: [] as number[],
+    communication: [] as number[],
+    confidence: [] as number[],
+    star_result: [] as number[],
+    filler_rate: [] as number[],
+    pace: [] as number[],
+    monotone: [] as number[],
+  };
+
+  for (const a of attemptsNewestFirst) {
+    const s = getAttemptScore(a);
+    const c = getAttemptComm(a);
+    const f = getAttemptConf(a);
+    const r = getAttemptStarResult(a);
+    const fill = getAttemptFillers(a);
+    const wpm = n(a.wpm);
+    const mono = getAttemptMonotone(a);
+
+    if (s !== null) metrics.overall.push(s);
+    if (c !== null) metrics.communication.push(c);
+    if (f !== null) metrics.confidence.push(f);
+    if (r !== null) metrics.star_result.push(r);
+    if (fill !== null) metrics.filler_rate.push(fill);
+    if (wpm !== null) metrics.pace.push(wpm);
+    if (mono !== null) metrics.monotone.push(mono);
+  }
+
+  return metrics;
+}, [attemptsNewestFirst]);
+
+const percentiles = useMemo(() => {
+  return {
+    overall: percentileRank(overview.avgOverall, metricPopulations.overall),
+    communication: percentileRank(overview.avgComm, metricPopulations.communication),
+    confidence: percentileRank(overview.avgConf, metricPopulations.confidence),
+    star_result: percentileRank(overview.avgStarResult, metricPopulations.star_result),
+    filler_rate: percentileRank(overview.avgFillers, metricPopulations.filler_rate),
+    pace: percentileRank(overview.avgPace, metricPopulations.pace),
+    monotone: percentileRank(overview.avgMonotone, metricPopulations.monotone),
+  };
+}, [overview, metricPopulations]);
+
+<BigMetricCard
+  label="AVG OVERALL"
+  value={
+    overview.avgOverall === null ? "—" : (
+      <>
+        {toPercentScore(overview.avgOverall)}
+        <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>/100</span>
+      </>
+    )
+  }
+  subtext={
+    percentiles.overall !== null
+      ? `Top ${100 - percentiles.overall}% of candidates`
+      : scoreLabel(overview.avgOverall)
+  }
+/>
 
   const categoryStats = useMemo(() => {
     return buildGroupedStats(attemptsNewestFirst, (a) => a.questionCategory ?? "other").map((row) => ({
@@ -1009,51 +1145,55 @@ export default function ProgressPage() {
                   }}
                 >
                   <BigMetricCard
-                    label="AVG OVERALL"
-                    value={
-                      overview.avgOverall === null ? "—" : (
-                        <>
-                          {toPercentScore(overview.avgOverall)}
-                          <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>/100</span>
-                        </>
-                      )
-                    }
-                    subtext={scoreLabel(overview.avgOverall)}
-                  />
+  label="AVG OVERALL"
+  value={
+    overview.avgOverall === null ? "—" : (
+      <>
+        {toPercentScore(overview.avgOverall)}
+        <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 6 }}>/100</span>
+      </>
+    )
+  }
+  subtext={
+    percentiles.overall !== null
+      ? `Top ${100 - percentiles.overall}% of candidates`
+      : scoreLabel(overview.avgOverall)
+  }
+/>
 
-                  <BigMetricCard
-                    label="TOTAL ATTEMPTS"
-                    value={overview.totalAttempts}
-                    subtext="All saved sessions"
-                  />
+<BigMetricCard
+  label="TOTAL ATTEMPTS"
+  value={overview.totalAttempts}
+  subtext="All saved sessions"
+/>
 
-                  <BigMetricCard
-                    label="TOP STRENGTH"
-                    value={strongestDimension?.label ?? "—"}
-                    subtext={
-                      strongestDimension?.value !== null && strongestDimension?.value !== undefined
-                        ? `${toPercentScore(strongestDimension.value)}/100 average`
-                        : "Build more attempt history"
-                    }
-                  />
+<BigMetricCard
+  label="TOP STRENGTH"
+  value={strongestDimension?.label ?? "—"}
+  subtext={
+    strongestDimension?.value !== null && strongestDimension?.value !== undefined
+      ? `${toPercentScore(strongestDimension.value)}/100 average`
+      : "Build more attempt history"
+  }
+/>
 
-                  <BigMetricCard
-                    label="BIGGEST GAP"
-                    value={biggestGap?.label ?? "—"}
-                    subtext={
-                      biggestGap?.value !== null && biggestGap?.value !== undefined
-                        ? `${toPercentScore(biggestGap.value)}/100 average`
-                        : "Build more attempt history"
-                    }
-                  />
+<BigMetricCard
+  label="BIGGEST GAP"
+  value={biggestGap?.label ?? "—"}
+  subtext={
+    biggestGap?.value !== null && biggestGap?.value !== undefined
+      ? `${toPercentScore(biggestGap.value)}/100 average`
+      : "Build more attempt history"
+  }
+/>
 
-                  <BigMetricCard
-                    label="TOP CATEGORY"
-                    value={overview.topCategory ? titleCaseLabel(overview.topCategory) : "—"}
-                    subtext="Most-practiced question type"
-                  />
+<BigMetricCard
+  label="TOP CATEGORY"
+  value={overview.topCategory ? titleCaseLabel(overview.topCategory) : "—"}
+  subtext="Most-practiced question type"
+/>
 
-                  <BigMetricCard
+<BigMetricCard
   label="RECENT TREND"
   value={
     <span style={{ color: trendColor(trendSummary.overallDelta) }}>
@@ -1062,7 +1202,8 @@ export default function ProgressPage() {
   }
   subtext="Overall change across last 5 attempts"
 />
-                </div>
+
+                                 </div>
               </div>
             </PremiumCard>
 

@@ -104,21 +104,20 @@ export default function SessionsPage() {
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
 const [audioUrlById, setAudioUrlById] = useState<Record<string, string>>({});
 const [signedUrlByPath, setSignedUrlByPath] = useState<Record<string, string>>({});
-  const [history, setHistory] = useState<Attempt[]>([]);
-  const [filter, setFilter] = useState<"all" | "spoken" | "pasted">("all");
-  const [jobProfileFilter, setJobProfileFilter] = useState<string>("all");
+const [history, setHistory] = useState<Attempt[]>([]);
+const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+const [filter, setFilter] = useState<"all" | "spoken" | "pasted">("all");
+const [jobProfileFilter, setJobProfileFilter] = useState<string>("all");
+
 useEffect(() => {
-  // Wait for session to resolve (prevents flicker + wrong user key)
   if (status === "loading") return;
 
   let cancelled = false;
+  setLoadState("hydrating");
 
   async function load() {
-    // If logged in, try DB first
     if (email) {
       try {
-        // ✅ Match Dashboard/Progress behavior: avoid any stale caching.
-        // Same-origin fetch includes auth cookies by default, so no need for credentials.
         const res = await fetch(`/api/attempts?limit=50&_=${Date.now()}`, {
           method: "GET",
           cache: "no-store",
@@ -128,11 +127,9 @@ useEffect(() => {
         if (res.ok && Array.isArray(j?.attempts)) {
           const attempts = j.attempts as Attempt[];
 
-          // If DB is empty (local dev / DB not configured), fall back to localStorage
-          // so Sessions doesn't look blank.
           if (attempts.length > 0) {
             if (!cancelled) setHistory(attempts);
-            return; // ✅ don’t fall back if DB succeeds
+            return;
           }
         }
       } catch {
@@ -140,7 +137,6 @@ useEffect(() => {
       }
     }
 
-    // Fallback: localStorage
     try {
       const raw = localStorage.getItem(HISTORY_KEY) || localStorage.getItem("ipc_history");
       const saved = safeJSONParse<Attempt[]>(raw, []);
@@ -150,13 +146,54 @@ useEffect(() => {
     }
   }
 
-  load();
+  load().finally(() => {
+    if (!cancelled) setLoadState("ready");
+  });
 
   return () => {
     cancelled = true;
   };
 }, [status, email, HISTORY_KEY]);
-  
+
+  if (loadState === "hydrating") {
+  return (
+    <PremiumShell
+      title="Sessions"
+      subtitle="Review saved attempts, replay audio, and jump back into results."
+    >
+      <div style={{ marginTop: 18 }}>
+        <PremiumCard>
+          <div style={{ display: "grid", gap: 12 }}>
+            <div
+              style={{
+                height: 14,
+                width: "26%",
+                borderRadius: 999,
+                background: "var(--card-border-soft)",
+              }}
+            />
+            <div
+              style={{
+                height: 72,
+                width: "100%",
+                borderRadius: "var(--radius-md)",
+                background: "var(--card-border-soft)",
+              }}
+            />
+            <div
+              style={{
+                height: 72,
+                width: "100%",
+                borderRadius: "var(--radius-md)",
+                background: "var(--card-border-soft)",
+              }}
+            />
+          </div>
+        </PremiumCard>
+      </div>
+    </PremiumShell>
+  );
+}
 
 
  const filtered = useMemo(() => {
