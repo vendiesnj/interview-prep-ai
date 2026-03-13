@@ -314,64 +314,7 @@ useEffect(() => {
   const { label, max: yMax } = metricMeta(metric);
   const sparkPath = buildSparkPath(series, sparkW, sparkH, 8, yMax);
 
-    if (loadState === "hydrating") {
-    return (
-      <PremiumShell
-        title="Dashboard"
-        subtitle="Your interview performance at a glance."
-      >
-        <div style={{ maxWidth: 1100 }}>
-          <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
-            <PremiumCard
-              style={{
-                padding: 18,
-                borderRadius: "var(--radius-lg)",
-              }}
-            >
-              <SectionEyebrow>LOADING</SectionEyebrow>
 
-              <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
-                <div
-                  style={{
-                    height: 14,
-                    width: "38%",
-                    borderRadius: 999,
-                    background: "var(--card-border-soft)",
-                  }}
-                />
-                <div
-                  style={{
-                    height: 14,
-                    width: "54%",
-                    borderRadius: 999,
-                    background: "var(--card-border-soft)",
-                  }}
-                />
-              </div>
-            </PremiumCard>
-
-            <PremiumCard
-              style={{
-                padding: 18,
-                borderRadius: "var(--radius-lg)",
-              }}
-            >
-              <SectionEyebrow>TRENDS</SectionEyebrow>
-
-              <div
-                style={{
-                  marginTop: 12,
-                  height: 120,
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--card-border-soft)",
-                }}
-              />
-            </PremiumCard>
-          </div>
-        </div>
-      </PremiumShell>
-    );
-  }
 
   const formatValue = (k: MetricKey, v: number | null) => {
     if (v === null) return "—";
@@ -386,7 +329,57 @@ useEffect(() => {
       subtitle="Your interview performance at a glance."
     >
       <div style={{ maxWidth: 1100 }}>
-        <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+                <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+          {loadState === "hydrating" ? (
+            <>
+              <PremiumCard
+                style={{
+                  padding: 18,
+                  borderRadius: "var(--radius-lg)",
+                }}
+              >
+                <SectionEyebrow>LOADING</SectionEyebrow>
+
+                <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+                  <div
+                    style={{
+                      height: 14,
+                      width: "38%",
+                      borderRadius: 999,
+                      background: "var(--card-border-soft)",
+                    }}
+                  />
+                  <div
+                    style={{
+                      height: 14,
+                      width: "54%",
+                      borderRadius: 999,
+                      background: "var(--card-border-soft)",
+                    }}
+                  />
+                </div>
+              </PremiumCard>
+
+              <PremiumCard
+                style={{
+                  padding: 18,
+                  borderRadius: "var(--radius-lg)",
+                }}
+              >
+                <SectionEyebrow>TRENDS</SectionEyebrow>
+
+                <div
+                  style={{
+                    marginTop: 12,
+                    height: 120,
+                    borderRadius: "var(--radius-md)",
+                    background: "var(--card-border-soft)",
+                  }}
+                />
+              </PremiumCard>
+            </>
+          ) : (
+            <>
           <PremiumCard
             style={{
               padding: 18,
@@ -598,6 +591,8 @@ useEffect(() => {
           >
             Start Practice →
           </Link>
+          </>
+          )}
         </div>
       </div>
     </PremiumShell>

@@ -3,7 +3,11 @@ import { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { prisma } from "@/app/lib/prisma";
 
-export type AuthedUser = { userId: string; email: string };
+export type AuthedUser = {
+  userId: string;
+  email: string;
+  tenantId: string | null;
+};
 
 export async function requireUser(req: NextRequest): Promise<AuthedUser> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -12,11 +16,16 @@ export async function requireUser(req: NextRequest): Promise<AuthedUser> {
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, tenantId: true },
   });
 
   if (!user?.id) throw new Error("UNAUTHORIZED");
-  return { userId: user.id, email };
+
+  return {
+    userId: user.id,
+    email,
+    tenantId: user.tenantId ?? null,
+  };
 }
 
 export function getClientIp(req: Request | NextRequest) {

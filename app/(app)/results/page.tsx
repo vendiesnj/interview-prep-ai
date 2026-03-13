@@ -33,13 +33,19 @@ type Prosody = {
   series?: ProsodySeries;
 };
 
+type TimelineMarker = {
+  label: string;
+  t: number; // seconds
+};
+
 type StoredResult = {
   ts: number;
   question: string;
   questionCategory?: string;
   questionSource?: string;
   evaluationFramework?: string;
-  transcript?: string;
+    transcript?: string;
+  score?: number | null;
   wpm?: number | null;
   jobDesc?: string;
   questions?: string[];
@@ -385,13 +391,88 @@ function extractStarEvidence(transcript: string) {
   return { situation, task, action, result };
 }
 
+function findSentenceIndex(
+  sentences: string[],
+  tests: Array<(s: string) => boolean>,
+  fallbackIndex: number
+) {
+  for (const test of tests) {
+    const idx = sentences.findIndex((s) => test(s));
+    if (idx >= 0) return idx;
+  }
+  return Math.max(0, Math.min(fallbackIndex, Math.max(0, sentences.length - 1)));
+}
+
+function sentenceIndexToTime(idx: number, total: number, durationSec: number) {
+  if (total <= 1) return Math.max(0, durationSec * 0.18);
+  const pct = idx / Math.max(1, total - 1);
+  return Math.max(0, Math.min(durationSec, pct * durationSec));
+}
+
+function buildSpeechMoments(transcript: string, durationSec: number): TimelineMarker[] {
+  const sentences = splitSentences(transcript);
+  if (!sentences.length || !durationSec || durationSec <= 0) return [];
+
+  const openingIdx = 0;
+
+  const contextIdx = findSentenceIndex(
+    sentences,
+    [
+      (s) => /\bin my previous role\b|\bwhen\b|\bwe were\b|\bthere was\b|\bchallenge\b|\bproblem\b|\bbackground\b/i.test(s),
+      (s) => /\btask\b|\bgoal\b|\bobjective\b|\basked to\b/i.test(s),
+    ],
+    Math.max(1, Math.floor(sentences.length * 0.22))
+  );
+
+  const actionIdx = findSentenceIndex(
+    sentences,
+    [
+      (s) =>
+        /\bi (built|created|designed|drove|implemented|led|ran|set up|worked|partnered|coordinated|analyz|audit)\b/i.test(
+          s
+        ),
+      (s) => /\bthen i\b|\bi started\b|\bi focused\b|\bi decided\b/i.test(s),
+    ],
+    Math.max(contextIdx + 1, Math.floor(sentences.length * 0.55))
+  );
+
+  const resultIdx = findSentenceIndex(
+    sentences,
+    [
+      (s) => /\bas a result\b|\boutcome\b|\bimpact\b|\btherefore\b/i.test(s),
+      (s) => /\b(reduced|improved|increased|decreased|saved|delivered|grew)\b/i.test(s),
+      (s) => /\b\d+\s?%\b|\$\s?\d+|\bweeks?\b|\bmonths?\b/i.test(s),
+    ],
+    Math.max(actionIdx + 1, Math.floor(sentences.length * 0.82))
+  );
+
+  const raw: TimelineMarker[] = [
+    { label: "Opening", t: sentenceIndexToTime(openingIdx, sentences.length, durationSec) },
+    { label: "Context", t: sentenceIndexToTime(contextIdx, sentences.length, durationSec) },
+    { label: "Action", t: sentenceIndexToTime(actionIdx, sentences.length, durationSec) },
+    { label: "Result", t: sentenceIndexToTime(resultIdx, sentences.length, durationSec) },
+  ];
+
+  const deduped: TimelineMarker[] = [];
+  for (const marker of raw) {
+    const rounded = Math.round(marker.t * 10) / 10;
+    const prev = deduped[deduped.length - 1];
+    if (prev && Math.abs(prev.t - rounded) < 0.75) continue;
+    deduped.push({ ...marker, t: rounded });
+  }
+
+  return deduped;
+}
+
 // -------------------- Speaking timeline --------------------
 // -------------------- Speaking timeline --------------------
 function SpeakingTimeline({
   series,
+  markers = [],
   height = 110,
 }: {
   series: { t: number[]; energy: number[]; pitch: number[] };
+  markers?: TimelineMarker[];
   height?: number;
 }) {
   const w = 760;
@@ -431,6 +512,16 @@ function SpeakingTimeline({
 
   const duration = t[n - 1] ?? 0;
 
+  const positionedMarkers =
+    duration > 0
+      ? markers
+          .filter((m) => Number.isFinite(m.t) && m.t >= 0 && m.t <= duration)
+          .map((m) => ({
+            ...m,
+            leftPct: Math.max(0, Math.min(100, (m.t / duration) * 100)),
+          }))
+      : [];
+
   return (
     <div
   style={{
@@ -450,10 +541,61 @@ function SpeakingTimeline({
   The white line shows energy. The colored line shows pitch. More healthy variation usually sounds more engaging.
 </div>  
 
-      <div style={{ marginTop: 10 }}>
+            <div style={{ marginTop: 10 }}>
+        {positionedMarkers.length ? (
+          <div
+            style={{
+              position: "relative",
+              height: 34,
+              marginBottom: 8,
+            }}
+          >
+            {positionedMarkers.map((marker) => (
+              <div
+                key={`${marker.label}-${marker.t}`}
+                style={{
+                  position: "absolute",
+                  left: `${marker.leftPct}%`,
+                  top: 0,
+                  transform: "translateX(-50%)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  pointerEvents: "none",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "3px 8px",
+                    borderRadius: 999,
+                    border: "1px solid var(--card-border)",
+                    background: "var(--card-bg-strong)",
+                    color: "var(--text-primary)",
+                    fontSize: 11,
+                    fontWeight: 900,
+                    whiteSpace: "nowrap",
+                    boxShadow: "var(--shadow-card-soft)",
+                  }}
+                >
+                  {marker.label}
+                </div>
+                <div
+                  style={{
+                    width: 1,
+                    height: 10,
+                    background: "var(--card-border)",
+                    opacity: 0.9,
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+
         <svg viewBox={`0 0 ${w} ${h}`} width="100%" height={h} style={{ display: "block" }}>
           <polyline points={energyPath} fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="2" />
-<polyline points={pitchPath} fill="none" stroke="var(--accent-2)" strokeWidth="2" />
+          <polyline points={pitchPath} fill="none" stroke="var(--accent-2)" strokeWidth="2" />
         </svg>
 
         <div style={{ marginTop: 8, display: "flex", gap: 14, fontSize: 12, color: "var(--text-muted)" }}>
@@ -667,6 +809,9 @@ const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
 const [activeTab, setActiveTab] = useState<ResultsTab>("overview");
 const { data: session, status } = useSession();
 
+const [percentile, setPercentile] = useState<number | null>(null);
+const [percentileSampleSize, setPercentileSampleSize] = useState<number | null>(null);
+
 const [replayUrl, setReplayUrl] = useState<string | null>(null);
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
   const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
@@ -722,7 +867,56 @@ useEffect(() => {
   }
 }, [status, SELECTED_KEY, LAST_RESULT_KEY]);
 
+useEffect(() => {
+  const score =
+    typeof stored?.score === "number"
+      ? stored.score
+      : typeof feedback?.score === "number"
+      ? feedback.score
+      : null;
+
+  if (score === null) {
+    setPercentile(null);
+    setPercentileSampleSize(null);
+    return;
+  }
+
+  let cancelled = false;
+
+  (async () => {
+    try {
+      const res = await fetch(
+        `/api/percentile?score=${encodeURIComponent(String(score))}`,
+        { cache: "no-store" }
+      );
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) return;
+
+      if (!cancelled) {
+        setPercentile(
+          typeof data.percentile === "number" ? data.percentile : null
+        );
+        setPercentileSampleSize(
+          typeof data.totalSamples === "number" ? data.totalSamples : null
+        );
+      }
+    } catch {
+      // ignore
+    }
+  })();
+
+  return () => {
+    cancelled = true;
+  };
+}, [stored]);
+
 const feedback = stored?.feedback ?? null;
+
+const percentileText =
+  typeof percentile === "number"
+    ? `Better than ${Math.max(0, Math.min(99, Math.round(percentile * 100)))}% of users`
+    : null;
 
 const resolvedFramework =
   stored?.evaluationFramework === "star" ||
@@ -995,6 +1189,16 @@ const isExperienceFramework = resolvedFramework === "experience_depth";
   }, [feedback, dm, acousticsNorm, series, acoustics]);
 
   const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
+
+  const speechMoments = useMemo(() => {
+    const duration =
+      series?.t?.length && typeof series.t[series.t.length - 1] === "number"
+        ? series.t[series.t.length - 1]
+        : null;
+
+    if (!duration || !stored?.transcript) return [];
+    return buildSpeechMoments(stored.transcript, duration);
+  }, [stored?.transcript, series]);
 
   const starMissingList = useMemo(() => {
     const raw = Array.isArray(feedback?.star_missing) ? (feedback.star_missing as any[]) : [];
@@ -1672,9 +1876,26 @@ else if (isExperienceFramework) lever = "Communication";
 >
   {toPercentScore(Number(feedback.score ?? 0)) ?? "—"}/100
 </div>
-                        <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
+                                                <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
                           {gradeFromScore(Number(feedback.score ?? 0)).label}
                         </div>
+
+                        {percentileText ? (
+                          <div
+                            style={{
+                              marginTop: 8,
+                              fontSize: 13,
+                              fontWeight: 800,
+                              color: "var(--text-muted)",
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {percentileText}
+                            {typeof percentileSampleSize === "number"
+                              ? ` · ${percentileSampleSize} samples`
+                              : ""}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
@@ -2281,81 +2502,7 @@ else if (isExperienceFramework) lever = "Communication";
                   />
                 </div>
               
-                {process.env.NODE_ENV !== "production" && (dm || deliverySummary) ? (
-                  <div
-  style={{
-    marginTop: 14,
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    padding: 14,
-  }}
->
-                    <div style={{ color: "var(--text-primary)", fontWeight: 900, fontSize: 12, marginBottom: 8 }}>
-  Micro delivery signals
-</div>
 
-                    <div
-                      style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                        gap: 10,
-                        color: "var(--text-muted)",
-                        fontSize: 12,
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      <div>
-                        {typeof deliverySummary?.fillersPer100 === "number" ? (
-                          <div>
-                            Fillers: <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{deliverySummary.fillersPer100}</span> / 100 words
-                          </div>
-                        ) : (
-                          <div>Fillers: —</div>
-                        )}
-
-                        {typeof deliverySummary?.pauseDensity === "number" ? (
-                          <div>
-                            Pause density:{" "}
-                            <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{deliverySummary.pauseDensity.toFixed(3)}</span> pauses/sec
-                          </div>
-                        ) : (
-                          <div>Pause density: —</div>
-                        )}
-
-                        {typeof dm?.pauseCount === "number" ? (
-                          <div>
-                            Pauses: <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{dm.pauseCount}</span>
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div>
-                        {typeof dm?.longPauseCount === "number" ? (
-                          <div>
-                            Long pauses (≥0.9s): <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{dm.longPauseCount}</span>
-                          </div>
-                        ) : null}
-
-                        {typeof deliverySummary?.longPauseRatio === "number" ? (
-                          <div>
-                            Long pause ratio:{" "}
-                            <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{Math.round(deliverySummary.longPauseRatio * 100)}%</span>
-                          </div>
-                        ) : (
-                          <div>Long pause ratio: —</div>
-                        )}
-
-                        {typeof dm?.avgPauseMs === "number" ? (
-                          <div>
-                            Average pause: <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>{dm.avgPauseMs}</span> ms
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-
-                  </div>
-                ) : null}
 
                 {acousticsNorm ? (
                   <div style={{ marginTop: 14 }}>
@@ -2402,7 +2549,7 @@ else if (isExperienceFramework) lever = "Communication";
                       ) : null}
                     </div>
 
-                    {series ? <SpeakingTimeline series={series} /> : null}
+                    {series ? <SpeakingTimeline series={series} markers={speechMoments} /> : null}
                   </div>
                 ) : (
                   <div style={{ marginTop: 14, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>

@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { initPosthog, posthog } from "./lib/posthog-client";
 import PostHogPageView from "./lib/PostHogPageView";
 import {Suspense} from "react";
+import TenantThemeSync from "@/app/components/TenantThemeSync";
 
 function PostHogIdentify() {
   const { data: session } = useSession();
@@ -29,9 +30,10 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   return (
     <SessionProvider>
+      <TenantThemeSync />
       <Suspense fallback={null}>
-  <PostHogPageView />
-</Suspense>
+        <PostHogPageView />
+      </Suspense>
       <PostHogIdentify />
       {children}
     </SessionProvider>

@@ -11,6 +11,7 @@ model User {
   email                String?   @unique
   passwordHash         String?
   name                 String?
+  demoPersona          String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
   emailVerified        DateTime?
@@ -22,14 +23,19 @@ model User {
   subscriptionStatus   String?
   freeAttemptCap       Int       @default(3)
   freeAttemptsUsed     Int       @default(0)
+
+  tenantId             String?
+  tenant               Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+
   accounts             Account[]
   attempts             Attempt[]
   sessions             Session[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
+  @@index([tenantId])
 
-  passwordResetTokens PasswordResetToken[]
+  passwordResetTokens  PasswordResetToken[]
 }
 
 model Account {
@@ -67,42 +73,91 @@ model VerificationToken {
 }
 
 model Attempt {
-  id                 String    @id @default(cuid())
-  userId             String
-  ts                 DateTime  @default(now())
-  question           String
-  transcript         String
-  inputMethod        String?
-  prosody            Json?
-  deliveryMetrics    Json?
-  feedback           Json?
-  score              Float?
-  communicationScore Float?
-  confidenceScore    Float?
-  jobDesc            String?
-  focusGoal          String?
-  audioId            String?
-  durationSeconds    Int?
-  wpm                Int?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  deletedAt          DateTime?
-  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  audioUrl           String? 
-  audioMime          String?
-  audioPath          String?
-  jobProfileId       String?
-  jobProfileTitle    String?
-  jobProfileCompany  String?
-  jobProfileRoleType String?
-  questionCategory   String?
-  questionSource     String?
+  id                  String    @id @default(cuid())
+  userId              String
+  tenantId            String?
+  ts                  DateTime  @default(now())
+  question            String
+  transcript          String
+  inputMethod         String?
+  prosody             Json?
+  deliveryMetrics     Json?
+  feedback            Json?
+  score               Float?
+  communicationScore  Float?
+  confidenceScore     Float?
+  jobDesc             String?
+  focusGoal           String?
+  audioId             String?
+  durationSeconds     Int?
+  wpm                 Int?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant              Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  audioUrl            String?
+  audioMime           String?
+  audioPath           String?
+  jobProfileId        String?
+  jobProfileTitle     String?
+  jobProfileCompany   String?
+  jobProfileRoleType  String?
+  questionCategory    String?
+  questionSource      String?
   evaluationFramework String?
 
+  @@index([tenantId])
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])
   @@index([userId, deletedAt])
   @@index([userId, deletedAt, ts(sort: Desc)])
+  @@index([tenantId, userId, deletedAt, ts(sort: Desc)])
+}
+
+model Tenant {
+  id              String    @id @default(cuid())
+  name            String
+  slug            String    @unique
+  themeKey        String    @default("default")
+  emailDomains    String[]  @default([])
+
+  pageBg          String?
+  pageBgAccentA   String?
+  pageBgAccentB   String?
+
+  textPrimary     String?
+  textMuted       String?
+  textSoft        String?
+
+  cardBg          String?
+  cardBgStrong    String?
+  cardBorder      String?
+  cardBorderSoft  String?
+
+  inputBg         String?
+  inputBorder     String?
+
+  accent          String?
+  accentSoft      String?
+  accentStrong    String?
+
+  accent2         String?
+  accent2Soft     String?
+
+  danger          String?
+  dangerSoft      String?
+
+  success         String?
+  successSoft     String?
+
+  logoUrl         String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  users           User[]
+  attempts        Attempt[]
 }
 
 model StripeEvent {

@@ -155,45 +155,7 @@ useEffect(() => {
   };
 }, [status, email, HISTORY_KEY]);
 
-  if (loadState === "hydrating") {
-  return (
-    <PremiumShell
-      title="Sessions"
-      subtitle="Review saved attempts, replay audio, and jump back into results."
-    >
-      <div style={{ marginTop: 18 }}>
-        <PremiumCard>
-          <div style={{ display: "grid", gap: 12 }}>
-            <div
-              style={{
-                height: 14,
-                width: "26%",
-                borderRadius: 999,
-                background: "var(--card-border-soft)",
-              }}
-            />
-            <div
-              style={{
-                height: 72,
-                width: "100%",
-                borderRadius: "var(--radius-md)",
-                background: "var(--card-border-soft)",
-              }}
-            />
-            <div
-              style={{
-                height: 72,
-                width: "100%",
-                borderRadius: "var(--radius-md)",
-                background: "var(--card-border-soft)",
-              }}
-            />
-          </div>
-        </PremiumCard>
-      </div>
-    </PremiumShell>
-  );
-}
+
 
 
  const filtered = useMemo(() => {
@@ -341,11 +303,42 @@ async function ensureAudioUrl(audioId: string) {
     title="Sessions"
     subtitle="View and manage your saved interview attempts."
   >
-    <div style={{ maxWidth: 1100 }}>
-
-
-      {/* Filter Buttons */}
-      <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ maxWidth: 1100 }}>
+      {loadState === "hydrating" ? (
+        <div style={{ marginTop: 18 }}>
+          <PremiumCard>
+            <div style={{ display: "grid", gap: 12 }}>
+              <div
+                style={{
+                  height: 14,
+                  width: "26%",
+                  borderRadius: 999,
+                  background: "var(--card-border-soft)",
+                }}
+              />
+              <div
+                style={{
+                  height: 72,
+                  width: "100%",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--card-border-soft)",
+                }}
+              />
+              <div
+                style={{
+                  height: 72,
+                  width: "100%",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--card-border-soft)",
+                }}
+              />
+            </div>
+          </PremiumCard>
+        </div>
+      ) : (
+        <>
+          {/* Filter Buttons */}
+          <div style={{ marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
         {["all", "spoken", "pasted"].map((f) => (
           <button
             key={f}
@@ -847,7 +840,9 @@ async function ensureAudioUrl(audioId: string) {
           )}
         </PremiumCard>
       </div>
+            </>
+      )}
     </div>
-    </PremiumShell>
-  );
+  </PremiumShell>
+);
 }

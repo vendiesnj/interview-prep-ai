@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useSession } from "next-auth/react";
 
 export default function PremiumShell({
   title,
@@ -13,6 +14,10 @@ export default function PremiumShell({
   hideHeader?: boolean;
   children: React.ReactNode;
 }) {
+  const { data: session } = useSession();
+  const logoUrl = (session as any)?.tenant?.logoUrl ?? null;
+  const tenantName = (session as any)?.tenant?.name ?? null;
+
   return (
     <div
       style={{
@@ -26,34 +31,85 @@ export default function PremiumShell({
       }}
     >
       <div style={{ maxWidth: 1120, margin: "0 auto", padding: 20 }}>
-        {!hideHeader && (title || subtitle) ? (
+                {!hideHeader && (title || subtitle || logoUrl || tenantName) ? (
           <div style={{ marginBottom: 18 }}>
-            {title ? (
-              <div
-                style={{
-                  fontSize: 28,
-                  fontWeight: 950,
-                  letterSpacing: -0.3,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {title}
-              </div>
-            ) : null}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                gap: 16,
+                flexWrap: "wrap",
+              }}
+            >
+              <div style={{ minWidth: 0, flex: "1 1 560px" }}>
+                {title ? (
+                  <div
+                    style={{
+                      fontSize: 28,
+                      fontWeight: 950,
+                      letterSpacing: -0.3,
+                      color: "var(--text-primary)",
+                    }}
+                  >
+                    {title}
+                  </div>
+                ) : null}
 
-            {subtitle ? (
-              <div
-                style={{
-                  marginTop: 10,
-                  fontSize: 15,
-                  color: "var(--text-muted)",
-                  lineHeight: 1.6,
-                  maxWidth: 760,
-                }}
-              >
-                {subtitle}
+                {subtitle ? (
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 15,
+                      color: "var(--text-muted)",
+                      lineHeight: 1.6,
+                      maxWidth: 760,
+                    }}
+                  >
+                    {subtitle}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
+
+              {(logoUrl || tenantName) ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    gap: 12,
+                    flex: "0 0 auto",
+                    minHeight: 56,
+                  }}
+                >
+                  {logoUrl ? (
+                    <img
+                      src={logoUrl}
+                      alt={tenantName ?? "Tenant"}
+                      style={{
+                        height: 56,
+                        width: "auto",
+                        objectFit: "contain",
+                        display: "block",
+                      }}
+                    />
+                  ) : null}
+
+                  {!logoUrl && tenantName ? (
+                    <div
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 900,
+                        color: "var(--text-primary)",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {tenantName}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
 
             <div
               style={{
@@ -80,7 +136,29 @@ export default function PremiumShell({
             fontSize: 12,
           }}
         >
-          <div>Interview Performance Coach</div>
+                    <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              minHeight: 24,
+            }}
+          >
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt={tenantName ?? "Tenant"}
+                style={{
+                  height: 22,
+                  width: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                }}
+              />
+            ) : null}
+
+            <div>{tenantName ?? "Interview Performance Coach"}</div>
+          </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <a

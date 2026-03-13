@@ -63,48 +63,212 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
-  callbacks: {
-  async jwt({ token, user }) {
-    // On first sign-in, `user` is available
-    if (user?.id) {
-      token.userId = user.id;
-    }
 
-    // If we don't have an id, nothing to hydrate
-    if (!token.userId) return token;
+   callbacks: {
+    async jwt({ token, user }) {
+      if (user?.id) {
+        token.userId = user.id;
+      }
 
-    // Hydrate subscription fields from DB (kept lightweight)
-    const dbUser = await prisma.user.findUnique({
-      where: { id: token.userId as string },
-      select: {
-        subscriptionStatus: true,
-        stripeCustomerId: true,
-        stripePriceId: true,
-        currentPeriodEnd: true,
-      },
-    });
+      const effectiveUserId =
+        (token.userId as string | undefined) ?? token.sub ?? null;
+      if (!effectiveUserId) return token;
 
-    token.subscriptionStatus = dbUser?.subscriptionStatus ?? "free";
-    token.stripeCustomerId = dbUser?.stripeCustomerId ?? null;
-    token.stripePriceId = dbUser?.stripePriceId ?? null;
-    token.currentPeriodEnd = dbUser?.currentPeriodEnd ?? null;
+      token.userId = effectiveUserId;
 
-    return token;
-  },
+      let dbUser = await prisma.user.findUnique({
+        where: { id: effectiveUserId },
+        select: {
+          tenantId: true,
+          subscriptionStatus: true,
+          stripeCustomerId: true,
+          stripePriceId: true,
+          currentPeriodEnd: true,
+          tenant: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              themeKey: true,
+              logoUrl: true,
 
-  async session({ session, token }) {
-    // Make userId available if you want it
-    (session.user as any).id = token.userId;
+              pageBg: true,
+              pageBgAccentA: true,
+              pageBgAccentB: true,
 
-    // Expose subscription fields to the client/server components
-    (session.user as any).subscriptionStatus = token.subscriptionStatus ?? "free";
-    (session.user as any).stripeCustomerId = token.stripeCustomerId ?? null;
-    (session.user as any).stripePriceId = token.stripePriceId ?? null;
-    (session.user as any).currentPeriodEnd = token.currentPeriodEnd ?? null;
+              textPrimary: true,
+              textMuted: true,
+              textSoft: true,
 
-    return session;
-  },
-},
+              cardBg: true,
+              cardBgStrong: true,
+              cardBorder: true,
+              cardBorderSoft: true,
+
+              inputBg: true,
+              inputBorder: true,
+
+              accent: true,
+              accentSoft: true,
+              accentStrong: true,
+
+              accent2: true,
+              accent2Soft: true,
+
+              danger: true,
+              dangerSoft: true,
+
+              success: true,
+              successSoft: true,
+            },
+          },
+        },
+      });
+
+      if (dbUser && !dbUser.tenantId) {
+        const userEmail =
+          typeof token.email === "string" && token.email.includes("@")
+            ? token.email.toLowerCase()
+            : null;
+
+        const emailDomain = userEmail ? userEmail.split("@")[1] : null;
+
+        let matchedTenant = emailDomain
+          ? await prisma.tenant.findFirst({
+              where: {
+                emailDomains: {
+                  has: emailDomain,
+                },
+              },
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                themeKey: true,
+                logoUrl: true,
+
+                pageBg: true,
+                pageBgAccentA: true,
+                pageBgAccentB: true,
+
+                textPrimary: true,
+                textMuted: true,
+                textSoft: true,
+
+                cardBg: true,
+                cardBgStrong: true,
+                cardBorder: true,
+                cardBorderSoft: true,
+
+                inputBg: true,
+                inputBorder: true,
+
+                accent: true,
+                accentSoft: true,
+                accentStrong: true,
+
+                accent2: true,
+                accent2Soft: true,
+
+                danger: true,
+                dangerSoft: true,
+
+                success: true,
+                successSoft: true,
+              },
+            })
+          : null;
+
+        if (!matchedTenant) {
+          matchedTenant = await prisma.tenant.upsert({
+            where: { slug: "default" },
+            update: {},
+            create: {
+              name: "Default",
+              slug: "default",
+              themeKey: "virginiaTech",
+              emailDomains: [],
+            },
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              themeKey: true,
+              logoUrl: true,
+
+              pageBg: true,
+              pageBgAccentA: true,
+              pageBgAccentB: true,
+
+              textPrimary: true,
+              textMuted: true,
+              textSoft: true,
+
+              cardBg: true,
+              cardBgStrong: true,
+              cardBorder: true,
+              cardBorderSoft: true,
+
+              inputBg: true,
+              inputBorder: true,
+
+              accent: true,
+              accentSoft: true,
+              accentStrong: true,
+
+              accent2: true,
+              accent2Soft: true,
+
+              danger: true,
+              dangerSoft: true,
+
+              success: true,
+              successSoft: true,
+            },
+          });
+        }
+
+        await prisma.user.update({
+          where: { id: effectiveUserId },
+          data: { tenantId: matchedTenant.id },
+        });
+
+        dbUser = {
+          ...dbUser,
+          tenantId: matchedTenant.id,
+          tenant: matchedTenant,
+        };
+      }
+
+      token.tenantId = dbUser?.tenantId ?? null;
+      token.tenant = dbUser?.tenant ?? null;
+      token.subscriptionStatus = dbUser?.subscriptionStatus ?? "free";
+      token.stripeCustomerId = dbUser?.stripeCustomerId ?? null;
+      token.stripePriceId = dbUser?.stripePriceId ?? null;
+      token.currentPeriodEnd = dbUser?.currentPeriodEnd ?? null;
+
+      return token;
+    },
+
+    async session({ session, token }) {
+      (session.user as any).id = token.userId;
+      (session.user as any).tenantId = token.tenantId ?? null;
+
+      (session as any).tenant = token.tenant ?? null;
+
+      (session.user as any).subscriptionStatus =
+        token.subscriptionStatus ?? "free";
+      (session.user as any).stripeCustomerId =
+        token.stripeCustomerId ?? null;
+      (session.user as any).stripePriceId = token.stripePriceId ?? null;
+      (session.user as any).currentPeriodEnd =
+        token.currentPeriodEnd ?? null;
+
+      return session;
+    },
+  }, 
+
+
 };
 
 // use the exported authOptions here

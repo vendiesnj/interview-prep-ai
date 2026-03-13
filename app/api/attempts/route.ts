@@ -37,32 +37,45 @@ type Body = {
   durationSeconds?: number | null;
 };
 
-async function requireUserId(req: NextRequest): Promise<string | null> {
+async function requireAuthContext(
+  req: NextRequest
+): Promise<{ userId: string; tenantId: string | null } | null> {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const email = token?.email as string | undefined;
   if (!email) return null;
 
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true },
+    select: { id: true, tenantId: true },
   });
 
-  return user?.id ?? null;
+  if (!user?.id) return null;
+
+  return {
+    userId: user.id,
+    tenantId: user.tenantId ?? null,
+  };
 }
 
 export async function GET(req: NextRequest) {
   try {
-const userId = await requireUserId(req);
-if (!userId) {
+const auth = await requireAuthContext(req);
+if (!auth) {
   return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
 }
+
+const { userId, tenantId } = auth;
 
 
     const { searchParams } = new URL(req.url);
     const limit = Math.min(Number(searchParams.get("limit") ?? "50") || 50, 200);
 
-    const attempts: any[] = await prisma.attempt.findMany({
-      where: { userId, deletedAt: null },
+        const attempts: any[] = await prisma.attempt.findMany({
+      where: {
+        userId,
+        tenantId,
+        deletedAt: null,
+      },
       orderBy: { ts: "desc" },
       take: limit,
       select: {
@@ -164,10 +177,12 @@ return NextResponse.json({ attempts: mapped, entitlement: ent }, { status: 200 }
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await requireUserId(req);
-    if (!userId) {
+        const auth = await requireAuthContext(req);
+    if (!auth) {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
+
+    const { userId, tenantId } = auth;
     const ip =
   req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
   req.headers.get("x-real-ip") ??
@@ -258,8 +273,8 @@ const user = rows[0] ?? null;
     const cap = user?.freeAttemptCap ?? 3;
 
     if (!isPro) {
-      const used = await tx.attempt.count({
-        where: { userId, deletedAt: null },
+            const used = await tx.attempt.count({
+        where: { userId, tenantId, deletedAt: null },
       });
 
       if (used >= cap) {
@@ -271,9 +286,10 @@ const user = rows[0] ?? null;
       }
     }
 
-    const attempt = await tx.attempt.create({
+        const attempt = await tx.attempt.create({
   data: {
     userId,
+    tenantId,
     ts: new Date(body.ts),
     question: body.question,
     questionCategory: body.questionCategory ?? null,
@@ -328,8 +344,8 @@ durationSeconds:
 };
     }
 
-    const usedAfter = await tx.attempt.count({
-  where: { userId, deletedAt: null },
+        const usedAfter = await tx.attempt.count({
+  where: { userId, tenantId, deletedAt: null },
 });
 const remainingAfter = Math.max(0, cap - usedAfter);
 
@@ -403,10 +419,12 @@ return NextResponse.json(result.payload, {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const userId = await requireUserId(req);
-    if (!userId) {
+        const auth = await requireAuthContext(req);
+    if (!auth) {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
+
+    const { userId, tenantId } = auth;
 
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
@@ -440,9 +458,9 @@ export async function DELETE(req: NextRequest) {
     // Soft-delete all attempts for this user
     const now = new Date();
     const result = await prisma.attempt.updateMany({
-      where: { userId, deletedAt: null },
-      data: { deletedAt: now },
-    });
+  where: { userId, tenantId, deletedAt: null },
+  data: { deletedAt: now },
+});
 
     await prisma.auditLog
       .create({

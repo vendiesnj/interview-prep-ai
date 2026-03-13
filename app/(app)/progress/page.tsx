@@ -707,45 +707,7 @@ useEffect(() => {
   };
 }, [status, session?.user, HISTORY_KEY]);
 
-    if (loadState === "hydrating") {
-    return (
-      <PremiumShell
-        title="Insights"
-        subtitle="See performance patterns across question types, job profiles, and speaking delivery."
-      >
-        <div style={{ display: "grid", gap: 16 }}>
-          <PremiumCard>
-            <div style={{ display: "grid", gap: 10 }}>
-              <div
-                style={{
-                  height: 14,
-                  width: "28%",
-                  borderRadius: 999,
-                  background: "var(--card-border-soft)",
-                }}
-              />
-              <div
-                style={{
-                  height: 18,
-                  width: "52%",
-                  borderRadius: 999,
-                  background: "var(--card-border-soft)",
-                }}
-              />
-              <div
-                style={{
-                  height: 96,
-                  width: "100%",
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--card-border-soft)",
-                }}
-              />
-            </div>
-          </PremiumCard>
-        </div>
-      </PremiumShell>
-    );
-  }
+
 
   const attemptsNewestFirst = history;
   const attemptsOldestFirst = useMemo(() => [...history].reverse(), [history]);
@@ -1101,8 +1063,37 @@ const percentiles = useMemo(() => {
       title="Insights"
       subtitle="See performance patterns across question types, job profiles, and speaking delivery."
     >
-      <div style={{ display: "grid", gap: 18 }}>
-        {history.length === 0 ? (
+                  <div style={{ display: "grid", gap: 18 }}>
+        {loadState === "hydrating" ? (
+          <PremiumCard>
+            <div style={{ display: "grid", gap: 10 }}>
+              <div
+                style={{
+                  height: 14,
+                  width: "28%",
+                  borderRadius: 999,
+                  background: "var(--card-border-soft)",
+                }}
+              />
+              <div
+                style={{
+                  height: 18,
+                  width: "52%",
+                  borderRadius: 999,
+                  background: "var(--card-border-soft)",
+                }}
+              />
+              <div
+                style={{
+                  height: 96,
+                  width: "100%",
+                  borderRadius: "var(--radius-md)",
+                  background: "var(--card-border-soft)",
+                }}
+              />
+            </div>
+          </PremiumCard>
+        ) : history.length === 0 ? (
           <PremiumCard>
             <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
               No insights yet
