@@ -5,11 +5,8 @@ import PremiumShell from "@/app/components/PremiumShell";
 import PremiumCard from "@/app/components/PremiumCard";
 import {
   clearActiveJobProfileId,
-  deleteJobProfile,
   getActiveJobProfileId,
-  getJobProfiles,
   setActiveJobProfileId,
-  upsertJobProfile,
   type JobProfile,
 } from "@/app/lib/jobProfiles";
 
@@ -37,14 +34,17 @@ export default function JobProfilesPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  function reload() {
-    setProfiles(getJobProfiles());
-    setActiveId(getActiveJobProfileId());
-  }
+async function reload() {
+  const res = await fetch("/api/job-profiles", { cache: "no-store" });
+  const json = await res.json();
 
-  useEffect(() => {
-    reload();
-  }, []);
+  setProfiles(json?.profiles ?? []);
+  setActiveId(getActiveJobProfileId());
+}
+
+useEffect(() => {
+  void reload();
+}, []);
 
   const sortedProfiles = useMemo(() => {
     return [...profiles].sort((a, b) => b.updatedAt - a.updatedAt);
@@ -58,27 +58,40 @@ export default function JobProfilesPage() {
     setJobDescription("");
   }
 
-  function handleSave() {
-    const trimmedTitle = title.trim();
-    const trimmedDesc = jobDescription.trim();
+async function handleSave() {
+  const trimmedTitle = title.trim();
+  const trimmedDesc = jobDescription.trim();
 
-    if (!trimmedTitle || !trimmedDesc) return;
+  if (!trimmedTitle || !trimmedDesc) return;
 
-    const saved = upsertJobProfile({
+  const method = editingId ? "PATCH" : "POST";
+
+  const res = await fetch("/api/job-profiles", {
+    method,
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
       id: editingId ?? undefined,
       title: trimmedTitle,
       company: company.trim(),
       roleType: roleType.trim(),
       jobDescription: trimmedDesc,
-    });
+    }),
+  });
 
-    if (!activeId) {
-      setActiveJobProfileId(saved.id);
-    }
+  const json = await res.json();
 
-    resetForm();
-    reload();
+  if (!res.ok || !json?.ok) {
+    alert(json?.error ?? "Failed to save profile");
+    return;
   }
+
+  if (!activeId && json?.profile?.id) {
+    setActiveJobProfileId(json.profile.id);
+  }
+
+  resetForm();
+  await reload();
+}
 
   function handleEdit(profile: JobProfile) {
     setEditingId(profile.id);
@@ -88,13 +101,35 @@ export default function JobProfilesPage() {
     setJobDescription(profile.jobDescription);
   }
 
-  function handleDelete(id: string) {
-    deleteJobProfile(id);
-    if (editingId === id) {
-      resetForm();
-    }
-    reload();
+async function handleDelete(id: string) {
+  const confirmDelete = window.confirm(
+    "Are you sure you want to delete this job profile?"
+  );
+
+  if (!confirmDelete) return;
+
+  const res = await fetch(`/api/job-profiles?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+  });
+
+  const json = await res.json();
+
+  if (!res.ok || !json?.ok) {
+    alert(json?.error ?? "Failed to delete profile");
+    return;
   }
+
+  if (editingId === id) {
+    resetForm();
+  }
+
+  if (activeId === id) {
+    clearActiveJobProfileId();
+    setActiveId(null);
+  }
+
+  await reload();
+}
 
   function handleSetActive(id: string) {
     setActiveJobProfileId(id);

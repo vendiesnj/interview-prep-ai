@@ -10,7 +10,7 @@ import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
 import { getProfile } from "../../lib/profileStore";
 import {
-  getActiveJobProfile,
+  getActiveJobProfileId,
   type JobProfile,
 } from "@/app/lib/jobProfiles";
 import { createPortal } from "react-dom";
@@ -482,9 +482,26 @@ const answerTimeLimit = getProfile().settings.answerTimeLimit;
 const [timeLeft, setTimeLeft] = React.useState(answerTimeLimit);
 const [timerRunning, setTimerRunning] = React.useState(false);
 const [mode, setMode] = React.useState<"setup" | "questions" | "answer">("setup");
-function refreshActiveJobProfile() {
+async function refreshActiveJobProfile() {
   try {
-    setActiveJobProfile(getActiveJobProfile());
+    const activeId = getActiveJobProfileId();
+
+    if (!activeId) {
+      setActiveJobProfile(null);
+      return;
+    }
+
+    const res = await fetch("/api/job-profiles", { cache: "no-store" });
+    const json = await res.json();
+
+    const profiles = Array.isArray(json?.profiles) ? json.profiles : [];
+    const profile = profiles.find((p: any) => p.id === activeId) ?? null;
+
+setActiveJobProfile(profile);
+
+if (profile?.jobDescription) {
+  setJobDesc(profile.jobDescription);
+}
   } catch {
     setActiveJobProfile(null);
   }
@@ -511,12 +528,12 @@ React.useEffect(() => {
 
 useEffect(() => {
   setMounted(true);
-  refreshActiveJobProfile();
+  void refreshActiveJobProfile();
 }, []);
 
 useEffect(() => {
   function handleFocus() {
-    refreshActiveJobProfile();
+    void refreshActiveJobProfile();
   }
 
   window.addEventListener("focus", handleFocus);
@@ -2389,23 +2406,69 @@ return (
 
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--text-muted)" }}>
-  SELECTED QUESTION
+  <div
+    style={{
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      flexWrap: "wrap",
+    }}
+  >
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 900,
+        letterSpacing: 0.7,
+        color: "var(--text-muted)",
+      }}
+    >
+      SELECTED QUESTION
+    </div>
+
+    {activeJobProfile ? (
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "4px 10px",
+          borderRadius: 999,
+          border: "1px solid var(--accent-strong)",
+          background: "rgba(34,211,238,0.08)",
+          color: "var(--accent)",
+          fontSize: 11,
+          fontWeight: 900,
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+        }}
+        title={
+          activeJobProfile.company
+            ? `${activeJobProfile.title} • ${activeJobProfile.company}`
+            : activeJobProfile.title
+        }
+      >
+        <span>PROFILE</span>
+        <span style={{ opacity: 0.9 }}>
+          {activeJobProfile.title}
+        </span>
+      </span>
+    ) : null}
+  </div>
+
+  <div
+    style={{
+      marginTop: 8,
+      fontSize: 17,
+      lineHeight: 1.55,
+      fontWeight: 900,
+      color: "var(--text-primary)",
+      wordBreak: "break-word",
+      maxWidth: 820,
+    }}
+  >
+    {selectedQuestion}
+  </div>
 </div>
-        <div
-  style={{
-    marginTop: 8,
-    fontSize: 17,
-    lineHeight: 1.55,
-    fontWeight: 900,
-    color: "var(--text-primary)",
-    wordBreak: "break-word",
-    maxWidth: 820,
-  }}
->
-  {selectedQuestion}
-</div>
-      </div>
 
       <button
   type="button"

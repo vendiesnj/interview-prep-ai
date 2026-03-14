@@ -6,6 +6,19 @@ datasource db {
   provider = "postgresql"
 }
 
+enum TenantRole {
+  student
+  tenant_admin
+  career_coach
+  super_admin
+}
+
+enum MembershipStatus {
+  active
+  invited
+  disabled
+}
+
 model User {
   id                   String    @id @default(cuid())
   email                String?   @unique
@@ -24,18 +37,23 @@ model User {
   freeAttemptCap       Int       @default(3)
   freeAttemptsUsed     Int       @default(0)
 
+  // Transitional: keep this so your current auth/routes continue to work
   tenantId             String?
-  tenant               Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  tenant               Tenant?   @relation("UserHomeTenant", fields: [tenantId], references: [id], onDelete: SetNull)
 
   accounts             Account[]
   attempts             Attempt[]
   sessions             Session[]
 
+  // New robust multi-tenant model
+  memberships          TenantMembership[]
+  jobProfiles          JobProfile[]
+
+  passwordResetTokens  PasswordResetToken[]
+
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
   @@index([tenantId])
-
-  passwordResetTokens  PasswordResetToken[]
 }
 
 model Account {
@@ -94,20 +112,28 @@ model Attempt {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   deletedAt           DateTime?
+
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant              Tenant?   @relation(fields: [tenantId], references: [id], onDelete: SetNull)
+  tenant              Tenant?   @relation("TenantAttempts", fields: [tenantId], references: [id], onDelete: SetNull)
+
   audioUrl            String?
   audioMime           String?
   audioPath           String?
+
+    // Transitional: keep as loose string for now.
+  // Existing attempts already contain legacy/local profile ids.
+  // We will convert this to a true FK after backfilling DB job profiles.
   jobProfileId        String?
   jobProfileTitle     String?
   jobProfileCompany   String?
   jobProfileRoleType  String?
+
   questionCategory    String?
   questionSource      String?
   evaluationFramework String?
 
   @@index([tenantId])
+  @@index([jobProfileId])
   @@index([userId, createdAt])
   @@index([userId, deletedAt, createdAt])
   @@index([userId, deletedAt])
@@ -156,8 +182,60 @@ model Tenant {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  users           User[]
-  attempts        Attempt[]
+  // Existing relations
+  users           User[]    @relation("UserHomeTenant")
+  attempts        Attempt[] @relation("TenantAttempts")
+
+  // New robust relations
+  memberships     TenantMembership[]
+  jobProfiles     JobProfile[]
+}
+
+model TenantMembership {
+  id         String           @id @default(cuid())
+  tenantId   String
+  userId     String
+  role       TenantRole       @default(student)
+  status     MembershipStatus @default(active)
+  isDefault  Boolean          @default(true)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@index([userId, status])
+  @@index([tenantId, role, status])
+  @@index([tenantId, isDefault])
+}
+
+model JobProfile {
+  id                String    @id @default(cuid())
+  tenantId          String
+  userId            String
+
+  title             String
+  company           String?
+  roleType          String?
+  jobDescription    String
+
+  // Future-proofing for role-aware scoring / competencies
+  competencyWeights Json?
+  targetTraits      Json?
+
+  isArchived        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  deletedAt         DateTime?
+
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+
+  @@index([tenantId, userId, isArchived])
+  @@index([userId, createdAt])
+  @@index([tenantId, title])
 }
 
 model StripeEvent {
