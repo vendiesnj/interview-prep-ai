@@ -19,6 +19,14 @@ import { userScopedKey } from "@/app/lib/userStorage";
 import type { AttemptEntitlement } from "@/app/lib/entitlements";
 import { posthog } from "@/app/lib/posthog-client";
 import { classifyEvaluationFramework } from "@/app/lib/questionFramework";
+import {
+  asOverall100,
+  asTenPoint,
+  displayOverall100,
+  displayTenPointAs100,
+  avgOverall100,
+  avgTenPoint,
+} from "@/app/lib/scoreScale";
 
 function MetricRow({
   label,
@@ -751,25 +759,31 @@ const chartPoints = history
 
 const scores = chartPoints
   .map((h) => {
-    if (trendMetric === "communication")
-      return Number(h.communication_score ?? h.feedback?.communication_score ?? NaN);
+    if (trendMetric === "communication") {
+      return asTenPoint(h.communication_score ?? h.feedback?.communication_score);
+    }
 
-    if (trendMetric === "confidence")
-      return Number(h.confidence_score ?? h.feedback?.confidence_score ?? NaN);
+    if (trendMetric === "confidence") {
+      return asTenPoint(h.confidence_score ?? h.feedback?.confidence_score);
+    }
 
-    if (trendMetric === "pace")
+    if (trendMetric === "pace") {
       return typeof h.wpm === "number" ? Number(h.wpm) : NaN;
+    }
 
-    if (trendMetric === "fillers")
+    if (trendMetric === "fillers") {
       return Number(h.feedback?.filler?.per100 ?? NaN);
+    }
 
-    if (trendMetric === "star_result")
-      return Number(h.feedback?.star?.result ?? NaN);
+    if (trendMetric === "star_result") {
+      return asTenPoint(h.feedback?.star?.result);
+    }
 
-    if (trendMetric === "vocal_variety")
-      return Number(h.prosody?.monotoneScore ?? NaN);
+    if (trendMetric === "vocal_variety") {
+      return asTenPoint(h.prosody?.monotoneScore);
+    }
 
-    return Number(h.score ?? NaN);
+    return asOverall100(h.score);
   })
   .filter((n) => Number.isFinite(n));
 
@@ -783,15 +797,15 @@ function trendMeta(metric: TrendMetric) {
     case "confidence":
       return { label: "Confidence (0–10)", max: 10 };
     case "pace":
-      return { label: "Pace (WPM)", max: 220 }; // good default cap
+      return { label: "Pace (WPM)", max: 220 };
     case "fillers":
-      return { label: "Fillers (per 100 words)", max: 20 }; // typical range
+      return { label: "Fillers (per 100 words)", max: 20 };
     case "star_result":
       return { label: "Closing Impact (rubric score)", max: 10 };
     case "vocal_variety":
       return { label: "Vocal variety (0–10)", max: 10 };
     default:
-      return { label: "Overall (0–10)", max: 10 };
+      return { label: "Overall (0–100)", max: 100 };
   }
 }
 
@@ -800,16 +814,21 @@ const lastScore = scores.length ? scores[scores.length - 1] : null;
 const prevScore = scores.length > 1 ? scores[scores.length - 2] : null;
 const delta = lastScore !== null && prevScore !== null ? lastScore - prevScore : null;
 
-const avgScore =
-  scores.length ? Math.round((scores.reduce((a, b) => a + b, 0) / scores.length) * 10) / 10 : null;
-const minScore = scores.length ? Math.min(...scores) : null;
-const maxScore = scores.length ? Math.max(...scores) : null;
+const numericScores = scores.filter(
+  (n): n is number => typeof n === "number" && Number.isFinite(n)
+);
+
+const avgScore = numericScores.length
+  ? Math.round((numericScores.reduce((a, b) => a + b, 0) / numericScores.length) * 10) / 10
+  : null;
+
+const minScore = numericScores.length ? Math.min(...numericScores) : null;
+const maxScore = numericScores.length ? Math.max(...numericScores) : null;
 
 const sparkW = 100;
 const sparkH = 90;
 const { max: yMax } = trendMeta(trendMetric);
-const sparkPath = buildSparkPath(scores, sparkW, sparkH, 6, yMax);
-
+const sparkPath = buildSparkPath(numericScores, sparkW, sparkH, 6, yMax);
 // Command+F anchor: const coachingInsights =
 const coachingInsights = useMemo(() => {
   if (!history.length) return [];
@@ -824,10 +843,18 @@ const coachingInsights = useMemo(() => {
     arr.map(fn).filter((x) => isNum(x)) as number[];
 
   // --- Core series ---
-  const overall = pickNums(last5, (h) => h.score);
-  const comm = pickNums(last5, (h) => h.communication_score ?? h.feedback?.communication_score);
-  const conf = pickNums(last5, (h) => h.confidence_score ?? h.feedback?.confidence_score);
+ const overall = last5
+  .map((h) => asOverall100(h.score))
+  .filter((x) => typeof x === "number" && Number.isFinite(x)) as number[];
 
+  
+const comm = last5
+  .map((h) => asTenPoint(h.communication_score ?? h.feedback?.communication_score))
+  .filter((x) => typeof x === "number" && Number.isFinite(x)) as number[];
+
+const conf = last5
+  .map((h) => asTenPoint(h.confidence_score ?? h.feedback?.confidence_score))
+  .filter((x) => typeof x === "number" && Number.isFinite(x)) as number[];
   const spoken = last5.filter((h) => h.inputMethod === "spoken");
   const wpmSeries = pickNums(spoken, (h) => h.wpm);
 
@@ -843,16 +870,16 @@ const coachingInsights = useMemo(() => {
 
   // 1) Overall trend callout (more specific)
   if (overall.length >= 2) {
-    const d = trend(overall);
-    if (d >= 1) tips.push(`Up ${d.toFixed(1)} overall in your last ${overall.length} attempts — keep the same structure and tighten the close.`);
-        else if (d <= -1) tips.push(`Down ${Math.abs(d).toFixed(1)} overall recently — simplify: 1 clear claim → 2 support points → 1 strong close.`);
-    else tips.push(`Stable overall lately — pick ONE lever next attempt (STAR result, fillers, pace, or vocal variety).`);
-  }
+  const d = trend(overall);
+  if (d >= 5) tips.push(`Up ${Math.round(d)} points overall in your last ${overall.length} attempts — keep the same structure and tighten the close.`);
+  else if (d <= -5) tips.push(`Down ${Math.round(Math.abs(d))} points overall recently — simplify: 1 clear claim → 2 support points → 1 strong close.`);
+  else tips.push(`Stable overall lately — pick ONE lever next attempt (STAR result, fillers, pace, or vocal variety).`);
+}
 
   // 2) Biggest lever (lowest average dimension)
-  const aOverall = avg(overall);
-  const aComm = avg(comm);
-  const aConf = avg(conf);
+const aOverall = avgOverall100(overall);
+const aComm = avgTenPoint(comm);
+const aConf = avgTenPoint(conf);
 
   if (aOverall !== null && aComm !== null && aConf !== null) {
     const entries = [
@@ -864,7 +891,7 @@ const coachingInsights = useMemo(() => {
     const weakest = entries[0];
     if (weakest.k === "communication") tips.push(`Biggest lever: Communication (avg ${aComm.toFixed(1)}/10). Shorten sentences + remove softeners (“kind of”, “maybe”).`);
     if (weakest.k === "confidence") tips.push(`Biggest lever: Confidence (avg ${aConf.toFixed(1)}/10). Start with a strong claim, then deliver 1 metric earlier.`);
-    if (weakest.k === "overall") tips.push(`Biggest lever: Overall (avg ${aOverall.toFixed(1)}/10). Add a crisp “Result” sentence with a measurable outcome.`);
+   if (weakest.k === "overall") tips.push(`Biggest lever: Overall (avg ${Math.round(aOverall)}/100). Add a crisp “Result” sentence with a measurable outcome.`);
   }
 
    // 3) Behavioral closing weakness (only if it’s truly showing up)
@@ -1041,6 +1068,7 @@ function saveHomeState() {
   } catch {}
 }
 
+const overallScore100 = asOverall100(feedback?.score) ?? 0;
 
 const wpm = calcWpm(transcript, durationSeconds);
 
@@ -3982,8 +4010,8 @@ onMouseLeave={(e) =>
 
               <div style={{ minWidth: 0 }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap" }}>
-                  <div style={{ fontWeight: 900 }}>Score: {typeof h.score === "number" ? Math.round(h.score * 10) : "—"}/100</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{when}</div>
+  <div style={{ fontWeight: 900 }}>Score: {displayOverall100(h.score)}</div>
+  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{when}</div>
                   {h.inputMethod === "spoken" ? (
                     <span
                       style={{
@@ -4077,8 +4105,8 @@ onMouseLeave={(e) =>
     color: "var(--text-primary)",
   }}
 >
-            <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-  Feedback (Score: {typeof feedback?.score === "number" ? Math.round(feedback.score * 10) : "—"}/100)
+     <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
+  Feedback (Score: {displayOverall100(feedback?.score)})
 </h3>
 
       <div
@@ -4089,9 +4117,9 @@ onMouseLeave={(e) =>
           gap: 12,
         }}
       >
-        <GaugeTile title="Overall" value={feedback?.score ?? 0} max={10}>
-          <MetricBar label="Overall Score" value={feedback?.score ?? 0} max={10} />
-          {wpm !== null && (
+        <GaugeTile title="Overall" value={overallScore100} max={100}>
+  <MetricBar label="Overall Score" value={overallScore100} max={100} />
+  {wpm !== null && (
             <div style={{ marginTop: 10 }}>
               <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Pace</div>
               <div style={{ marginTop: 6, color: "var(--text-primary)", fontWeight: 700 }}>{wpm} wpm</div>

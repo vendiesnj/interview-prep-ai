@@ -11,14 +11,17 @@ import { userScopedKey } from "@/app/lib/userStorage";
 type Attempt = {
   id?: string;
   ts?: number;
-    question?: string;
+  question?: string;
   questionCategory?: string | null;
   questionSource?: string | null;
   evaluationFramework?: string | null;
   inputMethod?: "spoken" | "pasted";
   score?: number;
+  communication_score?: number | null;
+  confidence_score?: number | null;
   audioId?: string | null;
   audioPath?: string | null;
+  deliveryMetrics?: any | null;
 
   transcript?: string;
   wpm?: number | null;
@@ -53,6 +56,16 @@ function safeJSONParse<T>(raw: string | null, fallback: T): T {
 function formatDate(ts?: number) {
   if (!ts) return "—";
   return new Date(ts).toLocaleString();
+}
+
+function toPercentScore(score?: number | null) {
+  if (typeof score !== "number" || !Number.isFinite(score)) return null;
+
+  // Already on 0–100 scale
+  if (score > 10) return Math.round(score);
+
+  // Still on 0–10 scale
+  return Math.round(score * 10);
 }
 
 // --- IndexedDB helpers for audio replay ---
@@ -537,7 +550,7 @@ async function ensureAudioUrl(audioId: string) {
 
                       try {
                         // ✅ Store a normalized shape that /results already knows how to read
-                        const lastResult = {
+                   const lastResult = {
   ts: attempt.ts ?? Date.now(),
   question: attempt.question ?? "",
   questionCategory: attempt.questionCategory ?? "other",
@@ -545,8 +558,24 @@ async function ensureAudioUrl(audioId: string) {
   evaluationFramework: attempt.evaluationFramework ?? "star",
   transcript: attempt.transcript ?? "",
   wpm: typeof attempt.wpm === "number" ? attempt.wpm : null,
+
   prosody: attempt.prosody ?? null,
+  deliveryMetrics: attempt.deliveryMetrics ?? null,
+
   feedback: attempt.feedback ?? null,
+  score: typeof attempt.score === "number" ? attempt.score : null,
+  communication_score:
+    typeof attempt.communication_score === "number"
+      ? attempt.communication_score
+      : typeof attempt.feedback?.communication_score === "number"
+      ? attempt.feedback.communication_score
+      : null,
+  confidence_score:
+    typeof attempt.confidence_score === "number"
+      ? attempt.confidence_score
+      : typeof attempt.feedback?.confidence_score === "number"
+      ? attempt.feedback.confidence_score
+      : null,
 
   audioId: attempt.audioId ?? null,
   audioPath: attempt.audioPath ?? null,
@@ -571,7 +600,7 @@ async function ensureAudioUrl(audioId: string) {
                         localStorage.setItem(LAST_RESULT_KEY, json);
 
                         // Also keep a "selected attempt" key (optional / future use)
-                        const selJson = JSON.stringify(attempt);
+                        const selJson = JSON.stringify(lastResult);
                         sessionStorage.setItem("ipc_selected_attempt", selJson);
                         localStorage.setItem("ipc_selected_attempt", selJson);
                         sessionStorage.setItem(SELECTED_KEY, selJson);
@@ -611,7 +640,7 @@ async function ensureAudioUrl(audioId: string) {
     whiteSpace: "nowrap",
   }}
 >
-  {overall !== null ? `${Math.round(Number(overall) * 10)}/100` : "—"}
+  {toPercentScore(overall) !== null ? `${toPercentScore(overall)}/100` : "—"}
 </div>
 </div>
 

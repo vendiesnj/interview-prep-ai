@@ -286,6 +286,36 @@ const user = rows[0] ?? null;
       }
     }
 
+    let resolvedJobProfileId: string | null = null;
+let resolvedJobProfileTitle: string | null = null;
+let resolvedJobProfileCompany: string | null = null;
+let resolvedJobProfileRoleType: string | null = null;
+
+if (body.jobProfileId) {
+  const profile = await tx.jobProfile.findFirst({
+    where: {
+      id: body.jobProfileId,
+      userId,
+      tenantId,
+      deletedAt: null,
+      isArchived: false,
+    },
+    select: {
+      id: true,
+      title: true,
+      company: true,
+      roleType: true,
+    },
+  });
+
+  if (profile) {
+    resolvedJobProfileId = profile.id;
+    resolvedJobProfileTitle = profile.title;
+    resolvedJobProfileCompany = profile.company ?? null;
+    resolvedJobProfileRoleType = profile.roleType ?? null;
+  }
+}
+
         const attempt = await tx.attempt.create({
   data: {
     userId,
@@ -319,10 +349,10 @@ confidenceScore:
         focusGoal: body.focusGoal ?? null,
 jobDesc: body.jobDesc ?? null,
 
-jobProfileId: body.jobProfileId ?? null,
-jobProfileTitle: body.jobProfileTitle ?? null,
-jobProfileCompany: body.jobProfileCompany ?? null,
-jobProfileRoleType: body.jobProfileRoleType ?? null,
+jobProfileId: resolvedJobProfileId ?? body.jobProfileId ?? null,
+jobProfileTitle: resolvedJobProfileTitle ?? body.jobProfileTitle ?? null,
+jobProfileCompany: resolvedJobProfileCompany ?? body.jobProfileCompany ?? null,
+jobProfileRoleType: resolvedJobProfileRoleType ?? body.jobProfileRoleType ?? null,
 
 audioId: body.audioId ?? null,
 audioPath: body.audioPath ?? null,

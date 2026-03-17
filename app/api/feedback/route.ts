@@ -4,6 +4,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/app/lib/prisma";
 import { rateLimitFixedWindow } from "@/app/lib/rateLimit";
 import { logInfo, logError } from "@/app/lib/logger";
+import { composeRichFeedback } from "@/app/lib/feedback/composer";
 
 export const runtime = "nodejs";
 
@@ -1466,6 +1467,17 @@ export async function POST(req: Request) {
         );
       }
     }
+
+        normalized = composeRichFeedback({
+      framework: evaluationFramework,
+      jobDesc,
+      question,
+      transcript,
+      deliveryMetrics,
+      fillerStats,
+      normalized,
+    });
+
 
     if (!isPro) {
       await prisma.user.update({

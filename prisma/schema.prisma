@@ -6,50 +6,31 @@ datasource db {
   provider = "postgresql"
 }
 
-enum TenantRole {
-  student
-  tenant_admin
-  career_coach
-  super_admin
-}
-
-enum MembershipStatus {
-  active
-  invited
-  disabled
-}
-
 model User {
-  id                   String    @id @default(cuid())
-  email                String?   @unique
+  id                   String               @id @default(cuid())
+  email                String?              @unique
   passwordHash         String?
   name                 String?
-  demoPersona          String?
-  createdAt            DateTime  @default(now())
-  updatedAt            DateTime  @updatedAt
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
   emailVerified        DateTime?
   image                String?
   currentPeriodEnd     DateTime?
-  stripeCustomerId     String?   @unique
+  stripeCustomerId     String?              @unique
   stripePriceId        String?
-  stripeSubscriptionId String?   @unique
+  stripeSubscriptionId String?              @unique
   subscriptionStatus   String?
-  freeAttemptCap       Int       @default(3)
-  freeAttemptsUsed     Int       @default(0)
-
-  // Transitional: keep this so your current auth/routes continue to work
+  freeAttemptCap       Int                  @default(3)
+  freeAttemptsUsed     Int                  @default(0)
   tenantId             String?
-  tenant               Tenant?   @relation("UserHomeTenant", fields: [tenantId], references: [id], onDelete: SetNull)
-
+  demoPersona          String?
   accounts             Account[]
   attempts             Attempt[]
-  sessions             Session[]
-
-  // New robust multi-tenant model
-  memberships          TenantMembership[]
   jobProfiles          JobProfile[]
-
   passwordResetTokens  PasswordResetToken[]
+  sessions             Session[]
+  memberships          TenantMembership[]
+  tenant               Tenant?              @relation("UserHomeTenant", fields: [tenantId], references: [id])
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -93,13 +74,11 @@ model VerificationToken {
 model Attempt {
   id                  String    @id @default(cuid())
   userId              String
-  tenantId            String?
   ts                  DateTime  @default(now())
   question            String
   transcript          String
   inputMethod         String?
   prosody             Json?
-  deliveryMetrics     Json?
   feedback            Json?
   score               Float?
   communicationScore  Float?
@@ -112,25 +91,20 @@ model Attempt {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
   deletedAt           DateTime?
-
-  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenant              Tenant?   @relation("TenantAttempts", fields: [tenantId], references: [id], onDelete: SetNull)
-
-  audioUrl            String?
-  audioMime           String?
+  deliveryMetrics     Json?
   audioPath           String?
-
-    // Transitional: keep as loose string for now.
-  // Existing attempts already contain legacy/local profile ids.
-  // We will convert this to a true FK after backfilling DB job profiles.
-  jobProfileId        String?
-  jobProfileTitle     String?
+  audioMime           String?
+  audioUrl            String?
   jobProfileCompany   String?
+  jobProfileId        String?
   jobProfileRoleType  String?
-
+  jobProfileTitle     String?
   questionCategory    String?
   questionSource      String?
   evaluationFramework String?
+  tenantId            String?
+  tenant              Tenant?   @relation("TenantAttempts", fields: [tenantId], references: [id])
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
   @@index([jobProfileId])
@@ -142,67 +116,52 @@ model Attempt {
 }
 
 model Tenant {
-  id              String    @id @default(cuid())
-  name            String
-  slug            String    @unique
-  themeKey        String    @default("default")
-  emailDomains    String[]  @default([])
-
-  pageBg          String?
-  pageBgAccentA   String?
-  pageBgAccentB   String?
-
-  textPrimary     String?
-  textMuted       String?
-  textSoft        String?
-
-  cardBg          String?
-  cardBgStrong    String?
-  cardBorder      String?
-  cardBorderSoft  String?
-
-  inputBg         String?
-  inputBorder     String?
-
-  accent          String?
-  accentSoft      String?
-  accentStrong    String?
-
-  accent2         String?
-  accent2Soft     String?
-
-  danger          String?
-  dangerSoft      String?
-
-  success         String?
-  successSoft     String?
-
-  logoUrl         String?
-
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  // Existing relations
-  users           User[]    @relation("UserHomeTenant")
-  attempts        Attempt[] @relation("TenantAttempts")
-
-  // New robust relations
-  memberships     TenantMembership[]
-  jobProfiles     JobProfile[]
+  id             String             @id @default(cuid())
+  name           String
+  slug           String             @unique
+  themeKey       String             @default("default")
+  emailDomains   String[]           @default([])
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  accent         String?
+  accent2        String?
+  accent2Soft    String?
+  accentSoft     String?
+  accentStrong   String?
+  cardBg         String?
+  cardBgStrong   String?
+  cardBorder     String?
+  cardBorderSoft String?
+  danger         String?
+  dangerSoft     String?
+  inputBg        String?
+  inputBorder    String?
+  logoUrl        String?
+  pageBg         String?
+  pageBgAccentA  String?
+  pageBgAccentB  String?
+  success        String?
+  successSoft    String?
+  textMuted      String?
+  textPrimary    String?
+  textSoft       String?
+  attempts       Attempt[]          @relation("TenantAttempts")
+  jobProfiles    JobProfile[]
+  memberships    TenantMembership[]
+  users          User[]             @relation("UserHomeTenant")
 }
 
 model TenantMembership {
-  id         String           @id @default(cuid())
-  tenantId   String
-  userId     String
-  role       TenantRole       @default(student)
-  status     MembershipStatus @default(active)
-  isDefault  Boolean          @default(true)
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-
-  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String           @id @default(cuid())
+  tenantId  String
+  userId    String
+  role      TenantRole       @default(student)
+  status    MembershipStatus @default(active)
+  isDefault Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  tenant    Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([tenantId, userId])
   @@index([userId, status])
@@ -214,24 +173,18 @@ model JobProfile {
   id                String    @id @default(cuid())
   tenantId          String
   userId            String
-
   title             String
   company           String?
   roleType          String?
   jobDescription    String
-
-  // Future-proofing for role-aware scoring / competencies
   competencyWeights Json?
   targetTraits      Json?
-
   isArchived        Boolean   @default(false)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   deletedAt         DateTime?
-
   tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
 
   @@index([tenantId, userId, isArchived])
   @@index([userId, createdAt])
@@ -257,15 +210,27 @@ model AuditLog {
 }
 
 model PasswordResetToken {
-  id            String   @id @default(cuid())
-  userId        String
-  tokenHash     String   @unique
-  expiresAt     DateTime
-  usedAt        DateTime?
-  createdAt     DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([expiresAt])
+}
+
+enum TenantRole {
+  student
+  tenant_admin
+  career_coach
+  super_admin
+}
+
+enum MembershipStatus {
+  active
+  invited
+  disabled
 }

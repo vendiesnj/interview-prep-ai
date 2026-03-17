@@ -7,8 +7,7 @@ import PremiumShell from "@/app/components/PremiumShell";
 import PremiumCard from "@/app/components/PremiumCard";
 import { userScopedKey } from "@/app/lib/userStorage";
 import {
-  getActiveJobProfile,
-  getJobProfiles,
+  getActiveJobProfileId,
   type JobProfile,
 } from "@/app/lib/jobProfiles";
 
@@ -84,7 +83,8 @@ const [jobProfileFilter, setJobProfileFilter] = useState<string>("all");
     total: number;
   }>({ hasGenerated: false, total: 0 });
 
-  useEffect(() => {
+useEffect(() => {
+  async function hydrate() {
     const bankRaw =
       localStorage.getItem(BANK_KEY) ||
       localStorage.getItem(BANK_FALLBACK_KEY);
@@ -101,9 +101,27 @@ const [jobProfileFilter, setJobProfileFilter] = useState<string>("all");
     const total = qs.length;
     setHomePreview({ hasGenerated: total > 0, total });
 
-    setJobProfiles(getJobProfiles());
-    setActiveJobProfile(getActiveJobProfile());
-  }, [BANK_KEY, HOME_KEY]);
+    try {
+      const activeId = getActiveJobProfileId();
+
+      const res = await fetch("/api/job-profiles", { cache: "no-store" });
+      const json = await res.json();
+
+      const profiles = Array.isArray(json?.profiles) ? json.profiles : [];
+      setJobProfiles(profiles);
+
+      const active =
+        activeId ? profiles.find((p: JobProfile) => p.id === activeId) ?? null : null;
+
+      setActiveJobProfile(active);
+    } catch {
+      setJobProfiles([]);
+      setActiveJobProfile(null);
+    }
+  }
+
+  void hydrate();
+}, [BANK_KEY, HOME_KEY]);
 
 
 

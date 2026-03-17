@@ -6,21 +6,29 @@ import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
+import {
+  asOverall100,
+  asTenPoint,
+  displayOverall100,
+  displayTenPointAs100,
+  avgOverall100,
+  avgTenPoint,
+} from "@/app/lib/scoreScale";
 
 type Attempt = {
   id?: string;
   ts?: number;
-  score?: number;
-  communication_score?: number;
-  confidence_score?: number;
+  score?: number | null;
+  communication_score?: number | null;
+  confidence_score?: number | null;
   wpm?: number | null;
   prosody?: {
     monotoneScore?: number;
   } | null;
   feedback?: {
-    score?: number;
-    communication_score?: number;
-    confidence_score?: number;
+    score?: number | null;
+    communication_score?: number | null;
+    confidence_score?: number | null;
     filler?: {
       per100?: number;
       total?: number;
@@ -34,6 +42,15 @@ type Attempt = {
   } | null;
 };
 
+type MetricKey =
+  | "overall"
+  | "communication"
+  | "confidence"
+  | "pace"
+  | "fillers"
+  | "star_result"
+  | "vocal_variety";
+
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
   try {
     if (!raw) return fallback;
@@ -43,14 +60,18 @@ function safeJSONParse<T>(raw: string | null, fallback: T): T {
   }
 }
 
-type MetricKey =
-  | "overall"
-  | "communication"
-  | "confidence"
-  | "pace"
-  | "fillers"
-  | "star_result"
-  | "vocal_variety";
+function n(x: any): number | null {
+  return typeof x === "number" && Number.isFinite(x) ? x : null;
+}
+
+function avg(nums: number[]) {
+  if (!nums.length) return null;
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+}
+
+function round1(x: number | null) {
+  return x === null ? null : Math.round(x * 10) / 10;
+}
 
 function clamp01(n: number) {
   return Math.max(0, Math.min(1, n));
@@ -76,39 +97,59 @@ function buildSparkPath(values: number[], w: number, h: number, pad = 6, fixedMa
 function metricMeta(metric: MetricKey) {
   switch (metric) {
     case "communication":
-      return { label: "Communication (rubric score)", max: 10 };
+      return { label: "Communication", max: 100 };
     case "confidence":
-      return { label: "Confidence (rubric score)", max: 10 };
+      return { label: "Confidence", max: 100 };
     case "pace":
       return { label: "Pace (WPM)", max: 220 };
     case "fillers":
       return { label: "Fillers (per 100 words)", max: 20 };
     case "star_result":
-       return { label: "Closing Impact (rubric score)", max: 10 };
+      return { label: "Closing Impact", max: 100 };
     case "vocal_variety":
-      return { label: "Vocal Variety (rubric score)", max: 10 };
+      return { label: "Vocal Variety", max: 100 };
     default:
-      return { label: "Overall (internal score)", max: 10 };
+      return { label: "Overall", max: 100 };
   }
 }
 
 function getMetricValue(h: Attempt, metric: MetricKey): number | null {
-  const n = (x: any) => (typeof x === "number" && Number.isFinite(x) ? x : null);
+  if (metric === "overall") {
+    return asOverall100(n(h.score ?? h.feedback?.score));
+  }
 
-  if (metric === "overall") return n(h.score ?? h.feedback?.score);
-  if (metric === "communication") return n(h.communication_score ?? h.feedback?.communication_score);
-  if (metric === "confidence") return n(h.confidence_score ?? h.feedback?.confidence_score);
-  if (metric === "pace") return n(h.wpm ?? null);
-  if (metric === "fillers") return n(h.feedback?.filler?.per100);
-  if (metric === "star_result") return n(h.feedback?.star?.result);
-  if (metric === "vocal_variety") return n(h.prosody?.monotoneScore);
+  if (metric === "communication") {
+    const value = asTenPoint(n(h.communication_score ?? h.feedback?.communication_score));
+    return value === null ? null : value * 10;
+  }
+
+  if (metric === "confidence") {
+    const value = asTenPoint(n(h.confidence_score ?? h.feedback?.confidence_score));
+    return value === null ? null : value * 10;
+  }
+
+  if (metric === "pace") {
+    return n(h.wpm ?? null);
+  }
+
+  if (metric === "fillers") {
+    return n(h.feedback?.filler?.per100);
+  }
+
+  if (metric === "star_result") {
+    const value = asTenPoint(n(h.feedback?.star?.result));
+    return value === null ? null : value * 10;
+  }
+
+  if (metric === "vocal_variety") {
+    const monotone = asTenPoint(n(h.prosody?.monotoneScore));
+    if (monotone === null) return null;
+
+    // Convert monotone risk -> vocal variety score for dashboard display
+    return Math.max(0, Math.min(100, (10 - monotone) * 10));
+  }
 
   return null;
-}
-
-function avg(nums: number[]) {
-  if (!nums.length) return null;
-  return nums.reduce((a, b) => a + b, 0) / nums.length;
 }
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
@@ -158,52 +199,52 @@ function MetricChip({
 }
 
 export default function DashboardPage() {
- const [history, setHistory] = useState<Attempt[]>([]);
-const [metric, setMetric] = useState<MetricKey>("overall");
-const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
-const { data: session, status } = useSession();
+  const [history, setHistory] = useState<Attempt[]>([]);
+  const [metric, setMetric] = useState<MetricKey>("overall");
+  const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+  const { data: session, status } = useSession();
 
-const HISTORY_KEY = userScopedKey("ipc_history", session);
+  const HISTORY_KEY = userScopedKey("ipc_history", session);
 
-useEffect(() => {
-  if (status === "loading") return;
+  useEffect(() => {
+    if (status === "loading") return;
 
-  let cancelled = false;
-  setLoadState("hydrating");
+    let cancelled = false;
+    setLoadState("hydrating");
 
-  (async () => {
-    try {
-      if (session?.user) {
-        const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
+    (async () => {
+      try {
+        if (session?.user) {
+          const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
 
-          if (!cancelled && attempts.length > 0) {
-            setHistory(attempts);
-            return;
+            if (!cancelled && attempts.length > 0) {
+              setHistory(attempts);
+              return;
+            }
           }
         }
-      }
 
-      const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-      if (!cancelled) {
-        setHistory(Array.isArray(saved) ? saved : []);
+        const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+        if (!cancelled) {
+          setHistory(Array.isArray(saved) ? saved : []);
+        }
+      } catch {
+        const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+        if (!cancelled) {
+          setHistory(Array.isArray(saved) ? saved : []);
+        }
+      } finally {
+        if (!cancelled) setLoadState("ready");
       }
-    } catch {
-      const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-      if (!cancelled) {
-        setHistory(Array.isArray(saved) ? saved : []);
-      }
-    } finally {
-      if (!cancelled) setLoadState("ready");
-    }
-  })();
+    })();
 
-  return () => {
-    cancelled = true;
-  };
-}, [status, session?.user, HISTORY_KEY]); 
+    return () => {
+      cancelled = true;
+    };
+  }, [status, session?.user, HISTORY_KEY]);
 
   const last5 = useMemo(() => history.slice(0, 5), [history]);
 
@@ -233,11 +274,7 @@ useEffect(() => {
   }, [series]);
 
   const avgOverallLast5 = useMemo(() => {
-    const vals = last5
-      .map((h) => getMetricValue(h, "overall"))
-      .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-    const a = avg(vals);
-    return a === null ? null : Math.round(a * 10) / 10;
+    return round1(avgOverall100(last5.map((h) => n(h.score ?? h.feedback?.score))));
   }, [last5]);
 
   const biggestIssues = useMemo(() => {
@@ -271,7 +308,7 @@ useEffect(() => {
         if (item.avg > targetHi) return item.avg - targetHi;
         return 0;
       }
-      return 10 - item.avg;
+      return 100 - item.avg;
     }
 
     scored.sort((a, b) => badness(b) - badness(a));
@@ -281,7 +318,7 @@ useEffect(() => {
   const issueCopy: Record<MetricKey, { title: string; tip: string }> = {
     overall: {
       title: "Overall",
-            tip: "Tighten structure: 1 clear claim → 2 supports → 1 strong close.",
+      tip: "Tighten structure: 1 clear claim → 2 supports → 1 strong close.",
     },
     communication: {
       title: "Communication",
@@ -300,7 +337,7 @@ useEffect(() => {
       tip: "Replace “um/like” with a one-beat pause.",
     },
     star_result: {
-            title: "Closing Impact",
+      title: "Closing Impact",
       tip: "End with: “Result: improved X by Y% / saved $Z / reduced time by N days.”",
     },
     vocal_variety: {
@@ -314,13 +351,11 @@ useEffect(() => {
   const { label, max: yMax } = metricMeta(metric);
   const sparkPath = buildSparkPath(series, sparkW, sparkH, 8, yMax);
 
-
-
   const formatValue = (k: MetricKey, v: number | null) => {
     if (v === null) return "—";
     if (k === "pace") return `${Math.round(v)} wpm`;
     if (k === "fillers") return `${Math.round(v * 10) / 10}/100`;
-        return `${Math.round(v * 10)}/100`;
+    return `${Math.round(v)}/100`;
   };
 
   return (
@@ -329,7 +364,7 @@ useEffect(() => {
       subtitle="Your interview performance at a glance."
     >
       <div style={{ maxWidth: 1100 }}>
-                <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+        <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
           {loadState === "hydrating" ? (
             <>
               <PremiumCard
@@ -380,218 +415,222 @@ useEffect(() => {
             </>
           ) : (
             <>
-          <PremiumCard
-            style={{
-              padding: 18,
-              borderRadius: "var(--radius-lg)",
-            }}
-          >
-            <SectionEyebrow>OVERALL PERFORMANCE</SectionEyebrow>
-
-            <div
-              style={{
-                marginTop: 10,
-                fontSize: 14,
-                color: "var(--text-muted)",
-                lineHeight: 1.55,
-              }}
-            >
-              {history.length ? `Saved attempts: ${history.length}` : "No attempts saved yet."}
-            </div>
-
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 14,
-                color: "var(--text-muted)",
-                lineHeight: 1.55,
-              }}
-            >
-              {history.length
-                ? `Last ${Math.min(history.length, 5)} attempts avg: ${typeof avgOverallLast5 === "number" ? Math.round(avgOverallLast5 * 10) : "—"}/100`
-                : "Record + analyze to start building trends."}
-            </div>
-          </PremiumCard>
-
-          <PremiumCard
-            style={{
-              padding: 18,
-              borderRadius: "var(--radius-lg)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                gap: 12,
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <SectionEyebrow>TRENDS</SectionEyebrow>
-                <div
-                  style={{
-                    marginTop: 6,
-                    fontSize: 15,
-                    fontWeight: 900,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {label}
-                </div>
-              </div>
-
-              <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
-                  <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
-                    {formatValue(metric, stats.avg === null ? null : Math.round(stats.avg * 10) / 10)}
-                  </div>
-                </div>
-
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Min</div>
-                  <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
-                    {formatValue(metric, stats.min)}
-                  </div>
-                </div>
-
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Max</div>
-                  <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
-                    {formatValue(metric, stats.max)}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {(
-                [
-                  ["overall", "Overall"],
-                  ["communication", "Communication"],
-                  ["confidence", "Confidence"],
-                  ["pace", "Pace"],
-                  ["fillers", "Fillers"],
-                  ["star_result", "Closing Impact"],
-                  ["vocal_variety", "Vocal Variety"],
-                ] as Array<[MetricKey, string]>
-              ).map(([k, txt]) => (
-                <MetricChip key={k} active={metric === k} onClick={() => setMetric(k)}>
-                  {txt}
-                </MetricChip>
-              ))}
-            </div>
-
-            <div style={{ marginTop: 12 }}>
-              <svg
-                width="100%"
-                viewBox={`0 0 ${sparkW} ${sparkH}`}
+              <PremiumCard
                 style={{
-                  borderRadius: 14,
-                  border: "1px solid var(--card-border)",
-                  background: `
-                    radial-gradient(900px 420px at 15% -10%, var(--accent-soft), transparent 60%),
-                    var(--input-bg)
-                  `,
+                  padding: 18,
+                  borderRadius: "var(--radius-lg)",
                 }}
               >
-                <path
-                  d={`M 8 ${(sparkH - 8).toFixed(1)} L ${(sparkW - 8).toFixed(1)} ${(sparkH - 8).toFixed(1)}`}
-                  stroke="var(--card-border)"
-                  strokeWidth="1"
-                  fill="none"
-                />
+                <SectionEyebrow>OVERALL PERFORMANCE</SectionEyebrow>
 
-                {series.length ? (
-                  <path
-                    d={sparkPath}
-                    stroke="var(--accent)"
-                    strokeWidth="3"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                ) : (
-                  <text
-                    x="16"
-                    y="38"
-                    fill="var(--text-muted)"
-                    style={{ fontSize: 14, fontWeight: 800 }}
-                  >
-                    No data yet for this metric.
-                  </text>
-                )}
-              </svg>
+                <div
+                  style={{
+                    marginTop: 10,
+                    fontSize: 14,
+                    color: "var(--text-muted)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {history.length ? `Saved attempts: ${history.length}` : "No attempts saved yet."}
+                </div>
 
-              <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
-                Showing last {Math.min(history.length, 20)} attempts · newest is on the right
-              </div>
-            </div>
-          </PremiumCard>
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 14,
+                    color: "var(--text-muted)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {history.length
+                    ? `Last ${Math.min(history.length, 5)} attempts avg: ${
+                        typeof avgOverallLast5 === "number"
+                          ? displayOverall100(avgOverallLast5)
+                          : "—"
+                      }`
+                    : "Record + analyze to start building trends."}
+                </div>
+              </PremiumCard>
 
-          <PremiumCard
-            style={{
-              padding: 18,
-              borderRadius: "var(--radius-lg)",
-            }}
-          >
-            <SectionEyebrow>BIGGEST ISSUES</SectionEyebrow>
-
-            {biggestIssues.length ? (
-              <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-                {biggestIssues.map((k) => (
-                  <div
-                    key={k}
-                    style={{
-                      padding: 14,
-                      borderRadius: 14,
-                      border: "1px solid var(--card-border)",
-                      background: "var(--input-bg)",
-                    }}
-                  >
-                    <div style={{ fontWeight: 950, color: "var(--text-primary)" }}>
-                      {issueCopy[k].title}
-                    </div>
+              <PremiumCard
+                style={{
+                  padding: 18,
+                  borderRadius: "var(--radius-lg)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <SectionEyebrow>TRENDS</SectionEyebrow>
                     <div
                       style={{
                         marginTop: 6,
-                        fontSize: 13,
-                        color: "var(--text-muted)",
-                        lineHeight: 1.5,
+                        fontSize: 15,
+                        fontWeight: 900,
+                        color: "var(--text-primary)",
                       }}
                     >
-                      {issueCopy[k].tip}
+                      {label}
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)" }}>
-                Generate a few attempts to surface your biggest issues.
-              </div>
-            )}
-          </PremiumCard>
 
-          <Link
-            href="/practice"
-            style={{
-              textDecoration: "none",
-              padding: 16,
-              borderRadius: "var(--radius-md)",
-              border: "1px solid var(--accent-strong)",
-              background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
-              color: "var(--text-primary)",
-              fontWeight: 950,
-              textAlign: "center",
-              fontSize: 14,
-              boxShadow: "var(--shadow-glow)",
-            }}
-          >
-            Start Practice →
-          </Link>
-          </>
+                  <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
+                      <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
+                        {formatValue(metric, stats.avg === null ? null : Math.round(stats.avg * 10) / 10)}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Min</div>
+                      <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
+                        {formatValue(metric, stats.min)}
+                      </div>
+                    </div>
+
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Max</div>
+                      <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
+                        {formatValue(metric, stats.max)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {(
+                    [
+                      ["overall", "Overall"],
+                      ["communication", "Communication"],
+                      ["confidence", "Confidence"],
+                      ["pace", "Pace"],
+                      ["fillers", "Fillers"],
+                      ["star_result", "Closing Impact"],
+                      ["vocal_variety", "Vocal Variety"],
+                    ] as Array<[MetricKey, string]>
+                  ).map(([k, txt]) => (
+                    <MetricChip key={k} active={metric === k} onClick={() => setMetric(k)}>
+                      {txt}
+                    </MetricChip>
+                  ))}
+                </div>
+
+                <div style={{ marginTop: 12 }}>
+                  <svg
+                    width="100%"
+                    viewBox={`0 0 ${sparkW} ${sparkH}`}
+                    style={{
+                      borderRadius: 14,
+                      border: "1px solid var(--card-border)",
+                      background: `
+                        radial-gradient(900px 420px at 15% -10%, var(--accent-soft), transparent 60%),
+                        var(--input-bg)
+                      `,
+                    }}
+                  >
+                    <path
+                      d={`M 8 ${(sparkH - 8).toFixed(1)} L ${(sparkW - 8).toFixed(1)} ${(sparkH - 8).toFixed(1)}`}
+                      stroke="var(--card-border)"
+                      strokeWidth="1"
+                      fill="none"
+                    />
+
+                    {series.length ? (
+                      <path
+                        d={sparkPath}
+                        stroke="var(--accent)"
+                        strokeWidth="3"
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    ) : (
+                      <text
+                        x="16"
+                        y="38"
+                        fill="var(--text-muted)"
+                        style={{ fontSize: 14, fontWeight: 800 }}
+                      >
+                        No data yet for this metric.
+                      </text>
+                    )}
+                  </svg>
+
+                  <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
+                    Showing last {Math.min(history.length, 20)} attempts · newest is on the right
+                  </div>
+                </div>
+              </PremiumCard>
+
+              <PremiumCard
+                style={{
+                  padding: 18,
+                  borderRadius: "var(--radius-lg)",
+                }}
+              >
+                <SectionEyebrow>BIGGEST ISSUES</SectionEyebrow>
+
+                {biggestIssues.length ? (
+                  <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
+                    {biggestIssues.map((k) => (
+                      <div
+                        key={k}
+                        style={{
+                          padding: 14,
+                          borderRadius: 14,
+                          border: "1px solid var(--card-border)",
+                          background: "var(--input-bg)",
+                        }}
+                      >
+                        <div style={{ fontWeight: 950, color: "var(--text-primary)" }}>
+                          {issueCopy[k].title}
+                        </div>
+                        <div
+                          style={{
+                            marginTop: 6,
+                            fontSize: 13,
+                            color: "var(--text-muted)",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {issueCopy[k].tip}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)" }}>
+                    Generate a few attempts to surface your biggest issues.
+                  </div>
+                )}
+              </PremiumCard>
+
+              <Link
+                href="/practice"
+                style={{
+                  textDecoration: "none",
+                  padding: 16,
+                  borderRadius: "var(--radius-md)",
+                  border: "1px solid var(--accent-strong)",
+                  background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
+                  color: "var(--text-primary)",
+                  fontWeight: 950,
+                  textAlign: "center",
+                  fontSize: 14,
+                  boxShadow: "var(--shadow-glow)",
+                }}
+              >
+                Start Practice →
+              </Link>
+            </>
           )}
         </div>
       </div>
