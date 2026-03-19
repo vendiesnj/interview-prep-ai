@@ -146,6 +146,7 @@ model Tenant {
   textPrimary    String?
   textSoft       String?
   attempts       Attempt[]          @relation("TenantAttempts")
+  assignments    Assignment[]
   jobProfiles    JobProfile[]
   memberships    TenantMembership[]
   users          User[]             @relation("UserHomeTenant")
@@ -189,6 +190,25 @@ model JobProfile {
   @@index([tenantId, userId, isArchived])
   @@index([userId, createdAt])
   @@index([tenantId, title])
+}
+
+model Assignment {
+  id                  String    @id @default(cuid())
+  tenantId            String
+  createdByUserId     String
+  title               String
+  description         String?
+  dueDate             DateTime?
+  questionCategories  String[]  @default([])
+  evaluationFramework String?
+  minAttempts         Int       @default(5)
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  tenant              Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, isActive])
+  @@index([tenantId, createdAt])
 }
 
 model StripeEvent {

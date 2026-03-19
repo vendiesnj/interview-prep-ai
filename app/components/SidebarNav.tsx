@@ -82,10 +82,7 @@ export default function SidebarNav() {
         position: "sticky",
         top: 0,
         borderRight: "1px solid var(--card-border-soft)",
-        background: `
-          radial-gradient(900px 400px at 10% -10%, var(--app-bg-accent-a), transparent 55%),
-          linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))
-        `,
+        background: "var(--card-bg)",
         padding: collapsed ? 12 : 16,
         boxSizing: "border-box",
         transition: "width 180ms ease, padding 180ms ease",
@@ -109,20 +106,9 @@ export default function SidebarNav() {
           <div>
             <div
               style={{
-                fontSize: 12,
-                color: "var(--text-muted)",
-                fontWeight: 900,
-                letterSpacing: 0.6,
-              }}
-            >
-              INTERVIEW COACH
-            </div>
-            <div
-              style={{
-                marginTop: 6,
-                fontSize: 16,
+                fontSize: 14,
                 color: "var(--text-primary)",
-                fontWeight: 950,
+                fontWeight: 700,
               }}
             >
               Performance Suite
@@ -149,8 +135,8 @@ export default function SidebarNav() {
             width: 36,
             height: 36,
             borderRadius: 12,
-            border: "1px solid var(--card-border)",
-            background: "var(--card-bg)",
+            border: "none",
+            background: "transparent",
             color: "var(--text-primary)",
             cursor: "pointer",
             fontSize: 18,
@@ -158,7 +144,6 @@ export default function SidebarNav() {
             lineHeight: "34px",
             textAlign: "center",
             flex: "0 0 auto",
-            boxShadow: "var(--shadow-card-soft)",
           }}
         >
           <span
@@ -178,7 +163,7 @@ export default function SidebarNav() {
       <nav
         style={{
           display: "grid",
-          gap: 8,
+          gap: 4,
           padding: collapsed ? 8 : 10,
           marginTop: 10,
         }}
@@ -202,10 +187,8 @@ export default function SidebarNav() {
                 gap: collapsed ? 6 : 10,
                 padding: collapsed ? "10px 6px" : "10px 12px",
                 borderRadius: 12,
-                border: active
-                  ? "1px solid var(--accent-strong)"
-                  : "1px solid var(--card-border)",
-                background: active ? "var(--accent-soft)" : "var(--card-bg)",
+                border: "none",
+                background: active ? "var(--accent-soft)" : "transparent",
                 color: active ? "var(--accent)" : "var(--text-primary)",
                 fontWeight: active ? 900 : 800,
                 fontSize: 13,
@@ -213,6 +196,7 @@ export default function SidebarNav() {
                 width: "100%",
                 boxSizing: "border-box",
                 boxShadow: active ? "var(--shadow-card-soft)" : "none",
+                transition: "background 120ms ease",
               }}
             >
               <div
@@ -269,8 +253,8 @@ export default function SidebarNav() {
             textDecoration: "none",
             padding: collapsed ? "10px 10px" : "10px 12px",
             borderRadius: 12,
-            border: "1px solid var(--card-border)",
-            background: "var(--card-bg)",
+            border: "none",
+            background: "transparent",
             color: "var(--text-muted)",
             fontWeight: 900,
             fontSize: 13,
@@ -283,8 +267,6 @@ export default function SidebarNav() {
         <div
           style={{
             borderRadius: 12,
-            border: "1px solid var(--card-border)",
-            background: "var(--card-bg)",
             overflow: "hidden",
           }}
         >

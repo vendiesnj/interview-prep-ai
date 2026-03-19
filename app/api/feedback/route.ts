@@ -1243,6 +1243,8 @@ export async function POST(req: Request) {
     const question = typeof body.question === "string" ? body.question : "";
     const transcript = typeof body.transcript === "string" ? body.transcript : "";
     const deliveryMetrics = body.deliveryMetrics ?? null;
+    const prevScore = typeof body.prevScore === "number" ? body.prevScore : null;
+    const prevAttemptCount = typeof body.prevAttemptCount === "number" ? body.prevAttemptCount : null;
 
     const evaluationFramework: EvaluationFramework =
       body.evaluationFramework === "technical_explanation"
@@ -1476,6 +1478,8 @@ export async function POST(req: Request) {
       deliveryMetrics,
       fillerStats,
       normalized,
+      prevScore,
+      prevAttemptCount,
     });
 
 

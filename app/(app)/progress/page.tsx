@@ -282,8 +282,8 @@ function buildGroupedStats<T extends string>(
 
 function trendColor(v: number | null) {
   if (v === null) return "var(--text-muted)";
-  if (v > 4) return "#22C55E";
-  if (v < -4) return "#F87171";
+  if (v > 4) return "var(--chart-positive)";
+  if (v < -4) return "var(--chart-negative)";
   return "var(--text-muted)";
 }
 
@@ -316,7 +316,7 @@ function BigMetricCard({
         <div
           style={{
             fontSize: 10,
-            fontWeight: 900,
+            fontWeight: 600,
             letterSpacing: 0.8,
             color: "var(--text-muted)",
             lineHeight: 1.2,
@@ -329,7 +329,7 @@ function BigMetricCard({
           style={{
             marginTop: 8,
             fontSize: "clamp(22px, 2vw, 26px)",
-            fontWeight: 900,
+            fontWeight: 700,
             color: "var(--text-primary)",
             letterSpacing: -0.3,
             lineHeight: 1.05,
@@ -367,7 +367,7 @@ function SectionTitle({
   return (
     <div>
       {eyebrow ? (
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>
+        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, color: "var(--text-muted)" }}>
           {eyebrow}
         </div>
       ) : null}
@@ -375,7 +375,7 @@ function SectionTitle({
         style={{
           marginTop: eyebrow ? 6 : 0,
           fontSize: 22,
-          fontWeight: 950,
+          fontWeight: 700,
           color: "var(--text-primary)",
           letterSpacing: -0.35,
         }}
@@ -421,7 +421,7 @@ function InsightListCard({
       <div
         style={{
           fontSize: 16,
-          fontWeight: 950,
+          fontWeight: 700,
           color: "var(--text-primary)",
           lineHeight: 1.2,
         }}
@@ -492,14 +492,14 @@ function ScoreBarRow({
         }}
       >
         <div>
-          <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{label}</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{label}</div>
           <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)" }}>
             {count} {count === 1 ? "attempt" : "attempts"}
             {subtitle ? ` · ${subtitle}` : ""}
           </div>
         </div>
 
-        <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
           {avgScore === null ? "—" : `${Math.round(avgScore)}/100`}
         </div>
       </div>
@@ -586,7 +586,7 @@ function MiniSparkline({
           marginBottom: 8,
         }}
       >
-        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-muted)" }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
           Recent score trend
         </div>
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
@@ -605,9 +605,9 @@ function MiniSparkline({
           fill="none"
           stroke={
             delta > 0
-              ? "#22C55E"
+              ? "var(--chart-positive)"
               : delta < 0
-              ? "#F87171"
+              ? "var(--chart-negative)"
               : "var(--accent)"
           }
           strokeWidth="3"
@@ -620,9 +620,9 @@ function MiniSparkline({
           r="4"
           fill={
             delta > 0
-              ? "#22C55E"
+              ? "var(--chart-positive)"
               : delta < 0
-              ? "#F87171"
+              ? "var(--chart-negative)"
               : "var(--accent)"
           }
         />
@@ -643,7 +643,7 @@ function InterviewNotesCard({
   return (
     <PremiumCard>
       <SectionTitle
-        eyebrow="PRE-INTERVIEW BRIEF"
+        eyebrow="Pre-Interview Brief"
         title="Interview Notes"
         subtitle="A concise reminder sheet you can review before your next interview."
       />
@@ -664,7 +664,7 @@ function InterviewNotesCard({
             background: "rgba(34,197,94,0.08)",
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-primary)" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-primary)" }}>
             Lean into this
           </div>
           <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
@@ -682,7 +682,7 @@ function InterviewNotesCard({
             background: "rgba(248,113,113,0.08)",
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-primary)" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-primary)" }}>
             Watchouts
           </div>
           <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
@@ -700,7 +700,7 @@ function InterviewNotesCard({
             background: "var(--card-bg)",
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-primary)" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-primary)" }}>
             Keep in mind
           </div>
           <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
@@ -730,10 +730,10 @@ function InsightsTabButton({
       style={{
         padding: "9px 14px",
         borderRadius: 10,
-        border: active ? "1px solid var(--accent)" : "1px solid var(--card-border-soft)",
-        background: active ? "rgba(99,102,241,0.12)" : "transparent",
+        border: "none",
+        background: active ? "var(--accent-soft)" : "transparent",
         color: active ? "var(--text-primary)" : "var(--text-muted)",
-        fontWeight: 800,
+        fontWeight: 600,
         fontSize: 13,
         cursor: "pointer",
         transition: "all 140ms ease",
@@ -1656,7 +1656,7 @@ export default function ProgressPage() {
           </PremiumCard>
         ) : history.length === 0 ? (
           <PremiumCard>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
               No insights yet
             </div>
             <div
@@ -1674,7 +1674,7 @@ export default function ProgressPage() {
           <>
             <PremiumCard>
               <SectionTitle
-                eyebrow="EXECUTIVE SUMMARY"
+                eyebrow="Executive Summary"
                 title="Your interview performance at a glance"
                 subtitle="A quick read on where you are strong, where you are leaking points, and how your recent attempts are moving."
               />
@@ -1684,7 +1684,6 @@ export default function ProgressPage() {
                   marginTop: 18,
                   padding: 16,
                   borderRadius: "var(--radius-lg)",
-                  border: "1px solid var(--card-border-soft)",
                   background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
                 }}
               >
@@ -1697,7 +1696,7 @@ export default function ProgressPage() {
                   }}
                 >
                   <BigMetricCard
-                    label="AVG OVERALL"
+                    label="Avg Overall"
                     value={overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall)}
                     subtext={
                       percentiles.overall !== null
@@ -1707,13 +1706,13 @@ export default function ProgressPage() {
                   />
 
                   <BigMetricCard
-                    label="TOTAL ATTEMPTS"
+                    label="Total Attempts"
                     value={overview.totalAttempts}
                     subtext="All saved sessions"
                   />
 
                   <BigMetricCard
-                    label="TOP STRENGTH"
+                    label="Top Strength"
                     value={strongestDimension?.label ?? "—"}
                     subtext={
                       strongestDimension?.value !== null && strongestDimension?.value !== undefined
@@ -1723,7 +1722,7 @@ export default function ProgressPage() {
                   />
 
                   <BigMetricCard
-                    label="BIGGEST GAP"
+                    label="Biggest Gap"
                     value={biggestGap?.label ?? "—"}
                     subtext={
                       biggestGap?.value !== null && biggestGap?.value !== undefined
@@ -1733,13 +1732,13 @@ export default function ProgressPage() {
                   />
 
                   <BigMetricCard
-                    label="TOP CATEGORY"
+                    label="Top Category"
                     value={overview.topCategory ? titleCaseLabel(overview.topCategory) : "—"}
                     subtext="Most-practiced question type"
                   />
 
                   <BigMetricCard
-                    label="RECENT TREND"
+                    label="Recent Trend"
                     value={
                       <span style={{ color: trendColor(trendSummary.overallDelta) }}>
                         {formatDelta(trendSummary.overallDelta)}
@@ -1756,9 +1755,7 @@ export default function ProgressPage() {
                 display: "flex",
                 gap: 8,
                 marginTop: -2,
-                marginBottom: 2,
-                borderBottom: "1px solid var(--card-border-soft)",
-                paddingBottom: 10,
+                marginBottom: 10,
                 flexWrap: "wrap",
               }}
             >
@@ -1796,7 +1793,7 @@ export default function ProgressPage() {
                 >
                   <PremiumCard>
                     <SectionTitle
-                      eyebrow="SCORE STORY"
+                      eyebrow="Score Story"
                       title="What’s helping your score"
                       subtitle="The strongest patterns showing up across your recent attempts."
                     />
@@ -1806,14 +1803,13 @@ export default function ProgressPage() {
                         style={{
                           padding: 16,
                           borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--card-border-soft)",
                           background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
                         }}
                       >
-                        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
                           Strongest category
                         </div>
-                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>
                           {strongestCategory?.label
                             ? `${strongestCategory.label} is currently your best-performing question type (${displayOverall100(strongestCategory.avgScore)} average).`
                             : "Your strongest category will appear once more attempt variety is saved."}
@@ -1824,14 +1820,13 @@ export default function ProgressPage() {
                         style={{
                           padding: 16,
                           borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--card-border-soft)",
                           background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
                         }}
                       >
-                        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
                           Strongest dimension
                         </div>
-                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>
                           {strongestDimension?.label && strongestDimension?.value !== null
                             ? `${strongestDimension.label} is your strongest scoring dimension (${displayTenPointAs100(strongestDimension.value)} average).`
                             : "Your strongest dimension will appear as more scored attempts are saved."}
@@ -1842,14 +1837,13 @@ export default function ProgressPage() {
                         style={{
                           padding: 16,
                           borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--card-border-soft)",
                           background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
                         }}
                       >
-                        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
                           Interview presence
                         </div>
-                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>
                           {overview.avgPace !== null && overview.avgPace >= 115 && overview.avgPace <= 145
                             ? `Your pacing is in a strong interview range (${Math.round(overview.avgPace)} WPM), which helps answers sound controlled.`
                             : overview.avgFillers !== null && overview.avgFillers <= 1.5
@@ -1862,7 +1856,7 @@ export default function ProgressPage() {
 
                   <PremiumCard>
                     <SectionTitle
-                      eyebrow="NEXT LEVER"
+                      eyebrow="Next Lever"
                       title="What to fix next"
                       subtitle="The one adjustment most likely to move your score."
                     />
@@ -1872,17 +1866,16 @@ export default function ProgressPage() {
                         marginTop: 16,
                         padding: 18,
                         borderRadius: "var(--radius-lg)",
-                        border: "1px solid var(--card-border-soft)",
                         background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
                         display: "grid",
                         gap: 14,
                       }}
                     >
                       <div>
-                        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
                           Priority
                         </div>
-                        <div style={{ marginTop: 8, fontSize: 20, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.35 }}>
+                        <div style={{ marginTop: 8, fontSize: 20, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.35 }}>
                           {nextFocusCard.title}
                         </div>
                       </div>
@@ -1905,10 +1898,10 @@ export default function ProgressPage() {
                           background: "rgba(99,102,241,0.08)",
                         }}
                       >
-                        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)" }}>
-                          NEXT ATTEMPT
+                        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.6, color: "var(--text-muted)" }}>
+                          Next Attempt
                         </div>
-                        <div style={{ marginTop: 8, fontSize: 14, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.65 }}>
+                        <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.65 }}>
                           {nextFocusCard.action}
                         </div>
                       </div>
@@ -1918,7 +1911,7 @@ export default function ProgressPage() {
 
                 <PremiumCard>
                   <SectionTitle
-                    eyebrow="MOMENTUM"
+                    eyebrow="Momentum"
                     title="Recent momentum"
                     subtitle="How your recent attempts are moving, and what you practice most."
                   />
@@ -1940,7 +1933,6 @@ export default function ProgressPage() {
                       style={{
                         padding: 16,
                         borderRadius: "var(--radius-md)",
-                        border: "1px solid var(--card-border-soft)",
                         background: "var(--card-bg)",
                       }}
                     >
@@ -1969,7 +1961,7 @@ export default function ProgressPage() {
               <>
                 <PremiumCard>
                   <SectionTitle
-                    eyebrow="ROLE APTITUDE"
+                    eyebrow="Role Aptitude"
                     title="How your strengths fit your target roles"
                     subtitle="This compares your current interview patterns to the kinds of strengths each role tends to reward."
                   />
@@ -2002,7 +1994,7 @@ export default function ProgressPage() {
                             }}
                           >
                             <div>
-                              <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+                              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
                                 {row.label}
                               </div>
                               <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)" }}>
@@ -2014,10 +2006,10 @@ export default function ProgressPage() {
                               style={{
                                 padding: "6px 10px",
                                 borderRadius: 999,
-                                border: "1px solid var(--card-border)",
+                                border: "none",
                                 background: "var(--card-bg-strong)",
                                 fontSize: 12,
-                                fontWeight: 900,
+                                fontWeight: 600,
                                 color: "var(--text-primary)",
                                 whiteSpace: "nowrap",
                               }}
@@ -2045,10 +2037,10 @@ export default function ProgressPage() {
                                 background: "var(--card-bg-strong)",
                               }}
                             >
-                              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                                OVERALL
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                                Overall
                               </div>
-                              <div style={{ marginTop: 6, fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+                              <div style={{ marginTop: 6, fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
                                 {row.avgScore === null ? "—" : displayOverall100(row.avgScore)}
                               </div>
                             </div>
@@ -2061,10 +2053,10 @@ export default function ProgressPage() {
                                 background: "var(--card-bg-strong)",
                               }}
                             >
-                              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                                BEST MATCH
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                                Best Match
                               </div>
-                              <div style={{ marginTop: 6, fontSize: 14, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                              <div style={{ marginTop: 6, fontSize: 14, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>
                                 {row.matched[0] ?? "Still emerging"}
                               </div>
                             </div>
@@ -2077,10 +2069,10 @@ export default function ProgressPage() {
                                 background: "var(--card-bg-strong)",
                               }}
                             >
-                              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                                MAIN GAP
+                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
+                                Main Gap
                               </div>
-                              <div style={{ marginTop: 6, fontSize: 14, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                              <div style={{ marginTop: 6, fontSize: 14, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>
                                 {row.gaps[0] ?? "No major gap flagged"}
                               </div>
                             </div>
@@ -2093,7 +2085,7 @@ export default function ProgressPage() {
 
                 <PremiumCard>
                   <SectionTitle
-                    eyebrow="QUESTION TYPES"
+                    eyebrow="Question Types"
                     title="Performance by question category"
                     subtitle="See where you score best across behavioral, technical, role-specific, and custom questions."
                   />
@@ -2145,7 +2137,7 @@ export default function ProgressPage() {
 
                 <PremiumCard>
                   <SectionTitle
-                    eyebrow="FRAMEWORKS"
+                    eyebrow="Frameworks"
                     title="Performance by evaluation framework"
                     subtitle="Understand whether you perform best in behavioral stories, technical explanations, or experience-depth questions."
                   />
@@ -2197,7 +2189,7 @@ export default function ProgressPage() {
 
                 <PremiumCard>
                   <SectionTitle
-                    eyebrow="TARGET ROLES"
+                    eyebrow="Target Roles"
                     title="Performance by job profile"
                     subtitle="Compare how you interview across the roles you are actively targeting."
                   />
@@ -2248,7 +2240,7 @@ export default function ProgressPage() {
             {activeTab === "delivery" && (
               <PremiumCard>
                 <SectionTitle
-                  eyebrow="DELIVERY"
+                  eyebrow="Delivery"
                   title="Speaking delivery intelligence"
                   subtitle="This turns your acoustic signals into practical coaching themes you can actually use."
                 />
@@ -2262,25 +2254,25 @@ export default function ProgressPage() {
                   }}
                 >
                   <BigMetricCard
-                    label="PACE"
+                    label="Pace"
                     value={overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} WPM`}
                     subtext={overview.avgPace === null ? "Average spoken pace" : `${paceLabel(overview.avgPace)} pace`}
                   />
 
                   <BigMetricCard
-                    label="FILLERS"
+                    label="Fillers"
                     value={overview.avgFillers === null ? "—" : `${overview.avgFillers}/100`}
                     subtext="Average filler rate"
                   />
 
                   <BigMetricCard
-                    label="MONOTONE RISK"
+                    label="Monotone Risk"
                     value={overview.avgMonotone === null ? "—" : `${overview.avgMonotone.toFixed(1)}/10`}
                     subtext="Lower is generally better"
                   />
 
                   <BigMetricCard
-                    label="CLOSING IMPACT"
+                    label="Closing Impact"
                     value={overview.avgStarResult === null ? "—" : displayTenPointAs100(overview.avgStarResult)}
                     subtext="Average STAR result quality"
                   />

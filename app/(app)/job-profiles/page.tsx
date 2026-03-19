@@ -10,7 +10,7 @@ import {
   type JobProfile,
 } from "@/app/lib/jobProfiles";
 
-function formatDate(ts?: number) {
+function formatDate(ts?: number | string) {
   if (!ts) return "—";
   try {
     return new Date(ts).toLocaleDateString([], {
@@ -47,7 +47,7 @@ useEffect(() => {
 }, []);
 
   const sortedProfiles = useMemo(() => {
-    return [...profiles].sort((a, b) => b.updatedAt - a.updatedAt);
+    return [...profiles].sort((a, b) => (b.updatedAt ? new Date(b.updatedAt).getTime() : 0) - (a.updatedAt ? new Date(a.updatedAt).getTime() : 0));
   }, [profiles]);
 
   function resetForm() {
@@ -168,7 +168,7 @@ async function handleDelete(id: string) {
               <div
                 style={{
                   fontSize: 18,
-                  fontWeight: 950,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -193,10 +193,10 @@ async function handleDelete(id: string) {
                 style={{
                   padding: "10px 12px",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--card-border)",
-                  background: "var(--card-bg)",
-                  color: "var(--text-primary)",
-                  fontWeight: 900,
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--text-muted)",
+                  fontWeight: 600,
                   cursor: "pointer",
                   fontSize: 13,
                 }}
@@ -211,7 +211,7 @@ async function handleDelete(id: string) {
               <label
                 style={{
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "var(--text-muted)",
                   letterSpacing: 0.2,
                 }}
@@ -224,7 +224,7 @@ async function handleDelete(id: string) {
                 placeholder="e.g., Supply Chain Analyst"
                 style={{
                   width: "100%",
-                  padding: "12px 14px",
+                  padding: "8px 11px",
                   borderRadius: "var(--radius-md)",
                   border: "1px solid var(--input-border)",
                   background: "var(--input-bg)",
@@ -260,7 +260,7 @@ async function handleDelete(id: string) {
                   placeholder="e.g., Apple"
                   style={{
                     width: "100%",
-                    padding: "12px 14px",
+                    padding: "8px 11px",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid var(--input-border)",
                     background: "var(--input-bg)",
@@ -289,7 +289,7 @@ async function handleDelete(id: string) {
                   placeholder="e.g., Operations, PM, Finance"
                   style={{
                     width: "100%",
-                    padding: "12px 14px",
+                    padding: "8px 11px",
                     borderRadius: "var(--radius-md)",
                     border: "1px solid var(--input-border)",
                     background: "var(--input-bg)",
@@ -306,7 +306,7 @@ async function handleDelete(id: string) {
               <label
                 style={{
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 600,
                   color: "var(--text-muted)",
                   letterSpacing: 0.2,
                 }}
@@ -320,7 +320,7 @@ async function handleDelete(id: string) {
                 rows={12}
                 style={{
                   width: "100%",
-                  padding: "12px 14px",
+                  padding: "8px 11px",
                   borderRadius: "var(--radius-lg)",
                   border: "1px solid var(--input-border)",
                   background: "var(--input-bg)",
@@ -347,7 +347,7 @@ async function handleDelete(id: string) {
                 onClick={handleSave}
                 disabled={!title.trim() || !jobDescription.trim()}
                 style={{
-                  padding: "12px 14px",
+                  padding: "10px 14px",
                   borderRadius: "var(--radius-md)",
                   border: "1px solid var(--accent-strong)",
                   background:
@@ -358,7 +358,7 @@ async function handleDelete(id: string) {
                     !title.trim() || !jobDescription.trim()
                       ? "var(--text-muted)"
                       : "var(--accent)",
-                  fontWeight: 900,
+                  fontWeight: 700,
                   cursor:
                     !title.trim() || !jobDescription.trim()
                       ? "not-allowed"
@@ -395,7 +395,7 @@ async function handleDelete(id: string) {
                 <div
                   style={{
                     fontSize: 18,
-                    fontWeight: 950,
+                    fontWeight: 700,
                     color: "var(--text-primary)",
                   }}
                 >
@@ -437,19 +437,19 @@ async function handleDelete(id: string) {
                   <div
                     style={{
                       fontSize: 12,
-                      fontWeight: 900,
+                      fontWeight: 600,
                       letterSpacing: 0.3,
                       color: "var(--accent)",
                     }}
                   >
-                    ACTIVE PROFILE
+                    Active Profile
                   </div>
                   <div
                     style={{
                       marginTop: 4,
                       fontSize: 14,
                       color: "var(--text-primary)",
-                      fontWeight: 900,
+                      fontWeight: 700,
                     }}
                   >
                     {sortedProfiles.find((p) => p.id === activeId)?.title ?? "Selected"}
@@ -462,10 +462,10 @@ async function handleDelete(id: string) {
                   style={{
                     padding: "10px 12px",
                     borderRadius: "var(--radius-md)",
-                    border: "1px solid var(--card-border)",
-                    background: "var(--card-bg)",
-                    color: "var(--text-primary)",
-                    fontWeight: 900,
+                    border: "none",
+                    background: "transparent",
+                    color: "var(--text-muted)",
+                    fontWeight: 600,
                     cursor: "pointer",
                     fontSize: 13,
                   }}
@@ -481,7 +481,6 @@ async function handleDelete(id: string) {
                   style={{
                     padding: 14,
                     borderRadius: "var(--radius-lg)",
-                    border: "1px solid var(--card-border)",
                     background: "var(--card-bg)",
                     color: "var(--text-muted)",
                     lineHeight: 1.6,
@@ -529,7 +528,7 @@ async function handleDelete(id: string) {
                             <div
                               style={{
                                 fontSize: 16,
-                                fontWeight: 950,
+                                fontWeight: 700,
                                 color: isActive ? "var(--accent)" : "var(--text-primary)",
                               }}
                             >
@@ -541,14 +540,15 @@ async function handleDelete(id: string) {
                                 style={{
                                   padding: "3px 8px",
                                   borderRadius: 999,
-                                  border: "1px solid var(--accent-strong)",
+                                  border: "none",
+                                  background: "var(--accent-soft)",
                                   color: "var(--accent)",
                                   fontSize: 11,
-                                  fontWeight: 900,
+                                  fontWeight: 600,
                                   letterSpacing: 0.3,
                                 }}
                               >
-                                ACTIVE
+                                Active
                               </span>
                             ) : null}
                           </div>
@@ -569,7 +569,8 @@ async function handleDelete(id: string) {
                                 style={{
                                   padding: "3px 8px",
                                   borderRadius: 999,
-                                  border: "1px solid var(--card-border)",
+                                  background: "var(--card-bg-strong)",
+                                  color: "var(--text-muted)",
                                 }}
                               >
                                 {profile.company}
@@ -581,7 +582,8 @@ async function handleDelete(id: string) {
                                 style={{
                                   padding: "3px 8px",
                                   borderRadius: 999,
-                                  border: "1px solid var(--card-border)",
+                                  background: "var(--card-bg-strong)",
+                                  color: "var(--text-muted)",
                                 }}
                               >
                                 {profile.roleType}
@@ -610,7 +612,7 @@ async function handleDelete(id: string) {
                                 border: "1px solid var(--accent-strong)",
                                 background: "var(--accent-soft)",
                                 color: "var(--accent)",
-                                fontWeight: 900,
+                                fontWeight: 700,
                                 cursor: "pointer",
                                 fontSize: 12,
                                 whiteSpace: "nowrap",
@@ -626,10 +628,10 @@ async function handleDelete(id: string) {
                             style={{
                               padding: "8px 10px",
                               borderRadius: "var(--radius-md)",
-                              border: "1px solid var(--card-border)",
-                              background: "var(--card-bg-strong)",
-                              color: "var(--text-primary)",
-                              fontWeight: 900,
+                              border: "none",
+                              background: "transparent",
+                              color: "var(--text-muted)",
+                              fontWeight: 600,
                               cursor: "pointer",
                               fontSize: 12,
                               whiteSpace: "nowrap",
@@ -644,13 +646,14 @@ async function handleDelete(id: string) {
                             style={{
                               padding: "8px 10px",
                               borderRadius: "var(--radius-md)",
-                              border: "1px solid color-mix(in srgb, var(--danger) 35%, transparent)",
-                              background: "var(--danger-soft)",
+                              border: "none",
+                              background: "transparent",
                               color: "var(--danger)",
-                              fontWeight: 900,
+                              fontWeight: 600,
                               cursor: "pointer",
                               fontSize: 12,
                               whiteSpace: "nowrap",
+                              textDecoration: "underline",
                             }}
                           >
                             Delete

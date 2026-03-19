@@ -30,6 +30,11 @@ export type AppTheme = {
 
     success: string;
     successSoft: string;
+
+    chartPositive: string;
+    chartNegative: string;
+    chartNeutral: string;
+    chartCritical: string;
   };
 
   radii: {
@@ -80,6 +85,11 @@ export const defaultTheme: AppTheme = {
 
     success: "#86EFAC",
     successSoft: "rgba(134,239,172,0.12)",
+
+    chartPositive: "#22C55E",
+    chartNegative: "#F87171",
+    chartNeutral: "#F59E0B",
+    chartCritical: "#EF4444",
   },
 
   radii: {
@@ -113,6 +123,11 @@ export const rutgersTheme: AppTheme = {
 
     accent2: "#FF9F9F",
     accent2Soft: "rgba(255,107,107,0.18)",
+
+    chartPositive: "#4ADE80",
+    chartNegative: "#FCA5A5",
+    chartNeutral: "#FCD34D",
+    chartCritical: "#F87171",
   },
 };
 
@@ -131,6 +146,11 @@ export const michiganTheme: AppTheme = {
 
     accent2: "#2F5DAA",
     accent2Soft: "rgba(47,93,170,0.22)",
+
+    chartPositive: "#34D399",
+    chartNegative: "#FCA5A5",
+    chartNeutral: "#FCD34D",
+    chartCritical: "#F87171",
   },
 };
 
@@ -149,6 +169,11 @@ export const pennStateTheme: AppTheme = {
 
     accent2: "#041E42",
     accent2Soft: "rgba(4,30,66,0.24)",
+
+    chartPositive: "#34D399",
+    chartNegative: "#FCA5A5",
+    chartNeutral: "#FCD34D",
+    chartCritical: "#F87171",
   },
 };
 
@@ -186,6 +211,11 @@ export const virginiaTechTheme: AppTheme = {
 
     success: "#166534",
     successSoft: "rgba(22,101,52,0.09)",
+
+    chartPositive: "#16A34A",
+    chartNegative: "#DC2626",
+    chartNeutral: "#D97706",
+    chartCritical: "#B91C1C",
   },
 
   radii: {
@@ -200,8 +230,118 @@ export const virginiaTechTheme: AppTheme = {
   },
 };
 
+export const pitchTheme: AppTheme = {
+  ...defaultTheme,
+  name: "pitch",
+  colors: {
+    ...defaultTheme.colors,
+    pageBg: "#0A1022",
+    pageBgAccentA: "rgba(99,102,241,0.14)",
+    pageBgAccentB: "rgba(34,211,238,0.10)",
+
+    text: "#F3F6FB",
+    textMuted: "#A7B0C0",
+    textSoft: "#7F8AA0",
+
+    cardBg: "rgba(255,255,255,0.04)",
+    cardBgStrong: "rgba(255,255,255,0.06)",
+    cardBorder: "rgba(255,255,255,0.10)",
+    cardBorderSoft: "rgba(255,255,255,0.07)",
+
+    inputBg: "rgba(15,23,42,0.72)",
+    inputBorder: "rgba(255,255,255,0.10)",
+
+    accent: "#6EE7F9",
+    accentSoft: "rgba(110,231,249,0.12)",
+    accentStrong: "rgba(110,231,249,0.30)",
+
+    accent2: "#8B5CF6",
+    accent2Soft: "rgba(139,92,246,0.18)",
+
+    danger: "#FCA5A5",
+    dangerSoft: "rgba(252,165,165,0.10)",
+
+    success: "#86EFAC",
+    successSoft: "rgba(134,239,172,0.12)",
+
+    chartPositive: "#22C55E",
+    chartNegative: "#F87171",
+    chartNeutral: "#F59E0B",
+    chartCritical: "#EF4444",
+  },
+  shadows: {
+    card: "0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)",
+    cardSoft: "0 10px 30px rgba(0,0,0,0.18)",
+    glow: "0 14px 34px rgba(110,231,249,0.14)",
+    none: "none",
+  },
+};
+
+export const lightTheme: AppTheme = {
+  name: "ipc-light",
+
+  colors: {
+    // Pure white page with the faintest indigo + sky wash at the edges
+    pageBg: "#FFFFFF",
+    pageBgAccentA: "rgba(99,102,241,0.055)",
+    pageBgAccentB: "rgba(14,165,233,0.045)",
+
+    // Slate typography — rich contrast without harsh pure black
+    text: "#0F172A",
+    textMuted: "#64748B",
+    textSoft: "#94A3B8",
+
+    // Cards: white on white, differentiated by a cool-gray tint
+    cardBg: "#FFFFFF",
+    cardBgStrong: "#F8FAFC",
+    cardBorder: "rgba(15,23,42,0.09)",
+    cardBorderSoft: "rgba(15,23,42,0.055)",
+
+    inputBg: "#F8FAFC",
+    inputBorder: "rgba(15,23,42,0.13)",
+
+    // Indigo as the primary accent — clean, modern, not aggressive
+    accent: "#6366F1",
+    accentSoft: "rgba(99,102,241,0.08)",
+    accentStrong: "rgba(99,102,241,0.20)",
+
+    // Sky blue as the secondary accent — cool, fresh contrast to indigo
+    accent2: "#0EA5E9",
+    accent2Soft: "rgba(14,165,233,0.09)",
+
+    danger: "#EF4444",
+    dangerSoft: "rgba(239,68,68,0.08)",
+
+    success: "#10B981",
+    successSoft: "rgba(16,185,129,0.09)",
+
+    chartPositive: "#10B981",
+    chartNegative: "#EF4444",
+    chartNeutral: "#F59E0B",
+    chartCritical: "#DC2626",
+  },
+
+  radii: {
+    xs: 10,
+    sm: 12,
+    md: 16,
+    lg: 18,
+    xl: 20,
+  },
+
+  shadows: {
+    // Soft layered shadow: hairline + indigo-tinted depth
+    card: "0 1px 3px rgba(15,23,42,0.07), 0 10px 28px rgba(99,102,241,0.07), inset 0 1px 0 rgba(255,255,255,0.9)",
+    cardSoft: "0 1px 2px rgba(15,23,42,0.05), 0 4px 12px rgba(15,23,42,0.04)",
+    glow: "0 8px 24px rgba(99,102,241,0.22)",
+    none: "none",
+  },
+};
+
 export const themePresets = {
   default: defaultTheme,
+  light: lightTheme,
+  pitch: pitchTheme,
   rutgers: rutgersTheme,
   michigan: michiganTheme,
   pennState: pennStateTheme,
@@ -210,5 +350,12 @@ export const themePresets = {
 
 export type ThemePresetName = keyof typeof themePresets;
 
-export const activeThemeName: ThemePresetName = "virginiaTech";
+
+
+export function getThemeByName(name?: string | null): AppTheme {
+  if (!name) return lightTheme;
+  return themePresets[name as ThemePresetName] ?? lightTheme;
+}
+
+export const activeThemeName: ThemePresetName = "light";
 export const activeTheme = themePresets[activeThemeName];

@@ -349,7 +349,7 @@ useEffect(() => {
               <div
                 style={{
                   fontSize: 18,
-                  fontWeight: 950,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -372,151 +372,17 @@ useEffect(() => {
             </div>
           </div>
 
-          <div
-            style={{
-              marginTop: 16,
-              padding: 14,
-              borderRadius: "var(--radius-lg)",
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg)",
-              display: "grid",
-              gap: 12,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                flexWrap: "wrap",
-                alignItems: "center",
-              }}
-            >
-              <button
-                type="button"
-                onClick={importFromLastGenerated}
-                disabled={!homePreview.hasGenerated}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--accent-strong)",
-                  background: homePreview.hasGenerated
-                    ? "var(--accent-soft)"
-                    : "var(--card-bg-strong)",
-                  color: homePreview.hasGenerated
-                    ? "var(--accent)"
-                    : "var(--text-muted)",
-                  fontWeight: 900,
-                  cursor: homePreview.hasGenerated ? "pointer" : "not-allowed",
-                  fontSize: 13,
-                }}
-              >
-                Import last generated ({homePreview.total || 0})
-              </button>
-
-                <button
-    type="button"
-    onClick={backfillMissingRoleTagsFromActiveProfile}
-    disabled={!activeJobProfile || items.length === 0}
-    style={{
-      padding: "10px 12px",
-      borderRadius: "var(--radius-md)",
-      border: "1px solid var(--card-border)",
-      background:
-        activeJobProfile && items.length > 0
-          ? "var(--card-bg)"
-          : "var(--card-bg-strong)",
-      color:
-        activeJobProfile && items.length > 0
-          ? "var(--text-primary)"
-          : "var(--text-muted)",
-      fontWeight: 900,
-      cursor:
-        activeJobProfile && items.length > 0
-          ? "pointer"
-          : "not-allowed",
-      fontSize: 13,
-    }}
-  >
-    Backfill missing role tags
-  </button>
-
-              <div
-  style={{
-    marginLeft: "auto",
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-    flexWrap: "wrap",
-  }}
->
-  {activeJobProfile ? (
-    <div
-      style={{
-        fontSize: 12,
-        color: "var(--text-muted)",
-        display: "flex",
-        gap: 6,
-        alignItems: "center",
-      }}
-    >
-      <span>Tagged with:</span>
-
-      <span
-        style={{
-          padding: "3px 8px",
-          borderRadius: 999,
-          border: "1px solid var(--card-border)",
-          background: "var(--card-bg-strong)",
-          fontWeight: 600,
-          color: "var(--text-primary)",
-        }}
-      >
-        {activeJobProfile.title}
-        {activeJobProfile.company ? ` · ${activeJobProfile.company}` : ""}
-      </span>
-    </div>
-  ) : (
-    <>
-      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-        Role tag
-      </span>
-
-      <input
-        value={roleTag}
-        onChange={(e) => setRoleTag(e.target.value)}
-        placeholder="e.g., Supply Chain Planner"
-        style={{
-          width: 240,
-          padding: "10px 12px",
-          borderRadius: "var(--radius-md)",
-          border: "1px solid var(--card-border)",
-          background: "var(--card-bg-strong)",
-          color: "var(--text-primary)",
-          outline: "none",
-          fontSize: 13,
-          boxSizing: "border-box",
-        }}
-      />
-    </>
-  )}
-</div>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "minmax(0, 1fr) auto",
-                gap: 10,
-              }}
-            >
+          <div style={{ marginTop: 16, display: "grid", gap: 10 }}>
+            {/* Primary action: add custom question */}
+            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 8 }}>
               <input
                 value={newQ}
                 onChange={(e) => setNewQ(e.target.value)}
                 placeholder="Add a custom question…"
                 style={{
-                  padding: "10px 12px",
+                  padding: "8px 11px",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--card-border)",
+                  border: "1px solid var(--card-border-soft)",
                   background: "var(--card-bg-strong)",
                   color: "var(--text-primary)",
                   outline: "none",
@@ -528,12 +394,12 @@ useEffect(() => {
                 type="button"
                 onClick={addManual}
                 style={{
-                  padding: "10px 14px",
+                  padding: "9px 14px",
                   borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--card-border)",
-                  background: "var(--card-bg)",
-                  color: "var(--text-primary)",
-                  fontWeight: 900,
+                  border: "none",
+                  background: "var(--accent-soft)",
+                  color: "var(--accent)",
+                  fontWeight: 600,
                   cursor: "pointer",
                   fontSize: 13,
                   whiteSpace: "nowrap",
@@ -541,6 +407,77 @@ useEffect(() => {
               >
                 Add question
               </button>
+            </div>
+
+            {/* Secondary actions row */}
+            <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={importFromLastGenerated}
+                disabled={!homePreview.hasGenerated}
+                style={{
+                  padding: 0,
+                  border: "none",
+                  background: "none",
+                  color: homePreview.hasGenerated ? "var(--accent)" : "var(--text-soft)",
+                  fontWeight: 700,
+                  cursor: homePreview.hasGenerated ? "pointer" : "not-allowed",
+                  fontSize: 12,
+                }}
+              >
+                ↓ Import last generated ({homePreview.total || 0})
+              </button>
+
+              <span style={{ color: "var(--card-border)", fontSize: 12 }}>·</span>
+
+              <button
+                type="button"
+                onClick={backfillMissingRoleTagsFromActiveProfile}
+                disabled={!activeJobProfile || items.length === 0}
+                style={{
+                  padding: 0,
+                  border: "none",
+                  background: "none",
+                  color: activeJobProfile && items.length > 0 ? "var(--text-muted)" : "var(--text-soft)",
+                  fontWeight: 700,
+                  cursor: activeJobProfile && items.length > 0 ? "pointer" : "not-allowed",
+                  fontSize: 12,
+                }}
+              >
+                Backfill role tags
+              </button>
+
+              {activeJobProfile && (
+                <>
+                  <span style={{ color: "var(--card-border)", fontSize: 12 }}>·</span>
+                  <span style={{ fontSize: 12, color: "var(--text-soft)" }}>
+                    Tagged:{" "}
+                    <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>
+                      {activeJobProfile.title}{activeJobProfile.company ? ` · ${activeJobProfile.company}` : ""}
+                    </span>
+                  </span>
+                </>
+              )}
+
+              {!activeJobProfile && (
+                <input
+                  value={roleTag}
+                  onChange={(e) => setRoleTag(e.target.value)}
+                  placeholder="Role tag (e.g. Supply Chain Planner)"
+                  style={{
+                    flex: 1,
+                    minWidth: 180,
+                    padding: "6px 10px",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--card-border-soft)",
+                    background: "var(--card-bg-strong)",
+                    color: "var(--text-primary)",
+                    outline: "none",
+                    fontSize: 12,
+                    boxSizing: "border-box",
+                  }}
+                />
+              )}
             </div>
           </div>
         </PremiumCard>
@@ -560,9 +497,9 @@ useEffect(() => {
     placeholder="Search questions, tags…"
     style={{
       width: 320,
-      padding: "10px 12px",
+      padding: "8px 11px",
       borderRadius: "var(--radius-md)",
-      border: "1px solid var(--card-border)",
+      border: "1px solid var(--card-border-soft)",
       background: "var(--card-bg-strong)",
       color: "var(--text-primary)",
       outline: "none",
@@ -575,9 +512,9 @@ useEffect(() => {
     value={bucketFilter}
     onChange={(e) => setBucketFilter(e.target.value as any)}
     style={{
-      padding: "10px 12px",
+      padding: "8px 11px",
       borderRadius: "var(--radius-md)",
-      border: "1px solid var(--card-border)",
+      border: "1px solid var(--card-border-soft)",
       background: "var(--card-bg-strong)",
       color: "var(--text-primary)",
       outline: "none",
@@ -596,9 +533,9 @@ useEffect(() => {
     value={jobProfileFilter}
     onChange={(e) => setJobProfileFilter(e.target.value)}
     style={{
-      padding: "10px 12px",
+      padding: "8px 11px",
       borderRadius: "var(--radius-md)",
-      border: "1px solid var(--card-border)",
+      border: "1px solid var(--card-border-soft)",
       background: "var(--card-bg-strong)",
       color: "var(--text-primary)",
       outline: "none",
@@ -644,14 +581,15 @@ useEffect(() => {
       onClick={exportJSON}
       disabled={items.length === 0}
       style={{
-        padding: "10px 12px",
+        padding: "8px 11px",
         borderRadius: "var(--radius-md)",
-        border: "1px solid var(--card-border)",
-        background: items.length ? "var(--card-bg)" : "var(--card-bg-strong)",
-        color: items.length ? "var(--text-primary)" : "var(--text-muted)",
-        fontWeight: 900,
+        border: "none",
+        background: "transparent",
+        color: "var(--text-muted)",
+        fontWeight: 500,
         cursor: items.length ? "pointer" : "not-allowed",
         fontSize: 13,
+        /* hover: color var(--text-primary) */
       }}
     >
       Export JSON
@@ -662,12 +600,12 @@ useEffect(() => {
       onClick={clearAll}
       disabled={items.length === 0}
       style={{
-        padding: "10px 12px",
+        padding: "8px 11px",
         borderRadius: "var(--radius-md)",
-        border: "1px solid color-mix(in srgb, var(--danger) 35%, transparent)",
-        background: items.length ? "var(--danger-soft)" : "var(--card-bg-strong)",
+        border: "none",
+        background: items.length ? "var(--danger-soft)" : "transparent",
         color: items.length ? "var(--danger)" : "var(--text-muted)",
-        fontWeight: 900,
+        fontWeight: 500,
         cursor: items.length ? "pointer" : "not-allowed",
         fontSize: 13,
       }}
@@ -683,7 +621,7 @@ useEffect(() => {
                 style={{
                   padding: 14,
                   borderRadius: "var(--radius-lg)",
-                  border: "1px solid var(--card-border)",
+                  border: "1px solid var(--card-border-soft)",
                   background: "var(--card-bg)",
                   color: "var(--text-muted)",
                   lineHeight: 1.6,
@@ -700,7 +638,7 @@ useEffect(() => {
                   style={{
                     padding: 14,
                     borderRadius: "var(--radius-lg)",
-                    border: "1px solid var(--card-border)",
+                    border: "1px solid var(--card-border-soft)",
                     background: "var(--card-bg)",
                     display: "grid",
                     gap: 10,
@@ -719,7 +657,7 @@ useEffect(() => {
                       <div
                         style={{
                           fontSize: 14,
-                          fontWeight: 900,
+                          fontWeight: 600,
                           lineHeight: 1.55,
                           color: "var(--text-primary)",
                         }}
@@ -742,7 +680,7 @@ useEffect(() => {
                           style={{
                             padding: "3px 8px",
                             borderRadius: 999,
-                            border: "1px solid var(--card-border)",
+                            border: "none",
                             background: "var(--card-bg-strong)",
                           }}
                         >
@@ -754,7 +692,7 @@ useEffect(() => {
     style={{
       padding: "3px 8px",
       borderRadius: 999,
-      border: "1px solid var(--card-border)",
+      border: "none",
       background: "var(--card-bg-strong)",
     }}
   >
@@ -775,67 +713,62 @@ useEffect(() => {
                     <div
                       style={{
                         display: "flex",
-                        gap: 8,
+                        gap: 6,
                         alignItems: "center",
-                        flexWrap: "wrap",
                       }}
                     >
                       <button
                         type="button"
                         onClick={() => practiceQuestion(x)}
                         style={{
-                          padding: "8px 10px",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--accent-strong)",
+                          padding: "6px 12px",
+                          borderRadius: 999,
+                          border: "none",
                           background: "var(--accent-soft)",
                           color: "var(--accent)",
-                          fontWeight: 900,
+                          fontWeight: 600,
                           cursor: "pointer",
                           fontSize: 12,
-                          whiteSpace: "nowrap",
                         }}
                       >
-                        Practice
+                        Practice →
                       </button>
 
                       <button
                         type="button"
                         onClick={() => toggleFav(x.id)}
+                        title={x.favorite ? "Unsave" : "Save"}
                         style={{
-                          padding: "8px 10px",
-                          borderRadius: "var(--radius-md)",
-                          border: x.favorite
-                            ? "1px solid var(--accent-strong)"
-                            : "1px solid var(--card-border)",
-                          background: x.favorite
-                            ? "var(--accent-soft)"
-                            : "var(--card-bg-strong)",
-                          color: x.favorite ? "var(--accent)" : "var(--text-primary)",
-                          fontWeight: 900,
+                          padding: "4px 6px",
+                          borderRadius: 999,
+                          border: "none",
+                          background: "none",
+                          color: x.favorite ? "var(--accent)" : "var(--text-soft)",
+                          fontWeight: 600,
                           cursor: "pointer",
-                          fontSize: 12,
-                          whiteSpace: "nowrap",
+                          fontSize: 16,
+                          lineHeight: 1,
                         }}
                       >
-                        {x.favorite ? "★ Saved" : "☆ Save"}
+                        {x.favorite ? "★" : "☆"}
                       </button>
 
                       <button
                         type="button"
                         onClick={() => removeOne(x.id)}
                         style={{
-                          padding: "8px 10px",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid color-mix(in srgb, var(--danger) 35%, transparent)",
-                          background: "var(--danger-soft)",
-                          color: "var(--danger)",
-                          fontWeight: 900,
+                          marginLeft: "auto",
+                          padding: "4px 8px",
+                          borderRadius: 999,
+                          border: "none",
+                          background: "none",
+                          color: "var(--text-soft)",
+                          fontWeight: 700,
                           cursor: "pointer",
-                          fontSize: 12,
-                          whiteSpace: "nowrap",
+                          fontSize: 11,
                         }}
                       >
-                        Delete
+                        ✕
                       </button>
                     </div>
                   </div>

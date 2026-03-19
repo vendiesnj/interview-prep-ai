@@ -51,4 +51,6 @@ export type ComposeArgs = {
     perFiller: Record<string, number>;
   };
   normalized: any;
+  prevScore?: number | null;        // previous attempt's overall score (0-100 or 0-10 scale)
+  prevAttemptCount?: number | null; // how many total attempts this user has made
 };

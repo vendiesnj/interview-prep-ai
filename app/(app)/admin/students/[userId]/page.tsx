@@ -91,26 +91,15 @@ function GlowCard({
   return (
     <div
       style={{
-        position: "relative",
         borderRadius: radius,
-        padding: 1,
-        background:
-          "linear-gradient(135deg, var(--accent-strong), var(--accent-2), var(--accent))",
-        boxShadow: "var(--shadow-glow)",
+        padding,
+        background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+        border: "1px solid var(--card-border-soft)",
+        boxShadow: "var(--shadow-card-soft)",
+        backdropFilter: "blur(8px)",
       }}
     >
-      <div
-        style={{
-          borderRadius: radius - 1,
-          padding,
-          background:
-            "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-          border: "1px solid var(--card-border-soft)",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -277,12 +266,65 @@ export default async function AdminStudentDetailPage({
     .filter((v): v is number => v !== null);
 
   const avgScore = avgOverall100(overallScores);
+  
   const avgComm = avgTenPoint(comms);
   const avgConf = avgTenPoint(confs);
   const avgWpm = round1(avg(wpms));
   const avgFillers = round1(avg(fillers));
   const avgMonotone = round1(avg(monotones));
   const avgClosing = avgTenPoint(closings);
+
+  const highPerformers = overallScores.filter((s) => s >= 80).length;
+const midPerformers = overallScores.filter((s) => s >= 60 && s < 80).length;
+const lowPerformers = overallScores.filter((s) => s < 60).length;
+
+const total = overallScores.length || 1;
+
+const highPct = Math.round((highPerformers / total) * 100);
+const midPct = Math.round((midPerformers / total) * 100);
+const lowPct = Math.round((lowPerformers / total) * 100);
+
+const isAtRisk =
+  avgScore !== null &&
+  avgScore < 60 &&
+  avgFillers !== null &&
+  avgFillers > 8;
+
+// Question category performance
+const categoryPerf = new Map<string, { count: number; scores: number[] }>();
+for (const a of attempts) {
+  const cat = (a.questionCategory as string | null) ?? "other";
+  const s = asOverall100((a.score as number | null) ?? (feedbackObj(a) as any)?.score);
+  if (!categoryPerf.has(cat)) categoryPerf.set(cat, { count: 0, scores: [] });
+  const entry = categoryPerf.get(cat)!;
+  entry.count++;
+  if (s !== null) entry.scores.push(s);
+}
+const categoryRows = Array.from(categoryPerf.entries())
+  .map(([cat, { count, scores }]) => ({
+    cat,
+    count,
+    avg: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
+  }))
+  .sort((a, b) => b.count - a.count);
+
+// Delivery trend (last 5 attempts)
+const recentScores = attempts
+  .slice(0, 5)
+  .map((a) => asOverall100((a.score as number | null) ?? (feedbackObj(a) as any)?.score))
+  .filter((v): v is number => v !== null);
+const trendDelta =
+  recentScores.length >= 2
+    ? recentScores[0] - recentScores[recentScores.length - 1]
+    : null;
+const trendLabel =
+  trendDelta === null
+    ? "—"
+    : trendDelta > 3
+    ? `↑ +${trendDelta} pts`
+    : trendDelta < -3
+    ? `↓ ${trendDelta} pts`
+    : "→ Stable";
 
   const strongestRole =
     attempts.find((a) => a.jobProfileTitle)?.jobProfileTitle ?? "No role data yet";
@@ -350,13 +392,13 @@ export default async function AdminStudentDetailPage({
           </div>
         </GlowCard>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 14,
-          }}
-        >
+      <div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+    gap: 14,
+  }}
+>
           <StatCard
             label="Attempts"
             value={String(attempts.length)}
@@ -377,17 +419,138 @@ export default async function AdminStudentDetailPage({
             value={displayTenPointAs100(avgConf)}
             subtext="Average confidence signal."
           />
-          <StatCard
-            label="Avg WPM"
-            value={avgWpm !== null ? String(Math.round(avgWpm)) : "—"}
-            subtext="Average speaking pace."
-          />
+          
           <StatCard
             label="Top Role"
             value={strongestRole}
             subtext="Most visible target role in attempts."
           />
+          <StatCard
+            label="Recent Trend"
+            value={trendLabel}
+            subtext="last 5 attempts"
+          />
         </div>
+
+        {/* Score Progression dot plot */}
+        {(() => {
+          const progressionAttempts = [...attempts].reverse().slice(-10);
+          const svgW = 600;
+          const svgH = 100;
+          const padL = 24;
+          const padR = 24;
+          const padT = 18;
+          const padB = 18;
+          const chartW = svgW - padL - padR;
+          const chartH = svgH - padT - padB;
+          const n = progressionAttempts.length;
+          if (n === 0) return null;
+
+          const points = progressionAttempts.map((a, i) => {
+            const s = asOverall100((a.score as number | null) ?? (feedbackObj(a) as any)?.score) ?? 0;
+            const x = n === 1 ? padL + chartW / 2 : padL + (i / (n - 1)) * chartW;
+            const y = padT + chartH - (s / 100) * chartH;
+            const color =
+              s >= 70
+                ? "var(--chart-positive)"
+                : s >= 50
+                ? "var(--chart-neutral)"
+                : "var(--chart-negative, var(--danger))";
+            return { x, y, s, color, idx: i + 1 };
+          });
+
+          return (
+            <div
+              style={{
+                borderRadius: 22,
+                padding: 20,
+                background:
+                  "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+                border: "1px solid var(--card-border-soft)",
+                boxShadow: "var(--shadow-card-soft)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: 900,
+                  letterSpacing: 0.7,
+                  color: "var(--accent)",
+                  textTransform: "uppercase",
+                  marginBottom: 6,
+                }}
+              >
+                Score Progression
+              </div>
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 950,
+                  color: "var(--text-primary)",
+                  letterSpacing: -0.25,
+                  marginBottom: 12,
+                }}
+              >
+                Attempt-by-Attempt Scores
+              </div>
+              <svg
+                width="100%"
+                height={svgH}
+                viewBox={`0 0 ${svgW} ${svgH}`}
+                preserveAspectRatio="xMidYMid meet"
+                style={{ display: "block", overflow: "visible" }}
+              >
+                {/* connecting lines */}
+                {points.slice(1).map((pt, i) => (
+                  <line
+                    key={`line-${i}`}
+                    x1={points[i].x}
+                    y1={points[i].y}
+                    x2={pt.x}
+                    y2={pt.y}
+                    stroke="var(--card-border)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                ))}
+                {/* dots + labels */}
+                {points.map((pt) => (
+                  <g key={pt.idx}>
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r={6}
+                      fill={pt.color}
+                      stroke="var(--card-bg)"
+                      strokeWidth="2"
+                    />
+                    <text
+                      x={pt.x}
+                      y={pt.y - 10}
+                      textAnchor="middle"
+                      fontSize="9"
+                      fontWeight="800"
+                      fill="var(--text-muted)"
+                    >
+                      {pt.s}
+                    </text>
+                    <text
+                      x={pt.x}
+                      y={svgH - 2}
+                      textAnchor="middle"
+                      fontSize="8"
+                      fontWeight="700"
+                      fill="var(--text-muted)"
+                    >
+                      #{pt.idx}
+                    </text>
+                  </g>
+                ))}
+              </svg>
+            </div>
+          );
+        })()}
 
         <div
           style={{
@@ -396,6 +559,67 @@ export default async function AdminStudentDetailPage({
             gap: 16,
           }}
         >
+
+          {isAtRisk && (
+  <GlowCard padding={18} radius={22}>
+    <div style={{ color: "var(--danger)", fontWeight: 900 }}>
+      ⚠️ At-Risk Student
+    </div>
+
+    <div style={{ marginTop: 8, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+      This student shows below-average performance and elevated filler usage.
+      Recommend targeted coaching or mock interview intervention.
+    </div>
+  </GlowCard>
+)}
+<GlowCard padding={20} radius={22}>
+  <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+    Cohort Distribution
+  </div>
+
+  <div style={{ marginTop: 14, display: "grid", gap: 12 }}>
+    {[
+      { label: "High Performers", value: highPct, color: "var(--chart-positive)" },
+      { label: "Mid Performers", value: midPct, color: "var(--chart-neutral)" },
+      { label: "Needs Improvement", value: lowPct, color: "var(--chart-critical)" },
+    ].map((item) => (
+      <div key={item.label}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 12,
+            marginBottom: 6,
+          }}
+        >
+          <span style={{ color: "var(--text-muted)" }}>{item.label}</span>
+          <span style={{ color: "var(--text-primary)", fontWeight: 800 }}>
+            {item.value}%
+          </span>
+        </div>
+
+        <div
+          style={{
+            height: 8,
+            borderRadius: 999,
+            background: "var(--card-border-soft)",
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              width: `${item.value}%`,
+              height: "100%",
+              background: item.color,
+              borderRadius: 999,
+            }}
+          />
+        </div>
+      </div>
+    ))}
+  </div>
+</GlowCard>
+
           <GlowCard padding={18} radius={22}>
             <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
               Voice Metrics
@@ -423,39 +647,63 @@ export default async function AdminStudentDetailPage({
           </GlowCard>
 
           <GlowCard padding={18} radius={22}>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
-              Student Summary
-            </div>
-            <div
-              style={{
-                marginTop: 14,
-                color: "var(--text-muted)",
-                fontSize: 13,
-                lineHeight: 1.8,
-              }}
-            >
-              This page lets school admins review one student's practice volume,
-              score quality, voice delivery, and recent role targeting in more
-              detail than the high-level dashboard.
-            </div>
-          </GlowCard>
+  <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+    Student Summary
+  </div>
 
-          <GlowCard padding={18} radius={22}>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
-              Next Expansion
-            </div>
-            <div
-              style={{
-                marginTop: 14,
-                color: "var(--text-muted)",
-                fontSize: 13,
-                lineHeight: 1.8,
-              }}
-            >
-              Next we can add per-attempt drilldown, score trend charts, and a
-              stronger role readiness summary for this student.
-            </div>
-          </GlowCard>
+  <div
+    style={{
+      marginTop: 14,
+      color: "var(--text-muted)",
+      fontSize: 13,
+      lineHeight: 1.8,
+    }}
+  >
+    This student has completed {attempts.length} practice sessions with an average score of{" "}
+    <strong style={{ color: "var(--text-primary)" }}>
+      {displayOverall100(avgScore)}
+    </strong>
+    . Their communication and confidence levels suggest{" "}
+    <strong style={{ color: "var(--text-primary)" }}>
+      {avgComm !== null && avgComm >= 7 ? "strong delivery" : "developing communication skills"}
+    </strong>
+    , while delivery metrics indicate{" "}
+    <strong style={{ color: "var(--text-primary)" }}>
+      {avgFillers !== null && avgFillers > 8 ? "excessive filler usage" : "controlled speaking patterns"}
+    </strong>
+    . Focus areas should include improving clarity, tightening responses, and strengthening STAR result impact.
+  </div>
+</GlowCard>
+
+{categoryRows.length > 0 ? (
+  <div
+    style={{
+      padding: 20,
+      borderRadius: "var(--radius-lg)",
+      border: "1px solid var(--card-border-soft)",
+      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+      boxShadow: "var(--shadow-card-soft)",
+    }}
+  >
+    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
+      Performance by Category
+    </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      {categoryRows.map((row) => (
+        <div key={row.cat} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+          <span style={{ color: "var(--text-primary)", fontWeight: 700, textTransform: "capitalize" }}>
+            {row.cat.replace(/_/g, " ")}
+          </span>
+          <span style={{ color: "var(--text-muted)", fontWeight: 800 }}>
+            {row.avg !== null ? `${row.avg}/100` : "—"} · {row.count} attempt{row.count !== 1 ? "s" : ""}
+          </span>
+        </div>
+      ))}
+    </div>
+  </div>
+) : null}
+
+
         </div>
 
         <GlowCard padding={18} radius={22}>
@@ -470,13 +718,35 @@ export default async function AdminStudentDetailPage({
           </div>
 
           <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+        <div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "1.8fr 100px 100px 100px 100px 100px 120px",
+    gap: 12,
+    alignItems: "center",
+    padding: "0 14px 8px 14px",
+    fontSize: 11,
+    fontWeight: 900,
+    letterSpacing: 0.6,
+    color: "var(--text-muted)",
+    textTransform: "uppercase",
+  }}
+>
+  <div>Question / Role</div>
+  <div>Overall</div>
+  <div>Comm</div>
+  <div>Conf</div>
+  <div>Fillers</div>
+  <div>Monotone</div>
+  <div>Date</div>
+</div>
             {attempts.length > 0 ? (
               attempts.slice(0, 12).map((attempt) => (
                 <div
                   key={attempt.id}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1.4fr 120px 120px 120px 140px",
+                    gridTemplateColumns: "1.8fr 100px 100px 100px 100px 100px 120px",
                     gap: 12,
                     alignItems: "center",
                     padding: "12px 14px",
@@ -528,6 +798,14 @@ export default async function AdminStudentDetailPage({
   )
 )}
                   </div>
+
+              <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 800 }}>
+  {getAttemptFillers(attempt) !== null ? `${getAttemptFillers(attempt)}/100` : "—"}
+</div>
+
+<div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 800 }}>
+  {getAttemptMonotone(attempt) !== null ? `${getAttemptMonotone(attempt)}/10` : "—"}
+</div>
 
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800 }}>
                     {attempt.ts ? new Date(attempt.ts).toLocaleDateString() : "—"}

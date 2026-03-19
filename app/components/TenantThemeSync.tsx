@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { themePresets, type ThemePresetName } from "@/app/lib/theme";
+import { themePresets, type ThemePresetName, pitchTheme } from "@/app/lib/theme";
 
-const FALLBACK_THEME: ThemePresetName = "virginiaTech";
+const FALLBACK_THEME: ThemePresetName = "light";
 const STORAGE_KEY = "ipc_tenant_theme_v1";
 
 export default function TenantThemeSync() {
@@ -15,13 +15,18 @@ export default function TenantThemeSync() {
 
     const tenant = (session as any)?.tenant ?? null;
 
-    const rawTheme = tenant?.themeKey;
-    const presetName: ThemePresetName =
-      rawTheme && rawTheme in themePresets
-        ? (rawTheme as ThemePresetName)
-        : FALLBACK_THEME;
+   const rawTheme = tenant?.themeKey;
+const isPitchMode =
+  typeof window !== "undefined" &&
+  (window.location.pathname.startsWith("/pitch") ||
+    window.location.pathname.startsWith("/demo"));
 
-    const preset = themePresets[presetName];
+const preset =
+  isPitchMode
+    ? pitchTheme
+    : rawTheme && rawTheme in themePresets
+    ? themePresets[rawTheme as ThemePresetName]
+    : themePresets[FALLBACK_THEME];
     const root = document.body;
 
     if (!root || !preset) return;
@@ -55,6 +60,11 @@ export default function TenantThemeSync() {
 
       success: tenant?.success ?? preset.colors.success,
       successSoft: tenant?.successSoft ?? preset.colors.successSoft,
+
+      chartPositive: preset.colors.chartPositive,
+      chartNegative: preset.colors.chartNegative,
+      chartNeutral: preset.colors.chartNeutral,
+      chartCritical: preset.colors.chartCritical,
     };
 
     root.style.backgroundColor = colors.pageBg;
@@ -88,6 +98,11 @@ export default function TenantThemeSync() {
 
     root.style.setProperty("--success", colors.success);
     root.style.setProperty("--success-soft", colors.successSoft);
+
+    root.style.setProperty("--chart-positive", colors.chartPositive);
+    root.style.setProperty("--chart-negative", colors.chartNegative);
+    root.style.setProperty("--chart-neutral", colors.chartNeutral);
+    root.style.setProperty("--chart-critical", colors.chartCritical);
 
     root.style.setProperty("--radius-xs", `${preset.radii.xs}px`);
     root.style.setProperty("--radius-sm", `${preset.radii.sm}px`);

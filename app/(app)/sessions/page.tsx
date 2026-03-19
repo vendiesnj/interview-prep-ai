@@ -6,6 +6,7 @@ import PremiumCard from "../../components/PremiumCard";
 import PremiumShell from "../../components/PremiumShell";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
+import { AudioPlayer } from "@/app/components/AudioPlayer";
 
 
 type Attempt = {
@@ -68,41 +69,6 @@ function toPercentScore(score?: number | null) {
   return Math.round(score * 10);
 }
 
-// --- IndexedDB helpers for audio replay ---
-const AUDIO_DB = "ipc_audio_db";
-const AUDIO_STORE = "audio";
-
-function openAudioDB(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(AUDIO_DB, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(AUDIO_STORE)) db.createObjectStore(AUDIO_STORE);
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function idbGetAudio(id: string): Promise<Blob | null> {
-  const db = await openAudioDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(AUDIO_STORE, "readonly");
-    const req = tx.objectStore(AUDIO_STORE).get(id);
-    req.onsuccess = () => resolve((req.result as Blob) ?? null);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function idbPutAudio(id: string, blob: Blob): Promise<void> {
-  const db = await openAudioDB();
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(AUDIO_STORE, "readwrite");
-    tx.objectStore(AUDIO_STORE).put(blob, id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-}
 
 export default function SessionsPage() {
   const router = useRouter();
@@ -115,7 +81,6 @@ export default function SessionsPage() {
   const SELECTED_KEY = userScopedKey("ipc_selected_attempt", session);
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const LAST_RESULT_KEY = userScopedKey("ipc_last_result", session);
-const [audioUrlById, setAudioUrlById] = useState<Record<string, string>>({});
 const [signedUrlByPath, setSignedUrlByPath] = useState<Record<string, string>>({});
 const [history, setHistory] = useState<Attempt[]>([]);
 const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
@@ -301,15 +266,6 @@ async function ensureSignedUrl(path: string) {
   setSignedUrlByPath((prev) => ({ ...prev, [path]: data.signedUrl }));
 }
 
-async function ensureAudioUrl(audioId: string) {
-  if (audioUrlById[audioId]) return;
-
-  const blob = await idbGetAudio(audioId);
-  if (!blob) return;
-
-  const url = URL.createObjectURL(blob);
-  setAudioUrlById((prev) => ({ ...prev, [audioId]: url }));
-}
 
   return (
   <PremiumShell
@@ -359,20 +315,17 @@ async function ensureAudioUrl(audioId: string) {
             style={{
   padding: "8px 14px",
   borderRadius: "var(--radius-sm)",
-  border:
-    filter === f
-      ? "1px solid var(--accent-strong)"
-      : "1px solid var(--card-border)",
+  border: "none",
   background:
     filter === f
-      ? "rgba(34,211,238,0.15)"
-      : "var(--card-bg-strong)",
-  color: filter === f ? "var(--accent)" : "var(--text-primary)",
-  fontWeight: 800,
+      ? "var(--accent-soft)"
+      : "transparent",
+  color: filter === f ? "var(--accent)" : "var(--text-muted)",
+  fontWeight: 600,
   cursor: "pointer",
 }}
           >
-            {f.toUpperCase()}
+            {f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
 <button
@@ -383,11 +336,12 @@ async function ensureAudioUrl(audioId: string) {
     marginLeft: "auto",
     padding: "8px 14px",
     borderRadius: "var(--radius-sm)",
-    border: "1px solid rgba(252,165,165,0.35)",
-    background: history.length === 0 ? "var(--card-bg)" : "rgba(252,165,165,0.10)",
-    color: history.length === 0 ? "var(--text-muted)" : "#FCA5A5",
-    fontWeight: 900,
+    border: "none",
+    background: "transparent",
+    color: history.length === 0 ? "var(--text-muted)" : "var(--danger)",
+    fontWeight: 700,
     cursor: history.length === 0 ? "not-allowed" : "pointer",
+    textDecoration: history.length === 0 ? "none" : "underline",
   }}
 >
   Clear history
@@ -415,7 +369,7 @@ async function ensureAudioUrl(audioId: string) {
             <div
               style={{
                 fontSize: 14,
-                fontWeight: 900,
+                fontWeight: 700,
                 color: "var(--text-primary)",
               }}
             >
@@ -457,20 +411,17 @@ async function ensureAudioUrl(audioId: string) {
             style={{
               padding: "8px 10px",
               borderRadius: 999,
-              border:
-                jobProfileFilter === "all"
-                  ? "1px solid var(--accent-strong)"
-                  : "1px solid var(--card-border)",
+              border: "none",
               background:
                 jobProfileFilter === "all"
                   ? "var(--accent-soft)"
-                  : "var(--card-bg-strong)",
+                  : "transparent",
               color:
                 jobProfileFilter === "all"
                   ? "var(--accent)"
-                  : "var(--text-primary)",
+                  : "var(--text-muted)",
               fontSize: 12,
-              fontWeight: 900,
+              fontWeight: 600,
               cursor: "pointer",
             }}
           >
@@ -485,20 +436,17 @@ async function ensureAudioUrl(audioId: string) {
               style={{
                 padding: "8px 10px",
                 borderRadius: 999,
-                border:
-                  jobProfileFilter === profile.key
-                    ? "1px solid var(--accent-strong)"
-                    : "1px solid var(--card-border)",
+                border: "none",
                 background:
                   jobProfileFilter === profile.key
                     ? "var(--accent-soft)"
-                    : "var(--card-bg-strong)",
+                    : "transparent",
                 color:
                   jobProfileFilter === profile.key
                     ? "var(--accent)"
-                    : "var(--text-primary)",
+                    : "var(--text-muted)",
                 fontSize: 12,
-                fontWeight: 800,
+                fontWeight: 600,
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
@@ -506,7 +454,7 @@ async function ensureAudioUrl(audioId: string) {
               }}
             >
               <span>{profile.title}</span>
-              <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>
+              <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>
                 {profile.count}
               </span>
             </button>
@@ -620,7 +568,7 @@ async function ensureAudioUrl(audioId: string) {
 >
   <div
     style={{
-      fontWeight: 900,
+      fontWeight: 700,
       color: "var(--text-primary)",
       fontSize: 15,
       lineHeight: 1.45,
@@ -633,7 +581,7 @@ async function ensureAudioUrl(audioId: string) {
 
   <div
   style={{
-    fontWeight: 900,
+    fontWeight: 700,
     color: "var(--accent)",
     fontSize: 14,
     flex: "0 0 auto",
@@ -673,11 +621,11 @@ async function ensureAudioUrl(audioId: string) {
       style={{
         padding: "4px 9px",
         borderRadius: 999,
-        border: "1px solid var(--card-border)",
+        border: "none",
         background: "var(--card-bg-strong)",
         color: "var(--text-primary)",
         fontSize: 11,
-        fontWeight: 800,
+        fontWeight: 600,
         textTransform: "capitalize",
       }}
     >
@@ -689,11 +637,11 @@ async function ensureAudioUrl(audioId: string) {
         style={{
           padding: "4px 9px",
           borderRadius: 999,
-          border: "1px solid var(--card-border)",
+          border: "none",
           background: "var(--card-bg-strong)",
           color: "var(--text-muted)",
           fontSize: 11,
-          fontWeight: 800,
+          fontWeight: 600,
           textTransform: "capitalize",
         }}
       >
@@ -718,11 +666,11 @@ async function ensureAudioUrl(audioId: string) {
         style={{
           padding: "4px 9px",
           borderRadius: 999,
-          border: "1px solid var(--accent-strong)",
+          border: "none",
           background: "var(--accent-soft)",
           color: "var(--accent)",
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 600,
           letterSpacing: 0.2,
         }}
       >
@@ -735,11 +683,11 @@ async function ensureAudioUrl(audioId: string) {
         style={{
           padding: "4px 9px",
           borderRadius: 999,
-          border: "1px solid var(--card-border)",
+          border: "none",
           background: "var(--card-bg-strong)",
           color: "var(--text-primary)",
           fontSize: 11,
-          fontWeight: 800,
+          fontWeight: 600,
         }}
       >
         {attempt.jobProfileCompany}
@@ -751,11 +699,11 @@ async function ensureAudioUrl(audioId: string) {
         style={{
           padding: "4px 9px",
           borderRadius: 999,
-          border: "1px solid var(--card-border)",
+          border: "none",
           background: "var(--card-bg-strong)",
           color: "var(--text-muted)",
           fontSize: 11,
-          fontWeight: 800,
+          fontWeight: 600,
         }}
       >
         {attempt.jobProfileRoleType}
@@ -787,10 +735,10 @@ async function ensureAudioUrl(audioId: string) {
             style={{
               padding: "8px 12px",
               borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg-strong)",
-              color: "var(--text-primary)",
-              fontWeight: 800,
+              border: "none",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontWeight: 600,
               cursor: "pointer",
             }}
           >
@@ -805,33 +753,7 @@ async function ensureAudioUrl(audioId: string) {
           />
         )
       ) : attempt.audioId ? (
-        !audioUrlById[attempt.audioId] ? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              ensureAudioUrl(attempt.audioId!);
-            }}
-            style={{
-              padding: "8px 12px",
-              borderRadius: "var(--radius-sm)",
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg-strong)",
-              color: "var(--text-primary)",
-              fontWeight: 800,
-              cursor: "pointer",
-            }}
-          >
-            Load recording (this device)
-          </button>
-        ) : (
-          <audio
-            controls
-            preload="none"
-            src={audioUrlById[attempt.audioId]}
-            style={{ width: "100%" }}
-          />
-        )
+        <AudioPlayer audioId={attempt.audioId} />
       ) : (
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
           No recording attached to this attempt.
@@ -852,11 +774,12 @@ async function ensureAudioUrl(audioId: string) {
     style={{
       background: "none",
       border: "none",
-      color: "#FCA5A5",
-      fontWeight: 800,
+      color: "var(--danger)",
+      fontWeight: 600,
       cursor: "pointer",
       flex: "0 0 auto",
       whiteSpace: "nowrap",
+      textDecoration: "underline",
     }}
   >
     Delete

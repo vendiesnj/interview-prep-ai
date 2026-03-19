@@ -29,9 +29,12 @@ type AcousticMetrics = {
   series?: AcousticSeries | null;
 };
 
-async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {
+async function fetchAcoustics(audio: File, timeoutMs = 120_000): Promise<AcousticMetrics | null> {
   const base = process.env.ACOUSTICS_URL;
   if (!base) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const fd = new FormData();
@@ -40,18 +43,25 @@ async function fetchAcoustics(audio: File): Promise<AcousticMetrics | null> {
     const res = await fetch(`${base.replace(/\/$/, "")}/analyze`, {
       method: "POST",
       body: fd,
+      signal: controller.signal,
     });
 
     if (!res.ok) {
-  const text = await res.text().catch(() => "");
-  console.error("ACOUSTICS ERROR:", res.status, text);
-  return null;
-}
+      const text = await res.text().catch(() => "");
+      console.error("ACOUSTICS ERROR:", res.status, text);
+      return null;
+    }
     const json = (await res.json()) as AcousticMetrics;
     return json ?? null;
-  } catch (e) {
-    console.error("ACOUSTICS FETCH EXCEPTION:", e);
+  } catch (e: any) {
+    if (e?.name === "AbortError") {
+      console.error("ACOUSTICS TIMEOUT after", timeoutMs, "ms");
+    } else {
+      console.error("ACOUSTICS FETCH EXCEPTION:", e);
+    }
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -264,7 +274,7 @@ const acousticsPromise = fetchAcoustics(acousticsFile);
 
     // 2) Poll until completed/failed
     const started = Date.now();
-    while (Date.now() - started < 45_000) {
+    while (Date.now() - started < 120_000) {
       const pollRes = await fetch(
         `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
         { headers: { authorization: apiKey } }
@@ -381,7 +391,7 @@ const acousticsPromise = fetchAcoustics(acousticsFile);
     }
 
     return NextResponse.json(
-      { metrics: null, vendorError: "Transcript Timeout (poll exceeded 45s)" },
+      { metrics: null, vendorError: "Transcript Timeout (poll exceeded 120s)" },
       { status: 504 }
     );
   } catch (e: any) {

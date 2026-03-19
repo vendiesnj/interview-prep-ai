@@ -32,7 +32,7 @@ export default function PremiumShell({
     >
       <div style={{ maxWidth: 1120, margin: "0 auto", padding: 20 }}>
                 {!hideHeader && (title || subtitle || logoUrl || tenantName) ? (
-          <div style={{ marginBottom: 18 }}>
+          <div style={{ marginBottom: 12 }}>
             <div
               style={{
                 display: "flex",
@@ -46,8 +46,8 @@ export default function PremiumShell({
                 {title ? (
                   <div
                     style={{
-                      fontSize: 28,
-                      fontWeight: 950,
+                      fontSize: 22,
+                      fontWeight: 700,
                       letterSpacing: -0.3,
                       color: "var(--text-primary)",
                     }}
@@ -59,8 +59,8 @@ export default function PremiumShell({
                 {subtitle ? (
                   <div
                     style={{
-                      marginTop: 10,
-                      fontSize: 15,
+                      marginTop: 6,
+                      fontSize: 13,
                       color: "var(--text-muted)",
                       lineHeight: 1.6,
                       maxWidth: 760,
@@ -111,13 +111,6 @@ export default function PremiumShell({
               ) : null}
             </div>
 
-            <div
-              style={{
-                marginTop: 16,
-                height: 1,
-                background: "var(--card-border-soft)",
-              }}
-            />
           </div>
         ) : null}
 
@@ -129,62 +122,34 @@ export default function PremiumShell({
             borderTop: "1px solid var(--card-border-soft)",
             paddingTop: 16,
             display: "flex",
-            justifyContent: "space-between",
-            gap: 12,
+            justifyContent: "flex-end",
+            gap: 10,
             flexWrap: "wrap",
-            color: "var(--text-muted)",
-            fontSize: 12,
+            color: "var(--text-soft)",
+            fontSize: 11,
           }}
         >
-                    <div
+          <a
+            href="/terms"
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              minHeight: 24,
+              color: "var(--text-soft)",
+              textDecoration: "none",
             }}
           >
-            {logoUrl ? (
-              <img
-                src={logoUrl}
-                alt={tenantName ?? "Tenant"}
-                style={{
-                  height: 22,
-                  width: "auto",
-                  objectFit: "contain",
-                  display: "block",
-                }}
-              />
-            ) : null}
+            Terms
+          </a>
 
-            <div>{tenantName ?? "Interview Performance Coach"}</div>
-          </div>
+          <span>•</span>
 
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <a
-              href="/terms"
-              style={{
-                color: "var(--accent)",
-                fontWeight: 900,
-                textDecoration: "none",
-              }}
-            >
-              Terms
-            </a>
-
-            <span style={{ color: "var(--text-soft)" }}>•</span>
-
-            <a
-              href="/privacy"
-              style={{
-                color: "var(--accent)",
-                fontWeight: 900,
-                textDecoration: "none",
-              }}
-            >
-              Privacy
-            </a>
-          </div>
+          <a
+            href="/privacy"
+            style={{
+              color: "var(--text-soft)",
+              textDecoration: "none",
+            }}
+          >
+            Privacy
+          </a>
         </div>
       </div>
     </div>

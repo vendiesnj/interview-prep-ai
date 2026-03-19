@@ -4,6 +4,18 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
+import CreateAssignmentForm from "@/app/components/CreateAssignmentForm";
+import { BulkEnrollForm } from "@/app/components/BulkEnrollForm";
+
+import {
+  asOverall100,
+  asTenPoint,
+  avgOverall100,
+  avgTenPoint,
+  displayOverall100,
+  displayTenPointAs100,
+} from "@/app/lib/scoreScale";
+
 
 type AttemptRow = {
   id: string;
@@ -26,12 +38,23 @@ type AttemptRow = {
   deliveryMetrics: any | null;
 };
 
+
+
 type RoleFamily =
   | "finance"
   | "operations"
   | "research"
   | "consulting"
   | "general";
+
+  type CohortFilter = "all" | "high" | "mid" | "low";
+
+function getCohortFromScore(score: number | null): CohortFilter {
+  if (score === null) return "low";
+  if (score >= 80) return "high";
+  if (score >= 60) return "mid";
+  return "low";
+}
 
 function num(v: any): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
@@ -55,10 +78,6 @@ function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value));
 }
 
-function normalizeOverallTo10(value: number | null) {
-  if (value === null) return null;
-  return value > 10 ? value / 10 : value;
-}
 
 function safeLabel(value: string | null | undefined, fallback: string) {
   if (!value || !value.trim()) return fallback;
@@ -237,15 +256,15 @@ function getRoleExpectations(roleFamily: RoleFamily) {
 }
 
 function getAttemptScore(a: AttemptRow) {
-  return num(a.score ?? a.feedback?.score);
+  return asOverall100(num(a.score ?? a.feedback?.score));
 }
 
 function getAttemptComm(a: AttemptRow) {
-  return num(a.communicationScore ?? a.feedback?.communication_score);
+  return asTenPoint(num(a.communicationScore ?? a.feedback?.communication_score));
 }
 
 function getAttemptConf(a: AttemptRow) {
-  return num(a.confidenceScore ?? a.feedback?.confidence_score);
+  return asTenPoint(num(a.confidenceScore ?? a.feedback?.confidence_score));
 }
 
 function getAttemptFillers(a: AttemptRow) {
@@ -265,7 +284,7 @@ function getAttemptMonotone(a: AttemptRow) {
 }
 
 function getAttemptStarResult(a: AttemptRow) {
-  return num(a.feedback?.star?.result);
+  return asTenPoint(num(a.feedback?.star?.result));
 }
 
 function getWeaknessBuckets(attempts: AttemptRow[]) {
@@ -304,33 +323,22 @@ function GlowCard({
   padding = 20,
   radius = 22,
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   padding?: number;
   radius?: number;
 }) {
   return (
     <div
       style={{
-        position: "relative",
         borderRadius: radius,
-        padding: 1,
-        background:
-          "linear-gradient(135deg, var(--accent-strong), var(--accent-2), var(--accent))",
-        boxShadow: "var(--shadow-glow)",
+        padding,
+        background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+        border: "1px solid var(--card-border-soft)",
+        boxShadow: "var(--shadow-card-soft)",
+        backdropFilter: "blur(8px)",
       }}
     >
-      <div
-        style={{
-          borderRadius: radius - 1,
-          padding,
-          background:
-            "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-          border: "1px solid var(--card-border-soft)",
-          backdropFilter: "blur(8px)",
-        }}
-      >
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
@@ -674,8 +682,8 @@ function MiniBar({
             width: `${pct}%`,
             height: "100%",
             borderRadius: 999,
-            background: gradient,
-            boxShadow: "var(--shadow-glow)",
+            background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))",
+boxShadow: "none",
           }}
         />
       </div>
@@ -683,12 +691,24 @@ function MiniBar({
   );
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ cohort?: string }>;
+}) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
     return <div style={{ padding: 40, color: "var(--text-primary)" }}>Not authorized</div>;
   }
+
+    const resolvedSearchParams = searchParams ? await searchParams : {};
+  const cohortParam = resolvedSearchParams?.cohort;
+
+  const activeCohort: CohortFilter =
+    cohortParam === "high" || cohortParam === "mid" || cohortParam === "low"
+      ? cohortParam
+      : "all";
 
   const currentUser = await prisma.user.findUnique({
     where: { email: session.user.email },
@@ -750,15 +770,60 @@ export default async function AdminPage() {
   });
 
   const totalStudents = tenantUsers.length;
-  const totalAttempts = attempts.length;
 
-  const scoreVals = attempts
+   const studentsWithStats = tenantUsers.map((user) => {
+    const userAttempts = attempts.filter((a) => a.userId === user.id);
+
+    const userScore = round1(
+      avg(
+        userAttempts
+          .map(getAttemptScore)
+          .filter((v): v is number => v !== null)
+      )
+    );
+
+    const userScore100 = userScore !== null ? Math.round(userScore) : null;
+    const cohort = getCohortFromScore(userScore100);
+
+    const latest = userAttempts[0]?.ts ?? null;
+
+    return {
+      id: user.id,
+      name: user.name || (user.email ? user.email.split("@")[0] : "Student"),
+      email: user.email,
+      attempts: userAttempts.length,
+      avgScore: userScore,
+      avgScore100: userScore100,
+      latest,
+      cohort,
+      attemptsRaw: userAttempts,
+    };
+  });
+
+  const filteredStudents =
+    activeCohort === "all"
+      ? studentsWithStats
+      : studentsWithStats.filter((s) => s.cohort === activeCohort);
+
+  const filteredStudentIds = new Set(filteredStudents.map((s) => s.id));
+
+  const filteredAttempts = attempts.filter((a) => filteredStudentIds.has(a.userId));
+
+  const attemptsByUser = [...filteredStudents]
+    .sort((a, b) => {
+      if (b.attempts !== a.attempts) return b.attempts - a.attempts;
+      return (b.avgScore ?? -1) - (a.avgScore ?? -1);
+    })
+    .slice(0, 6);
+  const totalAttempts = filteredAttempts.length;
+
+    const scoreVals = filteredAttempts
     .map(getAttemptScore)
     .filter((v): v is number => v !== null);
-  const commVals = attempts
+    const commVals = filteredAttempts
     .map(getAttemptComm)
     .filter((v): v is number => v !== null);
-  const confVals = attempts
+    const confVals = filteredAttempts
     .map(getAttemptConf)
     .filter((v): v is number => v !== null);
 
@@ -767,9 +832,11 @@ export default async function AdminPage() {
   const avgConfidence = round1(avg(confVals));
 
   const attemptsPerStudent =
-    totalStudents > 0 ? (totalAttempts / totalStudents).toFixed(1) : "0";
+    filteredStudents.length > 0
+      ? (totalAttempts / filteredStudents.length).toFixed(1)
+      : "0";
 
-  const spokenAttempts = attempts.filter(
+    const spokenAttempts = filteredAttempts.filter(
     (a) =>
       a.inputMethod === "spoken" ||
       a.wpm !== null ||
@@ -803,16 +870,16 @@ export default async function AdminPage() {
 
   const avgResultImpact = round1(
     avg(
-      attempts
+            filteredAttempts
         .map(getAttemptStarResult)
         .filter((v): v is number => v !== null)
     )
   );
 
-  const weaknessRows = getWeaknessBuckets(attempts).slice(0, 5);
+    const weaknessRows = getWeaknessBuckets(filteredAttempts).slice(0, 5);
 
   const categoryMap = new Map<string, number>();
-  for (const a of attempts) {
+    for (const a of filteredAttempts) {
     const raw = safeLabel(a.questionCategory, "other");
     const label = titleCaseLabel(raw);
     categoryMap.set(label, (categoryMap.get(label) ?? 0) + 1);
@@ -827,33 +894,7 @@ export default async function AdminPage() {
     .sort((a, b) => b.count - a.count)
     .slice(0, 4);
 
-  const attemptsByUser = tenantUsers
-    .map((user) => {
-      const userAttempts = attempts.filter((a) => a.userId === user.id);
-      const userScore = round1(
-        avg(
-          userAttempts
-            .map(getAttemptScore)
-            .filter((v): v is number => v !== null)
-        )
-      );
-
-      const latest = userAttempts[0]?.ts ?? null;
-
-      return {
-        id: user.id,
-        name: user.name || (user.email ? user.email.split("@")[0] : "Student"),
-        email: user.email,
-        attempts: userAttempts.length,
-        avgScore: userScore,
-        latest,
-      };
-    })
-    .sort((a, b) => {
-      if (b.attempts !== a.attempts) return b.attempts - a.attempts;
-      return (b.avgScore ?? -1) - (a.avgScore ?? -1);
-    })
-    .slice(0, 6);
+  
 
   const roleGroups = new Map<
     string,
@@ -866,7 +907,7 @@ export default async function AdminPage() {
     }
   >();
 
-  for (const a of attempts) {
+    for (const a of filteredAttempts) {
     const key =
       a.jobProfileId ?? `${a.jobProfileTitle ?? ""}::${a.jobProfileRoleType ?? ""}`;
     const label = a.jobProfileTitle ?? "General Target Role";
@@ -916,7 +957,7 @@ export default async function AdminPage() {
 
       const weights = getRoleWeights(roleFamily);
       const expectations = getRoleExpectations(roleFamily);
-      const overall10 = normalizeOverallTo10(avgScoreRole) ?? 6.8;
+      const overall10 = asTenPoint(avgScoreRole) ?? 6.8;
 
       const candidateScores = {
         communication: avgCommRole ?? overall10,
@@ -1015,11 +1056,138 @@ export default async function AdminPage() {
   const spokenRate =
     totalAttempts > 0 ? Math.round((spokenAttempts.length / totalAttempts) * 100) : 0;
 
+    const atRiskStudents = filteredStudents.filter((s) => (s.avgScore100 ?? 0) < 60).length;
+const atRiskPct =
+  filteredStudents.length > 0
+    ? Math.round((atRiskStudents / filteredStudents.length) * 100)
+    : 0;
+
+const atRiskStudentRows = filteredStudents
+  .filter((s) => (s.avgScore100 ?? 0) < 60)
+  .slice(0, 6);
+
+function getIntervention(s: { avgScore: number | null; attemptsRaw: AttemptRow[] }): string {
+  const avgS = s.avgScore ?? 0;
+  const fillerVals = s.attemptsRaw
+    .map((a) => getAttemptFillers(a))
+    .filter((v): v is number => v !== null);
+  const avgFillersVal =
+    fillerVals.length > 0 ? fillerVals.reduce((a, b) => a + b, 0) / fillerVals.length : 0;
+
+  if (avgFillersVal > 6)
+    return "Assign 2 behavioral questions with focus on filler reduction — practice replacing 'um/like' with a 1-second pause.";
+  if (avgS < 50)
+    return "Start with 1 simple behavioral question per day to build baseline confidence and structure.";
+  if (avgS < 60)
+    return "Focus on adding one measurable result to each answer — specificity is the fastest path to score improvement.";
+  return "Schedule a 1:1 coaching session to identify the specific structural gap limiting this student's score.";
+}
+
+function getTopWeakness(s: { attemptsRaw: AttemptRow[]; avgScore: number | null }): string {
+  const fillerVals = s.attemptsRaw
+    .map((a) => getAttemptFillers(a))
+    .filter((v): v is number => v !== null);
+  const avgFillersVal =
+    fillerVals.length > 0 ? fillerVals.reduce((a, b) => a + b, 0) / fillerVals.length : 0;
+
+  const commVals = s.attemptsRaw
+    .map((a) => getAttemptComm(a))
+    .filter((v): v is number => v !== null);
+  const avgCommVal =
+    commVals.length > 0 ? commVals.reduce((a, b) => a + b, 0) / commVals.length : null;
+
+  const confVals = s.attemptsRaw
+    .map((a) => getAttemptConf(a))
+    .filter((v): v is number => v !== null);
+  const avgConfVal =
+    confVals.length > 0 ? confVals.reduce((a, b) => a + b, 0) / confVals.length : null;
+
+  if (avgFillersVal > 6) return "Filler-heavy delivery";
+  if (avgCommVal !== null && avgCommVal < 6.0) return "Weak communication structure";
+  if (avgConfVal !== null && avgConfVal < 6.0) return "Low confidence signal";
+  return "Low overall readiness";
+}
+
+// Weekly trend for last 12 weeks
+const now = new Date();
+const weeklyTrend = Array.from({ length: 12 }, (_, i) => {
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - (11 - i) * 7);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 7);
+  const label = `${weekStart.getMonth() + 1}/${weekStart.getDate()}`;
+  const weekAttempts = filteredAttempts.filter(
+    (a) => new Date(a.ts) >= weekStart && new Date(a.ts) < weekEnd
+  );
+  const scores = weekAttempts
+    .map((a) => asOverall100(a.score))
+    .filter((v): v is number => v !== null);
+  return {
+    label,
+    avg: scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
+    count: weekAttempts.length,
+  };
+});
+
+const trendWeeksWithData = weeklyTrend.filter((w) => w.avg !== null);
+const firstDataAvg = trendWeeksWithData[0]?.avg ?? null;
+const lastDataAvg = trendWeeksWithData[trendWeeksWithData.length - 1]?.avg ?? null;
+const overallTrendDelta =
+  firstDataAvg !== null && lastDataAvg !== null ? lastDataAvg - firstDataAvg : null;
+const overallTrendLabel =
+  overallTrendDelta === null
+    ? "No data yet"
+    : overallTrendDelta > 3
+    ? `↑ +${overallTrendDelta} pts over 12 weeks`
+    : overallTrendDelta < -3
+    ? `↓ ${overallTrendDelta} pts over 12 weeks`
+    : "→ Stable over 12 weeks";
+
+const stalledStudents = filteredStudents.filter(
+  (s) =>
+    s.attempts > 0 &&
+    s.latest !== null &&
+    Date.now() - new Date(s.latest).getTime() > 14 * 24 * 60 * 60 * 1000
+).length;
+const stalledPct =
+  filteredStudents.length > 0
+    ? Math.round((stalledStudents / filteredStudents.length) * 100)
+    : 0;
+
   const avgScoreDisplay = avgScore !== null ? avgScore.toFixed(0) : "—";
   const avgCommunicationDisplay =
     avgCommunication !== null ? `${pctFrom10(avgCommunication)}%` : "—";
   const avgConfidenceDisplay =
     avgConfidence !== null ? `${pctFrom10(avgConfidence)}%` : "—";
+
+  const assignments = await prisma.assignment.findMany({
+    where: { tenantId: currentUser.tenantId ?? undefined, isActive: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const assignmentStats = assignments.map((a) => {
+    const since = a.createdAt;
+    const cats = a.questionCategories;
+    const completedStudents = studentsWithStats.filter((s) => {
+      const matchingAttempts = s.attemptsRaw.filter((att: AttemptRow) => {
+        const ts = new Date(att.ts);
+        if (ts < since) return false;
+        if (cats.length > 0 && !cats.includes(att.questionCategory ?? "")) return false;
+        return true;
+      });
+      return matchingAttempts.length >= a.minAttempts;
+    }).length;
+    return {
+      ...a,
+      completedCount: completedStudents,
+      totalStudents: filteredStudents.length,
+      completionPct:
+        filteredStudents.length > 0
+          ? Math.round((completedStudents / filteredStudents.length) * 100)
+          : 0,
+    };
+  });
 
   return (
     <PremiumShell
@@ -1063,6 +1231,74 @@ export default async function AdminPage() {
           </div>
         </div>
 
+           <div
+  style={{
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
+  }}
+>
+         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+  {[
+    { key: "all", label: "All Students" },
+    { key: "high", label: "High-performing students" },
+    { key: "mid", label: "Mid-performing students" },
+    { key: "low", label: "Students needing support" },
+  ].map((item) => {
+    const active = activeCohort === item.key;
+
+    return (
+      <Link
+        key={item.key}
+        href={item.key === "all" ? "/admin" : `/admin?cohort=${item.key}`}
+        style={{ textDecoration: "none" }}
+      >
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: 999,
+            border: active
+              ? "1px solid var(--accent-strong)"
+              : "1px solid var(--card-border)",
+            background: active ? "var(--accent-soft)" : "var(--card-bg)",
+            color: active ? "var(--accent)" : "var(--text-primary)",
+            fontSize: 12,
+            fontWeight: 900,
+            cursor: "pointer",
+          }}
+        >
+          {item.label}
+        </div>
+      </Link>
+    );
+  })}
+</div>
+
+<a
+  href="/api/admin/export"
+  style={{
+    padding: "10px 14px",
+    borderRadius: 999,
+    border: "1px solid var(--accent-strong)",
+    background: "var(--accent-soft)",
+    color: "var(--accent)",
+    fontSize: 12,
+    fontWeight: 900,
+    textDecoration: "none",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    whiteSpace: "nowrap",
+  }}
+>
+  Export Excel
+</a>
+        </div>
+
+        <BulkEnrollForm />
+
         <div
           style={{
             display: "grid",
@@ -1071,57 +1307,57 @@ export default async function AdminPage() {
           }}
         >
           <KpiCard
-            label="Students"
-            value={String(totalStudents)}
-            subtext="Users in the current tenant."
-          />
-          <KpiCard
-            label="Attempts"
-            value={String(totalAttempts)}
-            subtext="Interview reps captured across this school."
-          />
-          <KpiCard
-            label="Attempts / Student"
-            value={attemptsPerStudent}
-            subtext="Average practice frequency."
-          />
-          <KpiCard
-            label="Avg Overall Score"
-            value={avgScoreDisplay}
-            subtext="Average interview score across all attempts."
-          />
-          <KpiCard
-            label="Avg Communication"
-            value={avgCommunicationDisplay}
-            subtext="Average communication quality."
-          />
-          <KpiCard
-            label="Avg Confidence"
-            value={avgConfidenceDisplay}
-            subtext="Average confidence signal."
-          />
+  label="Students"
+  value={String(filteredStudents.length)}
+  subtext={
+    activeCohort === "all"
+      ? "Users in the current tenant."
+      : "Students in the selected cohort."
+  }
+/>
+<KpiCard
+  label="Attempts"
+  value={String(totalAttempts)}
+  subtext="Interview reps captured across this school."
+/>
+<KpiCard
+  label="At-Risk Students"
+  value={`${atRiskPct}%`}
+  subtext="Students currently needing coaching support."
+/>
+<KpiCard
+  label="Student Readiness"
+  value={avgScoreDisplay}
+  subtext="Average interview score across all attempts."
+/>
+<KpiCard
+  label="Avg Attempts / Student"
+  value={attemptsPerStudent}
+  subtext="practice volume"
+/>
+<KpiCard
+  label="Stalled Students"
+  value={`${stalledStudents} (${stalledPct}%)`}
+  subtext="no practice in 14+ days"
+/>
         </div>
 
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1.35fr 1fr",
-            gap: 16,
+            gap: 18,
           }}
         >
           <Panel eyebrow="Overview" title="Engagement Overview" minHeight={300}>
             <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 12,
-              }}
-            >
-              <SmallMetric
-                label="Practice Volume"
-                value={attemptsPerStudent}
-                subtext="Average attempts per student."
-              />
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 12,
+  }}
+>
+              
               <SmallMetric
                 label="Spoken Attempts"
                 value={`${spokenRate}%`}
@@ -1137,7 +1373,7 @@ export default async function AdminPage() {
             <div
               style={{
                 marginTop: 16,
-                padding: 16,
+                padding: 18,
                 borderRadius: 18,
                 border: "1px solid var(--card-border-soft)",
                 background:
@@ -1164,12 +1400,12 @@ export default async function AdminPage() {
                   lineHeight: 1.8,
                 }}
               >
-                Students are averaging <strong>{attemptsPerStudent}</strong> attempts
-                each, with an overall interview score of <strong>{avgScoreDisplay}</strong>.
-                Communication and confidence are currently at{" "}
-                <strong>{avgCommunicationDisplay}</strong> and{" "}
-                <strong>{avgConfidenceDisplay}</strong>, giving you a strong baseline
-                for school-wide readiness reporting.
+
+            
+                {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} currently average{" "}
+<strong>{avgScoreDisplay}</strong> overall, with communication at{" "}
+<strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
+<strong>{avgConfidenceDisplay}</strong>. <strong>{atRiskPct}%</strong> of students in this view are currently below readiness target, helping advisors quickly identify where coaching support is most needed.
               </div>
             </div>
           </Panel>
@@ -1193,12 +1429,7 @@ export default async function AdminPage() {
                 max={10}
                 suffix="/10"
               />
-              <MiniBar
-                label="Closing Impact"
-                value={pctFrom10(avgResultImpact) ?? 0}
-                max={100}
-                suffix="%"
-              />
+              
             </div>
           </Panel>
         </div>
@@ -1207,10 +1438,13 @@ export default async function AdminPage() {
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 16,
+            gap: 18,
           }}
         >
           <Panel eyebrow="Insights" title="Top Weaknesses" minHeight={280}>
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
+  Most common areas where students struggle during interviews
+</div>
             <ListRows
               items={
                 weaknessRows.length > 0
@@ -1281,11 +1515,221 @@ export default async function AdminPage() {
           </Panel>
         </div>
 
+        {/* Score Trend + At-Risk panels */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.4fr 1fr",
+            gap: 18,
+          }}
+        >
+          <Panel eyebrow="Analytics" title="Score Trend (12 weeks)">
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 800,
+                color:
+                  overallTrendDelta === null
+                    ? "var(--text-muted)"
+                    : overallTrendDelta > 3
+                    ? "var(--chart-positive)"
+                    : overallTrendDelta < -3
+                    ? "var(--chart-critical)"
+                    : "var(--text-muted)",
+                marginBottom: 14,
+              }}
+            >
+              {overallTrendLabel}
+            </div>
+
+            <div style={{ position: "relative", height: 120 }}>
+              {/* SVG bar chart */}
+              <svg
+                width="100%"
+                height="120"
+                viewBox="0 0 660 120"
+                preserveAspectRatio="none"
+                style={{ display: "block" }}
+              >
+                {weeklyTrend.map((week, i) => {
+                  const barWidth = 44;
+                  const gap = 11;
+                  const x = i * (barWidth + gap);
+                  const chartH = 90;
+                  const barH = week.avg !== null ? Math.round((week.avg / 100) * chartH) : 0;
+                  const y = chartH - barH;
+
+                  return (
+                    <g key={i}>
+                      {week.avg !== null ? (
+                        <>
+                          <rect
+                            x={x}
+                            y={y}
+                            width={barWidth}
+                            height={barH}
+                            rx={4}
+                            fill="var(--accent)"
+                            opacity="0.85"
+                          />
+                          <text
+                            x={x + barWidth / 2}
+                            y={y - 4}
+                            textAnchor="middle"
+                            fontSize="9"
+                            fill="var(--text-muted)"
+                            fontWeight="800"
+                          >
+                            {week.avg}
+                          </text>
+                        </>
+                      ) : (
+                        <rect
+                          x={x}
+                          y={0}
+                          width={barWidth}
+                          height={chartH}
+                          rx={4}
+                          fill="none"
+                          stroke="var(--card-border-soft)"
+                          strokeWidth="1"
+                          strokeDasharray="3 3"
+                          opacity="0.5"
+                        />
+                      )}
+                      {i % 3 === 0 && (
+                        <text
+                          x={x + barWidth / 2}
+                          y={110}
+                          textAnchor="middle"
+                          fontSize="9"
+                          fill="var(--text-muted)"
+                          fontWeight="700"
+                        >
+                          {week.label}
+                        </text>
+                      )}
+                    </g>
+                  );
+                })}
+              </svg>
+            </div>
+          </Panel>
+
+          <Panel eyebrow="Interventions" title="At-Risk Students">
+            {atRiskStudentRows.length > 0 ? (
+              <div style={{ display: "grid", gap: 10 }}>
+                {atRiskStudentRows.map((s) => {
+                  const weakness = getTopWeakness(s);
+                  const intervention = getIntervention(s);
+                  return (
+                    <div
+                      key={s.id}
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 14,
+                        border: "1px solid var(--card-border-soft)",
+                        background: "var(--card-bg)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          gap: 10,
+                        }}
+                      >
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 900,
+                              color: "var(--text-primary)",
+                            }}
+                          >
+                            {s.name}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: "var(--text-muted)",
+                              marginTop: 2,
+                            }}
+                          >
+                            {s.email}
+                          </div>
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "flex-end",
+                            gap: 4,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              padding: "3px 8px",
+                              borderRadius: 999,
+                              background: "var(--chart-critical-soft, var(--accent-soft))",
+                              color: "var(--chart-critical, var(--accent))",
+                              fontSize: 11,
+                              fontWeight: 900,
+                            }}
+                          >
+                            {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : "—"}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 800,
+                              color: "var(--text-muted)",
+                              textAlign: "right",
+                            }}
+                          >
+                            {weakness}
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          marginTop: 8,
+                          fontSize: 11,
+                          color: "var(--text-muted)",
+                          fontStyle: "italic",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {intervention}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  border: "1px solid var(--card-border-soft)",
+                  background: "var(--card-bg)",
+                  fontSize: 13,
+                  color: "var(--text-muted)",
+                }}
+              >
+                No at-risk students in this cohort.
+              </div>
+            )}
+          </Panel>
+        </div>
+
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1.1fr 1fr",
-            gap: 16,
+            gap: 18,
           }}
         >
           <Panel eyebrow="Student View" title="Student Activity Preview" minHeight={320}>
@@ -1381,6 +1825,10 @@ export default async function AdminPage() {
                 label="Most Common Focus"
                 value={weaknessRows[0]?.label ?? "Still emerging"}
               />
+              <MetricPill
+                label="Avg Result Impact"
+                value={avgResultImpact !== null ? String(avgResultImpact) : "—"}
+              />
               <div
                 style={{
                   marginTop: 4,
@@ -1400,6 +1848,157 @@ export default async function AdminPage() {
             </div>
           </Panel>
         </div>
+
+        {/* Assignments Panel */}
+        <Panel eyebrow="Course Assignments" title="Active Assignments">
+          <div style={{ display: "grid", gap: 14 }}>
+            <CreateAssignmentForm />
+
+            {assignmentStats.length === 0 ? (
+              <div
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 14,
+                  border: "1px solid var(--card-border-soft)",
+                  background: "var(--card-bg)",
+                  fontSize: 13,
+                  color: "var(--text-muted)",
+                }}
+              >
+                No active assignments yet. Use the form above to create one.
+              </div>
+            ) : (
+              (assignmentStats as Array<{
+                id: string;
+                title: string;
+                description: string | null;
+                dueDate: Date | null;
+                questionCategories: string[];
+                minAttempts: number;
+                completedCount: number;
+                totalStudents: number;
+                completionPct: number;
+              }>).map((a) => {
+                const dueDateDisplay = a.dueDate
+                  ? new Date(a.dueDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })
+                  : null;
+
+                const categoryLabel =
+                  a.questionCategories.length > 0
+                    ? a.questionCategories.join(", ")
+                    : "any category";
+
+                return (
+                  <div
+                    key={a.id}
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      border: "1px solid var(--card-border-soft)",
+                      background: "var(--card-bg)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 12,
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 900,
+                            color: "var(--text-primary)",
+                          }}
+                        >
+                          {a.title}
+                        </div>
+                        {a.description && (
+                          <div
+                            style={{
+                              marginTop: 3,
+                              fontSize: 12,
+                              color: "var(--text-muted)",
+                              lineHeight: 1.5,
+                            }}
+                          >
+                            {a.description}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            marginTop: 6,
+                            fontSize: 11,
+                            color: "var(--text-muted)",
+                            display: "flex",
+                            gap: 10,
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <span>
+                            Required: {a.minAttempts} attempts in {categoryLabel}
+                          </span>
+                          {dueDateDisplay && (
+                            <span style={{ color: "var(--accent)" }}>
+                              Due {dueDateDisplay}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          fontSize: 13,
+                          fontWeight: 900,
+                          color: "var(--text-primary)",
+                          textAlign: "right",
+                        }}
+                      >
+                        {a.completedCount}/{a.totalStudents}
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "var(--text-muted)",
+                          }}
+                        >
+                          {a.completionPct}% complete
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div
+                      style={{
+                        marginTop: 10,
+                        height: 6,
+                        borderRadius: 999,
+                        background: "var(--card-border-soft)",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: `${a.completionPct}%`,
+                          height: "100%",
+                          borderRadius: 999,
+                          background: "var(--accent)",
+                          transition: "width 0.3s ease",
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </Panel>
       </div>
     </PremiumShell>
   );

@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "app/api/voice-metrics/route.ts": {
+      "maxDuration": 180
+    },
+    "app/api/feedback/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
