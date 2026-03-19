@@ -188,30 +188,10 @@ function buildFeedback(params: {
 
   if (params.framework === "star" && params.starSubscores) {
     normalized.star = {
-      situation: {
-        score: params.starSubscores.S,
-        feedback: params.starSubscores.S >= 7
-          ? "Context is set clearly and efficiently."
-          : "Situation is vague — add one concrete detail about stakes or scope.",
-      },
-      task: {
-        score: params.starSubscores.T,
-        feedback: params.starSubscores.T >= 7
-          ? "Your ownership of the task is clear."
-          : "State your specific responsibility more explicitly.",
-      },
-      action: {
-        score: params.starSubscores.A,
-        feedback: params.starSubscores.A >= 7
-          ? "Actions are concrete and show real decision-making."
-          : "Use stronger verbs; make the steps more specific.",
-      },
-      result: {
-        score: params.starSubscores.R,
-        feedback: params.starSubscores.R >= 7
-          ? "Strong result with measurable or meaningful outcome."
-          : "Close with a specific, quantified result — what exactly changed?",
-      },
+      situation: params.starSubscores.S,
+      task: params.starSubscores.T,
+      action: params.starSubscores.A,
+      result: params.starSubscores.R,
     };
   }
 

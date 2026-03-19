@@ -50,7 +50,7 @@ async function run() {
   for (const s of students) {
     const user = await prisma.user.upsert({
       where: { email: s.email },
-      update: {},
+      update: { passwordHash: studentHash, tenantId: tenant.id },
       create: {
         email: s.email,
         name: s.name,
