@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
@@ -32,7 +32,9 @@ export default function LoginPage() {
       return;
     }
 
-    window.location.href = res.url ?? callbackUrl;
+    const session = await getSession();
+    const role = (session?.user as any)?.tenantRole;
+    window.location.href = role === "tenant_admin" ? "/admin" : (res.url ?? callbackUrl);
   }
 
   return (

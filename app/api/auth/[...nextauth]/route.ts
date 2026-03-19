@@ -240,8 +240,17 @@ export const authOptions: NextAuthOptions = {
         };
       }
 
+      // Look up tenant role for redirect logic
+      const membership = effectiveUserId && dbUser?.tenantId
+        ? await prisma.tenantMembership.findFirst({
+            where: { userId: effectiveUserId, tenantId: dbUser.tenantId },
+            select: { role: true },
+          })
+        : null;
+
       token.tenantId = dbUser?.tenantId ?? null;
       token.tenant = dbUser?.tenant ?? null;
+      token.tenantRole = membership?.role ?? null;
       token.subscriptionStatus = dbUser?.subscriptionStatus ?? "free";
       token.stripeCustomerId = dbUser?.stripeCustomerId ?? null;
       token.stripePriceId = dbUser?.stripePriceId ?? null;
@@ -253,6 +262,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       (session.user as any).id = token.userId;
       (session.user as any).tenantId = token.tenantId ?? null;
+      (session.user as any).tenantRole = token.tenantRole ?? null;
 
       (session as any).tenant = token.tenant ?? null;
 

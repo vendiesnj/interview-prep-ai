@@ -813,8 +813,7 @@ export default async function AdminPage({
     .sort((a, b) => {
       if (b.attempts !== a.attempts) return b.attempts - a.attempts;
       return (b.avgScore ?? -1) - (a.avgScore ?? -1);
-    })
-    .slice(0, 6);
+    });
   const totalAttempts = filteredAttempts.length;
 
     const scoreVals = filteredAttempts
@@ -1725,128 +1724,170 @@ const stalledPct =
           </Panel>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.1fr 1fr",
-            gap: 18,
-          }}
-        >
-          <Panel eyebrow="Student View" title="Student Activity Preview" minHeight={320}>
-            <div style={{ display: "grid", gap: 10 }}>
-              {attemptsByUser.length > 0 ? (
-                attemptsByUser.map((row) => (
-                  <Link
-                    key={row.id}
-                    href={`/admin/students/${row.id}`}
-                    style={{ textDecoration: "none" }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 14,
-                        alignItems: "center",
-                        padding: "12px 14px",
-                        borderRadius: 14,
-                        border: "1px solid var(--card-border-soft)",
-                        background: "var(--card-bg)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 900,
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {row.name}
-                        </div>
-                        <div
-                          style={{
-                            marginTop: 4,
-                            fontSize: 12,
-                            color: "var(--text-muted)",
-                            lineHeight: 1.45,
-                          }}
-                        >
-                          {row.attempts} attempts · avg score{" "}
-                          {row.avgScore !== null ? Math.round(row.avgScore) : "—"}
-                        </div>
-                      </div>
+        {/* Full Student Roster */}
+        <GlowCard padding={22} radius={22}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 18 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>
+                Student Roster
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)" }}>
+                {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""}
+                {activeCohort !== "all" ? ` · ${activeCohort} cohort` : ""}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 10 }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-positive)", display: "inline-block" }} />
+                  High ≥80
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-neutral)", display: "inline-block" }} />
+                  Mid 60–79
+                </span>
+                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-critical)", display: "inline-block" }} />
+                  At-Risk &lt;60
+                </span>
+              </div>
+            </div>
+          </div>
 
-                      <div
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 900,
-                          color: "var(--text-primary)",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {row.latest ? row.latest.toLocaleDateString() : "—"}
-                      </div>
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div
-                  style={{
-                    padding: "12px 14px",
+          {/* Header row */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1.6fr 80px 80px 80px 100px 110px 36px",
+            gap: 12,
+            padding: "0 14px 10px 14px",
+            fontSize: 11,
+            fontWeight: 900,
+            letterSpacing: 0.6,
+            color: "var(--text-muted)",
+            textTransform: "uppercase",
+            borderBottom: "1px solid var(--card-border-soft)",
+            marginBottom: 8,
+          }}>
+            <div>Student</div>
+            <div>Score</div>
+            <div>Comm</div>
+            <div>Conf</div>
+            <div>Attempts</div>
+            <div>Last Active</div>
+            <div />
+          </div>
+
+          <div style={{ display: "grid", gap: 6 }}>
+            {attemptsByUser.length > 0 ? attemptsByUser.map((row) => {
+              const cohortColor =
+                row.cohort === "high"
+                  ? "var(--chart-positive)"
+                  : row.cohort === "mid"
+                  ? "var(--chart-neutral)"
+                  : "var(--chart-critical)";
+              const cohortBg =
+                row.cohort === "high"
+                  ? "rgba(22,163,74,0.08)"
+                  : row.cohort === "mid"
+                  ? "rgba(245,158,11,0.09)"
+                  : "rgba(239,68,68,0.08)";
+              const cohortLabel =
+                row.cohort === "high" ? "High" : row.cohort === "mid" ? "Mid" : "At-Risk";
+
+              const userAttempts = row.attemptsRaw;
+              const commAvg = round1(avg(userAttempts.map(getAttemptComm).filter((v): v is number => v !== null)));
+              const confAvg = round1(avg(userAttempts.map(getAttemptConf).filter((v): v is number => v !== null)));
+
+              const daysSince = row.latest
+                ? Math.floor((Date.now() - new Date(row.latest).getTime()) / (1000 * 60 * 60 * 24))
+                : null;
+              const lastActiveLabel = daysSince === null ? "—"
+                : daysSince === 0 ? "Today"
+                : daysSince === 1 ? "Yesterday"
+                : daysSince <= 7 ? `${daysSince}d ago`
+                : row.latest ? new Date(row.latest).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
+              const lastActiveColor = daysSince !== null && daysSince > 14 ? "var(--chart-critical)" : "var(--text-muted)";
+
+              return (
+                <Link key={row.id} href={`/admin/students/${row.id}`} style={{ textDecoration: "none" }}>
+                  <div style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.6fr 80px 80px 80px 100px 110px 36px",
+                    gap: 12,
+                    alignItems: "center",
+                    padding: "11px 14px",
                     borderRadius: 14,
                     border: "1px solid var(--card-border-soft)",
                     background: "var(--card-bg)",
-                    fontSize: 13,
-                    color: "var(--text-muted)",
-                  }}
-                >
-                  Student-level activity will appear once attempts exist.
-                </div>
-              )}
-            </div>
-          </Panel>
+                    cursor: "pointer",
+                    transition: "border-color 0.15s",
+                  }}>
+                    <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
+                      {/* Avatar */}
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                        background: `linear-gradient(135deg, ${cohortColor}22, ${cohortColor}44)`,
+                        border: `1.5px solid ${cohortColor}55`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, fontWeight: 900, color: cohortColor,
+                      }}>
+                        {(row.name || "?")[0].toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {row.name}
+                        </div>
+                        <div style={{ marginTop: 2, fontSize: 11, color: "var(--text-muted)" }}>
+                          {row.email}
+                        </div>
+                      </div>
+                    </div>
 
-          <Panel eyebrow="School Summary" title="Coaching Outcome Summary" minHeight={320}>
-            <div style={{ display: "grid", gap: 12 }}>
-              <MetricPill
-                label="Communication Baseline"
-                value={avgCommunicationDisplay}
-              />
-              <MetricPill
-                label="Confidence Baseline"
-                value={avgConfidenceDisplay}
-              />
-              <MetricPill
-                label="Speaking Coverage"
-                value={`${spokenRate}% spoken attempts`}
-              />
-              <MetricPill
-                label="Most Common Focus"
-                value={weaknessRows[0]?.label ?? "Still emerging"}
-              />
-              <MetricPill
-                label="Avg Result Impact"
-                value={avgResultImpact !== null ? String(avgResultImpact) : "—"}
-              />
-              <div
-                style={{
-                  marginTop: 4,
-                  padding: 14,
-                  borderRadius: 16,
-                  border: "1px solid var(--card-border-soft)",
-                  background: "var(--card-bg)",
-                  fontSize: 13,
-                  lineHeight: 1.7,
-                  color: "var(--text-muted)",
-                }}
-              >
-                This dashboard reflects real platform usage, actual speaking metrics,
-                and role-readiness signals based on the same score, delivery, and
-                profile data already powering your student-facing Insights and Results pages.
+                    {/* Score with cohort pill */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
+                        {row.avgScore100 !== null ? `${row.avgScore100}` : "—"}
+                      </div>
+                      <div style={{ padding: "2px 6px", borderRadius: 999, background: cohortBg, color: cohortColor, fontSize: 10, fontWeight: 900, display: "inline-block" }}>
+                        {cohortLabel}
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                      {commAvg !== null ? `${pctFrom10(commAvg)}%` : "—"}
+                    </div>
+
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                      {confAvg !== null ? `${pctFrom10(confAvg)}%` : "—"}
+                    </div>
+
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                      {row.attempts} rep{row.attempts !== 1 ? "s" : ""}
+                    </div>
+
+                    <div style={{ fontSize: 12, fontWeight: 800, color: lastActiveColor }}>
+                      {lastActiveLabel}
+                    </div>
+
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 700 }}>→</div>
+                  </div>
+                </Link>
+              );
+            }) : (
+              <div style={{ padding: "24px 14px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                No students found. Seed demo data or invite students to get started.
               </div>
-            </div>
-          </Panel>
+            )}
+          </div>
+        </GlowCard>
+
+        {/* Coaching Summary */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12 }}>
+          <MetricPill label="Communication" value={avgCommunicationDisplay} />
+          <MetricPill label="Confidence" value={avgConfidenceDisplay} />
+          <MetricPill label="Spoken Attempts" value={`${spokenRate}%`} />
+          <MetricPill label="Most Common Gap" value={weaknessRows[0]?.label ?? "Still emerging"} />
+          <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : "—"} />
         </div>
 
         {/* Assignments Panel */}

@@ -338,6 +338,32 @@ export const lightTheme: AppTheme = {
   },
 };
 
+export const demoCollegeTheme: AppTheme = {
+  ...lightTheme,
+  name: "demo-college",
+  colors: {
+    ...lightTheme.colors,
+    pageBgAccentA: "rgba(22,163,74,0.055)",
+    pageBgAccentB: "rgba(21,128,61,0.040)",
+
+    accent: "#16A34A",
+    accentSoft: "rgba(22,163,74,0.09)",
+    accentStrong: "rgba(22,163,74,0.22)",
+
+    accent2: "#15803D",
+    accent2Soft: "rgba(21,128,61,0.10)",
+
+    success: "#15803D",
+    successSoft: "rgba(21,128,61,0.09)",
+
+    chartPositive: "#16A34A",
+  },
+  shadows: {
+    ...lightTheme.shadows,
+    glow: "0 8px 24px rgba(22,163,74,0.18)",
+  },
+};
+
 export const themePresets = {
   default: defaultTheme,
   light: lightTheme,
@@ -346,6 +372,7 @@ export const themePresets = {
   michigan: michiganTheme,
   pennState: pennStateTheme,
   virginiaTech: virginiaTechTheme,
+  demoCollege: demoCollegeTheme,
 };
 
 export type ThemePresetName = keyof typeof themePresets;

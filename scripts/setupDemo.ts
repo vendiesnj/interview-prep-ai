@@ -9,10 +9,11 @@ async function run() {
   // 1. Create demo tenant
   const tenant = await prisma.tenant.upsert({
     where: { slug: "demo-college" },
-    update: {},
+    update: { themeKey: "demoCollege" },
     create: {
       name: "Riverside Community College",
       slug: "demo-college",
+      themeKey: "demoCollege",
     },
   });
   console.log("Tenant:", tenant.id, `(${tenant.name})`);
