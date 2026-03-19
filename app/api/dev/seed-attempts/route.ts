@@ -1330,20 +1330,44 @@ export async function POST(req: NextRequest) {
     const tenantId = tenant.id;
 
     // ---------------------------------------------------------------------------
-    // Step 1: Delete all existing demo users by email domain
+    // Step 1: Clean up demo data
+    // Featured students (created by setupDemo.ts with passwords): keep user records,
+    // just wipe their attempts and job profiles so passwords are preserved.
+    // Supporting students: delete entirely since they have no passwords to preserve.
     // ---------------------------------------------------------------------------
-    const existingDemoUsers = await prisma.user.findMany({
-      where: { email: { contains: "@demo-college.edu" } },
-      select: { id: true, email: true },
+    const FEATURED_EMAILS = [
+      "maria@demo-college.edu",
+      "james@demo-college.edu",
+      "priya@demo-college.edu",
+      "derek@demo-college.edu",
+      "ashley@demo-college.edu",
+    ];
+
+    // Wipe attempts + job profiles for featured students (keep users)
+    const featuredUsers = await prisma.user.findMany({
+      where: { email: { in: FEATURED_EMAILS } },
+      select: { id: true },
     });
+    const featuredIds = featuredUsers.map((u) => u.id);
+    if (featuredIds.length > 0) {
+      await prisma.attempt.deleteMany({ where: { userId: { in: featuredIds } } });
+      await prisma.jobProfile.deleteMany({ where: { userId: { in: featuredIds } } });
+    }
 
-    const allDemoUserIds = existingDemoUsers.map((u) => u.id);
-
-    if (allDemoUserIds.length > 0) {
-      await prisma.attempt.deleteMany({ where: { userId: { in: allDemoUserIds } } });
-      await prisma.jobProfile.deleteMany({ where: { userId: { in: allDemoUserIds } } });
-      await prisma.tenantMembership.deleteMany({ where: { userId: { in: allDemoUserIds } } });
-      await prisma.user.deleteMany({ where: { id: { in: allDemoUserIds } } });
+    // Delete supporting students entirely
+    const supportingUsers = await prisma.user.findMany({
+      where: {
+        email: { contains: "@demo-college.edu" },
+        NOT: { email: { in: [...FEATURED_EMAILS, "admin@demo-college.edu"] } },
+      },
+      select: { id: true },
+    });
+    const supportingIds = supportingUsers.map((u) => u.id);
+    if (supportingIds.length > 0) {
+      await prisma.attempt.deleteMany({ where: { userId: { in: supportingIds } } });
+      await prisma.jobProfile.deleteMany({ where: { userId: { in: supportingIds } } });
+      await prisma.tenantMembership.deleteMany({ where: { userId: { in: supportingIds } } });
+      await prisma.user.deleteMany({ where: { id: { in: supportingIds } } });
     }
 
     // ---------------------------------------------------------------------------
