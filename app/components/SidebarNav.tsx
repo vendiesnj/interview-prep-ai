@@ -50,7 +50,7 @@ const STUDENT_GROUPS: NavGroup[] = [
     items: [
       { label: "Interview Prep", href: "/practice", icon: <Mic size={18} /> },
       { label: "Public Speaking", href: "/public-speaking", icon: <Radio size={18} /> },
-      { label: "Networking Pitch", href: "/practice", icon: <TrendingUp size={18} />, comingSoon: true },
+      { label: "Networking Pitch", href: "/networking", icon: <TrendingUp size={18} /> },
       { label: "College Ready", href: "/practice", icon: <CheckSquare size={18} />, comingSoon: true },
     ],
   },
