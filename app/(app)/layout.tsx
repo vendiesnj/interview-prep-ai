@@ -16,6 +16,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <div style={{ display: "flex", minHeight: "100vh" }}>
       <SidebarNav />
       <main
+        className="ipc-main-content"
         style={{
           flex: "1 1 auto",
           minWidth: 0,

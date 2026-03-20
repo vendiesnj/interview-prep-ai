@@ -362,3 +362,204 @@ textarea::placeholder {
 .text-soft {
   color: var(--text-soft);
 }
+
+/* =============================================================
+   MOBILE RESPONSIVE — IPC
+   Breakpoints:
+     sm  ≤ 480px   (phone portrait)
+     md  ≤ 768px   (tablet/phone landscape)
+   ============================================================= */
+
+/* Main content area: extra bottom padding on mobile for the bottom tab bar */
+@media (max-width: 768px) {
+  .ipc-main-content {
+    padding: 14px 14px 80px !important;
+  }
+}
+
+/* ── LANDING PAGE ─────────────────────────────────────────── */
+
+/* Hero: stack columns, shrink heading */
+@media (max-width: 768px) {
+  .ipc-hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ipc-hero-preview {
+    display: none !important; /* hide sample card on very narrow screens */
+  }
+  .ipc-hero-h1 {
+    font-size: 38px !important;
+    letter-spacing: -0.6px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ipc-hero-h1 {
+    font-size: 30px !important;
+    letter-spacing: -0.3px !important;
+  }
+}
+
+/* Stats bar: 2-col on mobile */
+@media (max-width: 768px) {
+  .ipc-stats-bar {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0 !important;
+  }
+  .ipc-stats-bar > * {
+    border-right: 1px solid var(--card-border-soft);
+    border-bottom: 1px solid var(--card-border-soft);
+  }
+  .ipc-stats-bar > *:nth-child(2n) {
+    border-right: none;
+  }
+}
+
+/* 4-column grids → 2-col on tablet, 1-col on phone */
+@media (max-width: 768px) {
+  .ipc-grid-4 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  .ipc-grid-4 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 3-column grids → 1-col on mobile */
+@media (max-width: 768px) {
+  .ipc-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 2-column grids → 1-col on mobile */
+@media (max-width: 768px) {
+  .ipc-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* STAR explainer: stack on mobile */
+@media (max-width: 768px) {
+  .ipc-star-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Sections: reduce vertical padding on mobile */
+@media (max-width: 768px) {
+  .ipc-section {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .ipc-section-narrow {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+}
+
+/* Landing nav: hide "Log in" link, keep CTA */
+@media (max-width: 480px) {
+  .ipc-nav-login-hide {
+    display: none !important;
+  }
+  .ipc-logo-box {
+    width: 220px !important;
+    height: 60px !important;
+  }
+}
+
+/* Section h2 headings: shrink on mobile */
+@media (max-width: 768px) {
+  .ipc-section-h2 {
+    font-size: 26px !important;
+    letter-spacing: -0.3px !important;
+  }
+}
+
+/* ── INNER APP PAGES ──────────────────────────────────────── */
+
+/* Dashboard metric grid: 2-col on tablet, 1-col on phone */
+@media (max-width: 768px) {
+  .ipc-dashboard-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  .ipc-dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Results / insights: stack panels */
+@media (max-width: 768px) {
+  .ipc-results-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .ipc-tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ipc-tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* PremiumShell header: stack on mobile */
+@media (max-width: 768px) {
+  .ipc-shell-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+}
+
+/* Cards: reduce padding on mobile */
+@media (max-width: 480px) {
+  .ipc-card-mobile-pad {
+    padding: 14px !important;
+  }
+}
+
+/* Tables: horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .ipc-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+  .ipc-table-scroll table {
+    min-width: 560px;
+  }
+}
+
+/* Hide help panel on mobile */
+@media (max-width: 768px) {
+  .ipc-help-panel {
+    display: none !important;
+  }
+}
+
+/* Progress/HOW IT WORKS editorial steps: stack on mobile */
+@media (max-width: 768px) {
+  .ipc-process-step {
+    grid-template-columns: 1fr !important;
+  }
+  .ipc-process-number {
+    font-size: 48px !important;
+  }
+}
+
+/* Feature cards: full-width first card reset on mobile */
+@media (max-width: 768px) {
+  .ipc-feature-featured {
+    grid-column: 1 !important;
+  }
+}

@@ -266,6 +266,7 @@ export default function HelpPanel() {
         <button
           onClick={() => setOpen(true)}
           title="Help & Guide"
+          className="ipc-help-panel"
           style={{
             position: "fixed",
             right: 20,
@@ -292,6 +293,7 @@ export default function HelpPanel() {
 
       {/* Panel */}
       <div
+        className="ipc-help-panel"
         style={{
           position: "fixed",
           right: open ? 0 : -380,

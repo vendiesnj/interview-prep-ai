@@ -52,6 +52,7 @@ export default function HomePage() {
           >
             <Link href="/" aria-label="Interview Performance Coach" style={{ display: "inline-flex", textDecoration: "none" }}>
               <div
+                className="ipc-logo-box"
                 style={{
                   width: 320,
                   height: 84,
@@ -82,7 +83,7 @@ export default function HomePage() {
                 </>
               ) : (
                 <>
-                  <Link href="/login" style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900 }}>
+                  <Link href="/login" className="ipc-nav-login-hide" style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900 }}>
                     Log in
                   </Link>
                   <Link href="/signup" style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, boxShadow: "var(--shadow-glow)" }}>
@@ -94,7 +95,7 @@ export default function HomePage() {
           </div>
 
           {/* Hero content */}
-          <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 28, alignItems: "start" }}>
+          <div className="ipc-hero-grid" style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 28, alignItems: "start" }}>
             <div>
               <Reveal delayMs={80}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 999, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", fontSize: 12, fontWeight: 900, letterSpacing: 0.3 }}>
@@ -103,7 +104,7 @@ export default function HomePage() {
               </Reveal>
 
               <Reveal delayMs={160}>
-                <h1 style={{ marginTop: 16, fontSize: 58, lineHeight: 1.02, letterSpacing: -1.4, fontWeight: 1000 as any, color: "var(--text-primary)", maxWidth: 760, fontFamily: "var(--font-manrope)" }}>
+                <h1 className="ipc-hero-h1" style={{ marginTop: 16, fontSize: 58, lineHeight: 1.02, letterSpacing: -1.4, fontWeight: 1000 as any, color: "var(--text-primary)", maxWidth: 760, fontFamily: "var(--font-manrope)" }}>
                   Know exactly what to fix—<span style={{ color: "var(--accent)" }}>before</span> your next interview.
                 </h1>
               </Reveal>
@@ -146,7 +147,7 @@ export default function HomePage() {
             </div>
 
             <Reveal delayMs={420}>
-              <div className="ipc-glow-border" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card)", overflow: "hidden", position: "relative" }}>
+              <div className="ipc-hero-preview ipc-glow-border" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card)", overflow: "hidden", position: "relative" }}>
                 <div style={{ position: "absolute", inset: -1, background: `radial-gradient(500px 240px at 20% 0%, var(--accent-2-soft), transparent 60%), radial-gradient(420px 220px at 90% 10%, var(--accent-soft), transparent 55%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative" }}>
                   <div style={{ padding: 16, borderBottom: "1px solid var(--card-border-soft)" }}>
@@ -211,7 +212,7 @@ export default function HomePage() {
 
       {/* ── STATS BAR ────────────────────────────────────────────────────── */}
       <section style={{ width: "100%", padding: "20px 24px", background: "var(--card-bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
+        <div className="ipc-stats-bar" style={{ maxWidth: 1180, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
           {[
             { stat: "48+", label: "Question categories", d: "ipc-stat-pop-d1" },
             { stat: "6", label: "Delivery signals tracked", d: "ipc-stat-pop-d2" },
@@ -232,11 +233,11 @@ export default function HomePage() {
       </section>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ maxWidth: 640, marginBottom: 48 }}>
             <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>THE PROCESS</div>
-            <h2 style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
+            <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
               Four steps. Zero guesswork.
             </h2>
             <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.75, color: "var(--text-muted)" }}>
@@ -252,7 +253,7 @@ export default function HomePage() {
               { n: "04", title: "Track your progress", body: "See performance trends by question type, job profile, and time. Identify your strongest areas and the patterns dragging your score down." },
             ].map(({ n, title, body }, i, arr) => (
               <Reveal key={n} delayMs={parseInt(n) * 80}>
-                <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 28, alignItems: "start", padding: "32px 0", borderTop: "1px solid var(--card-border-soft)", position: "relative" }}>
+                <div className="ipc-process-step" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 28, alignItems: "start", padding: "32px 0", borderTop: "1px solid var(--card-border-soft)", position: "relative" }}>
                   <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "flex-start" }}>
                     <div style={{ fontSize: 80, fontWeight: 950, letterSpacing: -3, color: "var(--accent)", opacity: 0.08, lineHeight: 1, userSelect: "none", position: "absolute", top: -10, left: -4 }}>{n}</div>
                     <div style={{ fontSize: 13, fontWeight: 950, color: "var(--accent)", letterSpacing: 0.6, marginTop: 4, position: "relative", zIndex: 1 }}>{n}</div>
@@ -269,11 +270,11 @@ export default function HomePage() {
       </section>
 
       {/* ── VALUE STRIP ──────────────────────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "68px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "68px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ maxWidth: 760 }}>
             <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>THE DIFFERENCE</div>
-            <h2 style={{ marginTop: 10, fontSize: 40, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
+            <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 40, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
               Most prep tools give you a recording. IPC gives you a diagnosis.
             </h2>
             <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.75, color: "var(--text-muted)" }}>
@@ -281,7 +282,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
+          <div className="ipc-grid-3" style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
             <Reveal delayMs={120}><LightCard title="Component-level scoring" body="STAR structure, communication, confidence, and role alignment are scored separately so you know exactly what needs work — not just 'practice more'." /></Reveal>
             <Reveal delayMs={220}><LightCard title="Delivery intelligence" body="Track pace, fillers, vocal variety, pitch dynamics, and speaking energy so you improve both content and delivery simultaneously." /></Reveal>
             <Reveal delayMs={320}><LightCard title="Cross-session patterns" body="See strengths, weak spots, category performance, and role-based patterns across all your practice — not just the last attempt." /></Reveal>
@@ -290,16 +291,16 @@ export default function HomePage() {
       </section>
 
       {/* ── CORE FEATURES ────────────────────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ maxWidth: 760 }}>
             <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>WHAT'S INSIDE</div>
-            <h2 style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
+            <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
               Built for the full practice loop — not just one rep.
             </h2>
           </div>
 
-          <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
+          <div className="ipc-grid-2" style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
             <div style={{ gridColumn: "1 / -1" }}>
               <FeatureCard
                 eyebrow="Practice"
@@ -331,11 +332,11 @@ export default function HomePage() {
       </section>
 
       {/* ── STAR METHOD EXPLAINER (SEO) ───────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "80px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
-        <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "80px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div className="ipc-star-grid" style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }}>
           <div>
             <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>THE STAR METHOD</div>
-            <h2 style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
+            <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
               Why STAR structure is the most reliable interview framework — and how IPC scores it.
             </h2>
             <p style={{ marginTop: 14, fontSize: 15, lineHeight: 1.8, color: "var(--text-muted)" }}>
@@ -377,7 +378,7 @@ export default function HomePage() {
       </section>
 
       {/* ── SOCIAL PROOF ─────────────────────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "72px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "72px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 32, textAlign: "center" }}>IN THEIR WORDS</div>
 
@@ -394,7 +395,7 @@ export default function HomePage() {
           </blockquote>
 
           {/* Two equal quotes below */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             {[
               { quote: "I went from rambling answers with no structure to clean STAR responses in about two weeks. The Result score feedback was the thing that clicked — I kept ending on the action and not the outcome.", name: "Marketing Manager", context: "Switched roles after 6 years" },
               { quote: "The filler word tracking was humbling. I didn't realize I was saying 'um' 14 times per answer. Seeing the exact count every rep made it impossible to ignore, and I fixed it faster than I expected.", name: "Software Engineer", context: "Preparing for senior-level interviews" },
@@ -412,13 +413,13 @@ export default function HomePage() {
       </section>
 
       {/* ── AUDIENCE STRIP ───────────────────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "72px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "72px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16 }}>BUILT FOR</div>
-          <h2 style={{ marginTop: 0, marginBottom: 28, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
+          <h2 className="ipc-section-h2" style={{ marginTop: 0, marginBottom: 28, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
             Two paths. Same goal: walk in prepared.
           </h2>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+          <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
             <AudienceCard
               title="Job seekers"
               body="Practice on your own schedule, build stronger structured answers, and walk into interviews with the confidence that comes from reps — not just reading tips."
@@ -434,17 +435,17 @@ export default function HomePage() {
       </section>
 
       {/* ── INTERVIEW TIPS (SEO ARTICLES) ────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "80px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section" style={{ width: "100%", padding: "80px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>GUIDES</div>
-          <h2 style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", maxWidth: 760, fontFamily: "var(--font-manrope)" }}>
+          <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", maxWidth: 760, fontFamily: "var(--font-manrope)" }}>
             What actually moves the needle in interview prep.
           </h2>
           <p style={{ marginTop: 12, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 720 }}>
             The most common interview mistakes are fixable with the right framework. Here's what the research and patterns from thousands of practice sessions show actually moves the needle.
           </p>
 
-          <div style={{ marginTop: 36, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+          <div className="ipc-grid-3" style={{ marginTop: 36, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
             <article className="ipc-card-lift" style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Delivery</div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3, fontFamily: "var(--font-manrope)" }}>
@@ -497,10 +498,10 @@ export default function HomePage() {
       </section>
 
       {/* ── FAQ (SEO) ─────────────────────────────────────────────────────── */}
-      <section style={{ width: "100%", padding: "80px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      <section className="ipc-section-narrow" style={{ width: "100%", padding: "80px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 860, margin: "0 auto" }}>
           <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", textAlign: "center" }}>QUESTIONS</div>
-          <h2 style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", textAlign: "center", fontFamily: "var(--font-manrope)" }}>
+          <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", textAlign: "center", fontFamily: "var(--font-manrope)" }}>
             Everything you need to know before your first practice rep.
           </h2>
 
