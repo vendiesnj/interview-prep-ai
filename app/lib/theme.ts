@@ -364,9 +364,33 @@ export const demoCollegeTheme: AppTheme = {
   },
 };
 
+export const ipcBlueTheme: AppTheme = {
+  ...lightTheme,
+  name: "ipc-blue",
+  colors: {
+    ...lightTheme.colors,
+    pageBgAccentA: "rgba(29,78,216,0.07)",
+    pageBgAccentB: "rgba(2,132,199,0.06)",
+
+    accent: "#1D4ED8",
+    accentSoft: "rgba(29,78,216,0.09)",
+    accentStrong: "rgba(29,78,216,0.22)",
+
+    accent2: "#0284C7",
+    accent2Soft: "rgba(2,132,199,0.10)",
+  },
+  shadows: {
+    card: "0 1px 3px rgba(15,23,42,0.07), 0 10px 28px rgba(29,78,216,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
+    cardSoft: "0 1px 2px rgba(15,23,42,0.05), 0 4px 12px rgba(15,23,42,0.04)",
+    glow: "0 8px 24px rgba(29,78,216,0.22)",
+    none: "none",
+  },
+};
+
 export const themePresets = {
   default: defaultTheme,
   light: lightTheme,
+  ipcBlue: ipcBlueTheme,
   pitch: pitchTheme,
   rutgers: rutgersTheme,
   michigan: michiganTheme,
@@ -384,5 +408,5 @@ export function getThemeByName(name?: string | null): AppTheme {
   return themePresets[name as ThemePresetName] ?? lightTheme;
 }
 
-export const activeThemeName: ThemePresetName = "light";
+export const activeThemeName: ThemePresetName = "ipcBlue";
 export const activeTheme = themePresets[activeThemeName];

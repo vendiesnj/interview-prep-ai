@@ -2,12 +2,13 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "../app/globals.css";
-import { Inter } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import { activeTheme } from "@/app/lib/theme";
 import type { ReactNode } from "react";
 import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
   title: "AI Interview Practice Tool | STAR Feedback & Mock Interview Coaching",
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
             <body
         suppressHydrationWarning
-        className={inter.className}
+        className={`${inter.variable} ${manrope.variable}`}
         style={
           {
             margin: 0,
