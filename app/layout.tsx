@@ -83,7 +83,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {`
             (function () {
               try {
-                var raw = localStorage.getItem("ipc_tenant_theme_v1");
+                var raw = localStorage.getItem("ipc_tenant_theme_v2");
                 if (!raw) return;
 
                 var parsed = JSON.parse(raw);

@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   LayoutDashboard,
   Mic,
@@ -13,6 +14,7 @@ import {
   Settings,
   Briefcase,
   LibraryBig,
+  Users,
 } from "lucide-react";
 import LogoutButton from "../components/LogoutButton";
 import BillingSidebarButton from "@/app/components/BillingSidebarButton";
@@ -23,7 +25,7 @@ type NavItem = {
   icon: React.ReactNode;
 };
 
-const NAV: NavItem[] = [
+const STUDENT_NAV: NavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
   { label: "Practice", href: "/practice", icon: <Mic size={18} /> },
   { label: "Question Bank", href: "/question-bank", icon: <LibraryBig size={18} /> },
@@ -35,10 +37,18 @@ const NAV: NavItem[] = [
   { label: "Account", href: "/account", icon: <User size={18} /> },
 ];
 
+const ADMIN_NAV: NavItem[] = [
+  { label: "Overview", href: "/admin", icon: <LayoutDashboard size={18} /> },
+  { label: "Students", href: "/admin", icon: <Users size={18} /> },
+];
+
 const STORAGE_KEY = "ipc_sidebar_collapsed";
 
 export default function SidebarNav() {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const isAdmin = (session?.user as any)?.tenantRole === "tenant_admin";
+  const NAV = isAdmin ? ADMIN_NAV : STUDENT_NAV;
   const [collapsed, setCollapsed] = React.useState(false);
 
   React.useEffect(() => {
@@ -106,13 +116,20 @@ export default function SidebarNav() {
           <div>
             <div
               style={{
-                fontSize: 14,
-                color: "var(--text-primary)",
-                fontWeight: 700,
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: 0.7,
+                color: "var(--accent)",
+                textTransform: "uppercase" as const,
               }}
             >
-              Performance Suite
+              {isAdmin ? "Career Center" : "Performance Suite"}
             </div>
+            {isAdmin ? (
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                Admin Console
+              </div>
+            ) : null}
           </div>
         ) : (
           <div
@@ -122,7 +139,7 @@ export default function SidebarNav() {
               fontWeight: 950,
             }}
           >
-            IC
+            {isAdmin ? "A" : "IC"}
           </div>
         )}
 
@@ -244,25 +261,27 @@ export default function SidebarNav() {
       <div style={{ marginTop: "auto" }} />
 
       <div style={{ padding: collapsed ? 8 : 10, display: "grid", gap: 8 }}>
-        <BillingSidebarButton collapsed={collapsed} />
+        {!isAdmin && <BillingSidebarButton collapsed={collapsed} />}
 
-        <Link
-          href="/settings"
-          title="Settings"
-          style={{
-            textDecoration: "none",
-            padding: collapsed ? "10px 10px" : "10px 12px",
-            borderRadius: 12,
-            border: "none",
-            background: "transparent",
-            color: "var(--text-muted)",
-            fontWeight: 900,
-            fontSize: 13,
-            textAlign: "center",
-          }}
-        >
-          {!collapsed ? "Settings" : "⚙"}
-        </Link>
+        {!isAdmin && (
+          <Link
+            href="/settings"
+            title="Settings"
+            style={{
+              textDecoration: "none",
+              padding: collapsed ? "10px 10px" : "10px 12px",
+              borderRadius: 12,
+              border: "none",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontWeight: 900,
+              fontSize: 13,
+              textAlign: "center",
+            }}
+          >
+            {!collapsed ? "Settings" : "⚙"}
+          </Link>
+        )}
 
         <div
           style={{

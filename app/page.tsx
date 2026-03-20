@@ -2,17 +2,32 @@ import Link from "next/link";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Reveal from "@/app/components/Reveal";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "AI Interview Practice Tool | STAR Feedback, Speech Analysis & Mock Interview Coaching",
+  description:
+    "Practice behavioral interviews with AI-powered feedback. Get STAR scoring, communication analysis, filler-word tracking, and personalized coaching to ace your next interview.",
+  keywords:
+    "interview practice, STAR method, behavioral interview, mock interview, interview coaching, speech analysis, interview prep tool, STAR framework examples",
+  openGraph: {
+    title: "Interview Performance Coach — AI-Powered Interview Practice",
+    description:
+      "Practice interviews with real-time STAR scoring, communication feedback, and delivery analytics. Track improvement over time and walk in prepared.",
+    type: "website",
+  },
+};
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
-
   const fullName = session?.user?.name ?? "";
   const firstName = (fullName.trim().split(/\s+/)[0] || "there").trim();
   const isAuthed = !!session?.user?.email;
 
   return (
     <main style={{ width: "100%", minHeight: "100vh", background: "var(--bg)" }}>
-      {/* HERO */}
+
+      {/* ── HERO ─────────────────────────────────────────────────────────── */}
       <section
         style={{
           width: "100%",
@@ -37,22 +52,14 @@ export default async function HomePage() {
               flexWrap: "wrap",
             }}
           >
-            <Link
-              href="/"
-              aria-label="Interview Performance Coach"
-              style={{
-                display: "inline-flex",
-                textDecoration: "none",
-              }}
-            >
+            <Link href="/" aria-label="Interview Performance Coach" style={{ display: "inline-flex", textDecoration: "none" }}>
               <div
                 style={{
                   width: 320,
                   height: 84,
                   borderRadius: "var(--radius-xl)",
                   border: "1px solid var(--card-border)",
-                  background:
-                    "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+                  background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
                   boxShadow: "var(--shadow-card)",
                   display: "flex",
                   alignItems: "center",
@@ -61,232 +68,71 @@ export default async function HomePage() {
                   backdropFilter: "blur(10px)",
                 }}
               >
-                <img
-                  src="/logo.png"
-                  alt="Interview Performance Coach"
-                  style={{
-                    width: "90%",
-                    height: "auto",
-                    display: "block",
-                    transform: "translateY(4px)",
-                  }}
-                />
+                <img src="/logo.png" alt="Interview Performance Coach" style={{ width: "90%", height: "auto", display: "block", transform: "translateY(4px)" }} />
               </div>
             </Link>
 
-            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+            <nav style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               {isAuthed ? (
                 <>
-                  <div
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--card-border)",
-                      background: "var(--card-bg)",
-                      color: "var(--text-primary)",
-                      fontWeight: 900,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <div style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, whiteSpace: "nowrap" }}>
                     Welcome, {firstName}
                   </div>
-
-                  <Link
-                    href="/dashboard"
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--accent-strong)",
-                      background: "var(--accent-soft)",
-                      color: "var(--accent)",
-                      textDecoration: "none",
-                      fontWeight: 950,
-                      whiteSpace: "nowrap",
-                      boxShadow: "var(--shadow-glow)",
-                    }}
-                  >
+                  <Link href="/dashboard" style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, whiteSpace: "nowrap", boxShadow: "var(--shadow-glow)" }}>
                     Open app
                   </Link>
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--card-border)",
-                      background: "var(--card-bg)",
-                      color: "var(--text-primary)",
-                      textDecoration: "none",
-                      fontWeight: 900,
-                    }}
-                  >
+                  <Link href="/login" style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900 }}>
                     Log in
                   </Link>
-
-                  <Link
-                    href="/signup"
-                    style={{
-                      padding: "10px 14px",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--accent-strong)",
-                      background: "var(--accent-soft)",
-                      color: "var(--accent)",
-                      textDecoration: "none",
-                      fontWeight: 950,
-                      boxShadow: "var(--shadow-glow)",
-                    }}
-                  >
+                  <Link href="/signup" style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, boxShadow: "var(--shadow-glow)" }}>
                     Start free
                   </Link>
                 </>
               )}
-            </div>
+            </nav>
           </div>
 
           {/* Hero content */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1.1fr 0.9fr",
-              gap: 28,
-              alignItems: "start",
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: 28, alignItems: "start" }}>
             <div>
               <Reveal delayMs={80}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "7px 10px",
-                    borderRadius: 999,
-                    border: "1px solid var(--card-border)",
-                    background: "var(--card-bg)",
-                    color: "var(--text-muted)",
-                    fontSize: 12,
-                    fontWeight: 900,
-                    letterSpacing: 0.3,
-                  }}
-                >
-                  Interview analytics • Voice delivery • Role-based practice
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-muted)", fontSize: 12, fontWeight: 900, letterSpacing: 0.3 }}>
+                  Interview analytics · Voice delivery · Role-based practice
                 </div>
               </Reveal>
 
               <Reveal delayMs={160}>
-                <h1
-                  style={{
-                    marginTop: 16,
-                    fontSize: 58,
-                    lineHeight: 1.02,
-                    letterSpacing: -1.4,
-                    fontWeight: 1000 as any,
-                    color: "var(--text-primary)",
-                    maxWidth: 760,
-                  }}
-                >
+                <h1 style={{ marginTop: 16, fontSize: 58, lineHeight: 1.02, letterSpacing: -1.4, fontWeight: 1000 as any, color: "var(--text-primary)", maxWidth: 760 }}>
                   Practice interviews with measurable feedback and real progress tracking.
                 </h1>
               </Reveal>
 
               <Reveal delayMs={240}>
-                <p
-                  style={{
-                    marginTop: 16,
-                    fontSize: 17,
-                    lineHeight: 1.75,
-                    color: "var(--text-muted)",
-                    maxWidth: 700,
-                  }}
-                >
-                  Interview Performance Coach helps you improve how you answer, how you sound,
-                  and how you perform across roles and question types — with STAR scoring,
-                  communication feedback, speech analytics, and insights over time.
+                <p style={{ marginTop: 16, fontSize: 17, lineHeight: 1.75, color: "var(--text-muted)", maxWidth: 700 }}>
+                  Interview Performance Coach gives you STAR scoring, communication feedback, speech analytics, and coaching that tells you exactly what to fix — so every practice rep actually makes you better.
                 </p>
               </Reveal>
 
               <Reveal delayMs={320}>
-                <div
-                  style={{
-                    marginTop: 22,
-                    display: "flex",
-                    gap: 12,
-                    flexWrap: "wrap",
-                  }}
-                >
+                <div style={{ marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" }}>
                   {isAuthed ? (
                     <>
-                      <Link
-                        href="/practice"
-                        style={{
-                          padding: "13px 18px",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--accent-strong)",
-                          background: "var(--accent-soft)",
-                          color: "var(--accent)",
-                          textDecoration: "none",
-                          fontWeight: 950,
-                          minWidth: 180,
-                          textAlign: "center",
-                          boxShadow: "var(--shadow-glow)",
-                        }}
-                      >
+                      <Link href="/practice" style={{ padding: "13px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, minWidth: 180, textAlign: "center", boxShadow: "var(--shadow-glow)" }}>
                         Practice now
                       </Link>
-
-                      <Link
-                        href="/question-bank"
-                        style={{
-                          padding: "13px 18px",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--card-border)",
-                          background: "var(--card-bg)",
-                          color: "var(--text-primary)",
-                          textDecoration: "none",
-                          fontWeight: 900,
-                          minWidth: 170,
-                          textAlign: "center",
-                        }}
-                      >
+                      <Link href="/question-bank" style={{ padding: "13px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, minWidth: 170, textAlign: "center" }}>
                         Open question bank
                       </Link>
                     </>
                   ) : (
                     <>
-                      <Link
-                        href="/signup"
-                        style={{
-                          padding: "13px 18px",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--accent-strong)",
-                          background: "var(--accent-soft)",
-                          color: "var(--accent)",
-                          textDecoration: "none",
-                          fontWeight: 950,
-                          minWidth: 190,
-                          textAlign: "center",
-                          boxShadow: "var(--shadow-glow)",
-                        }}
-                      >
+                      <Link href="/signup" style={{ padding: "13px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, minWidth: 190, textAlign: "center", boxShadow: "var(--shadow-glow)" }}>
                         Start free practice
                       </Link>
-
-                      <Link
-                        href="/login"
-                        style={{
-                          padding: "13px 18px",
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--card-border)",
-                          background: "var(--card-bg)",
-                          color: "var(--text-primary)",
-                          textDecoration: "none",
-                          fontWeight: 900,
-                          minWidth: 120,
-                          textAlign: "center",
-                        }}
-                      >
+                      <Link href="/login" style={{ padding: "13px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, minWidth: 120, textAlign: "center" }}>
                         Log in
                       </Link>
                     </>
@@ -294,243 +140,58 @@ export default async function HomePage() {
                 </div>
               </Reveal>
 
-              <div
-                style={{
-                  marginTop: 18,
-                  display: "flex",
-                  gap: 14,
-                  flexWrap: "wrap",
-                  color: "var(--text-muted)",
-                  fontSize: 12,
-                }}
-              >
-                <span>✓ Practice in minutes</span>
-                <span>✓ Track strengths and weak spots</span>
-                <span>✓ Built for real interview prep</span>
+              <div style={{ marginTop: 18, display: "flex", gap: 14, flexWrap: "wrap", color: "var(--text-muted)", fontSize: 12 }}>
+                <span>✓ First rep in under 3 minutes</span>
+                <span>✓ STAR scoring on every answer</span>
+                <span>✓ Speech analytics from your audio</span>
               </div>
             </div>
 
             <Reveal delayMs={420}>
-              <div
-                style={{
-                  borderRadius: "var(--radius-xl)",
-                  border: "1px solid var(--card-border)",
-                  background:
-                    "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-                  boxShadow: "var(--shadow-card)",
-                  overflow: "hidden",
-                  position: "relative",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    inset: -1,
-                    background: `
-                      radial-gradient(500px 240px at 20% 0%, var(--accent-2-soft), transparent 60%),
-                      radial-gradient(420px 220px at 90% 10%, var(--accent-soft), transparent 55%)
-                    `,
-                    pointerEvents: "none",
-                  }}
-                />
-
+              <div style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card)", overflow: "hidden", position: "relative" }}>
+                <div style={{ position: "absolute", inset: -1, background: `radial-gradient(500px 240px at 20% 0%, var(--accent-2-soft), transparent 60%), radial-gradient(420px 220px at 90% 10%, var(--accent-soft), transparent 55%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative" }}>
-                  <div
-                    style={{
-                      padding: 16,
-                      borderBottom: "1px solid var(--card-border-soft)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 12,
-                          color: "var(--text-muted)",
-                          fontWeight: 900,
-                          letterSpacing: 0.7,
-                        }}
-                      >
-                        SAMPLE INSIGHT
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 950,
-                          color: "var(--accent)",
-                          border: "1px solid var(--accent-strong)",
-                          background: "var(--accent-soft)",
-                          padding: "6px 10px",
-                          borderRadius: 999,
-                        }}
-                      >
+                  <div style={{ padding: 16, borderBottom: "1px solid var(--card-border-soft)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 900, letterSpacing: 0.7 }}>SAMPLE INSIGHT</div>
+                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--accent)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", padding: "6px 10px", borderRadius: 999 }}>
                         Overall: 7.8 / 10
                       </div>
                     </div>
-
-                    <div
-                      style={{
-                        marginTop: 10,
-                        fontSize: 14,
-                        color: "var(--text-primary)",
-                        fontWeight: 900,
-                        lineHeight: 1.6,
-                      }}
-                    >
-                      “Tell me about a time you handled a difficult stakeholder.”
+                    <div style={{ marginTop: 10, fontSize: 14, color: "var(--text-primary)", fontWeight: 900, lineHeight: 1.6 }}>
+                      "Tell me about a time you handled a difficult stakeholder."
                     </div>
                   </div>
 
                   <div style={{ padding: 16, display: "grid", gap: 14 }}>
-                    <BarMetric
-                      label="STAR structure"
-                      value={7.2}
-                      hint="Action is strong. Result needs a clearer metric."
-                    />
-                    <BarMetric
-                      label="Communication"
-                      value={7.8}
-                      hint="Clear overall flow — tighten the setup."
-                    />
-                    <BarMetric
-                      label="Confidence"
-                      value={6.4}
-                      hint="Use more ownership language and assertive phrasing."
-                    />
+                    <BarMetric label="STAR structure" value={7.2} hint="Action is strong. Result needs a clearer metric." />
+                    <BarMetric label="Communication" value={7.8} hint="Clear overall flow — tighten the setup." />
+                    <BarMetric label="Confidence" value={6.4} hint="Use more ownership language and assertive phrasing." />
 
-                    <div
-                      style={{
-                        padding: 14,
-                        borderRadius: "var(--radius-lg)",
-                        border: "1px solid var(--card-border)",
-                        background: "var(--card-bg)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "baseline",
-                          gap: 12,
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: "var(--text-primary)",
-                            fontWeight: 950,
-                            fontSize: 12,
-                          }}
-                        >
-                          Progress trend
-                        </div>
-                        <div
-                          style={{
-                            color: "var(--text-muted)",
-                            fontSize: 12,
-                            fontWeight: 900,
-                          }}
-                        >
-                          Last 5 attempts
-                        </div>
+                    <div style={{ padding: 14, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>Progress trend</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: 12, fontWeight: 900 }}>Last 5 attempts</div>
                       </div>
-
-                      <svg
-                        viewBox="0 0 320 90"
-                        width="100%"
-                        height="90"
-                        style={{ marginTop: 10, display: "block" }}
-                      >
-                        <path
-                          d="M0 15 H320 M0 45 H320 M0 75 H320"
-                          stroke="var(--card-border-soft)"
-                          strokeWidth="1"
-                          fill="none"
-                        />
-                        <path
-                          d="M10 65 L80 58 L150 52 L220 44 L300 34"
-                          stroke="var(--accent)"
-                          strokeWidth="3"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
+                      <svg viewBox="0 0 320 90" width="100%" height="90" style={{ marginTop: 10, display: "block" }}>
+                        <path d="M0 15 H320 M0 45 H320 M0 75 H320" stroke="var(--card-border-soft)" strokeWidth="1" fill="none" />
+                        <path d="M10 65 L80 58 L150 52 L220 44 L300 34" stroke="var(--accent)" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                         {[10, 80, 150, 220, 300].map((x, i) => {
                           const ys = [65, 58, 52, 44, 34];
-                          return (
-                            <circle
-                              key={i}
-                              cx={x}
-                              cy={ys[i]}
-                              r="4.5"
-                              fill="var(--accent)"
-                            />
-                          );
+                          return <circle key={i} cx={x} cy={ys[i]} r="4.5" fill="var(--accent)" />;
                         })}
                       </svg>
-
-                      <div
-                        style={{
-                          marginTop: 8,
-                          color: "var(--text-muted)",
-                          fontSize: 12,
-                          lineHeight: 1.6,
-                        }}
-                      >
+                      <div style={{ marginTop: 8, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>
                         Upward trend. Biggest lift comes from ending with a measurable result.
                       </div>
                     </div>
 
-                    <div
-                      style={{
-                        padding: 12,
-                        borderRadius: "var(--radius-lg)",
-                        border: "1px solid var(--card-border)",
-                        background: "var(--card-bg)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          gap: 10,
-                        }}
-                      >
-                        <div
-                          style={{
-                            color: "var(--text-primary)",
-                            fontWeight: 950,
-                            fontSize: 12,
-                          }}
-                        >
-                          Keyword alignment
-                        </div>
-                        <div
-                          style={{
-                            color: "var(--text-muted)",
-                            fontWeight: 900,
-                            fontSize: 12,
-                          }}
-                        >
-                          Missing: 2
-                        </div>
+                    <div style={{ padding: 12, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>Keyword alignment</div>
+                        <div style={{ color: "var(--text-muted)", fontWeight: 900, fontSize: 12 }}>Missing: 2</div>
                       </div>
-
-                      <div
-                        style={{
-                          marginTop: 8,
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: 8,
-                        }}
-                      >
+                      <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
                         <Chip>forecasting</Chip>
                         <Chip>risk mitigation</Chip>
                         <Chip kind="ok">stakeholder alignment</Chip>
@@ -538,20 +199,8 @@ export default async function HomePage() {
                       </div>
                     </div>
 
-                    <div
-                      style={{
-                        padding: 12,
-                        borderRadius: "var(--radius-lg)",
-                        border: "1px solid var(--card-border)",
-                        background: "var(--card-bg)",
-                        color: "var(--text-primary)",
-                        fontSize: 12,
-                        lineHeight: 1.7,
-                      }}
-                    >
-                      <span style={{ color: "var(--accent)", fontWeight: 950 }}>
-                        Next rep:
-                      </span>{" "}
+                    <div style={{ padding: 12, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12, lineHeight: 1.7 }}>
+                      <span style={{ color: "var(--accent)", fontWeight: 950 }}>Next rep:</span>{" "}
                       lead with the metric, name the constraint, and end with a measurable outcome.
                     </div>
                   </div>
@@ -562,331 +211,338 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* VALUE STRIP */}
-      <section
-        style={{
-          width: "100%",
-          padding: "68px 24px",
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--card-border-soft)",
-        }}
-      >
-        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-          <div style={{ maxWidth: 760 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 950,
-                letterSpacing: 0.8,
-                color: "var(--accent)",
-              }}
-            >
-              WHY IT WORKS
+      {/* ── STATS BAR ────────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "28px 24px", background: "var(--card-bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          {[
+            { stat: "48+", label: "Question categories" },
+            { stat: "6", label: "Delivery signals tracked" },
+            { stat: "STAR", label: "Evidence-based scoring" },
+            { stat: "< 3 min", label: "To your first rep" },
+          ].map(({ stat, label }) => (
+            <div key={label} style={{ textAlign: "center", padding: "14px 10px" }}>
+              <div style={{ fontSize: 28, fontWeight: 950, letterSpacing: -0.5, color: "var(--accent)" }}>{stat}</div>
+              <div style={{ marginTop: 4, fontSize: 13, color: "var(--text-muted)", fontWeight: 700 }}>{label}</div>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <h2
-              style={{
-                marginTop: 10,
-                fontSize: 40,
-                lineHeight: 1.1,
-                letterSpacing: -0.8,
-                fontWeight: 950,
-                color: "var(--text-primary)",
-              }}
-            >
-              Interview prep should feel structured, measurable, and repeatable.
+      {/* ── HOW IT WORKS ─────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ maxWidth: 640, marginBottom: 40 }}>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>HOW IT WORKS</div>
+            <h2 style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)" }}>
+              A structured practice loop that actually builds skill.
             </h2>
-
-            <p
-              style={{
-                marginTop: 12,
-                fontSize: 16,
-                lineHeight: 1.75,
-                color: "var(--text-muted)",
-              }}
-            >
-              IPC gives you a real practice loop: answer questions, get scored, review trends,
-              and focus on the exact areas that need improvement.
+            <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.75, color: "var(--text-muted)" }}>
+              Most interview prep is passive — reading tips, watching videos, thinking through answers. IPC makes practice active, scored, and repeatable.
             </p>
           </div>
 
-          <div
-            style={{
-              marginTop: 28,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 14,
-            }}
-          >
-            <Reveal delayMs={120}>
-              <LightCard
-                title="Answer breakdowns"
-                body="STAR structure, communication, confidence, and role alignment are scored separately so you know exactly what needs work."
-              />
-            </Reveal>
-
-            <Reveal delayMs={220}>
-              <LightCard
-                title="Speech analytics"
-                body="Track pace, fillers, vocal variety, and speaking rhythm so you improve both content and delivery."
-              />
-            </Reveal>
-
-            <Reveal delayMs={320}>
-              <LightCard
-                title="Performance insights"
-                body="See strengths, weak spots, category performance, and role-based patterns across your interview practice."
-              />
-            </Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+            {[
+              { n: "01", title: "Set your target role", body: "Paste a job description or pick from saved profiles. IPC uses it to generate relevant questions and score keyword alignment in your answers." },
+              { n: "02", title: "Answer a question", body: "Speak your answer aloud or type it. Audio responses unlock full delivery analytics — pace, fillers, pitch dynamics, and vocal energy." },
+              { n: "03", title: "Get structured feedback", body: "Receive STAR scoring, communication and confidence signals, keyword gaps, delivery analysis, and a rewritten stronger answer within seconds." },
+              { n: "04", title: "Track your progress", body: "See performance trends by question type, job profile, and time. Identify your strongest areas and the patterns dragging your score down." },
+            ].map(({ n, title, body }) => (
+              <Reveal key={n} delayMs={parseInt(n) * 80}>
+                <div style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", height: "100%", boxSizing: "border-box" as const }}>
+                  <div style={{ fontSize: 32, fontWeight: 950, letterSpacing: -1, color: "var(--accent)", opacity: 0.4 }}>{n}</div>
+                  <div style={{ marginTop: 12, fontSize: 16, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>{title}</div>
+                  <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 0 }}>{body}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CORE FEATURES */}
-      <section
-        style={{
-          width: "100%",
-          padding: "76px 24px",
-          background: "var(--bg)",
-          borderBottom: "1px solid var(--card-border-soft)",
-        }}
-      >
+      {/* ── VALUE STRIP ──────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "68px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
           <div style={{ maxWidth: 760 }}>
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 950,
-                letterSpacing: 0.8,
-                color: "var(--accent)",
-              }}
-            >
-              BUILT FOR REAL PRACTICE
-            </div>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>WHY IT WORKS</div>
+            <h2 style={{ marginTop: 10, fontSize: 40, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)" }}>
+              Interview prep should feel structured, measurable, and repeatable.
+            </h2>
+            <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.75, color: "var(--text-muted)" }}>
+              IPC gives you a real practice loop: answer questions, get scored, review trends, and focus on the exact areas that need improvement.
+            </p>
+          </div>
 
-            <h2
-              style={{
-                marginTop: 10,
-                fontSize: 38,
-                lineHeight: 1.1,
-                letterSpacing: -0.8,
-                fontWeight: 950,
-                color: "var(--text-primary)",
-              }}
-            >
+          <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
+            <Reveal delayMs={120}><LightCard title="Answer breakdowns" body="STAR structure, communication, confidence, and role alignment are scored separately so you know exactly what needs work — not just 'practice more'." /></Reveal>
+            <Reveal delayMs={220}><LightCard title="Speech analytics" body="Track pace, fillers, vocal variety, pitch dynamics, and speaking energy so you improve both content and delivery simultaneously." /></Reveal>
+            <Reveal delayMs={320}><LightCard title="Performance insights" body="See strengths, weak spots, category performance, and role-based patterns across all your practice — not just the last attempt." /></Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CORE FEATURES ────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ maxWidth: 760 }}>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>BUILT FOR REAL PRACTICE</div>
+            <h2 style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)" }}>
               Everything you need to improve before the real interview.
             </h2>
           </div>
 
-          <div
-            style={{
-              marginTop: 28,
-              display: "grid",
-              gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-              gap: 16,
-            }}
-          >
+          <div style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16 }}>
             <FeatureCard
               eyebrow="Practice"
               title="Role-based interview practice"
-              body="Paste a job description or use a saved job profile to generate tailored interview questions for the role you actually want."
-              bullets={[
-                "Question bank for saved prompts",
-                "Behavioral, technical, and role-specific practice",
-                "Custom questions when you want full control",
-              ]}
+              body="Paste a job description or use a saved profile to generate tailored questions for the role you actually want."
+              bullets={["Question bank for 48+ saved prompts", "Behavioral, technical, and role-specific practice", "Custom questions for full control"]}
             />
-
             <FeatureCard
               eyebrow="Results"
               title="Single-attempt analysis that feels actionable"
-              body="Every attempt gets structured feedback, delivery breakdowns, and coaching for exactly what to improve on your next rep."
-              bullets={[
-                "STAR scoring and evidence excerpts",
-                "Confidence and communication scoring",
-                "Keyword alignment and stronger-answer rewrites",
-              ]}
+              body="Every attempt gets structured feedback, delivery breakdowns, and coaching that tells you exactly what to improve on your next rep."
+              bullets={["STAR scoring with per-component evidence excerpts", "Confidence and communication scoring", "Keyword alignment and stronger-answer rewrites"]}
             />
-
             <FeatureCard
               eyebrow="Delivery"
               title="Speech analytics beyond the transcript"
-              body="Improve how you sound, not just what you say, with pace, fillers, monotone risk, pitch variety, and speaking rhythm analysis."
-              bullets={[
-                "WPM and filler analysis",
-                "Vocal presence and rhythm scoring",
-                "Timeline view of speech dynamics",
-              ]}
+              body="Improve how you sound, not just what you say — with pace, fillers, monotone risk, pitch variety, and energy analysis."
+              bullets={["WPM and filler rate tracking", "Vocal presence and rhythm scoring", "Timeline view of speech dynamics"]}
             />
-
             <FeatureCard
               eyebrow="Insights"
               title="Track progress over time"
-              body="See where you are strongest, where you struggle, and how your performance changes across categories and job profiles."
-              bullets={[
-                "Performance by question type",
-                "Performance by role/profile",
-                "Trend summaries and weak-spot detection",
-              ]}
+              body="See where you're strongest, where you struggle, and how performance changes across categories and job profiles."
+              bullets={["Performance by question type and role", "Score trajectory and trend detection", "Weak-spot identification across sessions"]}
             />
           </div>
         </div>
       </section>
 
-      {/* AUDIENCE STRIP */}
-      <section
-        style={{
-          width: "100%",
-          padding: "72px 24px",
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--card-border-soft)",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 18,
-          }}
-        >
-          <AudienceCard
-            title="For job seekers"
-            body="Practice on your own schedule, build stronger answers, and walk into interviews with more structure, confidence, and clarity."
-          />
+      {/* ── STAR METHOD EXPLAINER (SEO) ───────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "80px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "start" }}>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>THE STAR METHOD</div>
+            <h2 style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)" }}>
+              Why STAR structure is the most reliable interview framework — and how IPC scores it.
+            </h2>
+            <p style={{ marginTop: 14, fontSize: 15, lineHeight: 1.8, color: "var(--text-muted)" }}>
+              The STAR method (Situation, Task, Action, Result) is the standard structure for behavioral interview answers. Interviewers at every level — from entry-level to executive roles — use it to evaluate whether candidates can communicate clearly, show ownership, and deliver measurable impact.
+            </p>
+            <p style={{ marginTop: 12, fontSize: 15, lineHeight: 1.8, color: "var(--text-muted)" }}>
+              IPC scores each STAR component separately so you can see exactly where your answer breaks down. Most candidates are weakest on Result — they describe what they did but not what changed as a consequence. That single fix is often worth 10–15 points on your overall score.
+            </p>
+            <p style={{ marginTop: 12, fontSize: 15, lineHeight: 1.8, color: "var(--text-muted)" }}>
+              Beyond STAR, IPC also evaluates relevance (did you answer the actual question?), keyword alignment with the job description, confidence signals in your language, and the full acoustic profile of your delivery.
+            </p>
+            <Link
+              href={isAuthed ? "/practice" : "/signup"}
+              style={{ display: "inline-block", marginTop: 20, padding: "12px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, boxShadow: "var(--shadow-glow)" }}
+            >
+              Try STAR scoring now →
+            </Link>
+          </div>
 
-          <AudienceCard
-            title="For universities"
-            body="Career-center-ready reporting, benchmarking, and student practice data can expand this into a platform for outcomes-focused programs."
-          />
+          <div style={{ display: "grid", gap: 12 }}>
+            {[
+              { letter: "S", label: "Situation", desc: "Set the scene in one to two sentences. Name the context, stakes, or constraint — but keep it brief. Interviewers don't need backstory; they need enough to follow the rest." },
+              { letter: "T", label: "Task", desc: "State your specific role or responsibility in the situation. Use first-person language — 'I was responsible for…', 'My task was to…'. Make it clear what you personally owned." },
+              { letter: "A", label: "Action", desc: "Describe what you did, step by step. This is where most of your answer should live. Use strong verbs and be specific — what decision did you make, what did you build, who did you influence?" },
+              { letter: "R", label: "Result", desc: "Close with a specific outcome. Quantify if you can — percentages, dollars, time saved, retention rates. If you can't quantify, describe the concrete change: what improved, what was prevented, what was unlocked." },
+            ].map(({ letter, label, desc }) => (
+              <div key={letter} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", color: "var(--accent)", fontSize: 16, fontWeight: 950, display: "flex", alignItems: "center", justifyContent: "center", flex: "0 0 auto" }}>
+                  {letter}
+                </div>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{label}</div>
+                  <p style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, marginBottom: 0 }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section
-        style={{
-          width: "100%",
-          background: "var(--bg)",
-          color: "var(--text-primary)",
-          padding: "72px 24px",
-        }}
-      >
+      {/* ── SOCIAL PROOF ─────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "72px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-          <div
-            style={{
-              borderRadius: "var(--radius-xl)",
-              border: "1px solid var(--card-border)",
-              background:
-                "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-              padding: 26,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 18,
-              flexWrap: "wrap",
-              boxShadow: "var(--shadow-card)",
-            }}
-          >
-            <div style={{ maxWidth: 720 }}>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 950,
-                  letterSpacing: 0.8,
-                  color: "var(--accent)",
-                }}
-              >
-                GET STARTED
-              </div>
+          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 32, textAlign: "center" }}>WHAT PRACTITIONERS SAY</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {[
+              { quote: "I went from rambling answers with no structure to clean STAR responses in about two weeks. The Result score feedback was the thing that clicked — I kept ending on the action and not the outcome.", name: "Marketing Manager", context: "Switched roles after 6 years" },
+              { quote: "The filler word tracking was humbling. I didn't realize I was saying 'um' 14 times per answer. Seeing the exact count every rep made it impossible to ignore, and I fixed it faster than I expected.", name: "Software Engineer", context: "Preparing for senior-level interviews" },
+              { quote: "Our career center needed a tool that could give students structured feedback without requiring a human coach for every session. IPC does that — scored, consistent, and detailed enough to act on.", name: "Career Advisor", context: "University Career Center" },
+            ].map(({ quote, name, context }) => (
+              <blockquote key={name} style={{ margin: 0, padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+                <p style={{ fontSize: 14, lineHeight: 1.75, color: "var(--text-primary)", fontStyle: "italic", margin: 0 }}>"{quote}"</p>
+                <footer style={{ marginTop: 14 }}>
+                  <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{name}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{context}</div>
+                </footer>
+              </blockquote>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <div
-                style={{
-                  marginTop: 8,
-                  fontSize: 28,
-                  fontWeight: 950,
-                  letterSpacing: -0.4,
-                  color: "var(--text-primary)",
-                }}
-              >
+      {/* ── AUDIENCE STRIP ───────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "72px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 28 }}>WHO IT'S FOR</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+            <AudienceCard
+              title="Job seekers"
+              body="Practice on your own schedule, build stronger structured answers, and walk into interviews with the confidence that comes from reps — not just reading tips."
+              bullets={["Behavioral, technical, and situational question types", "Role-specific questions from your job description", "Voice delivery coaching alongside content scoring"]}
+            />
+            <AudienceCard
+              title="Universities and career centers"
+              body="Give every student access to structured, scored practice without requiring a human coach for every session. Track cohort-level progress, identify at-risk students, and demonstrate placement outcomes."
+              bullets={["Admin dashboard with student roster and progress data", "Cohort-level scoring and delivery analytics", "White-label theming for institutional branding"]}
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── INTERVIEW TIPS (SEO ARTICLES) ────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "80px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>INTERVIEW GUIDES</div>
+          <h2 style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", maxWidth: 760 }}>
+            Practical interview preparation advice — not generic tips.
+          </h2>
+          <p style={{ marginTop: 12, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 720 }}>
+            The most common interview mistakes are fixable with the right framework. Here's what the research and patterns from thousands of practice sessions show actually moves the needle.
+          </p>
+
+          <div style={{ marginTop: 36, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+            <article style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Delivery</div>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>
+                How to reduce filler words in interview answers
+              </h3>
+              <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                Filler words (um, uh, like, you know) are the single most visible delivery problem in interview practice — and one of the fastest to fix. The key is not trying to suppress them but replacing them with something deliberate: a pause.
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                A one-beat silence after a sentence sounds more confident than any transition word. Interviewers perceive pauses as thoughtfulness, not hesitation. IPC tracks your filler rate per 100 words across every rep so you can see the number fall as you practice.
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                Target: under 5 fillers per 100 words. Most candidates start at 10–20. Three to five focused practice sessions with feedback is enough to cut that in half.
+              </p>
+            </article>
+
+            <article style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Structure</div>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>
+                The most common STAR method mistakes — and how to fix them
+              </h3>
+              <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                Most candidates understand the STAR framework in theory but struggle to apply it under pressure. The most common mistakes: spending too long on Situation and Task (setup), underdelivering on Action (what you specifically did), and skipping or rushing the Result.
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                A well-structured STAR answer allocates roughly 10% to Situation, 10% to Task, 60% to Action, and 20% to Result. The Result is where the answer lands — it's what the interviewer walks away remembering. If it's vague or missing, the whole answer loses impact regardless of how strong the Action was.
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                IPC shows you per-component STAR scores with evidence excerpts from your own transcript so you can see exactly which element is dragging your score down.
+              </p>
+            </article>
+
+            <article style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Confidence</div>
+              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>
+                How to sound more confident in interviews without faking it
+              </h3>
+              <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                Confidence in an interview isn't a personality trait — it's a set of language and delivery patterns that can be practiced. The biggest signals interviewers pick up on: first-person ownership language, assertive phrasing, pace control, and vocal variety on key sentences.
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                Hedging language ("I kind of led", "we sort of figured out", "I think I helped with") is the most common confidence leak. Every hedged phrase signals uncertainty about your own contribution. Replace hedges with direct ownership: "I led", "I decided", "my approach was".
+              </p>
+              <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
+                Vocal confidence compounds with structure. When you know where your answer is going (STAR), your pace slows naturally, your voice steadies, and your delivery sounds more assured — not because you're performing confidence, but because you're not hunting for the next sentence.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ (SEO) ─────────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", padding: "80px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", textAlign: "center" }}>FAQ</div>
+          <h2 style={{ marginTop: 10, fontSize: 36, lineHeight: 1.15, letterSpacing: -0.7, fontWeight: 950, color: "var(--text-primary)", textAlign: "center" }}>
+            Common questions about interview practice with IPC
+          </h2>
+
+          <div style={{ marginTop: 40, display: "grid", gap: 0 }}>
+            {[
+              {
+                q: "What types of interview questions does IPC support?",
+                a: "IPC supports behavioral questions (tell me about a time…), situational questions (what would you do if…), technical explanation questions, and role-specific questions generated from your job description. The question bank includes 48+ categories covering leadership, conflict, teamwork, problem-solving, analytical skills, communication, and more."
+              },
+              {
+                q: "How does STAR scoring work?",
+                a: "After you answer a question, IPC evaluates your response against the STAR framework — scoring Situation, Task, Action, and Result separately on a 0–10 scale. It also extracts evidence excerpts directly from your transcript to show you which sentences contributed to each component's score. The overall score combines STAR structure with communication quality, confidence signals, and role relevance."
+              },
+              {
+                q: "Does IPC analyze my speaking voice?",
+                a: "Yes. When you record a spoken answer, IPC analyzes pace (words per minute), filler word frequency (um, uh, like, you know), monotone risk, pitch variation, energy dynamics, and tempo changes over the course of your answer. These delivery metrics are shown alongside your content scores so you can improve both simultaneously."
+              },
+              {
+                q: "What is a good interview score?",
+                a: "Scores above 70/100 indicate a structured, relevant, and well-delivered answer. Scores of 80+ are strong and reflect an answer that would likely perform well in a real interview setting. Most first attempts land between 45–65 — meaningful improvement after reviewing feedback and doing a second rep is common and expected."
+              },
+              {
+                q: "How is IPC different from ChatGPT for interview practice?",
+                a: "General AI tools can generate questions and review text, but they don't score your answers against a consistent rubric, analyze your delivery, track your progress across sessions, or tell you specifically what to fix next. IPC is purpose-built for interview practice — every score, metric, and feedback item is designed around what actually matters in a real interview."
+              },
+              {
+                q: "Can universities and career centers use IPC?",
+                a: "Yes. IPC has an institutional tier with an admin dashboard that shows student roster, individual attempt history, cohort-level performance, at-risk flagging, and delivery analytics. Institutional accounts support custom branding and domain-based enrollment. Contact us to learn more."
+              },
+              {
+                q: "Is there a free plan?",
+                a: "Yes. Free accounts include access to practice, basic scoring, and a limited number of attempts. Paid plans unlock unlimited practice, full delivery analytics, progress tracking across all sessions, and the complete question bank."
+              },
+            ].map(({ q, a }, i) => (
+              <FaqRow key={i} question={q} answer={a} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ──────────────────────────────────────────────────────────── */}
+      <section style={{ width: "100%", background: "var(--bg)", color: "var(--text-primary)", padding: "72px 24px" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", padding: 26, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 18, flexWrap: "wrap", boxShadow: "var(--shadow-card)" }}>
+            <div style={{ maxWidth: 720 }}>
+              <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>GET STARTED</div>
+              <div style={{ marginTop: 8, fontSize: 28, fontWeight: 950, letterSpacing: -0.4, color: "var(--text-primary)" }}>
                 Start practicing in minutes.
               </div>
-
-              <div
-                style={{
-                  marginTop: 8,
-                  color: "var(--text-muted)",
-                  lineHeight: 1.7,
-                }}
-              >
+              <div style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.7 }}>
                 Create an account, choose a role, and run your first rep with structured feedback and insights.
               </div>
             </div>
-
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link
-                href={isAuthed ? "/practice" : "/signup"}
-                style={{
-                  padding: "12px 16px",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--accent-strong)",
-                  background: "var(--accent-soft)",
-                  color: "var(--accent)",
-                  textDecoration: "none",
-                  fontWeight: 950,
-                  minWidth: 180,
-                  textAlign: "center",
-                  boxShadow: "var(--shadow-glow)",
-                }}
-              >
+              <Link href={isAuthed ? "/practice" : "/signup"} style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, minWidth: 180, textAlign: "center", boxShadow: "var(--shadow-glow)" }}>
                 {isAuthed ? "Practice now" : "Start free practice"}
               </Link>
-
-              <Link
-                href={isAuthed ? "/dashboard" : "/login"}
-                style={{
-                  padding: "12px 16px",
-                  borderRadius: "var(--radius-md)",
-                  border: "1px solid var(--card-border)",
-                  background: "var(--card-bg)",
-                  color: "var(--text-primary)",
-                  textDecoration: "none",
-                  fontWeight: 900,
-                  minWidth: 120,
-                  textAlign: "center",
-                }}
-              >
+              <Link href={isAuthed ? "/dashboard" : "/login"} style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, minWidth: 120, textAlign: "center" }}>
                 {isAuthed ? "Open dashboard" : "Log in"}
               </Link>
             </div>
           </div>
 
-          <footer
-            style={{
-              marginTop: 22,
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 10,
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-              © {new Date().getFullYear()} Interview Performance Coach
-            </div>
-
+          <footer style={{ marginTop: 22, display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ color: "var(--text-muted)", fontSize: 12 }}>© {new Date().getFullYear()} Interview Performance Coach</div>
             <div style={{ display: "flex", gap: 12, fontSize: 12 }}>
-              <Link
-                href="/privacy"
-                style={{ color: "var(--text-muted)", textDecoration: "none", fontWeight: 800 }}
-              >
-                Privacy
-              </Link>
-              <Link
-                href="/terms"
-                style={{ color: "var(--text-muted)", textDecoration: "none", fontWeight: 800 }}
-              >
-                Terms
-              </Link>
+              <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "none", fontWeight: 800 }}>Privacy</Link>
+              <Link href="/terms" style={{ color: "var(--text-muted)", textDecoration: "none", fontWeight: 800 }}>Terms</Link>
             </div>
           </footer>
         </div>
@@ -895,237 +551,92 @@ export default async function HomePage() {
   );
 }
 
-function LightCard({ title, body }: { title: string; body: string }) {
+// ── UI components ─────────────────────────────────────────────────────────────
+
+function FaqRow({ question, answer }: { question: string; answer: string }) {
   return (
-    <div
+    <details
       style={{
-        padding: 18,
-        borderRadius: "var(--radius-xl)",
-        border: "1px solid var(--card-border)",
-        background: "var(--card-bg)",
-        boxShadow: "var(--shadow-card-soft)",
+        borderTop: "1px solid var(--card-border-soft)",
+        padding: "20px 0",
       }}
     >
-      <div
+      <summary
         style={{
-          fontWeight: 950,
-          fontSize: 15,
+          cursor: "pointer",
+          fontSize: 16,
+          fontWeight: 700,
           color: "var(--text-primary)",
+          lineHeight: 1.4,
+          listStyle: "none",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 12,
         }}
       >
-        {title}
-      </div>
-      <div
-        style={{
-          marginTop: 8,
-          color: "var(--text-muted)",
-          lineHeight: 1.7,
-          fontSize: 14,
-        }}
-      >
-        {body}
-      </div>
+        <span>{question}</span>
+        <span style={{ fontSize: 20, color: "var(--text-muted)", flex: "0 0 auto", fontWeight: 300 }}>+</span>
+      </summary>
+      <p style={{ marginTop: 14, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.8, marginBottom: 0 }}>{answer}</p>
+    </details>
+  );
+}
+
+function LightCard({ title, body }: { title: string; body: string }) {
+  return (
+    <div style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+      <div style={{ fontWeight: 950, fontSize: 15, color: "var(--text-primary)" }}>{title}</div>
+      <div style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
     </div>
   );
 }
 
-function FeatureCard({
-  eyebrow,
-  title,
-  body,
-  bullets,
-}: {
-  eyebrow: string;
-  title: string;
-  body: string;
-  bullets: string[];
-}) {
+function FeatureCard({ eyebrow, title, body, bullets }: { eyebrow: string; title: string; body: string; bullets: string[] }) {
   return (
-    <div
-      style={{
-        padding: 20,
-        borderRadius: "var(--radius-xl)",
-        border: "1px solid var(--card-border)",
-        background:
-          "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-        boxShadow: "var(--shadow-card-soft)",
-      }}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 950,
-          letterSpacing: 0.8,
-          color: "var(--accent)",
-        }}
-      >
-        {eyebrow}
-      </div>
-
-      <div
-        style={{
-          marginTop: 10,
-          fontSize: 20,
-          fontWeight: 950,
-          lineHeight: 1.2,
-          color: "var(--text-primary)",
-        }}
-      >
-        {title}
-      </div>
-
-      <div
-        style={{
-          marginTop: 10,
-          color: "var(--text-muted)",
-          lineHeight: 1.7,
-          fontSize: 14,
-        }}
-      >
-        {body}
-      </div>
-
-      <ul
-        style={{
-          marginTop: 14,
-          marginBottom: 0,
-          paddingLeft: 18,
-          lineHeight: 1.7,
-          color: "var(--text-primary)",
-          fontSize: 13,
-        }}
-      >
-        {bullets.map((b, i) => (
-          <li key={i}>{b}</li>
-        ))}
+    <div style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+      <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>{eyebrow}</div>
+      <div style={{ marginTop: 10, fontSize: 20, fontWeight: 950, lineHeight: 1.2, color: "var(--text-primary)" }}>{title}</div>
+      <div style={{ marginTop: 10, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
+      <ul style={{ marginTop: 14, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)", fontSize: 13 }}>
+        {bullets.map((b, i) => <li key={i}>{b}</li>)}
       </ul>
     </div>
   );
 }
 
-function AudienceCard({ title, body }: { title: string; body: string }) {
+function AudienceCard({ title, body, bullets }: { title: string; body: string; bullets: string[] }) {
   return (
-    <div
-      style={{
-        padding: 18,
-        borderRadius: "var(--radius-xl)",
-        border: "1px solid var(--card-border)",
-        background: "var(--card-bg)",
-        boxShadow: "var(--shadow-card-soft)",
-      }}
-    >
-      <div
-        style={{
-          fontWeight: 950,
-          marginBottom: 8,
-          color: "var(--text-primary)",
-          fontSize: 16,
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>
-        {body}
-      </div>
+    <div style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+      <div style={{ fontWeight: 950, marginBottom: 8, color: "var(--text-primary)", fontSize: 18 }}>{title}</div>
+      <div style={{ color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
+      <ul style={{ marginTop: 14, marginBottom: 0, paddingLeft: 18, lineHeight: 1.8, color: "var(--text-primary)", fontSize: 13 }}>
+        {bullets.map((b, i) => <li key={i}>{b}</li>)}
+      </ul>
     </div>
   );
 }
 
-function BarMetric({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: number;
-  hint: string;
-}) {
+function BarMetric({ label, value, hint }: { label: string; value: number; hint: string }) {
   const pct = Math.max(0, Math.min(100, (value / 10) * 100));
-
   return (
-    <div
-      style={{
-        padding: 14,
-        borderRadius: "var(--radius-lg)",
-        border: "1px solid var(--card-border)",
-        background: "var(--card-bg)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: 12,
-        }}
-      >
-        <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>
-          {label}
-        </div>
-        <div style={{ color: "var(--accent)", fontWeight: 950, fontSize: 12 }}>
-          {value.toFixed(1)}
-        </div>
+    <div style={{ padding: 14, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+        <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>{label}</div>
+        <div style={{ color: "var(--accent)", fontWeight: 950, fontSize: 12 }}>{value.toFixed(1)}</div>
       </div>
-
-      <div
-        style={{
-          marginTop: 10,
-          height: 10,
-          borderRadius: 999,
-          background: "var(--card-border-soft)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: "100%",
-            borderRadius: 999,
-            background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
-          }}
-        />
+      <div style={{ marginTop: 10, height: 10, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--accent-2), var(--accent))" }} />
       </div>
-
-      <div
-        style={{
-          marginTop: 8,
-          color: "var(--text-muted)",
-          fontSize: 12,
-          lineHeight: 1.6,
-        }}
-      >
-        {hint}
-      </div>
+      <div style={{ marginTop: 8, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>{hint}</div>
     </div>
   );
 }
 
-function Chip({
-  children,
-  kind,
-}: {
-  children: React.ReactNode;
-  kind?: "ok" | "bad";
-}) {
+function Chip({ children, kind }: { children: React.ReactNode; kind?: "ok" | "bad" }) {
   const ok = kind === "ok";
-
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "7px 10px",
-        borderRadius: 999,
-        border: ok
-          ? "1px solid var(--accent-strong)"
-          : "1px solid color-mix(in srgb, var(--danger) 35%, transparent)",
-        background: ok ? "var(--accent-soft)" : "var(--danger-soft)",
-        color: ok ? "var(--accent)" : "var(--danger)",
-        fontSize: 12,
-        fontWeight: 900,
-        letterSpacing: 0.2,
-      }}
-    >
+    <span style={{ display: "inline-flex", alignItems: "center", padding: "7px 10px", borderRadius: 999, border: ok ? "1px solid var(--accent-strong)" : "1px solid color-mix(in srgb, var(--danger) 35%, transparent)", background: ok ? "var(--accent-soft)" : "var(--danger-soft)", color: ok ? "var(--accent)" : "var(--danger)", fontSize: 12, fontWeight: 900, letterSpacing: 0.2 }}>
       {children}
     </span>
   );
