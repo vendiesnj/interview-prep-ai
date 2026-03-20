@@ -179,65 +179,19 @@ export const authOptions: NextAuthOptions = {
             })
           : null;
 
-        if (!matchedTenant) {
-          matchedTenant = await prisma.tenant.upsert({
-            where: { slug: "default" },
-            update: {},
-            create: {
-              name: "Default",
-              slug: "default",
-              themeKey: "virginiaTech",
-              emailDomains: [],
-            },
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              themeKey: true,
-              logoUrl: true,
-
-              pageBg: true,
-              pageBgAccentA: true,
-              pageBgAccentB: true,
-
-              textPrimary: true,
-              textMuted: true,
-              textSoft: true,
-
-              cardBg: true,
-              cardBgStrong: true,
-              cardBorder: true,
-              cardBorderSoft: true,
-
-              inputBg: true,
-              inputBorder: true,
-
-              accent: true,
-              accentSoft: true,
-              accentStrong: true,
-
-              accent2: true,
-              accent2Soft: true,
-
-              danger: true,
-              dangerSoft: true,
-
-              success: true,
-              successSoft: true,
-            },
+        // Only assign tenant if matched by email domain — standalone users stay tenant-free
+        if (matchedTenant) {
+          await prisma.user.update({
+            where: { id: effectiveUserId },
+            data: { tenantId: matchedTenant.id },
           });
+
+          dbUser = {
+            ...dbUser,
+            tenantId: matchedTenant.id,
+            tenant: matchedTenant,
+          };
         }
-
-        await prisma.user.update({
-          where: { id: effectiveUserId },
-          data: { tenantId: matchedTenant.id },
-        });
-
-        dbUser = {
-          ...dbUser,
-          tenantId: matchedTenant.id,
-          tenant: matchedTenant,
-        };
       }
 
       // Look up tenant role for redirect logic

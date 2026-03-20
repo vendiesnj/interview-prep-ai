@@ -71,7 +71,7 @@ export default function PremiumShell({
                 ) : null}
               </div>
 
-              {(logoUrl || tenantName) ? (
+              {logoUrl ? (
                 <div
                   style={{
                     display: "flex",
@@ -95,18 +95,6 @@ export default function PremiumShell({
                     />
                   ) : null}
 
-                  {!logoUrl && tenantName ? (
-                    <div
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 900,
-                        color: "var(--text-primary)",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {tenantName}
-                    </div>
-                  ) : null}
                 </div>
               ) : null}
             </div>
