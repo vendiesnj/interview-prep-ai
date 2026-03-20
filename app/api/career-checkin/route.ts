@@ -17,18 +17,14 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const {
-    employmentStatus,
-    jobTitle,
-    company,
-    industry,
-    city,
-    state,
-    salaryRange,
-    graduationYear,
-    major,
-    satisfactionScore,
-    topChallenge,
+    employmentStatus, jobTitle, company, industry, city, state,
+    salaryRange, graduationYear, major, satisfactionScore, topChallenge,
     checklistItems,
+    // new financial fields
+    monthlyRent, has401k, contribution401kPct, currentSavingsRange,
+    studentLoanRange, retirementGoalAge,
+    // new university fields
+    universitySatisfaction, wouldChooseSameUniversity, universityName,
   } = body;
 
   if (!employmentStatus) {
@@ -56,6 +52,15 @@ export async function POST(req: NextRequest) {
       satisfactionScore: satisfactionScore ? parseInt(satisfactionScore) : null,
       topChallenge: topChallenge || null,
       checklistItems: checklistItems || null,
+      monthlyRent: monthlyRent ? parseInt(monthlyRent) : null,
+      has401k: has401k != null ? Boolean(has401k) : null,
+      contribution401kPct: contribution401kPct ? parseInt(contribution401kPct) : null,
+      currentSavingsRange: currentSavingsRange || null,
+      studentLoanRange: studentLoanRange || null,
+      retirementGoalAge: retirementGoalAge ? parseInt(retirementGoalAge) : null,
+      universitySatisfaction: universitySatisfaction ? parseInt(universitySatisfaction) : null,
+      wouldChooseSameUniversity: wouldChooseSameUniversity != null ? Boolean(wouldChooseSameUniversity) : null,
+      universityName: universityName || null,
     },
   });
 

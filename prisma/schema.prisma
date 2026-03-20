@@ -271,6 +271,19 @@ model CareerCheckIn {
   satisfactionScore Int?    // 1–5
   topChallenge     String?  // "salary", "growth", "work_life", "culture", "skills_gap", "other"
 
+  // Housing & financial
+  monthlyRent         Int?     // actual monthly housing cost in dollars
+  has401k             Boolean?
+  contribution401kPct Int?     // e.g. 6 = 6%
+  currentSavingsRange String?  // "under_5k", "5_15k", "15_30k", "30_60k", "60_100k", "over_100k"
+  studentLoanRange    String?  // "none", "under_10k", "10_30k", "30_60k", "60_100k", "over_100k"
+  retirementGoalAge   Int?     // e.g. 55, 60, 65
+
+  // University feedback
+  universitySatisfaction     Int?     // 1–5
+  wouldChooseSameUniversity  Boolean?
+  universityName             String?
+
   // Progress checklist (JSON array of completed item keys)
   checklistItems   Json?
 

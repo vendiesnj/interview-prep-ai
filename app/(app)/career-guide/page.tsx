@@ -42,6 +42,22 @@ const GUIDES = [
     icon: "🗺",
     color: "#8B5CF6",
   },
+  {
+    href: "/career-guide/retirement",
+    eyebrow: "Financial planning",
+    title: "Retirement projection",
+    desc: "See when you could retire based on your salary, 401k contributions, and savings. Personalized projections with fast-track levers.",
+    icon: "📈",
+    color: "#10B981",
+  },
+  {
+    href: "/career-guide/benchmarks",
+    eyebrow: "Peer data",
+    title: "Cohort benchmarks",
+    desc: "How does your salary, savings, and career satisfaction compare to peers? Anonymous, aggregated outcomes from your cohort.",
+    icon: "📊",
+    color: "#0EA5E9",
+  },
 ];
 
 export default async function CareerGuidePage() {
@@ -63,7 +79,7 @@ export default async function CareerGuidePage() {
         </div>
 
         {/* Guide cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16 }}>
           {GUIDES.map(({ href, eyebrow, title, desc, icon, color }) => (
             <Link key={href} href={href} style={{ textDecoration: "none" }}>
               <div
