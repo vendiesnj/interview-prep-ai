@@ -84,6 +84,7 @@ export const authOptions: NextAuthOptions = {
           stripeCustomerId: true,
           stripePriceId: true,
           currentPeriodEnd: true,
+          demoPersona: true,
           tenant: {
             select: {
               id: true,
@@ -209,6 +210,7 @@ export const authOptions: NextAuthOptions = {
       token.stripeCustomerId = dbUser?.stripeCustomerId ?? null;
       token.stripePriceId = dbUser?.stripePriceId ?? null;
       token.currentPeriodEnd = dbUser?.currentPeriodEnd ?? null;
+      token.demoPersona = dbUser?.demoPersona ?? null;
 
       return token;
     },
@@ -227,6 +229,7 @@ export const authOptions: NextAuthOptions = {
       (session.user as any).stripePriceId = token.stripePriceId ?? null;
       (session.user as any).currentPeriodEnd =
         token.currentPeriodEnd ?? null;
+      (session.user as any).demoPersona = token.demoPersona ?? null;
 
       return session;
     },

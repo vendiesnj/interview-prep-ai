@@ -54,7 +54,7 @@ export default async function HomePage() {
             boxShadow: "0 0 32px rgba(37,99,235,0.4)",
           }}
         >
-          📡
+          💬
         </div>
         <div style={{ fontSize: 24, fontWeight: 950, color: "#fff", letterSpacing: -0.5 }}>
           Signal

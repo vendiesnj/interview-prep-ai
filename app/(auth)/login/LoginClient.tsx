@@ -67,7 +67,7 @@ export default function LoginPage() {
       >
         <div style={{ padding: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📡</div>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💬</div>
             <span style={{ fontSize: 17, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.3 }}>Signal</span>
           </div>
 

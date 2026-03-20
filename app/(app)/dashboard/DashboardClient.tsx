@@ -164,6 +164,7 @@ export default function DashboardPage() {
 
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const firstName = (session?.user?.name ?? "").split(" ")[0] || "there";
+  const persona: string = (session?.user as any)?.demoPersona ?? "during_college";
 
   useEffect(() => {
     if (status === "loading") return;
@@ -258,7 +259,11 @@ export default function DashboardPage() {
             Good morning, {firstName} 👋
           </h1>
           <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--text-muted)" }}>
-            Here's everything in your Signal platform.
+            {persona === "pre_college"
+              ? "Let's get you ready for college and beyond."
+              : persona === "post_college"
+              ? "Keep growing — your career and finances, all in one place."
+              : "Your platform for interviews, speaking, and career growth."}
           </p>
         </div>
 
@@ -267,38 +272,28 @@ export default function DashboardPage() {
           <SectionEyebrow>Modules</SectionEyebrow>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 32 }}>
-          <ModuleCard
-            icon="🎙️"
-            eyebrow="Interview"
-            label="Interview Prep"
-            stat={history.length ? `${history.length}` : undefined}
-            statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined}
-            href="/practice"
-            color="var(--accent)"
-          />
-          <ModuleCard
-            icon="🎤"
-            eyebrow="Speaking"
-            label="Public Speaking"
-            href="/public-speaking"
-            color="#8B5CF6"
-          />
-          <ModuleCard
-            icon="🤝"
-            eyebrow="Networking"
-            label="Networking Pitch"
-            href="/practice"
-            comingSoon
-            color="#0EA5E9"
-          />
-          <ModuleCard
-            icon="🎓"
-            eyebrow="Pre-College"
-            label="College Ready"
-            href="/practice"
-            comingSoon
-            color="#10B981"
-          />
+          {persona === "pre_college" ? (
+            <>
+              <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
+              <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
+              <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
+              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" comingSoon color="#0EA5E9" />
+            </>
+          ) : persona === "post_college" ? (
+            <>
+              <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
+              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" comingSoon color="#0EA5E9" />
+              <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
+              <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
+            </>
+          ) : (
+            <>
+              <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
+              <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
+              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" comingSoon color="#0EA5E9" />
+              <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
+            </>
+          )}
         </div>
 
         {/* ── Interview Prep performance ── */}
@@ -380,10 +375,10 @@ export default function DashboardPage() {
 
         {/* ── CTA ── */}
         <Link
-          href="/practice"
+          href={persona === "pre_college" ? "/public-speaking" : "/practice"}
           style={{ textDecoration: "none", display: "block", padding: 18, borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))", color: "var(--text-primary)", fontWeight: 950, textAlign: "center", fontSize: 14, boxShadow: "var(--shadow-glow)" }}
         >
-          Start Interview Practice →
+          {persona === "pre_college" ? "Start a Public Speaking Session →" : "Start Interview Practice →"}
         </Link>
 
       </div>

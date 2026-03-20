@@ -59,7 +59,7 @@ export default function SignupPage() {
         {/* Brand */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>📡</div>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💬</div>
             <span style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>Signal</span>
           </Link>
           <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted, rgba(255,255,255,0.45))" }}>
