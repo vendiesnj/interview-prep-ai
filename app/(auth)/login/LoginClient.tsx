@@ -66,20 +66,14 @@ export default function LoginPage() {
         }}
       >
         <div style={{ padding: 6 }}>
-          <div
-            style={{
-              fontSize: 12,
-              fontWeight: 900,
-              letterSpacing: 0.8,
-              color: "var(--text-muted)",
-            }}
-          >
-            INTERVIEW PERFORMANCE COACH
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📡</div>
+            <span style={{ fontSize: 17, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.3 }}>Signal</span>
           </div>
 
           <h1
             style={{
-              margin: "8px 0 0 0",
+              margin: "0 0 6px",
               fontSize: 22,
               fontWeight: 950,
               letterSpacing: -0.2,
@@ -91,14 +85,14 @@ export default function LoginPage() {
 
           <p
             style={{
-              marginTop: 8,
+              marginTop: 0,
               marginBottom: 0,
               fontSize: 13,
               color: "var(--text-muted)",
               lineHeight: 1.55,
             }}
           >
-            Practice answers, get coaching, and track improvement over time.
+            Welcome back to your communication & career platform.
           </p>
 
           <button

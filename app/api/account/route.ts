@@ -3,9 +3,34 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/app/lib/prisma";
 
-
-
 export const runtime = "nodejs";
+
+export async function PATCH(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email;
+    if (!email) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+
+    const body = await req.json().catch(() => ({}));
+    const allowed = ["demoPersona"] as const;
+    const updates: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in body) updates[key] = body[key];
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "NO_VALID_FIELDS" }, { status: 400 });
+    }
+
+    await prisma.user.update({ where: { email }, data: updates });
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "UPDATE_FAILED", message: err?.message ?? "Unknown error" },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(req: Request) {
   try {
