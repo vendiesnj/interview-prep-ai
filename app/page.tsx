@@ -5,15 +5,15 @@ import type { Metadata } from "next";
 export const dynamic = "force-static";
 
 export const metadata: Metadata = {
-  title: "AI Interview Practice Tool | STAR Feedback, Speech Analysis & Mock Interview Coaching",
+  title: "Interview Performance Coach | STAR Scoring + Acoustic Speech Analysis",
   description:
-    "Practice behavioral interviews with AI-powered feedback. Get STAR scoring, communication analysis, filler-word tracking, and personalized coaching to ace your next interview.",
+    "The only interview practice tool that analyzes how you sound — not just what you say. Get STAR scoring, filler word tracking, pitch analysis, pace measurement, and delivery archetypes from your recorded answers.",
   keywords:
-    "interview practice, STAR method, behavioral interview, mock interview, interview coaching, speech analysis, interview prep tool, STAR framework examples",
+    "interview practice, STAR method, speech analysis, behavioral interview, mock interview, interview coaching, vocal delivery, filler words, interview prep tool, acoustic analysis",
   openGraph: {
-    title: "Interview Performance Coach — AI-Powered Interview Practice",
+    title: "Interview Performance Coach — Hears What Interviewers Hear",
     description:
-      "Practice interviews with real-time STAR scoring, communication feedback, and delivery analytics. Track improvement over time and walk in prepared.",
+      "Other tools read your transcript. IPC analyzes your actual voice — pace, pitch, energy, fillers, and monotone risk — and gives you a named delivery archetype with one coaching lever to pull.",
     type: "website",
   },
 };
@@ -99,19 +99,19 @@ export default function HomePage() {
             <div>
               <Reveal delayMs={80}>
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 999, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", fontSize: 12, fontWeight: 900, letterSpacing: 0.3 }}>
-                  Precision scoring · Voice delivery · Role-aligned practice
+                  The only interview tool that analyzes how you sound — not just what you say
                 </div>
               </Reveal>
 
               <Reveal delayMs={160}>
                 <h1 className="ipc-hero-h1" style={{ marginTop: 16, fontSize: 58, lineHeight: 1.02, letterSpacing: -1.4, fontWeight: 1000 as any, color: "var(--text-primary)", maxWidth: 760, fontFamily: "var(--font-manrope)" }}>
-                  Know exactly what to fix—<span style={{ color: "var(--accent)" }}>before</span> your next interview.
+                  The only interview coach that hears <span style={{ color: "var(--accent)" }}>what interviewers hear.</span>
                 </h1>
               </Reveal>
 
               <Reveal delayMs={240}>
                 <p style={{ marginTop: 16, fontSize: 17, lineHeight: 1.75, color: "var(--text-muted)", maxWidth: 700 }}>
-                  Stop reviewing answers and hoping something clicks. IPC scores your STAR structure, analyzes how you sound, tracks your progress, and tells you the one thing your next rep needs to improve.
+                  Other tools read your transcript and call it analysis. IPC records your actual voice and measures pace, pitch variation, filler rate, vocal energy, and monotone risk — the signals interviewers feel in real time, whether they name them or not.
                 </p>
               </Reveal>
 
@@ -140,9 +140,9 @@ export default function HomePage() {
               </Reveal>
 
               <div style={{ marginTop: 18, display: "flex", gap: 14, flexWrap: "wrap", color: "var(--text-muted)", fontSize: 12 }}>
+                <span style={{ color: "var(--accent)", fontWeight: 700 }}>✓</span><span>Acoustic voice analysis — not just transcription</span>
+                <span style={{ color: "var(--accent)", fontWeight: 700 }}>✓</span><span>STAR scoring with per-component evidence</span>
                 <span style={{ color: "var(--accent)", fontWeight: 700 }}>✓</span><span>First rep in under 3 minutes</span>
-                <span style={{ color: "var(--accent)", fontWeight: 700 }}>✓</span><span>STAR scoring on every answer</span>
-                <span style={{ color: "var(--accent)", fontWeight: 700 }}>✓</span><span>Speech analytics from your audio</span>
               </div>
             </div>
 
@@ -251,7 +251,7 @@ export default function HomePage() {
               { n: "02", title: "Answer a question", body: "Speak your answer aloud or type it. Audio responses unlock full delivery analytics — pace, fillers, pitch dynamics, and vocal energy." },
               { n: "03", title: "Get structured feedback", body: "Receive STAR scoring, communication and confidence signals, keyword gaps, delivery analysis, and a rewritten stronger answer within seconds." },
               { n: "04", title: "Track your progress", body: "See performance trends by question type, job profile, and time. Identify your strongest areas and the patterns dragging your score down." },
-            ].map(({ n, title, body }, i, arr) => (
+            ].map(({ n, title, body }) => (
               <Reveal key={n} delayMs={parseInt(n) * 80}>
                 <div className="ipc-process-step" style={{ display: "grid", gridTemplateColumns: "80px 1fr", gap: 28, alignItems: "start", padding: "32px 0", borderTop: "1px solid var(--card-border-soft)", position: "relative" }}>
                   <div style={{ position: "relative", display: "flex", alignItems: "flex-start", justifyContent: "flex-start" }}>
@@ -269,24 +269,110 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── VALUE STRIP ──────────────────────────────────────────────────── */}
-      <section className="ipc-section" style={{ width: "100%", padding: "68px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
+      {/* ── COMPARISON ───────────────────────────────────────────────────── */}
+      <section className="ipc-section" style={{ width: "100%", padding: "76px 24px", background: "var(--surface)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto" }}>
-          <div style={{ maxWidth: 760 }}>
-            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>THE DIFFERENCE</div>
+          <div style={{ maxWidth: 680, marginBottom: 44 }}>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>WHY IT&apos;S DIFFERENT</div>
             <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 40, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
-              Most prep tools give you a recording. IPC gives you a diagnosis.
+              Every other tool reads your transcript.<br />IPC listens to your delivery.
             </h2>
             <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.75, color: "var(--text-muted)" }}>
-              IPC gives you a real practice loop: answer questions, get scored, review trends, and focus on the exact areas that need improvement.
+              Transcription-based scoring misses the signals interviewers actually notice — pace, energy, pitch flatness, and how your voice sounds under pressure. Those signals live in the audio, not the text.
             </p>
           </div>
 
-          <div className="ipc-grid-3" style={{ marginTop: 28, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14 }}>
-            <Reveal delayMs={120}><LightCard title="Component-level scoring" body="STAR structure, communication, confidence, and role alignment are scored separately so you know exactly what needs work — not just 'practice more'." /></Reveal>
-            <Reveal delayMs={220}><LightCard title="Delivery intelligence" body="Track pace, fillers, vocal variety, pitch dynamics, and speaking energy so you improve both content and delivery simultaneously." /></Reveal>
-            <Reveal delayMs={320}><LightCard title="Cross-session patterns" body="See strengths, weak spots, category performance, and role-based patterns across all your practice — not just the last attempt." /></Reveal>
+          <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            {/* Other tools col */}
+            <Reveal delayMs={100}>
+              <div style={{ padding: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", marginBottom: 16, textTransform: "uppercase" as const }}>Other interview tools</div>
+                <div style={{ display: "grid", gap: 12 }}>
+                  {[
+                    "Record your answer",
+                    "Transcribe audio → send text to AI",
+                    "Return generic feedback on content",
+                    "No insight into how you sound",
+                    "No delivery signals tracked",
+                    "No archetype or pattern diagnosis",
+                  ].map((item) => (
+                    <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                      <span style={{ color: "var(--text-soft)", marginTop: 1, flex: "0 0 auto" }}>✗</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
+
+            {/* IPC col */}
+            <Reveal delayMs={200}>
+              <div style={{ padding: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "linear-gradient(160deg, var(--accent-soft) 0%, var(--card-bg) 60%)", boxShadow: "0 0 0 1px var(--accent-strong), var(--shadow-card)" }}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16, textTransform: "uppercase" as const }}>Interview Performance Coach</div>
+                <div style={{ display: "grid", gap: 12 }}>
+                  {[
+                    "Record your answer",
+                    "Analyze raw audio acoustics directly",
+                    "Score STAR structure with component evidence",
+                    "Measure pace, pitch, energy, fillers from the waveform",
+                    "Track 6 delivery signals across every rep",
+                    "Assign a delivery archetype and targeted coaching lever",
+                  ].map((item) => (
+                    <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+                      <span style={{ color: "var(--accent)", marginTop: 1, flex: "0 0 auto", fontWeight: 900 }}>✓</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Reveal>
           </div>
+        </div>
+      </section>
+
+      {/* ── ACOUSTIC SHOWCASE ─────────────────────────────────────────────── */}
+      <section className="ipc-section" style={{ width: "100%", padding: "76px 24px", background: "var(--bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
+        <div style={{ maxWidth: 1180, margin: "0 auto" }}>
+          <div style={{ maxWidth: 680, marginBottom: 44 }}>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>ACOUSTIC ANALYSIS</div>
+            <h2 className="ipc-section-h2" style={{ marginTop: 10, fontSize: 38, lineHeight: 1.1, letterSpacing: -0.8, fontWeight: 950, color: "var(--text-primary)", fontFamily: "var(--font-manrope)" }}>
+              Six signals. One delivery profile. Coaching that's actually specific.
+            </h2>
+            <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.75, color: "var(--text-muted)" }}>
+              IPC measures six acoustic signals from your recorded answer and combines them into a named delivery archetype — so instead of "speak slower," you get a diagnosis like <em>Flat Articulate</em> or <em>Measured Authority</em> and a single lever to pull.
+            </p>
+          </div>
+
+          <div className="ipc-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 14, marginBottom: 28 }}>
+            {[
+              { signal: "Pace", detail: "Words per minute — too fast signals nerves; too slow loses the room. IPC shows your WPM and flags the risk zone.", icon: "⏱" },
+              { signal: "Filler rate", detail: "Um, uh, like, you know — counted per 100 words. Visible every rep so you see the number fall as you practice.", icon: "🔇" },
+              { signal: "Monotone risk", detail: "Pitch flatness score. High monotone collapses differently depending on your pace and energy — IPC reads the combination.", icon: "〰" },
+              { signal: "Pitch variation", detail: "How much your pitch moves across the answer. Natural variation signals engagement and authority.", icon: "🎵" },
+              { signal: "Vocal energy", detail: "Volume and amplitude dynamics over time. Energy drops at the end of sentences are a common credibility leak.", icon: "⚡" },
+              { signal: "Tempo shifts", detail: "Whether your pace stays flat or varies strategically. Practiced speakers slow down at key moments.", icon: "📈" },
+            ].map(({ signal, detail, icon }) => (
+              <Reveal key={signal} delayMs={80}>
+                <div className="ipc-card-lift" style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+                  <div style={{ fontSize: 24, marginBottom: 10 }}>{icon}</div>
+                  <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{signal}</div>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>{detail}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delayMs={120}>
+            <div style={{ padding: "20px 24px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--accent)" }}>9 named delivery archetypes</div>
+                <div style={{ marginTop: 4, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  Controlled &amp; Clear · Measured Authority · Flat Articulate · Enthusiastic Rush · Quiet Credibility · and four more — each with a specific coaching lever, not generic tips.
+                </div>
+              </div>
+              <div style={{ fontSize: 13, color: "var(--accent)", fontWeight: 900, whiteSpace: "nowrap" as const }}>Assigned after every recorded rep →</div>
+            </div>
+          </Reveal>
         </div>
       </section>
 
@@ -610,14 +696,6 @@ function FaqRow({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-function LightCard({ title, body }: { title: string; body: string }) {
-  return (
-    <div className="ipc-card-lift" style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-      <div style={{ fontWeight: 950, fontSize: 15, color: "var(--text-primary)" }}>{title}</div>
-      <div style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
-    </div>
-  );
-}
 
 function FeatureCard({ eyebrow, title, body, bullets }: { eyebrow: string; title: string; body: string; bullets: string[] }) {
   return (

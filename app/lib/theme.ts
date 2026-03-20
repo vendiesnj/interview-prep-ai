@@ -281,10 +281,10 @@ export const lightTheme: AppTheme = {
   name: "ipc-light",
 
   colors: {
-    // Pure white page with the faintest indigo + sky wash at the edges
+    // Pure white page with a faint blue wash at the edges
     pageBg: "#FFFFFF",
-    pageBgAccentA: "rgba(99,102,241,0.055)",
-    pageBgAccentB: "rgba(14,165,233,0.045)",
+    pageBgAccentA: "rgba(37,99,235,0.05)",
+    pageBgAccentB: "rgba(14,165,233,0.04)",
 
     // Slate typography — rich contrast without harsh pure black
     text: "#0F172A",
@@ -300,12 +300,12 @@ export const lightTheme: AppTheme = {
     inputBg: "#F8FAFC",
     inputBorder: "rgba(15,23,42,0.13)",
 
-    // Indigo as the primary accent — clean, modern, not aggressive
-    accent: "#6366F1",
-    accentSoft: "rgba(99,102,241,0.08)",
-    accentStrong: "rgba(99,102,241,0.20)",
+    // Blue as the primary accent — matches the IPC logo
+    accent: "#2563EB",
+    accentSoft: "rgba(37,99,235,0.08)",
+    accentStrong: "rgba(37,99,235,0.22)",
 
-    // Sky blue as the secondary accent — cool, fresh contrast to indigo
+    // Sky blue as the secondary accent
     accent2: "#0EA5E9",
     accent2Soft: "rgba(14,165,233,0.09)",
 
