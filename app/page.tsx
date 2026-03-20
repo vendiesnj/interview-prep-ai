@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Reveal from "@/app/components/Reveal";
 import type { Metadata } from "next";
+
+export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "AI Interview Practice Tool | STAR Feedback, Speech Analysis & Mock Interview Coaching",
@@ -18,11 +18,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function HomePage() {
-  const session = await getServerSession(authOptions);
-  const fullName = session?.user?.name ?? "";
-  const firstName = (fullName.trim().split(/\s+/)[0] || "there").trim();
-  const isAuthed = !!session?.user?.email;
+export default function HomePage() {
+  const isAuthed = false;
+  const firstName = "there";
 
   return (
     <main style={{ width: "100%", minHeight: "100vh", background: "var(--bg)" }}>
