@@ -198,6 +198,27 @@ export default function HomePage() {
                       </div>
                     </div>
 
+                    <div style={{ padding: 12, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                        <div style={{ color: "var(--text-primary)", fontWeight: 950, fontSize: 12 }}>Voice delivery</div>
+                        <div style={{ fontSize: 11, color: "var(--accent)", fontWeight: 900, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", padding: "2px 8px", borderRadius: 999 }}>Flat Articulate</div>
+                      </div>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        {[
+                          { label: "Pace", value: "134 WPM", note: "Slightly fast", warn: true },
+                          { label: "Filler rate", value: "3.2 / 100w", note: "Strong", warn: false },
+                          { label: "Monotone risk", value: "High", note: "Vary your pitch on key sentences", warn: true },
+                          { label: "Vocal energy", value: "Moderate", note: "Drops at sentence ends", warn: true },
+                        ].map(({ label, value, note, warn }) => (
+                          <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                            <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, minWidth: 80 }}>{label}</span>
+                            <span style={{ fontSize: 11, fontWeight: 900, color: warn ? "#F59E0B" : "#10B981" }}>{value}</span>
+                            <span style={{ fontSize: 11, color: "var(--text-muted)", flex: 1, textAlign: "right" as const }}>{note}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
                     <div style={{ padding: 12, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12, lineHeight: 1.7 }}>
                       <span style={{ color: "var(--accent)", fontWeight: 950 }}>Next rep:</span>{" "}
                       lead with the metric, name the constraint, and end with a measurable outcome.

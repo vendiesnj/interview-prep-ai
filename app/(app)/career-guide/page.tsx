@@ -2,6 +2,12 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import PremiumShell from "@/app/components/PremiumShell";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Career Guide | Interview Performance Coach",
+};
+
 
 const GUIDES = [
   {
@@ -61,6 +67,7 @@ export default async function CareerGuidePage() {
           {GUIDES.map(({ href, eyebrow, title, desc, icon, color }) => (
             <Link key={href} href={href} style={{ textDecoration: "none" }}>
               <div
+                className="ipc-card-lift"
                 style={{
                   padding: 24,
                   borderRadius: "var(--radius-xl)",
@@ -68,16 +75,7 @@ export default async function CareerGuidePage() {
                   background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))",
                   boxShadow: "var(--shadow-card-soft)",
                   cursor: "pointer",
-                  transition: "transform 180ms, box-shadow 180ms",
                   height: "100%",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--shadow-card-soft)";
                 }}
               >
                 <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>

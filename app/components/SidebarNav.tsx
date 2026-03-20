@@ -290,18 +290,18 @@ export default function SidebarNav() {
         }}
       >
         {!collapsed ? (
-          <div>
+          <Link href="/" style={{ textDecoration: "none" }}>
             <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const }}>
               {isAdmin ? "Career Center" : "Performance Suite"}
             </div>
             {isAdmin ? (
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Admin Console</div>
             ) : null}
-          </div>
+          </Link>
         ) : (
-          <div style={{ fontSize: 14, color: "var(--text-primary)", fontWeight: 950 }}>
+          <Link href="/" style={{ textDecoration: "none", fontSize: 14, color: "var(--text-primary)", fontWeight: 950 }}>
             {isAdmin ? "A" : "IC"}
-          </div>
+          </Link>
         )}
 
         <button
