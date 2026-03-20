@@ -160,11 +160,24 @@ export default function DashboardPage() {
   const [history, setHistory] = useState<Attempt[]>([]);
   const [metric, setMetric] = useState<MetricKey>("overall");
   const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
-  const { data: session, status } = useSession();
+  const [stageSaving, setStageSaving] = useState(false);
+  const { data: session, status, update } = useSession();
 
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const firstName = (session?.user?.name ?? "").split(" ")[0] || "there";
   const persona: string = (session?.user as any)?.demoPersona ?? "during_college";
+
+  async function switchStage(newPersona: string) {
+    if (newPersona === persona || stageSaving) return;
+    setStageSaving(true);
+    await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ demoPersona: newPersona }),
+    });
+    await update();
+    setStageSaving(false);
+  }
 
   useEffect(() => {
     if (status === "loading") return;
@@ -252,6 +265,33 @@ export default function DashboardPage() {
   return (
     <PremiumShell title="Signal" subtitle="Your communication & career platform">
       <div style={{ maxWidth: 1100, paddingBottom: 48 }}>
+
+        {/* ── Stage switcher ── */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
+          {([
+            { id: "pre_college", label: "Pre-College", icon: "🎓", color: "#10B981" },
+            { id: "during_college", label: "During College", icon: "📚", color: "#2563EB" },
+            { id: "post_college", label: "Post-College", icon: "🚀", color: "#8B5CF6" },
+          ] as const).map((s) => {
+            const active = persona === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => switchStage(s.id)}
+                disabled={stageSaving}
+                style={{
+                  padding: "8px 16px", borderRadius: 99, border: `1px solid ${active ? s.color : "var(--card-border)"}`,
+                  background: active ? s.color + "18" : "var(--card-bg)",
+                  color: active ? s.color : "var(--text-muted)",
+                  fontWeight: active ? 950 : 800, fontSize: 13, cursor: stageSaving ? "wait" : "pointer",
+                  transition: "all 150ms", display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                <span>{s.icon}</span> {s.label}
+              </button>
+            );
+          })}
+        </div>
 
         {/* ── Greeting ── */}
         <div style={{ marginBottom: 28 }}>
