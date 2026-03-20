@@ -259,8 +259,12 @@ model CareerCheckIn {
   city             String?
   state            String?
 
-  // Compensation (range bands to reduce friction)
+  // Compensation (range bands + optional exact value)
   salaryRange      String?  // "under_40k", "40_50k", "50_60k", "60_75k", "75_90k", "90_110k", "110_130k", "over_130k"
+  salaryExact      Int?     // exact annual salary in dollars (optional)
+
+  // Demographics
+  age              Int?     // self-reported age
 
   // Career context
   graduationYear   Int?
@@ -276,7 +280,9 @@ model CareerCheckIn {
   has401k             Boolean?
   contribution401kPct Int?     // e.g. 6 = 6%
   currentSavingsRange String?  // "under_5k", "5_15k", "15_30k", "30_60k", "60_100k", "over_100k"
+  currentSavingsExact Int?     // exact savings amount in dollars (optional)
   studentLoanRange    String?  // "none", "under_10k", "10_30k", "30_60k", "60_100k", "over_100k"
+  studentLoanExact    Int?     // exact loan balance in dollars (optional)
   retirementGoalAge   Int?     // e.g. 55, 60, 65
 
   // University feedback

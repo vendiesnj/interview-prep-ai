@@ -68,13 +68,17 @@ export default function CareerCheckInPage() {
   const [form, setForm] = useState({
     employmentStatus: "",
     jobTitle: "", company: "", industry: "", city: "", state: "",
+    age: "",
     graduationYear: "", major: "",
     salaryRange: "",
+    salaryExact: "",
     monthlyRent: "",
     has401k: "" as "" | "yes" | "no",
     contribution401kPct: "",
     currentSavingsRange: "",
+    currentSavingsExact: "",
     studentLoanRange: "",
+    studentLoanExact: "",
     retirementGoalAge: "",
     satisfactionScore: "",
     topChallenge: "",
@@ -176,12 +180,13 @@ export default function CareerCheckInPage() {
                       <Field label="State" placeholder="e.g. IL" value={form.state} onChange={(v) => set("state", v)} />
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                      <Field label="Age" placeholder="e.g. 24" value={form.age} onChange={(v) => set("age", v.replace(/\D/g, ""))} />
                       <SelectField label="Graduation year" value={form.graduationYear} onChange={(v) => set("graduationYear", v)}>
                         <option value="">Select year</option>
                         {GRAD_YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
                       </SelectField>
-                      <Field label="Major / field of study" placeholder="e.g. Business" value={form.major} onChange={(v) => set("major", v)} />
                     </div>
+                    <Field label="Major / field of study" placeholder="e.g. Business" value={form.major} onChange={(v) => set("major", v)} />
                   </div>
                   <NavRow onBack={() => setStep("status")} onNext={() => setStep("compensation")} />
                 </div>
@@ -192,12 +197,15 @@ export default function CareerCheckInPage() {
                 <div>
                   <StepHeader title="Compensation" sub="Used anonymously to build salary benchmarks for your grad year and field. We never share individual data." />
                   <SectionLabel>Annual salary range</SectionLabel>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                     {SALARY_RANGES.map(({ value, label }) => (
                       <OptionCard key={value} selected={form.salaryRange === value} onClick={() => set("salaryRange", value)} compact>
                         {label}
                       </OptionCard>
                     ))}
+                  </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <Field label="Or enter exact annual salary (optional)" placeholder="e.g. 72000" value={form.salaryExact} onChange={(v) => set("salaryExact", v.replace(/\D/g, ""))} prefix="$" />
                   </div>
                   <SectionLabel>Monthly housing cost (rent or mortgage)</SectionLabel>
                   <div style={{ marginBottom: 4 }}>
@@ -236,21 +244,27 @@ export default function CareerCheckInPage() {
                   )}
 
                   <SectionLabel>Current total savings / investments (excluding home equity)</SectionLabel>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                     {SAVINGS_RANGES.map(({ value, label }) => (
                       <OptionCard key={value} selected={form.currentSavingsRange === value} onClick={() => set("currentSavingsRange", value)} compact>
                         {label}
                       </OptionCard>
                     ))}
                   </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <Field label="Or enter exact savings amount (optional)" placeholder="e.g. 14500" value={form.currentSavingsExact} onChange={(v) => set("currentSavingsExact", v.replace(/\D/g, ""))} prefix="$" />
+                  </div>
 
                   <SectionLabel>Student loan balance</SectionLabel>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                     {LOAN_RANGES.map(({ value, label }) => (
                       <OptionCard key={value} selected={form.studentLoanRange === value} onClick={() => set("studentLoanRange", value)} compact>
                         {label}
                       </OptionCard>
                     ))}
+                  </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <Field label="Or enter exact loan balance (optional)" placeholder="e.g. 28400" value={form.studentLoanExact} onChange={(v) => set("studentLoanExact", v.replace(/\D/g, ""))} prefix="$" />
                   </div>
 
                   <SectionLabel>Target retirement age (optional)</SectionLabel>

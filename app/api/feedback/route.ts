@@ -29,7 +29,7 @@ function releaseFeedbackSlot() {
 // Types
 // -------------------------
 
-type EvaluationFramework = "star" | "technical_explanation" | "experience_depth";
+type EvaluationFramework = "star" | "technical_explanation" | "experience_depth" | "public_speaking";
 
 type RelevanceJSON = {
   answered_question: boolean;
@@ -107,10 +107,26 @@ type ExperienceFeedbackJSON = BaseFeedbackJSON & {
   experience_improvements: string[];
 };
 
+type PublicSpeakingFeedbackJSON = BaseFeedbackJSON & {
+  public_speaking: {
+    hook_impact: number;
+    structure: number;
+    vocal_variety: number;
+    clarity: number;
+    audience_connection: number;
+    confidence_presence: number;
+  };
+  delivery_archetype: string;
+  archetype_coaching: string;
+  speaking_strengths: string[];
+  speaking_improvements: string[];
+};
+
 type AnyFeedbackJSON =
   | StarFeedbackJSON
   | TechnicalFeedbackJSON
-  | ExperienceFeedbackJSON;
+  | ExperienceFeedbackJSON
+  | PublicSpeakingFeedbackJSON;
 
 type FeedbackResponse = AnyFeedbackJSON & {
   filler: {
@@ -539,6 +555,20 @@ Technical explanation rules:
 `;
   }
 
+  if (framework === "public_speaking") {
+    return `${common}
+
+Public speaking rules:
+- Do NOT use STAR framing. This is NOT an interview answer evaluation.
+- Evaluate the speech as a standalone spoken delivery: hook, structure, vocal variety, clarity, audience connection, and confidence/presence.
+- A strong hook that grabs attention immediately should score 8+. A weak or absent hook should score 4 or below.
+- Structure means a clear opening, developed body, and strong close. Trailing off without a close should cap structure at 5.
+- Vocal variety is about pitch variation, pace changes, and strategic pauses — not just speed.
+- Delivery archetypes: "The Storyteller" (narrative-forward, engaging), "The Lecturer" (structured but flat), "The Rusher" (fast, nervous energy), "The Pauser" (measured, authoritative), "The Rambler" (enthusiastic but unfocused), "The Mumbler" (low energy, unclear).
+- Choose exactly one archetype that best fits the delivery. The archetype_coaching field must give one specific, actionable lever for that archetype.
+`;
+  }
+
   return `${common}
 
 Experience depth rules:
@@ -693,6 +723,36 @@ function baseSchema() {
 
 function buildSchema(framework: EvaluationFramework) {
   const base = baseSchema();
+
+  if (framework === "public_speaking") {
+    return {
+      ...base,
+      properties: {
+        ...base.properties,
+        public_speaking: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            hook_impact: { type: "number" },
+            structure: { type: "number" },
+            vocal_variety: { type: "number" },
+            clarity: { type: "number" },
+            audience_connection: { type: "number" },
+            confidence_presence: { type: "number" },
+          },
+          required: ["hook_impact", "structure", "vocal_variety", "clarity", "audience_connection", "confidence_presence"],
+        },
+        delivery_archetype: { type: "string" },
+        archetype_coaching: { type: "string" },
+        speaking_strengths: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } },
+        speaking_improvements: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } },
+      },
+      required: [
+        ...(base.required as string[]),
+        "public_speaking", "delivery_archetype", "archetype_coaching", "speaking_strengths", "speaking_improvements",
+      ],
+    };
+  }
 
   if (framework === "star") {
     return {
@@ -959,6 +1019,41 @@ function normalizeTechnicalFeedback(json: any): TechnicalFeedbackJSON {
   };
 }
 
+function validatePublicSpeakingFeedback(obj: any): obj is PublicSpeakingFeedbackJSON {
+  if (!validateBaseFeedbackShape(obj)) return false;
+  if (!isPlainObject(obj.public_speaking)) return false;
+  for (const k of ["hook_impact", "structure", "vocal_variety", "clarity", "audience_connection", "confidence_presence"] as const) {
+    const v = obj.public_speaking[k];
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0 || v > 10) return false;
+  }
+  if (!isNonEmptyString(obj.delivery_archetype)) return false;
+  if (!isNonEmptyString(obj.archetype_coaching)) return false;
+  if (!Array.isArray(obj.speaking_strengths) || obj.speaking_strengths.length < 2 || obj.speaking_strengths.length > 4) return false;
+  if (!obj.speaking_strengths.every(isNonEmptyString)) return false;
+  if (!Array.isArray(obj.speaking_improvements) || obj.speaking_improvements.length < 2 || obj.speaking_improvements.length > 4) return false;
+  if (!obj.speaking_improvements.every(isNonEmptyString)) return false;
+  return true;
+}
+
+function normalizePublicSpeakingFeedback(json: any): PublicSpeakingFeedbackJSON {
+  const base = normalizeBaseFeedback(json);
+  return {
+    ...base,
+    public_speaking: {
+      hook_impact: toScore1dp(json?.public_speaking?.hook_impact, 0, 0, 10),
+      structure: toScore1dp(json?.public_speaking?.structure, 0, 0, 10),
+      vocal_variety: toScore1dp(json?.public_speaking?.vocal_variety, 0, 0, 10),
+      clarity: toScore1dp(json?.public_speaking?.clarity, 0, 0, 10),
+      audience_connection: toScore1dp(json?.public_speaking?.audience_connection, 0, 0, 10),
+      confidence_presence: toScore1dp(json?.public_speaking?.confidence_presence, 0, 0, 10),
+    },
+    delivery_archetype: isNonEmptyString(json?.delivery_archetype) ? json.delivery_archetype.trim() : "The Lecturer",
+    archetype_coaching: isNonEmptyString(json?.archetype_coaching) ? json.archetype_coaching.trim() : "Focus on varying your vocal pitch and pace to keep listeners engaged.",
+    speaking_strengths: ensureStringArray(json?.speaking_strengths, 2, 4, ["Some relevant content was included.", "The delivery showed effort."]),
+    speaking_improvements: ensureStringArray(json?.speaking_improvements, 2, 4, ["Strengthen your opening hook.", "Add a clear closing statement."]),
+  };
+}
+
 function normalizeExperienceFeedback(json: any): ExperienceFeedbackJSON {
   const base = normalizeBaseFeedback(json);
 
@@ -1076,6 +1171,23 @@ function computeHeadlineScore(
     if (n.technical_explanation.depth < 5.8) capped = Math.min(capped, 6.8);
     if (n.technical_explanation.technical_accuracy < 6.0) capped = Math.min(capped, 6.6);
     if (n.technical_explanation.practical_reasoning < 5.8) capped = Math.min(capped, 6.9);
+
+    return round1(clamp(capped, 1, 10));
+  }
+
+  if (framework === "public_speaking") {
+    const n = normalized as PublicSpeakingFeedbackJSON;
+    const ps = n.public_speaking;
+    const psAvg = round1(
+      (ps.hook_impact + ps.structure + ps.vocal_variety + ps.clarity + ps.audience_connection + ps.confidence_presence) / 6
+    );
+
+    raw = psAvg * 0.72 + deliveryAvg * 0.28 - penalty;
+
+    let capped = raw;
+    if (ps.hook_impact < 4.5) capped = Math.min(capped, 6.0);
+    if (ps.structure < 5.0) capped = Math.min(capped, 6.5);
+    if (ps.vocal_variety < 4.5) capped = Math.min(capped, 7.0);
 
     return round1(clamp(capped, 1, 10));
   }
@@ -1251,6 +1363,8 @@ export async function POST(req: Request) {
         ? "technical_explanation"
         : body.evaluationFramework === "experience_depth"
         ? "experience_depth"
+        : body.evaluationFramework === "public_speaking"
+        ? "public_speaking"
         : "star";
 
     logInfo("feedback_delivery_metrics_received", {
@@ -1417,7 +1531,16 @@ export async function POST(req: Request) {
 
     let normalized: AnyFeedbackJSON;
 
-    if (evaluationFramework === "technical_explanation") {
+    if (evaluationFramework === "public_speaking") {
+      normalized = normalizePublicSpeakingFeedback(modelResult.parsed);
+      normalized = applyDeterministicCalibration(evaluationFramework, normalized, fillerStats, deliveryMetrics);
+      if (!validatePublicSpeakingFeedback(normalized)) {
+        return new Response(
+          JSON.stringify({ error: "Model returned invalid public speaking feedback shape." }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } else if (evaluationFramework === "technical_explanation") {
       normalized = normalizeTechnicalFeedback(modelResult.parsed);
       normalized = applyDeterministicCalibration(
         evaluationFramework,
@@ -1470,17 +1593,19 @@ export async function POST(req: Request) {
       }
     }
 
-        normalized = composeRichFeedback({
-      framework: evaluationFramework,
-      jobDesc,
-      question,
-      transcript,
-      deliveryMetrics,
-      fillerStats,
-      normalized,
-      prevScore,
-      prevAttemptCount,
-    });
+        if (evaluationFramework !== "public_speaking") {
+      normalized = composeRichFeedback({
+        framework: evaluationFramework as "star" | "technical_explanation" | "experience_depth",
+        jobDesc,
+        question,
+        transcript,
+        deliveryMetrics,
+        fillerStats,
+        normalized,
+        prevScore,
+        prevAttemptCount,
+      });
+    }
 
 
     if (!isPro) {

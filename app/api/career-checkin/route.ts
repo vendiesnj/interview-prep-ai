@@ -18,12 +18,16 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
     employmentStatus, jobTitle, company, industry, city, state,
-    salaryRange, graduationYear, major, satisfactionScore, topChallenge,
+    salaryRange, salaryExact,
+    graduationYear, major, age,
+    satisfactionScore, topChallenge,
     checklistItems,
-    // new financial fields
-    monthlyRent, has401k, contribution401kPct, currentSavingsRange,
-    studentLoanRange, retirementGoalAge,
-    // new university fields
+    // financial fields
+    monthlyRent, has401k, contribution401kPct,
+    currentSavingsRange, currentSavingsExact,
+    studentLoanRange, studentLoanExact,
+    retirementGoalAge,
+    // university fields
     universitySatisfaction, wouldChooseSameUniversity, universityName,
   } = body;
 
@@ -46,6 +50,8 @@ export async function POST(req: NextRequest) {
       city: city || null,
       state: state || null,
       salaryRange: salaryRange || null,
+      salaryExact: salaryExact ? parseInt(salaryExact) : null,
+      age: age ? parseInt(age) : null,
       graduationYear: graduationYear ? parseInt(graduationYear) : null,
       major: major || null,
       monthsSinceGrad,
@@ -56,7 +62,9 @@ export async function POST(req: NextRequest) {
       has401k: has401k != null ? Boolean(has401k) : null,
       contribution401kPct: contribution401kPct ? parseInt(contribution401kPct) : null,
       currentSavingsRange: currentSavingsRange || null,
+      currentSavingsExact: currentSavingsExact ? parseInt(currentSavingsExact) : null,
       studentLoanRange: studentLoanRange || null,
+      studentLoanExact: studentLoanExact ? parseInt(studentLoanExact) : null,
       retirementGoalAge: retirementGoalAge ? parseInt(retirementGoalAge) : null,
       universitySatisfaction: universitySatisfaction ? parseInt(universitySatisfaction) : null,
       wouldChooseSameUniversity: wouldChooseSameUniversity != null ? Boolean(wouldChooseSameUniversity) : null,

@@ -1,8 +1,9 @@
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import Link from "next/link";
 import Reveal from "@/app/components/Reveal";
 import type { Metadata } from "next";
-
-export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Interview Performance Coach | STAR Scoring + Acoustic Speech Analysis",
@@ -18,7 +19,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getServerSession(authOptions);
+  if (session?.user) redirect("/dashboard");
+
   const isAuthed = false;
   const firstName = "there";
 

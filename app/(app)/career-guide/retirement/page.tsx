@@ -7,11 +7,15 @@ import PremiumShell from "@/app/components/PremiumShell";
 // ── Types ─────────────────────────────────────────────────────────────────────
 type CheckIn = {
   salaryRange?: string | null;
+  salaryExact?: number | null;
   contribution401kPct?: number | null;
   currentSavingsRange?: string | null;
+  currentSavingsExact?: number | null;
   studentLoanRange?: string | null;
+  studentLoanExact?: number | null;
   retirementGoalAge?: number | null;
   graduationYear?: number | null;
+  age?: number | null;
   employmentStatus?: string | null;
 };
 
@@ -76,16 +80,18 @@ function buildProjection(
 } {
   const currentYear = new Date().getFullYear();
   const gradYear = checkIn.graduationYear ?? currentYear - 2;
-  const currentAge = Math.max(22, currentYear - gradYear + 22);
+  const derivedAge = Math.max(22, currentYear - gradYear + 22);
+  const currentAge = checkIn.age ?? derivedAge;
   const retirementAge = checkIn.retirementGoalAge ?? 65;
   const yearsToRetirement = Math.max(1, retirementAge - currentAge);
 
-  const annualSalary = SALARY_MIDPOINTS[checkIn.salaryRange ?? ""] ?? 60000;
+  // Prefer exact values; fall back to range midpoints
+  const annualSalary = checkIn.salaryExact ?? SALARY_MIDPOINTS[checkIn.salaryRange ?? ""] ?? 60000;
   const contribPct = checkIn.contribution401kPct ?? 6;
   const annual401k = annualSalary * (contribPct / 100);
   const monthly401k = annual401k / 12;
-  const currentSavings = SAVINGS_MIDPOINTS[checkIn.currentSavingsRange ?? ""] ?? 5000;
-  const studentDebt = LOAN_MIDPOINTS[checkIn.studentLoanRange ?? ""] ?? 0;
+  const currentSavings = checkIn.currentSavingsExact ?? SAVINGS_MIDPOINTS[checkIn.currentSavingsRange ?? ""] ?? 5000;
+  const studentDebt = checkIn.studentLoanExact ?? LOAN_MIDPOINTS[checkIn.studentLoanRange ?? ""] ?? 0;
 
   // Employer typically matches up to 3-6%; assume 3% match
   const matchPct = 0.03;
