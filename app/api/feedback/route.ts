@@ -29,7 +29,7 @@ function releaseFeedbackSlot() {
 // Types
 // -------------------------
 
-type EvaluationFramework = "star" | "technical_explanation" | "experience_depth" | "public_speaking";
+type EvaluationFramework = "star" | "technical_explanation" | "experience_depth" | "public_speaking" | "networking_pitch";
 
 type RelevanceJSON = {
   answered_question: boolean;
@@ -122,11 +122,26 @@ type PublicSpeakingFeedbackJSON = BaseFeedbackJSON & {
   speaking_improvements: string[];
 };
 
+type NetworkingPitchFeedbackJSON = BaseFeedbackJSON & {
+  networking_pitch: {
+    hook_strength: number;
+    clarity_of_ask: number;
+    credibility: number;
+    conciseness: number;
+    memorability: number;
+  };
+  pitch_style: string;
+  pitch_coaching: string;
+  pitch_strengths: string[];
+  pitch_improvements: string[];
+};
+
 type AnyFeedbackJSON =
   | StarFeedbackJSON
   | TechnicalFeedbackJSON
   | ExperienceFeedbackJSON
-  | PublicSpeakingFeedbackJSON;
+  | PublicSpeakingFeedbackJSON
+  | NetworkingPitchFeedbackJSON;
 
 type FeedbackResponse = AnyFeedbackJSON & {
   filler: {
@@ -569,6 +584,22 @@ Public speaking rules:
 `;
   }
 
+  if (framework === "networking_pitch") {
+    return `${common}
+
+Networking pitch rules:
+- Do NOT use STAR framing. This is NOT an interview answer evaluation.
+- Evaluate the pitch as a real-world networking moment: opening hook, clarity of what the speaker wants, credibility signals, conciseness, and memorability.
+- Hook strength: does the opening immediately capture interest? A strong, specific hook scores 8+. Generic or slow openers score 4 or below.
+- Clarity of ask: can you clearly tell what the speaker wants (advice, referral, connection, job)? Vague or absent asks score 4 or below.
+- Credibility: does the speaker establish relevant background, experience, or accomplishment quickly? Name-dropping without substance should not score well.
+- Conciseness: great networking pitches are 30-60 seconds. Rambling or filler-heavy pitches should be penalized. Very tight, well-edited pitches score 9+.
+- Memorability: will the listener remember this person and reach out? A distinctive angle, story, or detail scores high. Generic pitches score low.
+- Pitch styles: "The Connector" (warm, relationship-forward), "The Achiever" (credential-forward, specific accomplishments), "The Visionary" (idea-first, ambitious), "The Wanderer" (unfocused, unclear direction), "The Bullet-Pointer" (efficient but cold), "The Over-Sharer" (too much detail, loses listener).
+- Choose exactly one pitch style. pitch_coaching must give one specific, actionable improvement lever.
+`;
+  }
+
   return `${common}
 
 Experience depth rules:
@@ -750,6 +781,35 @@ function buildSchema(framework: EvaluationFramework) {
       required: [
         ...(base.required as string[]),
         "public_speaking", "delivery_archetype", "archetype_coaching", "speaking_strengths", "speaking_improvements",
+      ],
+    };
+  }
+
+  if (framework === "networking_pitch") {
+    return {
+      ...base,
+      properties: {
+        ...base.properties,
+        networking_pitch: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            hook_strength: { type: "number" },
+            clarity_of_ask: { type: "number" },
+            credibility: { type: "number" },
+            conciseness: { type: "number" },
+            memorability: { type: "number" },
+          },
+          required: ["hook_strength", "clarity_of_ask", "credibility", "conciseness", "memorability"],
+        },
+        pitch_style: { type: "string" },
+        pitch_coaching: { type: "string" },
+        pitch_strengths: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } },
+        pitch_improvements: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } },
+      },
+      required: [
+        ...(base.required as string[]),
+        "networking_pitch", "pitch_style", "pitch_coaching", "pitch_strengths", "pitch_improvements",
       ],
     };
   }
@@ -1054,6 +1114,40 @@ function normalizePublicSpeakingFeedback(json: any): PublicSpeakingFeedbackJSON 
   };
 }
 
+function validateNetworkingPitchFeedback(obj: any): obj is NetworkingPitchFeedbackJSON {
+  if (!validateBaseFeedbackShape(obj)) return false;
+  if (!isPlainObject(obj.networking_pitch)) return false;
+  for (const k of ["hook_strength", "clarity_of_ask", "credibility", "conciseness", "memorability"] as const) {
+    const v = obj.networking_pitch[k];
+    if (typeof v !== "number" || !Number.isFinite(v) || v < 0 || v > 10) return false;
+  }
+  if (!isNonEmptyString(obj.pitch_style)) return false;
+  if (!isNonEmptyString(obj.pitch_coaching)) return false;
+  if (!Array.isArray(obj.pitch_strengths) || obj.pitch_strengths.length < 2 || obj.pitch_strengths.length > 4) return false;
+  if (!obj.pitch_strengths.every(isNonEmptyString)) return false;
+  if (!Array.isArray(obj.pitch_improvements) || obj.pitch_improvements.length < 2 || obj.pitch_improvements.length > 4) return false;
+  if (!obj.pitch_improvements.every(isNonEmptyString)) return false;
+  return true;
+}
+
+function normalizeNetworkingPitchFeedback(json: any): NetworkingPitchFeedbackJSON {
+  const base = normalizeBaseFeedback(json);
+  return {
+    ...base,
+    networking_pitch: {
+      hook_strength: toScore1dp(json?.networking_pitch?.hook_strength, 0, 0, 10),
+      clarity_of_ask: toScore1dp(json?.networking_pitch?.clarity_of_ask, 0, 0, 10),
+      credibility: toScore1dp(json?.networking_pitch?.credibility, 0, 0, 10),
+      conciseness: toScore1dp(json?.networking_pitch?.conciseness, 0, 0, 10),
+      memorability: toScore1dp(json?.networking_pitch?.memorability, 0, 0, 10),
+    },
+    pitch_style: isNonEmptyString(json?.pitch_style) ? json.pitch_style.trim() : "The Wanderer",
+    pitch_coaching: isNonEmptyString(json?.pitch_coaching) ? json.pitch_coaching.trim() : "Lead with a specific ask so the listener knows exactly how to help you.",
+    pitch_strengths: ensureStringArray(json?.pitch_strengths, 2, 4, ["Some relevant content was included.", "The delivery showed confidence."]),
+    pitch_improvements: ensureStringArray(json?.pitch_improvements, 2, 4, ["Sharpen your opening hook.", "State your ask more clearly."]),
+  };
+}
+
 function normalizeExperienceFeedback(json: any): ExperienceFeedbackJSON {
   const base = normalizeBaseFeedback(json);
 
@@ -1188,6 +1282,23 @@ function computeHeadlineScore(
     if (ps.hook_impact < 4.5) capped = Math.min(capped, 6.0);
     if (ps.structure < 5.0) capped = Math.min(capped, 6.5);
     if (ps.vocal_variety < 4.5) capped = Math.min(capped, 7.0);
+
+    return round1(clamp(capped, 1, 10));
+  }
+
+  if (framework === "networking_pitch") {
+    const n = normalized as NetworkingPitchFeedbackJSON;
+    const np = n.networking_pitch;
+    const npAvg = round1(
+      (np.hook_strength + np.clarity_of_ask + np.credibility + np.conciseness + np.memorability) / 5
+    );
+
+    raw = npAvg * 0.75 + deliveryAvg * 0.25 - penalty;
+
+    let capped = raw;
+    if (np.clarity_of_ask < 4.5) capped = Math.min(capped, 5.8);
+    if (np.hook_strength < 4.5) capped = Math.min(capped, 6.2);
+    if (np.memorability < 4.5) capped = Math.min(capped, 6.8);
 
     return round1(clamp(capped, 1, 10));
   }
@@ -1365,6 +1476,8 @@ export async function POST(req: Request) {
         ? "experience_depth"
         : body.evaluationFramework === "public_speaking"
         ? "public_speaking"
+        : body.evaluationFramework === "networking_pitch"
+        ? "networking_pitch"
         : "star";
 
     logInfo("feedback_delivery_metrics_received", {
@@ -1571,6 +1684,15 @@ export async function POST(req: Request) {
           JSON.stringify({
             error: "Model returned invalid experience feedback shape.",
           }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } else if (evaluationFramework === "networking_pitch") {
+      normalized = normalizeNetworkingPitchFeedback(modelResult.parsed);
+      normalized = applyDeterministicCalibration(evaluationFramework, normalized, fillerStats, deliveryMetrics);
+      if (!validateNetworkingPitchFeedback(normalized)) {
+        return new Response(
+          JSON.stringify({ error: "Model returned invalid networking pitch feedback shape." }),
           { status: 500, headers: { "Content-Type": "application/json" } }
         );
       }
