@@ -1,171 +1,218 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 import PremiumShell from "../../components/PremiumShell";
-import PremiumCard from "../../components/PremiumCard";
-import {
-  asOverall100,
-  asTenPoint,
-  displayOverall100,
-  avgOverall100,
-} from "@/app/lib/scoreScale";
 
-type Attempt = {
-  id?: string;
-  ts?: number;
-  score?: number | null;
-  communication_score?: number | null;
-  confidence_score?: number | null;
-  wpm?: number | null;
-  prosody?: { monotoneScore?: number } | null;
-  feedback?: {
-    score?: number | null;
-    communication_score?: number | null;
-    confidence_score?: number | null;
-    filler?: { per100?: number; total?: number };
-    star?: { situation?: number; task?: number; action?: number; result?: number };
-  } | null;
+// ── Track definitions ─────────────────────────────────────────────────────────
+
+type TrackItem = {
+  id: string;
+  icon: string;
+  label: string;
+  desc: string;
+  href: string;
+  color: string;
+  time: string;
+  comingSoon?: boolean;
+  guideOnly?: boolean; // mark-as-done items (no tool behind them yet)
 };
 
-type MetricKey = "overall" | "communication" | "confidence" | "pace" | "fillers" | "star_result" | "vocal_variety";
+const TRACKS: Record<string, TrackItem[]> = {
+  pre_college: [
+    { id: "public_speaking_1", icon: "🎤", label: "First Public Speaking Session", desc: "Practice a 60-second intro speech and get AI feedback on your delivery.", href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
+    { id: "interview_prep_1", icon: "🎙️", label: "Practice Interview Questions", desc: "Get comfortable with common questions before college interviews or orientation.", href: "/practice", color: "#2563EB", time: "~15 min" },
+    { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Learn to introduce yourself at orientation, fairs, and campus events.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
+    { id: "fafsa_guide", icon: "📋", label: "FAFSA & Financial Aid", desc: "Understanding your award letter, deadlines, and what to do next.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
+    { id: "credit_guide", icon: "💳", label: "Building Credit Early", desc: "Why starting now matters and how to do it safely as a student.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
+    { id: "college_ready", icon: "🎓", label: "College Ready Assessment", desc: "A guided checklist to prepare for your first semester.", href: "/college-ready", color: "#10B981", time: "~20 min", comingSoon: true },
+  ],
+  during_college: [
+    { id: "interview_prep_1", icon: "🎙️", label: "Interview Prep Session", desc: "Practice behavioral questions for internship and job interviews.", href: "/practice", color: "#2563EB", time: "~15 min" },
+    { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Career fair cold approaches, coffee chats, and LinkedIn outreach.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
+    { id: "public_speaking_1", icon: "🎤", label: "Public Speaking Session", desc: "Class presentations, club pitches, and panel prep.", href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
+    { id: "career_checkin", icon: "✅", label: "Career Check-In", desc: "Log your current role, salary goals, and financial snapshot.", href: "/career-checkin", color: "#10B981", time: "~5 min" },
+    { id: "taxes_guide", icon: "🧾", label: "Filing Taxes for the First Time", desc: "W-2s, 1098-Ts, and free filing options for students.", href: "/career-guide/finances", color: "#F59E0B", time: "7 min read", guideOnly: true },
+    { id: "internship_guide", icon: "💼", label: "Making the Most of an Internship", desc: "How to network, deliver, and convert to a return offer.", href: "/career-guide/first-year", color: "#F59E0B", time: "5 min read", guideOnly: true },
+  ],
+  post_college: [
+    { id: "career_checkin", icon: "✅", label: "Career Check-In", desc: "Log your current role, salary, savings, and loan balance.", href: "/career-checkin", color: "#10B981", time: "~5 min" },
+    { id: "retirement_proj", icon: "📈", label: "Retirement Projection", desc: "See when you could retire based on your current trajectory.", href: "/career-guide/retirement", color: "#8B5CF6", time: "~3 min" },
+    { id: "interview_prep_1", icon: "🎙️", label: "Interview Prep Session", desc: "Practice for your next role or promotion conversation.", href: "/practice", color: "#2563EB", time: "~15 min" },
+    { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Industry events, LinkedIn outreach, and informational interviews.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
+    { id: "401k_guide", icon: "🏦", label: "401k & Benefits Enrollment", desc: "Contribution rates, employer match, and fund selection basics.", href: "/career-guide/retirement", color: "#F59E0B", time: "6 min read", guideOnly: true },
+    { id: "paycheck_guide", icon: "💰", label: "Understanding Your Paycheck", desc: "Gross vs net, withholdings, and how to adjust your W-4.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
+  ],
+};
 
-function safeJSONParse<T>(raw: string | null, fallback: T): T {
-  try { if (!raw) return fallback; return JSON.parse(raw) as T; } catch { return fallback; }
-}
-function n(x: any): number | null { return typeof x === "number" && Number.isFinite(x) ? x : null; }
-function avg(nums: number[]) { if (!nums.length) return null; return nums.reduce((a, b) => a + b, 0) / nums.length; }
-function round1(x: number | null) { return x === null ? null : Math.round(x * 10) / 10; }
-function clamp01(n: number) { return Math.max(0, Math.min(1, n)); }
+// ── Track item component ───────────────────────────────────────────────────────
 
-function buildSparkPath(values: number[], w: number, h: number, pad = 6, fixedMax?: number) {
-  if (!values.length) return "";
-  const min = 0;
-  const max = typeof fixedMax === "number" ? fixedMax : Math.max(...values);
-  const range = Math.max(1e-6, max - min);
-  const xs = values.map((_, i) => pad + (i * (w - pad * 2)) / Math.max(1, values.length - 1));
-  const ys = values.map((v) => { const t = (v - min) / range; return pad + (1 - clamp01(t)) * (h - pad * 2); });
-  return xs.map((x, i) => `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${ys[i].toFixed(1)}`).join(" ");
-}
-
-function metricMeta(metric: MetricKey) {
-  switch (metric) {
-    case "communication": return { label: "Communication", max: 100 };
-    case "confidence": return { label: "Confidence", max: 100 };
-    case "pace": return { label: "Pace (WPM)", max: 220 };
-    case "fillers": return { label: "Fillers (per 100 words)", max: 20 };
-    case "star_result": return { label: "Closing Impact", max: 100 };
-    case "vocal_variety": return { label: "Vocal Variety", max: 100 };
-    default: return { label: "Overall", max: 100 };
-  }
-}
-
-function getMetricValue(h: Attempt, metric: MetricKey): number | null {
-  if (metric === "overall") return asOverall100(n(h.score ?? h.feedback?.score));
-  if (metric === "communication") { const v = asTenPoint(n(h.communication_score ?? h.feedback?.communication_score)); return v === null ? null : v * 10; }
-  if (metric === "confidence") { const v = asTenPoint(n(h.confidence_score ?? h.feedback?.confidence_score)); return v === null ? null : v * 10; }
-  if (metric === "pace") return n(h.wpm ?? null);
-  if (metric === "fillers") return n(h.feedback?.filler?.per100);
-  if (metric === "star_result") { const v = asTenPoint(n(h.feedback?.star?.result)); return v === null ? null : v * 10; }
-  if (metric === "vocal_variety") { const m = asTenPoint(n(h.prosody?.monotoneScore)); return m === null ? null : Math.max(0, Math.min(100, (10 - m) * 10)); }
-  return null;
-}
-
-function SectionEyebrow({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase" as const }}>{children}</div>;
-}
-
-function MetricChip({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button type="button" onClick={onClick} style={{ padding: "7px 10px", borderRadius: 999, border: active ? "1px solid var(--accent-strong)" : "1px solid var(--card-border-soft)", background: active ? "var(--accent-soft)" : "var(--card-bg)", color: active ? "var(--accent)" : "var(--text-primary)", fontSize: 12, fontWeight: 900, cursor: "pointer" }}>
-      {children}
-    </button>
-  );
-}
-
-// ── Module card ───────────────────────────────────────────────────────────────
-function ModuleCard({
-  icon, label, eyebrow, stat, statLabel, href, comingSoon, color,
+function TrackStep({
+  item,
+  index,
+  done,
+  isLast,
+  onMarkDone,
+  interviewDone,
 }: {
-  icon: string; label: string; eyebrow: string; stat?: string; statLabel?: string;
-  href: string; comingSoon?: boolean; color: string;
+  item: TrackItem;
+  done: boolean;
+  isLast: boolean;
+  onMarkDone: (id: string) => void;
+  interviewDone: boolean;
 }) {
-  const inner = (
-    <div
-      className={comingSoon ? undefined : "ipc-card-lift"}
-      style={{
-        padding: "20px 22px",
-        borderRadius: "var(--radius-xl)",
-        border: `1px solid ${comingSoon ? "var(--card-border-soft)" : "var(--card-border)"}`,
-        background: comingSoon
-          ? "var(--card-bg)"
-          : "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))",
-        boxShadow: comingSoon ? "none" : "var(--shadow-card-soft)",
-        opacity: comingSoon ? 0.55 : 1,
-        height: "100%",
-        boxSizing: "border-box" as const,
-        display: "flex",
-        flexDirection: "column" as const,
-        gap: 10,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 26 }}>{icon}</span>
-        {comingSoon && (
-          <span style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "3px 8px", borderRadius: 6, textTransform: "uppercase" as const }}>
-            Coming soon
-          </span>
-        )}
-      </div>
-      <div>
-        <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color, textTransform: "uppercase" as const, marginBottom: 3 }}>{eyebrow}</div>
-        <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)" }}>{label}</div>
-      </div>
-      {stat && (
-        <div style={{ marginTop: "auto" }}>
-          <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{stat}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{statLabel}</div>
-        </div>
-      )}
-      {!comingSoon && !stat && (
-        <div style={{ marginTop: "auto", fontSize: 13, fontWeight: 900, color }}>Start →</div>
-      )}
-    </div>
-  );
+  const isDone = done || (item.id === "interview_prep_1" && interviewDone);
 
-  if (comingSoon) return <div>{inner}</div>;
-  return <Link href={href} style={{ textDecoration: "none" }}>{inner}</Link>;
-}
-
-// ── Career quick-link ─────────────────────────────────────────────────────────
-function CareerQuickLink({ href, icon, label, sub }: { href: string; icon: string; label: string; sub: string }) {
   return (
-    <Link href={href} style={{ textDecoration: "none" }}>
-      <div className="ipc-card-lift" style={{ padding: "16px 18px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 14, boxShadow: "var(--shadow-card-soft)" }}>
-        <span style={{ fontSize: 22, flexShrink: 0 }}>{icon}</span>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{label}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>{sub}</div>
+    <div style={{ display: "flex", gap: 16, position: "relative" }}>
+      {/* Connector line */}
+      {!isLast && (
+        <div style={{
+          position: "absolute", left: 19, top: 44, width: 2, bottom: -24,
+          background: isDone ? item.color + "60" : "var(--card-border-soft)",
+        }} />
+      )}
+
+      {/* Step indicator */}
+      <div style={{ flexShrink: 0, marginTop: 4 }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: "50%",
+          background: isDone ? item.color + "20" : item.comingSoon ? "var(--card-bg)" : "var(--card-bg-strong)",
+          border: `2px solid ${isDone ? item.color : item.comingSoon ? "var(--card-border-soft)" : "var(--card-border)"}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: isDone ? 16 : 18,
+        }}>
+          {isDone ? "✓" : item.icon}
         </div>
-        <span style={{ marginLeft: "auto", color: "var(--text-muted)", fontSize: 14 }}>→</span>
       </div>
-    </Link>
+
+      {/* Content */}
+      <div style={{
+        flex: 1, paddingBottom: isLast ? 0 : 24,
+        padding: "14px 18px", borderRadius: 16,
+        border: `1px solid ${isDone ? item.color + "40" : "var(--card-border)"}`,
+        background: isDone ? item.color + "08" : "var(--card-bg)",
+        marginBottom: isLast ? 0 : 8,
+        opacity: item.comingSoon ? 0.5 : 1,
+      }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 14, fontWeight: 950, color: isDone ? item.color : "var(--text-primary)" }}>
+                {item.label}
+              </span>
+              {isDone && (
+                <span style={{ fontSize: 11, fontWeight: 900, color: item.color, background: item.color + "18", padding: "2px 8px", borderRadius: 99 }}>
+                  Done
+                </span>
+              )}
+              {item.comingSoon && (
+                <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 8px", borderRadius: 99 }}>
+                  Coming soon
+                </span>
+              )}
+              {item.guideOnly && !isDone && (
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#F59E0B", background: "rgba(245,158,11,0.12)", padding: "2px 8px", borderRadius: 99 }}>
+                  Guide
+                </span>
+              )}
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{item.desc}</p>
+            <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)", fontWeight: 800 }}>{item.time}</div>
+          </div>
+
+          {!item.comingSoon && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "flex-end", flexShrink: 0 }}>
+              <Link
+                href={item.href}
+                style={{
+                  padding: "8px 16px", borderRadius: 10,
+                  background: isDone ? "transparent" : item.color,
+                  border: isDone ? `1px solid ${item.color}` : "none",
+                  color: isDone ? item.color : "#fff",
+                  fontWeight: 900, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap",
+                }}
+              >
+                {isDone ? "Do again →" : item.guideOnly ? "Read →" : "Start →"}
+              </Link>
+              {item.guideOnly && !isDone && (
+                <button
+                  onClick={() => onMarkDone(item.id)}
+                  style={{ fontSize: 12, fontWeight: 800, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: "2px 4px" }}
+                >
+                  Mark as done
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
+
+type Attempt = { id?: string; score?: number | null; };
+
+function safeJSONParse<T>(raw: string | null, fallback: T): T {
+  try { if (!raw) return fallback; return JSON.parse(raw) as T; } catch { return fallback; }
+}
+
 export default function DashboardPage() {
   const [history, setHistory] = useState<Attempt[]>([]);
-  const [metric, setMetric] = useState<MetricKey>("overall");
-  const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+  const [doneItems, setDoneItems] = useState<Set<string>>(new Set());
   const [stageSaving, setStageSaving] = useState(false);
   const { data: session, status, update } = useSession();
 
   const HISTORY_KEY = userScopedKey("ipc_history", session);
+  const DONE_KEY = userScopedKey("signal_track_done", session);
   const firstName = (session?.user?.name ?? "").split(" ")[0] || "there";
   const persona: string = (session?.user as any)?.demoPersona ?? "during_college";
+  const track = TRACKS[persona] ?? TRACKS.during_college;
+  const doneCount = track.filter((item) => doneItems.has(item.id) || (item.id === "interview_prep_1" && history.length > 0)).length;
+
+  // Load history + done state
+  useEffect(() => {
+    if (status === "loading") return;
+    let cancelled = false;
+
+    (async () => {
+      // Load interview history
+      try {
+        if (session?.user) {
+          const res = await fetch("/api/attempts?limit=1", { cache: "no-store" });
+          if (res.ok) {
+            const data = await res.json();
+            if (!cancelled) setHistory(Array.isArray(data?.attempts) ? data.attempts : []);
+          }
+        } else {
+          const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+          if (!cancelled) setHistory(Array.isArray(saved) ? saved : []);
+        }
+      } catch {
+        const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
+        if (!cancelled) setHistory(Array.isArray(saved) ? saved : []);
+      }
+
+      // Load done items from localStorage
+      const saved = safeJSONParse<string[]>(localStorage.getItem(DONE_KEY), []);
+      if (!cancelled) setDoneItems(new Set(Array.isArray(saved) ? saved : []));
+    })();
+
+    return () => { cancelled = true; };
+  }, [status, session?.user, HISTORY_KEY, DONE_KEY]);
+
+  function markDone(id: string) {
+    setDoneItems((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      localStorage.setItem(DONE_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }
 
   async function switchStage(newPersona: string) {
     if (newPersona === persona || stageSaving) return;
@@ -179,100 +226,19 @@ export default function DashboardPage() {
     setStageSaving(false);
   }
 
-  useEffect(() => {
-    if (status === "loading") return;
-    let cancelled = false;
-    setLoadState("hydrating");
-
-    (async () => {
-      try {
-        if (session?.user) {
-          const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
-          if (res.ok) {
-            const data = await res.json();
-            const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
-            if (!cancelled && attempts.length > 0) { setHistory(attempts); return; }
-          }
-        }
-        const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-        if (!cancelled) setHistory(Array.isArray(saved) ? saved : []);
-      } catch {
-        const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
-        if (!cancelled) setHistory(Array.isArray(saved) ? saved : []);
-      } finally {
-        if (!cancelled) setLoadState("ready");
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, [status, session?.user, HISTORY_KEY]);
-
-  const last5 = useMemo(() => history.slice(0, 5), [history]);
-
-  const series = useMemo(() => {
-    return history.slice(0, 20).reverse()
-      .map((h) => getMetricValue(h, metric))
-      .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-  }, [history, metric]);
-
-  const stats = useMemo(() => {
-    if (!series.length) return { avg: null as number | null, min: null as number | null, max: null as number | null };
-    return { avg: avg(series), min: Math.min(...series), max: Math.max(...series) };
-  }, [series]);
-
-  const avgOverallLast5 = useMemo(() => round1(avgOverall100(last5.map((h) => n(h.score ?? h.feedback?.score)))), [last5]);
-
-  const biggestIssues = useMemo(() => {
-    if (!last5.length) return [];
-    const keys: MetricKey[] = ["communication", "confidence", "star_result", "fillers", "pace", "vocal_variety"];
-    const scored = keys.map((k) => {
-      const vals = last5.map((h) => getMetricValue(h, k)).filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-      return { k, avg: avg(vals) };
-    }).filter((x) => x.avg !== null) as Array<{ k: MetricKey; avg: number }>;
-
-    function badness(item: { k: MetricKey; avg: number }) {
-      if (item.k === "fillers") return item.avg;
-      if (item.k === "pace") { const lo = 115, hi = 145; if (item.avg < lo) return lo - item.avg; if (item.avg > hi) return item.avg - hi; return 0; }
-      return 100 - item.avg;
-    }
-    scored.sort((a, b) => badness(b) - badness(a));
-    return scored.slice(0, 2).map((x) => x.k);
-  }, [last5]);
-
-  const issueCopy: Record<MetricKey, { title: string; tip: string }> = {
-    overall: { title: "Overall", tip: "Tighten structure: 1 clear claim -> 2 supports -> 1 strong close." },
-    communication: { title: "Communication", tip: 'Shorter sentences. Cut softeners like "kind of" and "maybe".' },
-    confidence: { title: "Confidence", tip: "Lead with a clear claim. Put one metric earlier." },
-    pace: { title: "Pace", tip: "Aim 115-145 WPM. Add micro-pauses after numbers." },
-    fillers: { title: "Fillers", tip: 'Replace um/like with a one-beat pause.' },
-    star_result: { title: "Closing Impact", tip: 'End with a result: "Improved X by Y% / saved $Z / reduced time by N days."' },
-    vocal_variety: { title: "Vocal Variety", tip: "Emphasize outcomes + vary pitch at sentence ends." },
-  };
-
-  const sparkW = 520, sparkH = 110;
-  const { label, max: yMax } = metricMeta(metric);
-  const sparkPath = buildSparkPath(series, sparkW, sparkH, 8, yMax);
-
-  const formatValue = (k: MetricKey, v: number | null) => {
-    if (v === null) return "—";
-    if (k === "pace") return `${Math.round(v)} wpm`;
-    if (k === "fillers") return `${Math.round(v * 10) / 10}/100`;
-    return `${Math.round(v)}/100`;
-  };
-
-  const avgScore = typeof avgOverallLast5 === "number" ? displayOverall100(avgOverallLast5) : null;
+  const STAGES = [
+    { id: "pre_college", label: "Pre-College", icon: "🎓", color: "#10B981" },
+    { id: "during_college", label: "During College", icon: "📚", color: "#2563EB" },
+    { id: "post_college", label: "Post-College", icon: "🚀", color: "#8B5CF6" },
+  ] as const;
 
   return (
     <PremiumShell title="Signal" subtitle="Your communication & career platform">
-      <div style={{ maxWidth: 1100, paddingBottom: 48 }}>
+      <div style={{ maxWidth: 720, paddingBottom: 48 }}>
 
         {/* ── Stage switcher ── */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap" }}>
-          {([
-            { id: "pre_college", label: "Pre-College", icon: "🎓", color: "#10B981" },
-            { id: "during_college", label: "During College", icon: "📚", color: "#2563EB" },
-            { id: "post_college", label: "Post-College", icon: "🚀", color: "#8B5CF6" },
-          ] as const).map((s) => {
+        <div style={{ display: "flex", gap: 8, marginBottom: 32, flexWrap: "wrap" }}>
+          {STAGES.map((s) => {
             const active = persona === s.id;
             return (
               <button
@@ -280,146 +246,62 @@ export default function DashboardPage() {
                 onClick={() => switchStage(s.id)}
                 disabled={stageSaving}
                 style={{
-                  padding: "8px 16px", borderRadius: 99, border: `1px solid ${active ? s.color : "var(--card-border)"}`,
+                  padding: "8px 16px", borderRadius: 99,
+                  border: `1px solid ${active ? s.color : "var(--card-border)"}`,
                   background: active ? s.color + "18" : "var(--card-bg)",
                   color: active ? s.color : "var(--text-muted)",
-                  fontWeight: active ? 950 : 800, fontSize: 13, cursor: stageSaving ? "wait" : "pointer",
-                  transition: "all 150ms", display: "flex", alignItems: "center", gap: 6,
+                  fontWeight: active ? 950 : 800, fontSize: 13,
+                  cursor: stageSaving ? "wait" : "pointer", transition: "all 150ms",
+                  display: "flex", alignItems: "center", gap: 6,
                 }}
               >
-                <span>{s.icon}</span> {s.label}
+                <span>{s.icon}</span>{s.label}
               </button>
             );
           })}
         </div>
 
-        {/* ── Greeting ── */}
-        <div style={{ marginBottom: 28 }}>
-          <h1 style={{ margin: 0, fontSize: 26, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>
+        {/* ── Greeting + progress ── */}
+        <div style={{ marginBottom: 32 }}>
+          <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>
             Good morning, {firstName} 👋
           </h1>
-          <p style={{ margin: "6px 0 0", fontSize: 14, color: "var(--text-muted)" }}>
+          <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted)" }}>
             {persona === "pre_college"
               ? "Let's get you ready for college and beyond."
               : persona === "post_college"
               ? "Keep growing — your career and finances, all in one place."
               : "Your platform for interviews, speaking, and career growth."}
           </p>
-        </div>
 
-        {/* ── Module cards ── */}
-        <div style={{ marginBottom: 10 }}>
-          <SectionEyebrow>Modules</SectionEyebrow>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, marginBottom: 32 }}>
-          {persona === "pre_college" ? (
-            <>
-              <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
-              <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
-              <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
-              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" color="#0EA5E9" />
-            </>
-          ) : persona === "post_college" ? (
-            <>
-              <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
-              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" color="#0EA5E9" />
-              <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
-              <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
-            </>
-          ) : (
-            <>
-              <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
-              <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
-              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" color="#0EA5E9" />
-              <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
-            </>
-          )}
-        </div>
-
-        {/* ── Interview Prep performance ── */}
-        {loadState === "ready" && (
-          <>
-            <div style={{ marginBottom: 10 }}>
-              <SectionEyebrow>Interview Prep · Performance</SectionEyebrow>
+          {/* Progress bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+              <div style={{
+                height: "100%", borderRadius: 99, transition: "width 0.5s ease",
+                width: `${Math.round((doneCount / track.length) * 100)}%`,
+                background: "linear-gradient(90deg, #2563EB, #0EA5E9)",
+              }} />
             </div>
-            <div style={{ display: "grid", gap: 14, marginBottom: 32 }}>
-
-              {/* Trend chart */}
-              <PremiumCard style={{ padding: 20, borderRadius: "var(--radius-lg)" }}>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)" }}>{label} trend</div>
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
-                      {history.length ? `${history.length} sessions total` : "No sessions yet"}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
-                    {[["Avg", stats.avg], ["Min", stats.min], ["Max", stats.max]].map(([lbl, val]) => (
-                      <div key={lbl as string} style={{ textAlign: "right" }}>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{lbl}</div>
-                        <div style={{ marginTop: 3, fontWeight: 900, color: "var(--text-primary)" }}>
-                          {formatValue(metric, val === null ? null : Math.round((val as number) * 10) / 10)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ marginTop: 12, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {([ ["overall", "Overall"], ["communication", "Communication"], ["confidence", "Confidence"], ["pace", "Pace"], ["fillers", "Fillers"], ["star_result", "Closing"], ["vocal_variety", "Vocal Variety"] ] as Array<[MetricKey, string]>).map(([k, txt]) => (
-                    <MetricChip key={k} active={metric === k} onClick={() => setMetric(k)}>{txt}</MetricChip>
-                  ))}
-                </div>
-
-                <div style={{ marginTop: 12 }}>
-                  <svg width="100%" viewBox={`0 0 ${sparkW} ${sparkH}`} style={{ borderRadius: 14, border: "1px solid var(--card-border)", background: `radial-gradient(900px 420px at 15% -10%, var(--accent-soft), transparent 60%), var(--input-bg)` }}>
-                    <path d={`M 8 ${(sparkH - 8).toFixed(1)} L ${(sparkW - 8).toFixed(1)} ${(sparkH - 8).toFixed(1)}`} stroke="var(--card-border)" strokeWidth="1" fill="none" />
-                    {series.length ? (
-                      <path d={sparkPath} stroke="var(--accent)" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                    ) : (
-                      <text x="16" y="38" fill="var(--text-muted)" style={{ fontSize: 14, fontWeight: 800 }}>No data yet — start a practice session.</text>
-                    )}
-                  </svg>
-                  <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>Showing last {Math.min(history.length, 20)} sessions · newest on the right</div>
-                </div>
-              </PremiumCard>
-
-              {/* Biggest issues */}
-              {biggestIssues.length > 0 && (
-                <PremiumCard style={{ padding: 20, borderRadius: "var(--radius-lg)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Focus areas</div>
-                  <div style={{ display: "grid", gap: 10 }}>
-                    {biggestIssues.map((k) => (
-                      <div key={k} style={{ padding: 14, borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--input-bg)" }}>
-                        <div style={{ fontWeight: 950, color: "var(--text-primary)" }}>{issueCopy[k].title}</div>
-                        <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>{issueCopy[k].tip}</div>
-                      </div>
-                    ))}
-                  </div>
-                </PremiumCard>
-              )}
+            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              {doneCount} / {track.length} done
             </div>
-          </>
-        )}
-
-        {/* ── Career Center ── */}
-        <div style={{ marginBottom: 10 }}>
-          <SectionEyebrow>Career Center</SectionEyebrow>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginBottom: 32 }}>
-          <CareerQuickLink href="/career-guide" icon="📚" label="Career Guide" sub="First year, finances, housing, paths" />
-          <CareerQuickLink href="/career-checkin" icon="✅" label="Career Check-In" sub="Log your progress & financial snapshot" />
-          <CareerQuickLink href="/career-guide/benchmarks" icon="📊" label="Peer Benchmarks" sub="How your cohort is doing" />
-          <CareerQuickLink href="/career-guide/retirement" icon="📈" label="Retirement Projection" sub="When could you retire?" />
+          </div>
         </div>
 
-        {/* ── CTA ── */}
-        <Link
-          href={persona === "pre_college" ? "/public-speaking" : "/practice"}
-          style={{ textDecoration: "none", display: "block", padding: 18, borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))", color: "var(--text-primary)", fontWeight: 950, textAlign: "center", fontSize: 14, boxShadow: "var(--shadow-glow)" }}
-        >
-          {persona === "pre_college" ? "Start a Public Speaking Session →" : "Start Interview Practice →"}
-        </Link>
+        {/* ── Track ── */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {track.map((item, i) => (
+            <TrackStep
+              key={item.id}
+              item={item}
+              done={doneItems.has(item.id)}
+              isLast={i === track.length - 1}
+              onMarkDone={markDone}
+              interviewDone={history.length > 0}
+            />
+          ))}
+        </div>
 
       </div>
     </PremiumShell>
