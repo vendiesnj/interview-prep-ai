@@ -51,7 +51,6 @@ const TRACKS: Record<string, TrackItem[]> = {
 
 function TrackStep({
   item,
-  index,
   done,
   isLast,
   onMarkDone,
