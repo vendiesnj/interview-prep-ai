@@ -277,12 +277,12 @@ export default function DashboardPage() {
               <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
               <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
               <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
-              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" comingSoon color="#0EA5E9" />
+              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" color="#0EA5E9" />
             </>
           ) : persona === "post_college" ? (
             <>
               <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
-              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" comingSoon color="#0EA5E9" />
+              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" color="#0EA5E9" />
               <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
               <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
             </>
@@ -290,7 +290,7 @@ export default function DashboardPage() {
             <>
               <ModuleCard icon="🎙️" eyebrow="Interview" label="Interview Prep" stat={history.length ? `${history.length}` : undefined} statLabel={history.length ? `session${history.length !== 1 ? "s" : ""} · avg ${avgScore ?? "—"}` : undefined} href="/practice" color="var(--accent)" />
               <ModuleCard icon="🎤" eyebrow="Speaking" label="Public Speaking" href="/public-speaking" color="#8B5CF6" />
-              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" comingSoon color="#0EA5E9" />
+              <ModuleCard icon="🤝" eyebrow="Networking" label="Networking Pitch" href="/networking" color="#0EA5E9" />
               <ModuleCard icon="🎓" eyebrow="Pre-College" label="College Ready" href="/college-ready" comingSoon color="#10B981" />
             </>
           )}
