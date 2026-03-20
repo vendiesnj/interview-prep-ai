@@ -1,13 +1,11 @@
 // app/api/billing/webhook/route.ts
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
+import type Stripe from "stripe";
+import { getStripe } from "@/app/lib/stripe";
 import { prisma } from "@/app/lib/prisma";
 import { makePosthogServer } from "@/app/lib/posthog-server";
 
 export const runtime = "nodejs";
-
-// Keep constructor simple to avoid TS "apiVersion" underlines in some setups
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 function toDateFromSeconds(sec: unknown): Date | null {
   return typeof sec === "number" ? new Date(sec * 1000) : null;
@@ -75,7 +73,7 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret) as Stripe.Event;
+    event = getStripe().webhooks.constructEvent(rawBody, sig, webhookSecret) as Stripe.Event;
   } catch (err: any) {
     return NextResponse.json(
       { error: `Webhook signature verification failed: ${err?.message ?? "unknown"}` },
@@ -214,7 +212,7 @@ return res;
 
           // Retrieve full invoice so we ALWAYS have customer/subscription
           const full = invoiceId
-            ? await stripe.invoices.retrieve(invoiceId, { expand: ["lines.data.price"] })
+            ? await getStripe().invoices.retrieve(invoiceId, { expand: ["lines.data.price"] })
             : null;
 
           const customerId = ((full as any)?.customer as string | null) ?? ((inv.customer as string | null) ?? null);
@@ -248,7 +246,7 @@ return res;
 
           // THIS is the key: pull full invoice with expanded lines (period.end is the truth)
           const full = invoiceId
-            ? await stripe.invoices.retrieve(invoiceId, { expand: ["lines.data.price"] })
+            ? await getStripe().invoices.retrieve(invoiceId, { expand: ["lines.data.price"] })
             : null;
 
           const customerId =
@@ -276,7 +274,7 @@ let currentPeriodEnd: Date | null =
 // Fallback: if invoice line period isn't present, fetch subscription.current_period_end
 if (!currentPeriodEnd && subscriptionId) {
   try {
-    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+    const sub = await getStripe().subscriptions.retrieve(subscriptionId);
     const sec = (sub as any)?.current_period_end;
     if (typeof sec === "number") {
       periodEndSec = sec;
