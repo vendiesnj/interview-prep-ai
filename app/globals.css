@@ -148,6 +148,154 @@ a {
   }
 }
 
+/* =========================
+   Landing page — rich animations
+   ========================= */
+
+/* Slow floating gradient behind hero */
+@keyframes ipcOrb {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.04); }
+  66%       { transform: translate(-20px, 14px) scale(0.97); }
+}
+.ipc-orb {
+  animation: ipcOrb 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* Stat counter shimmer — runs once on load */
+@keyframes ipcStatPop {
+  0%   { opacity: 0; transform: scale(0.82) translateY(6px); filter: blur(4px); }
+  60%  { opacity: 1; transform: scale(1.06) translateY(-2px); filter: blur(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.ipc-stat-pop {
+  animation: ipcStatPop 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: opacity, transform, filter;
+}
+.ipc-stat-pop-d1 { animation-delay: 120ms; }
+.ipc-stat-pop-d2 { animation-delay: 220ms; }
+.ipc-stat-pop-d3 { animation-delay: 320ms; }
+.ipc-stat-pop-d4 { animation-delay: 420ms; }
+
+/* Card hover lift */
+.ipc-card-lift {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.ipc-card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 48px rgba(0,0,0,0.13), var(--shadow-card-soft);
+}
+
+/* Animated gradient border on the hero preview card */
+@keyframes ipcBorderSpin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.ipc-glow-border {
+  position: relative;
+}
+.ipc-glow-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--accent-strong),
+    var(--accent-2-soft),
+    var(--accent-strong),
+    var(--accent-2-soft)
+  );
+  background-size: 300% 300%;
+  animation: ipcBorderSpin 5s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* CTA button pulse */
+@keyframes ipcCtaPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-strong), var(--shadow-glow); }
+  50%       { box-shadow: 0 0 0 6px transparent, var(--shadow-glow); }
+}
+.ipc-cta-pulse {
+  animation: ipcCtaPulse 2.8s ease-in-out infinite;
+}
+
+/* Gradient text shimmer (hero h1 accent words) */
+@keyframes ipcTextShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.ipc-shimmer-text {
+  background: linear-gradient(
+    90deg,
+    var(--accent) 20%,
+    var(--accent-2) 50%,
+    var(--accent) 80%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: ipcTextShimmer 4s linear infinite;
+}
+
+/* Staggered fade-in for STAR cards */
+@keyframes ipcSlideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.ipc-slide-in { animation: ipcSlideIn 480ms cubic-bezier(0.22,1,0.36,1) both; }
+.ipc-slide-in-d1 { animation-delay: 80ms; }
+.ipc-slide-in-d2 { animation-delay: 180ms; }
+.ipc-slide-in-d3 { animation-delay: 280ms; }
+.ipc-slide-in-d4 { animation-delay: 380ms; }
+
+/* Soft pulse on the "?" help button */
+@keyframes ipcHelpPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+.ipc-help-pulse {
+  animation: ipcHelpPulse 3s ease-in-out infinite;
+}
+
+/* Section divider glow line */
+.ipc-section-glow {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--accent-strong),
+    var(--accent-2-soft),
+    transparent
+  );
+  opacity: 0.6;
+}
+
+/* Reduce motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  .ipc-orb,
+  .ipc-stat-pop,
+  .ipc-glow-border::before,
+  .ipc-cta-pulse,
+  .ipc-shimmer-text,
+  .ipc-slide-in,
+  .ipc-help-pulse {
+    animation: none !important;
+    -webkit-text-fill-color: var(--accent);
+  }
+  .ipc-card-lift {
+    transition: none !important;
+  }
+}
+
 /* ---------- GLOBAL LINK SYSTEM ---------- */
 
 a {

@@ -181,6 +181,62 @@ function pitchStdContext(hz: number) {
   return "High variation";
 }
 
+function crossSignalInsight(
+  monotone: number | null | undefined,
+  energyVar: number | null | undefined,
+  wpm: number | null | undefined,
+  pitchStd: number | null | undefined
+): string | null {
+  const m = typeof monotone === "number" ? monotone : null;
+  const ev = typeof energyVar === "number" ? energyVar : null;
+  const w = typeof wpm === "number" ? wpm : null;
+  const ps = typeof pitchStd === "number" ? pitchStd : null;
+
+  if (m === null && ev === null) return null;
+
+  // High monotone + high energy = pitch flat but volume dynamic
+  if (m !== null && m >= 7 && ev !== null && ev >= 6) {
+    return "Your volume varies well, but pitch stays flat — interviewers hear energy without expressiveness. Adding pitch drops on key points will sharpen the impact significantly.";
+  }
+  // High monotone + low energy = fully flat
+  if (m !== null && m >= 7 && ev !== null && ev < 4) {
+    return "Both pitch and energy are flat. This reads as low stakes or low confidence regardless of content. Focus on varying the weight of your ending sentences first.";
+  }
+  // High monotone + high WPM = fast and flat
+  if (m !== null && m >= 6 && w !== null && w > 160) {
+    return "Speaking fast with flat delivery creates a particularly compressed impression — interviewers absorb less. Slow your pace on result statements to let important points land.";
+  }
+  // Low monotone but low energy variation — different signals
+  if (m !== null && m <= 3 && ev !== null && ev < 3) {
+    return "Low monotone risk is a positive signal. Note that energy variation is separate from pitch — consider adding more volume contrast between setup and result to match your pitch variety.";
+  }
+  // Moderate monotone + good pitch std = nuanced flatness
+  if (m !== null && m >= 4 && m <= 6 && ps !== null && ps >= 20) {
+    return "Moderate monotone risk but healthy pitch range suggests your voice varies, just not consistently enough. Focus on the moments when you transition to your result — that's where expressiveness matters most.";
+  }
+  // Low monotone + slow WPM = measured and expressive
+  if (m !== null && m <= 3 && w !== null && w < 120) {
+    return "Low monotone risk combined with measured pace is a strong signal. This delivery style reads as confident and considered — maintain it on your result and outcome sentences.";
+  }
+
+  return null;
+}
+
+const THEME_META: Record<string, { label: string; color: string; bg: string }> = {
+  structure:        { label: "STAR Structure",     color: "rgba(99,102,241,0.9)",   bg: "rgba(99,102,241,0.08)" },
+  clarity:          { label: "Clarity",             color: "rgba(34,197,94,0.9)",    bg: "rgba(34,197,94,0.07)" },
+  delivery_control: { label: "Delivery Control",   color: "rgba(251,191,36,0.9)",   bg: "rgba(251,191,36,0.07)" },
+  pace_control:     { label: "Pace Control",        color: "rgba(251,191,36,0.9)",   bg: "rgba(251,191,36,0.07)" },
+  vocal_presence:   { label: "Vocal Presence",      color: "rgba(168,85,247,0.9)",   bg: "rgba(168,85,247,0.07)" },
+  outcome_strength: { label: "Outcome Strength",    color: "rgba(249,115,22,0.9)",   bg: "rgba(249,115,22,0.07)" },
+  specificity:      { label: "Specificity",         color: "rgba(20,184,166,0.9)",   bg: "rgba(20,184,166,0.07)" },
+  ownership:        { label: "Ownership",           color: "rgba(99,102,241,0.85)",  bg: "rgba(99,102,241,0.07)" },
+  depth:            { label: "Answer Depth",        color: "rgba(34,197,94,0.85)",   bg: "rgba(34,197,94,0.07)" },
+  directness:       { label: "Directness",          color: "rgba(20,184,166,0.85)",  bg: "rgba(20,184,166,0.07)" },
+  completeness:     { label: "Completeness",        color: "rgba(99,102,241,0.8)",   bg: "rgba(99,102,241,0.06)" },
+  role_alignment:   { label: "Role Alignment",      color: "rgba(249,115,22,0.85)",  bg: "rgba(249,115,22,0.07)" },
+};
+
 function gradeFromScore(score: number) {
   if (score >= 9) return { grade: "A+", label: "Excellent" };
   if (score >= 8) return { grade: "A", label: "Strong" };
@@ -854,6 +910,18 @@ const topImprovements = useMemo(() => {
 const missedOpportunities = useMemo(() => {
   return Array.isArray(feedback?.missed_opportunities)
     ? feedback.missed_opportunities.slice(0, 3)
+    : [];
+}, [feedback]);
+
+const strengthThemeKeys = useMemo(() => {
+  return Array.isArray(feedback?.strength_theme_keys)
+    ? feedback.strength_theme_keys.slice(0, 3).map(String)
+    : [];
+}, [feedback]);
+
+const improvementThemeKeys = useMemo(() => {
+  return Array.isArray(feedback?.improvement_theme_keys)
+    ? feedback.improvement_theme_keys.slice(0, 3).map(String)
     : [];
 }, [feedback]);
 
@@ -2256,6 +2324,42 @@ const deliveryProfile = useMemo(() => {
                       })}
                     </div>
 
+                    {/* Composite delivery scores */}
+                    {(() => {
+                      const rows = [
+                        { label: "Overall Engagement", value: deliverySummary?.engagementScore, desc: "Vocal presence + rhythm + pace — how captivating the delivery sounds overall", accent: true },
+                        { label: "Vocal Presence",     value: deliverySummary?.vocalPresenceScore, desc: "Pitch variety, energy dynamics, and expressiveness" },
+                        { label: "Rhythm",             value: deliverySummary?.rhythmScore, desc: "Pause patterns, pacing consistency, and natural flow" },
+                        { label: "Clarity",            value: deliverySummary?.clarityScore, desc: "Filler word control and absence of disruptive pauses" },
+                      ].filter((r) => typeof r.value === "number" && r.value !== null);
+                      if (!rows.length) return null;
+                      return (
+                        <div style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 16 }}>
+                            Composite Delivery Scores
+                          </div>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                            {rows.map((row) => {
+                              const pct = Math.round(clamp(row.value as number, 0, 10) * 10);
+                              const barColor = pct >= 70 ? "rgba(34,197,94,0.85)" : pct >= 45 ? "rgba(251,191,36,0.85)" : "rgba(248,113,113,0.85)";
+                              return (
+                                <div key={row.label}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                                    <div style={{ fontSize: 13, fontWeight: row.accent ? 700 : 500, color: "var(--text-primary)" }}>{row.label}</div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{pct}/100</div>
+                                  </div>
+                                  <div style={{ height: 5, borderRadius: 999, background: "var(--card-border)", overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 999 }} />
+                                  </div>
+                                  <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{row.desc}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {/* Content × Delivery insight */}
                     {deliveryProfile.contentInsight ? (
                       <div style={{
@@ -2321,6 +2425,29 @@ const deliveryProfile = useMemo(() => {
                             <MetricBar label="Pitch variety" value={Math.round(acousticsNorm.pitchStd)} max={60} subtext={`${pitchStdContext(acousticsNorm.pitchStd)} (std dev Hz)`} />
                           ) : null}
                         </div>
+                        {(() => {
+                          const insight = crossSignalInsight(
+                            acousticsNorm.monotoneScore,
+                            acousticsNorm.energyVariation,
+                            stored?.wpm,
+                            acousticsNorm.pitchStd
+                          );
+                          if (!insight) return null;
+                          return (
+                            <div style={{
+                              marginTop: 12,
+                              padding: "10px 14px",
+                              borderRadius: "var(--radius-sm)",
+                              background: "rgba(99,102,241,0.06)",
+                              border: "1px solid rgba(99,102,241,0.15)",
+                            }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "rgba(99,102,241,0.8)", marginBottom: 4 }}>
+                                Signal interpretation
+                              </div>
+                              <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.65 }}>{insight}</div>
+                            </div>
+                          );
+                        })()}
                         {series ? <SpeakingTimeline series={series} markers={speechMoments} /> : null}
                       </div>
                     ) : null}
@@ -2330,6 +2457,69 @@ const deliveryProfile = useMemo(() => {
             ) : null}
 
             {activeTab === "coaching" ? (
+              <>
+              {(strengthThemeKeys.length > 0 || improvementThemeKeys.length > 0) ? (
+                <div style={{
+                  padding: "14px 18px",
+                  borderRadius: "var(--radius-xl)",
+                  border: "1px solid var(--card-border-soft)",
+                  background: "var(--card-bg)",
+                  marginBottom: 14,
+                  display: "flex",
+                  flexDirection: "column" as const,
+                  gap: 10,
+                }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const }}>
+                    Answer patterns detected
+                  </div>
+                  {strengthThemeKeys.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(34,197,94,0.7)", fontWeight: 600, marginBottom: 6 }}>Strengths</div>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+                        {strengthThemeKeys.map((key: string) => {
+                          const meta = THEME_META[key] ?? { label: key, color: "rgba(34,197,94,0.9)", bg: "rgba(34,197,94,0.07)" };
+                          return (
+                            <span key={key} style={{
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: meta.color,
+                              background: meta.bg,
+                              border: `1px solid ${meta.color.replace("0.9", "0.2").replace("0.85", "0.2").replace("0.8", "0.2")}`,
+                            }}>
+                              {meta.label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  {improvementThemeKeys.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(251,191,36,0.75)", fontWeight: 600, marginBottom: 6 }}>Needs work</div>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+                        {improvementThemeKeys.map((key: string) => {
+                          const meta = THEME_META[key] ?? { label: key, color: "rgba(251,191,36,0.9)", bg: "rgba(251,191,36,0.07)" };
+                          return (
+                            <span key={key} style={{
+                              padding: "4px 10px",
+                              borderRadius: 999,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "rgba(251,191,36,0.9)",
+                              background: "rgba(251,191,36,0.07)",
+                              border: "1px solid rgba(251,191,36,0.2)",
+                            }}>
+                              {meta.label}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
               <SectionCard title="Why this score">
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {isStarFramework && typeof starAvg === "number" ? (
@@ -2372,6 +2562,7 @@ const deliveryProfile = useMemo(() => {
 </div>
                 </div>
               </SectionCard>
+              </>
             ) : null}
 
 

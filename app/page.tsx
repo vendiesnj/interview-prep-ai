@@ -148,7 +148,7 @@ export default async function HomePage() {
             </div>
 
             <Reveal delayMs={420}>
-              <div style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card)", overflow: "hidden", position: "relative" }}>
+              <div className="ipc-glow-border" style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card)", overflow: "hidden", position: "relative" }}>
                 <div style={{ position: "absolute", inset: -1, background: `radial-gradient(500px 240px at 20% 0%, var(--accent-2-soft), transparent 60%), radial-gradient(420px 220px at 90% 10%, var(--accent-soft), transparent 55%)`, pointerEvents: "none" }} />
                 <div style={{ position: "relative" }}>
                   <div style={{ padding: 16, borderBottom: "1px solid var(--card-border-soft)" }}>
@@ -215,13 +215,13 @@ export default async function HomePage() {
       <section style={{ width: "100%", padding: "28px 24px", background: "var(--card-bg)", borderBottom: "1px solid var(--card-border-soft)" }}>
         <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
           {[
-            { stat: "48+", label: "Question categories" },
-            { stat: "6", label: "Delivery signals tracked" },
-            { stat: "STAR", label: "Evidence-based scoring" },
-            { stat: "< 3 min", label: "To your first rep" },
-          ].map(({ stat, label }) => (
+            { stat: "48+", label: "Question categories", d: "ipc-stat-pop-d1" },
+            { stat: "6", label: "Delivery signals tracked", d: "ipc-stat-pop-d2" },
+            { stat: "STAR", label: "Evidence-based scoring", d: "ipc-stat-pop-d3" },
+            { stat: "< 3 min", label: "To your first rep", d: "ipc-stat-pop-d4" },
+          ].map(({ stat, label, d }) => (
             <div key={label} style={{ textAlign: "center", padding: "14px 10px" }}>
-              <div style={{ fontSize: 28, fontWeight: 950, letterSpacing: -0.5, color: "var(--accent)" }}>{stat}</div>
+              <div className={`ipc-stat-pop ${d}`} style={{ fontSize: 28, fontWeight: 950, letterSpacing: -0.5, color: "var(--accent)" }}>{stat}</div>
               <div style={{ marginTop: 4, fontSize: 13, color: "var(--text-muted)", fontWeight: 700 }}>{label}</div>
             </div>
           ))}
@@ -249,7 +249,7 @@ export default async function HomePage() {
               { n: "04", title: "Track your progress", body: "See performance trends by question type, job profile, and time. Identify your strongest areas and the patterns dragging your score down." },
             ].map(({ n, title, body }) => (
               <Reveal key={n} delayMs={parseInt(n) * 80}>
-                <div style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", height: "100%", boxSizing: "border-box" as const }}>
+                <div className="ipc-card-lift" style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", height: "100%", boxSizing: "border-box" as const }}>
                   <div style={{ fontSize: 32, fontWeight: 950, letterSpacing: -1, color: "var(--accent)", opacity: 0.4 }}>{n}</div>
                   <div style={{ marginTop: 12, fontSize: 16, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>{title}</div>
                   <p style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 0 }}>{body}</p>
@@ -347,12 +347,12 @@ export default async function HomePage() {
 
           <div style={{ display: "grid", gap: 12 }}>
             {[
-              { letter: "S", label: "Situation", desc: "Set the scene in one to two sentences. Name the context, stakes, or constraint — but keep it brief. Interviewers don't need backstory; they need enough to follow the rest." },
-              { letter: "T", label: "Task", desc: "State your specific role or responsibility in the situation. Use first-person language — 'I was responsible for…', 'My task was to…'. Make it clear what you personally owned." },
-              { letter: "A", label: "Action", desc: "Describe what you did, step by step. This is where most of your answer should live. Use strong verbs and be specific — what decision did you make, what did you build, who did you influence?" },
-              { letter: "R", label: "Result", desc: "Close with a specific outcome. Quantify if you can — percentages, dollars, time saved, retention rates. If you can't quantify, describe the concrete change: what improved, what was prevented, what was unlocked." },
-            ].map(({ letter, label, desc }) => (
-              <div key={letter} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+              { letter: "S", label: "Situation", desc: "Set the scene in one to two sentences. Name the context, stakes, or constraint — but keep it brief. Interviewers don't need backstory; they need enough to follow the rest.", d: "ipc-slide-in-d1" },
+              { letter: "T", label: "Task", desc: "State your specific role or responsibility in the situation. Use first-person language — 'I was responsible for…', 'My task was to…'. Make it clear what you personally owned.", d: "ipc-slide-in-d2" },
+              { letter: "A", label: "Action", desc: "Describe what you did, step by step. This is where most of your answer should live. Use strong verbs and be specific — what decision did you make, what did you build, who did you influence?", d: "ipc-slide-in-d3" },
+              { letter: "R", label: "Result", desc: "Close with a specific outcome. Quantify if you can — percentages, dollars, time saved, retention rates. If you can't quantify, describe the concrete change: what improved, what was prevented, what was unlocked.", d: "ipc-slide-in-d4" },
+            ].map(({ letter, label, desc, d }) => (
+              <div key={letter} className={`ipc-slide-in ipc-card-lift ${d}`} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", color: "var(--accent)", fontSize: 16, fontWeight: 950, display: "flex", alignItems: "center", justifyContent: "center", flex: "0 0 auto" }}>
                   {letter}
                 </div>
@@ -376,7 +376,7 @@ export default async function HomePage() {
               { quote: "The filler word tracking was humbling. I didn't realize I was saying 'um' 14 times per answer. Seeing the exact count every rep made it impossible to ignore, and I fixed it faster than I expected.", name: "Software Engineer", context: "Preparing for senior-level interviews" },
               { quote: "Our career center needed a tool that could give students structured feedback without requiring a human coach for every session. IPC does that — scored, consistent, and detailed enough to act on.", name: "Career Advisor", context: "University Career Center" },
             ].map(({ quote, name, context }) => (
-              <blockquote key={name} style={{ margin: 0, padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+              <blockquote key={name} className="ipc-card-lift" style={{ margin: 0, padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
                 <p style={{ fontSize: 14, lineHeight: 1.75, color: "var(--text-primary)", fontStyle: "italic", margin: 0 }}>"{quote}"</p>
                 <footer style={{ marginTop: 14 }}>
                   <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{name}</div>
@@ -419,7 +419,7 @@ export default async function HomePage() {
           </p>
 
           <div style={{ marginTop: 36, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-            <article style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+            <article className="ipc-card-lift" style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Delivery</div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>
                 How to reduce filler words in interview answers
@@ -435,7 +435,7 @@ export default async function HomePage() {
               </p>
             </article>
 
-            <article style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+            <article className="ipc-card-lift" style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Structure</div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>
                 The most common STAR method mistakes — and how to fix them
@@ -451,7 +451,7 @@ export default async function HomePage() {
               </p>
             </article>
 
-            <article style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+            <article className="ipc-card-lift" style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 10 }}>Confidence</div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3 }}>
                 How to sound more confident in interviews without faking it
@@ -529,7 +529,7 @@ export default async function HomePage() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <Link href={isAuthed ? "/practice" : "/signup"} style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, minWidth: 180, textAlign: "center", boxShadow: "var(--shadow-glow)" }}>
+              <Link href={isAuthed ? "/practice" : "/signup"} className="ipc-cta-pulse" style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none", fontWeight: 950, minWidth: 180, textAlign: "center", boxShadow: "var(--shadow-glow)", display: "inline-block" }}>
                 {isAuthed ? "Practice now" : "Start free practice"}
               </Link>
               <Link href={isAuthed ? "/dashboard" : "/login"} style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, minWidth: 120, textAlign: "center" }}>
@@ -585,7 +585,7 @@ function FaqRow({ question, answer }: { question: string; answer: string }) {
 
 function LightCard({ title, body }: { title: string; body: string }) {
   return (
-    <div style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+    <div className="ipc-card-lift" style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
       <div style={{ fontWeight: 950, fontSize: 15, color: "var(--text-primary)" }}>{title}</div>
       <div style={{ marginTop: 8, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
     </div>
@@ -594,7 +594,7 @@ function LightCard({ title, body }: { title: string; body: string }) {
 
 function FeatureCard({ eyebrow, title, body, bullets }: { eyebrow: string; title: string; body: string; bullets: string[] }) {
   return (
-    <div style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
+    <div className="ipc-card-lift" style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)" }}>
       <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>{eyebrow}</div>
       <div style={{ marginTop: 10, fontSize: 20, fontWeight: 950, lineHeight: 1.2, color: "var(--text-primary)" }}>{title}</div>
       <div style={{ marginTop: 10, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
@@ -607,7 +607,7 @@ function FeatureCard({ eyebrow, title, body, bullets }: { eyebrow: string; title
 
 function AudienceCard({ title, body, bullets }: { title: string; body: string; bullets: string[] }) {
   return (
-    <div style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+    <div className="ipc-card-lift" style={{ padding: 22, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
       <div style={{ fontWeight: 950, marginBottom: 8, color: "var(--text-primary)", fontSize: 18 }}>{title}</div>
       <div style={{ color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>{body}</div>
       <ul style={{ marginTop: 14, marginBottom: 0, paddingLeft: 18, lineHeight: 1.8, color: "var(--text-primary)", fontSize: 13 }}>

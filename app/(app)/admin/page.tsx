@@ -724,9 +724,23 @@ export default async function AdminPage({
     return <div style={{ padding: 40, color: "var(--text-primary)" }}>Not authorized</div>;
   }
 
+  // Only include users who are enrolled as students (excludes tenant_admin accounts)
+  const studentMemberships = currentUser.tenantId
+    ? await prisma.tenantMembership.findMany({
+        where: {
+          tenantId: currentUser.tenantId,
+          role: "student",
+          status: "active",
+        },
+        select: { userId: true },
+      })
+    : [];
+  const studentUserIds: string[] = studentMemberships.map((m) => m.userId);
+
   const tenantUsers = await prisma.user.findMany({
     where: {
       tenantId: currentUser.tenantId ?? null,
+      id: { in: studentUserIds },
     },
     select: {
       id: true,
@@ -1404,7 +1418,11 @@ const stalledPct =
                 {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} currently average{" "}
 <strong>{avgScoreDisplay}</strong> overall, with communication at{" "}
 <strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
-<strong>{avgConfidenceDisplay}</strong>. <strong>{atRiskPct}%</strong> of students in this view are currently below readiness target, helping advisors quickly identify where coaching support is most needed.
+<strong>{avgConfidenceDisplay}</strong>.{" "}
+{atRiskPct === 0
+  ? "No students are currently below the readiness target — the cohort is on track."
+  : <><strong>{atRiskPct}%</strong> of students in this view are currently below the readiness target and may benefit from targeted coaching support.</>
+}
               </div>
             </div>
           </Panel>
