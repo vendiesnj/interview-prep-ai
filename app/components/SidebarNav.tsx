@@ -17,6 +17,7 @@ import {
   Users,
   MoreHorizontal,
   X,
+  BookOpen,
 } from "lucide-react";
 import LogoutButton from "../components/LogoutButton";
 import BillingSidebarButton from "@/app/components/BillingSidebarButton";
@@ -36,6 +37,7 @@ const STUDENT_NAV: NavItem[] = [
   { label: "Results", href: "/results", icon: <BarChart2 size={18} /> },
   { label: "Insights", href: "/progress", icon: <LineChart size={18} /> },
   { label: "Sessions", href: "/sessions", icon: <Clock size={18} /> },
+  { label: "Career Guide", href: "/career-guide", icon: <BookOpen size={18} /> },
   { label: "Settings", href: "/settings", icon: <Settings size={18} /> },
   { label: "Account", href: "/account", icon: <User size={18} /> },
 ];

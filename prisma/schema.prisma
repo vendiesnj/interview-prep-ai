@@ -31,6 +31,7 @@ model User {
   sessions             Session[]
   memberships          TenantMembership[]
   tenant               Tenant?              @relation("UserHomeTenant", fields: [tenantId], references: [id])
+  careerCheckIns       CareerCheckIn[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -240,6 +241,42 @@ model PasswordResetToken {
 
   @@index([userId, createdAt])
   @@index([expiresAt])
+}
+
+model CareerCheckIn {
+  id               String   @id @default(cuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId         String?
+
+  // Employment status
+  employmentStatus String   // "employed", "job_searching", "graduate_school", "freelance", "other"
+  jobTitle         String?
+  company          String?
+  industry         String?
+  city             String?
+  state            String?
+
+  // Compensation (range bands to reduce friction)
+  salaryRange      String?  // "under_40k", "40_50k", "50_60k", "60_75k", "75_90k", "90_110k", "110_130k", "over_130k"
+
+  // Career context
+  graduationYear   Int?
+  major            String?
+  monthsSinceGrad  Int?     // computed at submit time
+
+  // Satisfaction
+  satisfactionScore Int?    // 1–5
+  topChallenge     String?  // "salary", "growth", "work_life", "culture", "skills_gap", "other"
+
+  // Progress checklist (JSON array of completed item keys)
+  checklistItems   Json?
+
+  @@index([userId])
+  @@index([tenantId])
+  @@index([createdAt])
 }
 
 enum TenantRole {

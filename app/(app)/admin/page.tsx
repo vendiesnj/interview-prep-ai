@@ -752,6 +752,44 @@ export default async function AdminPage({
     },
   });
 
+  // Career outcome data
+  const careerCheckIns = currentUser.tenantId
+    ? await prisma.careerCheckIn.findMany({
+        where: { tenantId: currentUser.tenantId },
+        select: {
+          userId: true,
+          employmentStatus: true,
+          industry: true,
+          salaryRange: true,
+          satisfactionScore: true,
+          jobTitle: true,
+          graduationYear: true,
+          monthsSinceGrad: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      })
+    : [];
+
+  // One check-in per user (most recent)
+  const latestCheckInByUser = new Map<string, typeof careerCheckIns[0]>();
+  for (const ci of careerCheckIns) {
+    if (!latestCheckInByUser.has(ci.userId)) latestCheckInByUser.set(ci.userId, ci);
+  }
+  const uniqueCheckIns = Array.from(latestCheckInByUser.values());
+  const employedCount = uniqueCheckIns.filter((c) => c.employmentStatus === "employed" || c.employmentStatus === "employed_part").length;
+  const checkInCount = uniqueCheckIns.length;
+  const employmentRate = checkInCount > 0 ? Math.round((employedCount / checkInCount) * 100) : null;
+  const avgSatisfaction = uniqueCheckIns.filter((c) => c.satisfactionScore).length > 0
+    ? (uniqueCheckIns.reduce((sum, c) => sum + (c.satisfactionScore ?? 0), 0) / uniqueCheckIns.filter((c) => c.satisfactionScore).length).toFixed(1)
+    : null;
+
+  const industryCounts: Record<string, number> = {};
+  for (const ci of uniqueCheckIns) {
+    if (ci.industry) industryCounts[ci.industry] = (industryCounts[ci.industry] ?? 0) + 1;
+  }
+  const topIndustries = Object.entries(industryCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
   const attempts: AttemptRow[] = await prisma.attempt.findMany({
     where: {
       tenantId: currentUser.tenantId ?? null,
@@ -2057,6 +2095,92 @@ const stalledPct =
               })
             )}
           </div>
+        </Panel>
+
+        {/* ── CAREER OUTCOMES ───────────────────────────────────────────── */}
+        <Panel eyebrow="Post-Graduation" title="Career Outcomes">
+          {checkInCount === 0 ? (
+            <div style={{ padding: "28px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>📊</div>
+              <div style={{ fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>No career check-ins yet</div>
+              <div style={{ maxWidth: 400, margin: "0 auto", lineHeight: 1.7 }}>
+                Students submit career check-ins from the Career Guide section. Once they do, you&apos;ll see employment rates, salary distributions, and industry placement data here.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gap: 16 }}>
+              {/* Summary stats */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 950, color: "var(--accent)" }}>{checkInCount}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Check-ins submitted</div>
+                </div>
+                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981" }}>{employmentRate !== null ? `${employmentRate}%` : "—"}</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Employment rate</div>
+                </div>
+                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, fontWeight: 950, color: "#F59E0B" }}>{avgSatisfaction ?? "—"}<span style={{ fontSize: 14 }}>/5</span></div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Avg satisfaction</div>
+                </div>
+              </div>
+
+              {/* Employment status breakdown */}
+              <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Employment status breakdown</div>
+                {(["employed", "employed_part", "job_searching", "graduate_school", "freelance", "other"] as const).map((status) => {
+                  const count = uniqueCheckIns.filter((c) => c.employmentStatus === status).length;
+                  if (count === 0) return null;
+                  const pct = Math.round((count / checkInCount) * 100);
+                  const label: Record<string, string> = {
+                    employed: "Employed full-time",
+                    employed_part: "Part-time / contract",
+                    job_searching: "Job searching",
+                    graduate_school: "Graduate school",
+                    freelance: "Freelance",
+                    other: "Other",
+                  };
+                  const color: Record<string, string> = {
+                    employed: "#10B981",
+                    employed_part: "#6EE7B7",
+                    job_searching: "#F59E0B",
+                    graduate_school: "var(--accent)",
+                    freelance: "#8B5CF6",
+                    other: "var(--text-muted)",
+                  };
+                  return (
+                    <div key={status} style={{ marginBottom: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
+                        <span>{label[status]}</span><span>{count} ({pct}%)</span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, background: color[status], borderRadius: 99 }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Top industries */}
+              {topIndustries.length > 0 && (
+                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {topIndustries.map(([industry, count]) => (
+                      <div key={industry} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+                        <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{industry}</span>
+                        <span style={{ color: "var(--accent)", fontWeight: 900, fontSize: 12 }}>{count} student{count !== 1 ? "s" : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                Data is self-reported by students via the Career Guide check-in. Encourage students to complete their check-in for more accurate cohort outcomes.
+              </div>
+            </div>
+          )}
         </Panel>
       </div>
     </PremiumShell>
