@@ -1,0 +1,476 @@
+// app/api/student-profile/route.ts
+// Single source of truth for the My Journey hub page.
+
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/app/lib/prisma";
+import {
+  computeNaceProfile,
+  type NaceAttemptInput,
+  type NaceScore,
+} from "@/app/lib/nace";
+
+export const runtime = "nodejs";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function toNumber(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/** Normalize a raw score value to 0–100. Values < 15 are treated as 0–10 scale. */
+function normalizeScore(v: number | null | undefined): number | null {
+  if (v === null || v === undefined) return null;
+  const n = toNumber(v);
+  if (n === null) return null;
+  return n < 15 ? Math.round(n * 10) : Math.round(n);
+}
+
+function avg(vals: number[]): number | null {
+  if (!vals.length) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function round1(v: number | null): number | null {
+  return v === null ? null : Math.round(v * 10) / 10;
+}
+
+/** Return the most common string value in an array, or null if empty. */
+function mode(vals: string[]): string | null {
+  if (!vals.length) return null;
+  const counts = new Map<string, number>();
+  for (const v of vals) counts.set(v, (counts.get(v) ?? 0) + 1);
+  let topKey: string | null = null;
+  let topCount = 0;
+  counts.forEach((count, key) => {
+    if (count > topCount) {
+      topCount = count;
+      topKey = key;
+    }
+  });
+  return topKey;
+}
+
+// ── Framework classification ──────────────────────────────────────────────────
+
+type SpeakingFramework = "interview" | "networking" | "publicSpeaking";
+
+function classifyFramework(framework: string | null | undefined): SpeakingFramework {
+  if (framework === "networking_pitch") return "networking";
+  if (framework === "public_speaking") return "publicSpeaking";
+  return "interview";
+}
+
+// ── Attempt shape returned from DB ───────────────────────────────────────────
+
+interface RawAttempt {
+  id: string;
+  ts: Date;
+  score: number | null;
+  communicationScore: number | null;
+  confidenceScore: number | null;
+  wpm: number | null;
+  question: string;
+  questionCategory: string | null;
+  evaluationFramework: string | null;
+  jobProfileTitle: string | null;
+  jobProfileCompany: string | null;
+  feedback: unknown;
+  prosody: unknown;
+  deliveryMetrics: unknown;
+  inputMethod: string | null;
+  durationSeconds: number | null;
+}
+
+// ── Score segment builder ─────────────────────────────────────────────────────
+
+function buildSpeakingSegment(
+  attempts: RawAttempt[],
+  framework: SpeakingFramework
+) {
+  const filtered = attempts.filter(
+    (a) => classifyFramework(a.evaluationFramework) === framework
+  );
+
+  const scoredAttempts = filtered.filter((a) => a.score !== null);
+  const scores100 = scoredAttempts.map((a) => normalizeScore(a.score)).filter((v): v is number => v !== null);
+  const comms = filtered
+    .map((a) => toNumber(a.communicationScore))
+    .filter((v): v is number => v !== null);
+  const confs = filtered
+    .map((a) => toNumber(a.confidenceScore))
+    .filter((v): v is number => v !== null);
+  const wpms = filtered
+    .map((a) => toNumber(a.wpm))
+    .filter((v): v is number => v !== null);
+
+  const recentAttempts = filtered
+    .slice()
+    .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+    .slice(0, 5);
+
+  const base = {
+    count: filtered.length,
+    avgScore: round1(avg(scores100)),
+    recentAttempts,
+  };
+
+  if (framework === "interview") {
+    return {
+      ...base,
+      avgComm: round1(avg(comms)),
+      avgConf: round1(avg(confs)),
+      avgWpm: round1(avg(wpms)),
+    };
+  }
+
+  if (framework === "networking") {
+    const pitchStyles = filtered
+      .map((a) => {
+        const fb = a.feedback && typeof a.feedback === "object" ? (a.feedback as Record<string, unknown>) : null;
+        const ps = fb?.pitch_style;
+        return typeof ps === "string" ? ps : null;
+      })
+      .filter((v): v is string => v !== null);
+    return {
+      ...base,
+      topPitchStyle: mode(pitchStyles),
+    };
+  }
+
+  // publicSpeaking
+  const archetypes = filtered
+    .map((a) => {
+      const fb = a.feedback && typeof a.feedback === "object" ? (a.feedback as Record<string, unknown>) : null;
+      const da = fb?.delivery_archetype;
+      return typeof da === "string" ? da : null;
+    })
+    .filter((v): v is string => v !== null);
+  return {
+    ...base,
+    topArchetype: mode(archetypes),
+  };
+}
+
+// ── Completeness calculation ──────────────────────────────────────────────────
+
+function computeCompleteness(opts: {
+  graduationYear: number | null;
+  major: string | null;
+  targetRole: string | null;
+  targetIndustry: string | null;
+  interviewCount: number;
+  networkingCount: number;
+  publicSpeakingCount: number;
+  hasAptitude: boolean;
+  hasCareerCheckIn: boolean;
+  preCollegeDone: number;
+  duringCollegeDone: number;
+  postCollegeDone: number;
+  hasInterviewActivity: boolean;
+  hasResumeAnalysis: boolean;
+}): number {
+  let score = 0;
+  if (opts.graduationYear) score += 10;
+  if (opts.major) score += 10;
+  if (opts.targetRole) score += 10;
+  if (opts.targetIndustry) score += 10;
+  if (opts.interviewCount >= 5) score += 15;
+  if (opts.networkingCount >= 1) score += 5;
+  if (opts.publicSpeakingCount >= 1) score += 5;
+  if (opts.hasAptitude) score += 10;
+  if (opts.hasCareerCheckIn) score += 10;
+  if (opts.preCollegeDone >= 3) score += 3;
+  if (opts.duringCollegeDone >= 3) score += 3;
+  if (opts.postCollegeDone >= 3) score += 3;
+  if (opts.hasInterviewActivity) score += 3;
+  if (opts.hasResumeAnalysis) score += 3;
+  return score;
+}
+
+// ── Main handler ──────────────────────────────────────────────────────────────
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Resolve user id
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      graduationYear: true,
+      major: true,
+      targetRole: true,
+      targetIndustry: true,
+      createdAt: true,
+    },
+  });
+
+  if (!user) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  const userId = user.id;
+
+  // ── Fetch all data in parallel ────────────────────────────────────────────
+
+  const [
+    attempts,
+    aptitudeResult,
+    careerCheckIn,
+    checklistProgress,
+    interviewActivities,
+    studentSkills,
+    resumeAnalyses,
+  ] = await Promise.all([
+    // 1. Attempts — all non-deleted
+    prisma.attempt.findMany({
+      where: { userId, deletedAt: null },
+      select: {
+        id: true,
+        ts: true,
+        score: true,
+        communicationScore: true,
+        confidenceScore: true,
+        wpm: true,
+        question: true,
+        questionCategory: true,
+        evaluationFramework: true,
+        jobProfileTitle: true,
+        jobProfileCompany: true,
+        feedback: true,
+        prosody: true,
+        deliveryMetrics: true,
+        inputMethod: true,
+        durationSeconds: true,
+      },
+      orderBy: { ts: "desc" },
+    }),
+
+    // 2. Most recent aptitude result
+    prisma.aptitudeResult.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        primary: true,
+        secondary: true,
+        scores: true,
+        createdAt: true,
+      },
+    }),
+
+    // 3. Most recent career check-in
+    prisma.careerCheckIn.findFirst({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        employmentStatus: true,
+        jobTitle: true,
+        company: true,
+        industry: true,
+        salaryRange: true,
+        salaryExact: true,
+        graduationYear: true,
+        major: true,
+        satisfactionScore: true,
+        topChallenge: true,
+        has401k: true,
+        studentLoanRange: true,
+        createdAt: true,
+      },
+    }),
+
+    // 4. Checklist progress — all records
+    prisma.checklistProgress.findMany({
+      where: { userId },
+      select: { stage: true, itemId: true, done: true },
+    }),
+
+    // 5. Interview activities — all, ordered by createdAt desc
+    prisma.interviewActivity.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+    }),
+
+    // 6. Student skills — all, ordered by confidence desc
+    prisma.studentSkill.findMany({
+      where: { userId },
+      orderBy: { confidence: "desc" },
+    }),
+
+    // 7. Resume analyses — last 10
+    prisma.resumeAnalysis.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        createdAt: true,
+        overallScore: true,
+        atsScore: true,
+        overallLabel: true,
+        summary: true,
+        topAction: true,
+        resumeSnippet: true,
+        jobDescSnippet: true,
+      },
+    }),
+  ]);
+
+  // ── Speaking segments ─────────────────────────────────────────────────────
+
+  const rawAttempts = attempts as RawAttempt[];
+
+  const interviewSeg = buildSpeakingSegment(rawAttempts, "interview");
+  const networkingSeg = buildSpeakingSegment(rawAttempts, "networking");
+  const publicSpeakingSeg = buildSpeakingSegment(rawAttempts, "publicSpeaking");
+
+  // ── Checklist counts ──────────────────────────────────────────────────────
+
+  const doneItems = checklistProgress.filter((p) => p.done);
+
+  const preCollegeDone = doneItems.filter((p) => p.stage === "pre_college").length;
+  const duringCollegeDone = doneItems.filter((p) => p.stage === "during_college").length;
+  const postCollegeDone = doneItems.filter((p) => p.stage === "post_college").length;
+  const finlitDone = doneItems.filter((p) => p.stage.startsWith("finlit_")).length;
+
+  // ── Interview pipeline ────────────────────────────────────────────────────
+
+  const byStage: Record<string, number> = {};
+  for (const act of interviewActivities) {
+    byStage[act.stage] = (byStage[act.stage] ?? 0) + 1;
+  }
+
+  const offers = interviewActivities.filter((a) => a.stage === "offer").length;
+  const accepted = interviewActivities.filter(
+    (a) => a.stage === "accepted" || a.outcome === "accepted"
+  ).length;
+
+  // ── Skills by category ────────────────────────────────────────────────────
+
+  const byCategory: Record<string, typeof studentSkills> = {};
+  for (const skill of studentSkills) {
+    if (!byCategory[skill.category]) byCategory[skill.category] = [];
+    byCategory[skill.category].push(skill);
+  }
+
+  // ── NACE scores ───────────────────────────────────────────────────────────
+
+  const naceInputs: NaceAttemptInput[] = rawAttempts.map((a) => ({
+    score: normalizeScore(a.score) ?? undefined,
+    communicationScore: toNumber(a.communicationScore) ?? undefined,
+    confidenceScore: toNumber(a.confidenceScore) ?? undefined,
+    wpm: toNumber(a.wpm) ?? undefined,
+    feedback:
+      a.feedback && typeof a.feedback === "object"
+        ? (a.feedback as NaceAttemptInput["feedback"])
+        : null,
+    prosody:
+      a.prosody && typeof a.prosody === "object"
+        ? (a.prosody as NaceAttemptInput["prosody"])
+        : null,
+    deliveryMetrics:
+      a.deliveryMetrics && typeof a.deliveryMetrics === "object"
+        ? (a.deliveryMetrics as NaceAttemptInput["deliveryMetrics"])
+        : null,
+    questionCategory: a.questionCategory ?? undefined,
+  }));
+
+  const aptitudeScores =
+    aptitudeResult?.scores &&
+    typeof aptitudeResult.scores === "object" &&
+    !Array.isArray(aptitudeResult.scores)
+      ? (aptitudeResult.scores as Partial<Record<"A" | "B" | "C" | "H" | "L" | "M", number>>)
+      : null;
+
+  const naceScores: NaceScore[] = computeNaceProfile({
+    attempts: naceInputs,
+    aptitudeScores: aptitudeScores ?? undefined,
+    hasCompletedAptitude: !!aptitudeResult,
+    hasCompletedCareerCheckIn: !!careerCheckIn,
+  });
+
+  // ── Completeness ──────────────────────────────────────────────────────────
+
+  const completeness = computeCompleteness({
+    graduationYear: user.graduationYear ?? null,
+    major: user.major ?? null,
+    targetRole: user.targetRole ?? null,
+    targetIndustry: user.targetIndustry ?? null,
+    interviewCount: interviewSeg.count,
+    networkingCount: networkingSeg.count,
+    publicSpeakingCount: publicSpeakingSeg.count,
+    hasAptitude: !!aptitudeResult,
+    hasCareerCheckIn: !!careerCheckIn,
+    preCollegeDone,
+    duringCollegeDone,
+    postCollegeDone,
+    hasInterviewActivity: interviewActivities.length > 0,
+    hasResumeAnalysis: resumeAnalyses.length > 0,
+  });
+
+  // ── Build response ────────────────────────────────────────────────────────
+
+  const payload = {
+    profile: {
+      name: user.name ?? null,
+      email: user.email ?? null,
+      graduationYear: user.graduationYear ?? null,
+      major: user.major ?? null,
+      targetRole: user.targetRole ?? null,
+      targetIndustry: user.targetIndustry ?? null,
+      memberSince: user.createdAt,
+    },
+
+    speaking: {
+      interview: interviewSeg,
+      networking: networkingSeg,
+      publicSpeaking: publicSpeakingSeg,
+    },
+
+    aptitude: aptitudeResult
+      ? {
+          primary: aptitudeResult.primary,
+          secondary: aptitudeResult.secondary,
+          scores: aptitudeResult.scores,
+          completedAt: aptitudeResult.createdAt,
+        }
+      : null,
+
+    careerCheckIn: careerCheckIn ?? null,
+
+    checklist: {
+      preCollege: { total: 8, done: preCollegeDone },
+      duringCollege: { total: 10, done: duringCollegeDone },
+      postCollege: { total: 8, done: postCollegeDone },
+      financialLiteracy: { total: 40, done: finlitDone },
+    },
+
+    interviewPipeline: {
+      total: interviewActivities.length,
+      byStage,
+      offers,
+      accepted,
+      activities: interviewActivities,
+    },
+
+    skills: {
+      byCategory,
+      total: studentSkills.length,
+    },
+
+    resumeHistory: resumeAnalyses,
+
+    naceScores,
+
+    completeness,
+  };
+
+  return NextResponse.json(payload);
+}

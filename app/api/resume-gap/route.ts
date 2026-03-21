@@ -1,13 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/app/lib/prisma";
 import OpenAI from "openai";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, tenantId: true },
+  });
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const analyses = await prisma.resumeAnalysis.findMany({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    select: {
+      id: true,
+      createdAt: true,
+      overallScore: true,
+      atsScore: true,
+      overallLabel: true,
+      summary: true,
+      topAction: true,
+      gaps: true,
+      strengths: true,
+      keywordsPresent: true,
+      keywordsMissing: true,
+      resumeSnippet: true,
+      jobDescSnippet: true,
+    },
+  });
+
+  return NextResponse.json({ analyses });
+}
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, tenantId: true },
+  });
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { resume, jobDescription } = await req.json();
   if (!resume || !resume.trim()) return NextResponse.json({ error: "Resume text required" }, { status: 400 });
@@ -52,6 +93,26 @@ Be specific and actionable. Reference actual content from the resume. Return onl
 
     const raw = completion.choices[0]?.message?.content ?? "{}";
     const result = JSON.parse(raw);
+
+    // Persist analysis to DB (fire-and-forget style, don't block response)
+    prisma.resumeAnalysis.create({
+      data: {
+        userId: user.id,
+        tenantId: user.tenantId ?? undefined,
+        overallScore: Math.round(result.overallScore ?? 0),
+        atsScore: Math.round(result.atsScore ?? 0),
+        overallLabel: result.overallLabel ?? "Needs Work",
+        summary: result.summary ?? "",
+        topAction: result.topAction ?? "",
+        gaps: result.gaps ?? [],
+        strengths: result.strengths ?? [],
+        keywordsPresent: result.keywordsPresent ?? [],
+        keywordsMissing: result.keywordsMissing ?? [],
+        resumeSnippet: resume.trim().slice(0, 400),
+        jobDescSnippet: hasJD ? jobDescription.trim().slice(0, 200) : null,
+      },
+    }).catch((e: unknown) => console.error("resume-analysis save error", e));
+
     return NextResponse.json(result);
   } catch (err) {
     console.error("resume-gap error", err);

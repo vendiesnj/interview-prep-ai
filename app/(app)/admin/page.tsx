@@ -43,6 +43,7 @@ type AttemptRow = {
   feedback: any | null;
   prosody: any | null;
   deliveryMetrics: any | null;
+  evaluationFramework: string | null;
 };
 
 
@@ -889,6 +890,7 @@ export default async function AdminPage({
       feedback: true,
       prosody: true,
       deliveryMetrics: true,
+      evaluationFramework: true,
     },
     orderBy: {
       ts: "desc",
@@ -967,16 +969,41 @@ export default async function AdminPage({
       ? Math.round(last3Avg - first3Avg)
       : null;
 
+    // Split attempts by module type
+    const interviewAttempts = userAttempts.filter((a) =>
+      !a.evaluationFramework || !["networking_pitch", "public_speaking"].includes(a.evaluationFramework)
+    );
+    const networkingAttempts = userAttempts.filter((a) => a.evaluationFramework === "networking_pitch");
+    const psAttempts = userAttempts.filter((a) => a.evaluationFramework === "public_speaking");
+
+    // Networking pitch style distribution
+    const pitchStyles: Record<string, number> = {};
+    for (const a of networkingAttempts) {
+      const style = (a.feedback as any)?.pitchStyle;
+      if (style) pitchStyles[style] = (pitchStyles[style] ?? 0) + 1;
+    }
+    const topPitchStyle = Object.entries(pitchStyles).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
+    // Public speaking archetype
+    const archetypes: Record<string, number> = {};
+    for (const a of psAttempts) {
+      const arch = (a.feedback as any)?.deliveryArchetype;
+      if (arch) archetypes[arch] = (archetypes[arch] ?? 0) + 1;
+    }
+    const topArchetype = Object.entries(archetypes).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
     // Profile completeness score (0–100)
     let completeness = 0;
     if (user.graduationYear) completeness += 10;
     if (user.major) completeness += 10;
     if (user.targetRole) completeness += 10;
     if (user.targetIndustry) completeness += 10;
-    if (userAttempts.length >= 5) completeness += 20;
-    else if (userAttempts.length >= 1) completeness += 8;
+    if (interviewAttempts.length >= 5) completeness += 15;
+    else if (interviewAttempts.length >= 1) completeness += 5;
+    if (networkingAttempts.length >= 1) completeness += 5;
+    if (psAttempts.length >= 1) completeness += 5;
     if (aptitudeUserIds.has(user.id)) completeness += 10;
-    if (latestCheckInByUser.has(user.id)) completeness += 15;
+    if (latestCheckInByUser.has(user.id)) completeness += 10;
     if ((checklistCountByUser.get(user.id) ?? 0) >= 3) completeness += 5;
     if (interviewActivityUserIds.has(user.id)) completeness += 5;
     if ((skillCountByUser.get(user.id) ?? 0) >= 3) completeness += 5;
@@ -1008,6 +1035,11 @@ export default async function AdminPage({
       hasInterview: interviewActivityUserIds.has(user.id),
       skillCount: skillCountByUser.get(user.id) ?? 0,
       checklistCount: checklistCountByUser.get(user.id) ?? 0,
+      interviewAttemptCount: interviewAttempts.length,
+      networkingAttemptCount: networkingAttempts.length,
+      psAttemptCount: psAttempts.length,
+      topPitchStyle,
+      topArchetype,
     };
   });
 
@@ -2124,10 +2156,12 @@ const stalledPct =
             { key: "major", label: "Major" },
             { key: "targetRole", label: "Target Role" },
             { key: "targetIndustry", label: "Industry" },
-            { key: "attempts5", label: "5+ Sessions" },
+            { key: "attempts5", label: "Interview" },
+            { key: "networking1", label: "Networking" },
+            { key: "ps1", label: "Pub. Speaking" },
             { key: "hasAptitude", label: "Aptitude" },
             { key: "hasCheckIn", label: "Check-In" },
-            { key: "hasInterview", label: "Interview Log" },
+            { key: "hasInterview", label: "Pipeline" },
           ] as const;
 
           return (
@@ -2170,7 +2204,9 @@ const stalledPct =
                       !!s.major,
                       !!s.targetRole,
                       !!s.targetIndustry,
-                      s.attempts >= 5,
+                      s.interviewAttemptCount >= 5,
+                      s.networkingAttemptCount >= 1,
+                      s.psAttemptCount >= 1,
                       s.hasAptitude,
                       s.hasCheckIn,
                       s.hasInterview,
@@ -2255,6 +2291,71 @@ const stalledPct =
               </div>
 
               {/* Cohort skills inventory */}
+              {/* Networking + Public Speaking cohort breakdown */}
+              {(() => {
+                const networkingStudents = studentsWithStats.filter((s) => s.networkingAttemptCount > 0);
+                const psStudents = studentsWithStats.filter((s) => s.psAttemptCount > 0);
+                const pitchStyleCounts: Record<string, number> = {};
+                const archetypeCounts: Record<string, number> = {};
+                for (const s of studentsWithStats) {
+                  if (s.topPitchStyle) pitchStyleCounts[s.topPitchStyle] = (pitchStyleCounts[s.topPitchStyle] ?? 0) + 1;
+                  if (s.topArchetype) archetypeCounts[s.topArchetype] = (archetypeCounts[s.topArchetype] ?? 0) + 1;
+                }
+                if (networkingStudents.length === 0 && psStudents.length === 0) return null;
+                return (
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    <GlowCard padding={20} radius={18}>
+                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Networking</div>
+                      <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>
+                        {networkingStudents.length} student{networkingStudents.length !== 1 ? "s" : ""} practiced · {attempts.filter((a) => a.evaluationFramework === "networking_pitch").length} total pitches
+                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Pitch Style Distribution</div>
+                      {Object.keys(pitchStyleCounts).length === 0 ? (
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No data yet</div>
+                      ) : (
+                        <div style={{ display: "grid", gap: 6 }}>
+                          {Object.entries(pitchStyleCounts).sort((a, b) => b[1] - a[1]).map(([style, count]) => (
+                            <div key={style} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" }}>{style.replace(/_/g, " ")}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div style={{ width: 80, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                  <div style={{ width: `${Math.round((count / networkingStudents.length) * 100)}%`, height: "100%", background: "#2563EB", borderRadius: 99 }} />
+                                </div>
+                                <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 16, textAlign: "right" }}>{count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </GlowCard>
+                    <GlowCard padding={20} radius={18}>
+                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Public Speaking</div>
+                      <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>
+                        {psStudents.length} student{psStudents.length !== 1 ? "s" : ""} practiced · {attempts.filter((a) => a.evaluationFramework === "public_speaking").length} total sessions
+                      </div>
+                      <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Delivery Archetype Distribution</div>
+                      {Object.keys(archetypeCounts).length === 0 ? (
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No data yet</div>
+                      ) : (
+                        <div style={{ display: "grid", gap: 6 }}>
+                          {Object.entries(archetypeCounts).sort((a, b) => b[1] - a[1]).map(([arch, count]) => (
+                            <div key={arch} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" }}>{arch}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div style={{ width: 80, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                  <div style={{ width: `${Math.round((count / psStudents.length) * 100)}%`, height: "100%", background: "#8B5CF6", borderRadius: 99 }} />
+                                </div>
+                                <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 16, textAlign: "right" }}>{count}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </GlowCard>
+                  </div>
+                );
+              })()}
+
               {topCohortSkills.length > 0 && (
                 <GlowCard padding={22} radius={22}>
                   <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>AI-Extracted</div>

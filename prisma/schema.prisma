@@ -41,6 +41,7 @@ model User {
   checklistProgress    ChecklistProgress[]
   interviewActivities  InterviewActivity[]
   studentSkills        StudentSkill[]
+  resumeAnalyses       ResumeAnalysis[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -347,6 +348,28 @@ model AptitudeResult {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([tenantId])
+}
+
+model ResumeAnalysis {
+  id              String   @id @default(cuid())
+  userId          String
+  tenantId        String?
+  createdAt       DateTime @default(now())
+  overallScore    Int
+  atsScore        Int
+  overallLabel    String
+  summary         String
+  topAction       String
+  gaps            Json     // { category, issue, fix }[]
+  strengths       Json     // string[]
+  keywordsPresent Json     // string[]
+  keywordsMissing Json     // string[]
+  resumeSnippet   String?  // first 400 chars for reference display
+  jobDescSnippet  String?  // first 200 chars of JD if provided
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
   @@index([tenantId])
 }
 
