@@ -296,12 +296,92 @@ a {
   }
 }
 
+/* ---------- POSTHOG-STYLE TYPOGRAPHY SYSTEM ---------- */
+
+/*
+  Type scale inspired by PostHog:
+  - Inter font, max weight 700 for most text
+  - Clean hierarchy: display > heading > body > label > caption
+  - Numbers / metrics use weight 700, not 900+
+  - Uppercase labels at weight 600 with letter-spacing
+*/
+
+/* Display — hero headings, large numbers */
+.type-display {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+
+/* Heading — page/section titles */
+.type-heading {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+/* Subheading — card titles, subsections */
+.type-subheading {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+/* Body — standard readable prose */
+.type-body {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Body strong — emphasized body text */
+.type-body-strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Label — UI labels, column headers, badges */
+.type-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+/* Caption — helper text, footnotes */
+.type-caption {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Metric — dashboard numbers */
+.type-metric {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1;
+  color: var(--text-primary);
+}
+
 /* ---------- GLOBAL LINK SYSTEM ---------- */
 
 a {
   color: var(--accent);
   text-decoration: none;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 a:hover {

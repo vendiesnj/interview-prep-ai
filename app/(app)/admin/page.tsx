@@ -2004,6 +2004,242 @@ const stalledPct =
           <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : " - "} />
         </div>
 
+        {/* Practice Frequency + Score Distribution */}
+        {(() => {
+          const total = filteredStudents.length;
+          const freqBands = [
+            { label: "Not started", min: 0, max: 0 },
+            { label: "Just started", min: 1, max: 2 },
+            { label: "Building habit", min: 3, max: 5 },
+            { label: "Active", min: 6, max: 10 },
+            { label: "Power user", min: 11, max: Infinity },
+          ].map((band) => {
+            const count = filteredStudents.filter(
+              (s) => s.attempts >= band.min && s.attempts <= band.max
+            ).length;
+            return { ...band, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
+          });
+
+          const scoreBands = [
+            { label: "Not attempted", color: "var(--text-muted)" },
+            { label: "Needs support", color: "var(--chart-critical)" },
+            { label: "Developing", color: "#F59E0B" },
+            { label: "Ready", color: "var(--accent)" },
+            { label: "High performer", color: "var(--chart-positive)" },
+          ].map((band, i) => {
+            const count = filteredStudents.filter((s) => {
+              if (i === 0) return s.avgScore100 === null;
+              if (i === 1) return s.avgScore100 !== null && s.avgScore100 < 50;
+              if (i === 2) return s.avgScore100 !== null && s.avgScore100 >= 50 && s.avgScore100 < 65;
+              if (i === 3) return s.avgScore100 !== null && s.avgScore100 >= 65 && s.avgScore100 < 80;
+              return s.avgScore100 !== null && s.avgScore100 >= 80;
+            }).length;
+            return { ...band, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
+          });
+
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <Panel eyebrow="Engagement" title="Practice Frequency">
+                <div style={{ display: "grid", gap: 8 }}>
+                  {freqBands.map((band) => (
+                    <div key={band.label} style={{ padding: "10px 12px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
+                        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
+                      </div>
+                      <div style={{ height: 7, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                        <div style={{ width: `${band.pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+
+              <Panel eyebrow="Performance" title="Score Distribution">
+                <div style={{ display: "flex", height: 18, borderRadius: 999, overflow: "hidden", marginBottom: 14 }}>
+                  {scoreBands.map((band) =>
+                    band.pct > 0 ? (
+                      <div key={band.label} title={`${band.label}: ${band.pct}%`} style={{ width: `${band.pct}%`, background: band.color, transition: "width 0.3s ease" }} />
+                    ) : null
+                  )}
+                </div>
+                <div style={{ display: "grid", gap: 6 }}>
+                  {scoreBands.map((band) => (
+                    <div key={band.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: 999, background: band.color, flexShrink: 0 }} />
+                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
+                      </div>
+                      <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
+                    </div>
+                  ))}
+                </div>
+              </Panel>
+            </div>
+          );
+        })()}
+
+        {/* Top Movers */}
+        {(() => {
+          const topMovers = filteredStudents
+            .filter((s) => s.trendDelta !== null && s.trendDelta > 0)
+            .sort((a, b) => (b.trendDelta ?? 0) - (a.trendDelta ?? 0))
+            .slice(0, 5);
+          if (topMovers.length === 0) return null;
+          return (
+            <Panel eyebrow="Progress" title="Top Movers">
+              <div style={{ display: "grid", gap: 8 }}>
+                {topMovers.map((s) => (
+                  <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
+                      <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>{s.attempts} rep{s.attempts !== 1 ? "s" : ""} · Score: {s.avgScore100 ?? " - "}</div>
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--chart-positive)", whiteSpace: "nowrap" }}>
+                      ↑ +{s.trendDelta} pts
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Panel>
+          );
+        })()}
+
+        {/* Job Profile Targeting */}
+        {(() => {
+          const roleList = Array.from(roleGroups.values())
+            .map((g) => ({
+              label: g.label,
+              company: g.company,
+              roleType: g.roleType,
+              studentCount: new Set(g.attempts.map((a) => a.userId)).size,
+              attemptCount: g.attempts.length,
+            }))
+            .sort((a, b) => b.attemptCount - a.attemptCount)
+            .slice(0, 6);
+
+          return (
+            <Panel eyebrow="Targeting" title="Job Profile Targeting">
+              {roleList.length === 0 ? (
+                <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                  No job profiles in use yet. Students can select a target role when practicing.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 8 }}>
+                  {roleList.map((r) => (
+                    <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.label}</div>
+                        {(r.company || r.roleType) && (
+                          <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>
+                            {[r.company, r.roleType].filter(Boolean).join(" · ")}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.studentCount} student{r.studentCount !== 1 ? "s" : ""}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>{r.attemptCount} attempt{r.attemptCount !== 1 ? "s" : ""}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Panel>
+          );
+        })()}
+
+        {/* Engagement Funnel + Category Performance */}
+        {(() => {
+          const total = filteredStudents.length;
+          const funnelSteps = [
+            { label: "Enrolled", count: total, desc: "Total students in this cohort" },
+            { label: "Started", count: filteredStudents.filter((s) => s.attempts > 0).length, desc: "Completed at least 1 attempt" },
+            { label: "Building habit", count: filteredStudents.filter((s) => s.attempts >= 3).length, desc: "3 or more attempts" },
+            { label: "Active", count: filteredStudents.filter((s) => s.attempts >= 10).length, desc: "10 or more attempts" },
+            { label: "High-performing", count: filteredStudents.filter((s) => (s.avgScore100 ?? 0) >= 80).length, desc: "Avg score 80+ (interview-ready)" },
+          ];
+
+          const catScoreMap = new Map<string, number[]>();
+          for (const a of filteredAttempts) {
+            const raw = safeLabel(a.questionCategory, "other");
+            const label = titleCaseLabel(raw);
+            const score = getAttemptScore(a);
+            if (score !== null) {
+              if (!catScoreMap.has(label)) catScoreMap.set(label, []);
+              catScoreMap.get(label)!.push(score);
+            }
+          }
+          const catPerf = Array.from(catScoreMap.entries())
+            .map(([label, scores]) => ({
+              label,
+              avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+              count: scores.length,
+            }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 6);
+
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+              <Panel eyebrow="Student Journey" title="Engagement Funnel">
+                <div style={{ display: "grid", gap: 8 }}>
+                  {funnelSteps.map((step, i) => {
+                    const pct = total > 0 ? Math.round((step.count / total) * 100) : 0;
+                    const opacity = 1 - i * 0.12;
+                    return (
+                      <div key={step.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{step.label}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{step.desc}</div>
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>{step.count}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{pct}%</div>
+                          </div>
+                        </div>
+                        <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99, opacity }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Panel>
+
+              <Panel eyebrow="Skill Breakdown" title="Category Performance">
+                {catPerf.length === 0 ? (
+                  <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                    No scored attempts yet. Category performance data will appear once students practice.
+                  </div>
+                ) : (
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {catPerf.map((cat) => {
+                      const color = cat.avg >= 75 ? "#10B981" : cat.avg >= 60 ? "#F59E0B" : "var(--chart-critical)";
+                      return (
+                        <div key={cat.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat.count} attempts</span>
+                              <span style={{ fontSize: 14, fontWeight: 700, color }}>{cat.avg}</span>
+                            </div>
+                          </div>
+                          <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${cat.avg}%`, background: color, borderRadius: 99 }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, paddingTop: 4 }}>
+                      Scores shown as 0–100 average per category. Categories below 60 suggest cohort-wide coaching opportunity.
+                    </div>
+                  </div>
+                )}
+              </Panel>
+            </div>
+          );
+        })()}
+
         {/* Assignments Panel */}
         <Panel eyebrow="Course Assignments" title="Active Assignments">
           <div style={{ display: "grid", gap: 14 }}>

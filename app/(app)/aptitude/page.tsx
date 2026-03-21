@@ -2,390 +2,665 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import PremiumShell from "@/app/components/PremiumShell";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
-type Category = "T" | "C" | "H" | "B" | "S";
+// ── Archetypes ─────────────────────────────────────────────────────────────
+type Cat = "A" | "B" | "C" | "H" | "L" | "M";
 
-type Question = {
-  question: string;
-  options: { label: string; category: Category }[];
-};
-
-type Result = {
-  category: Category;
-  title: string;
-  icon: string;
+const ARCHETYPES: Record<Cat, {
+  name: string;
+  tagline: string;
   color: string;
-  majors: string[];
-  desc: string;
-  salaryRange: string;
+  bg: string;
+  traits: string[];
+  description: string;
   careers: string[];
+  majors: string[];
+  salary: string;
+}> = {
+  A: {
+    name: "The Analyst",
+    tagline: "Logical · Data-driven · Systematic",
+    color: "#2563EB",
+    bg: "rgba(37,99,235,0.08)",
+    traits: ["Logical", "Curious", "Evidence-based", "Precise", "Strategic thinker"],
+    description:
+      "You're energized by complex problems and find deep satisfaction in turning data into clarity. You ask \"why\" before \"how\" and trust rigorous analysis over gut feeling. Analysts are the people who see the pattern in the noise — and build the systems that make sense of it. You thrive in roles that reward intellectual depth over speed.",
+    careers: [
+      "Data Scientist",
+      "Research Analyst",
+      "Software Engineer",
+      "Financial Analyst",
+      "Actuary",
+      "UX Researcher",
+      "Economist",
+      "Biostatistician",
+    ],
+    majors: ["Computer Science", "Statistics & Data Science", "Economics", "Mathematics", "Biomedical Engineering"],
+    salary: "$70K–$145K+",
+  },
+  B: {
+    name: "The Builder",
+    tagline: "Practical · Hands-on · Results-driven",
+    color: "#D97706",
+    bg: "rgba(217,119,6,0.08)",
+    traits: ["Practical", "Hands-on", "Resourceful", "Reliable", "Tenacious"],
+    description:
+      "You need to see and touch the results of your work. Abstract theory doesn't interest you nearly as much as making something real — a product, a structure, a working system. You're at your best when iterating and building. Builders are the backbone of engineering, manufacturing, product development, and construction.",
+    careers: [
+      "Mechanical Engineer",
+      "Civil Engineer",
+      "Architect",
+      "Product Designer",
+      "Industrial Engineer",
+      "Construction Manager",
+      "Biomedical Engineer",
+      "Product Manager",
+    ],
+    majors: ["Mechanical Engineering", "Civil Engineering", "Architecture", "Industrial Design", "Computer Engineering"],
+    salary: "$65K–$135K+",
+  },
+  C: {
+    name: "The Creator",
+    tagline: "Imaginative · Expressive · Original",
+    color: "#7C3AED",
+    bg: "rgba(124,58,237,0.08)",
+    traits: ["Imaginative", "Original", "Expressive", "Aesthetic", "Bold"],
+    description:
+      "You experience the world through a creative lens and feel most alive when making something new. Whether visual, written, or conceptual, your work connects with people emotionally. Creators gravitate toward design, media, advertising, entertainment, and innovation — anywhere that rewards originality and vision.",
+    careers: [
+      "Graphic Designer",
+      "UX/UI Designer",
+      "Art Director",
+      "Copywriter",
+      "Film Director",
+      "Creative Director",
+      "Animator",
+      "Brand Strategist",
+    ],
+    majors: ["Fine Arts", "Graphic Design", "Film & Media Studies", "Creative Writing", "Architecture"],
+    salary: "$55K–$125K+",
+  },
+  H: {
+    name: "The Helper",
+    tagline: "Empathetic · Caring · Service-oriented",
+    color: "#16A34A",
+    bg: "rgba(22,163,74,0.08)",
+    traits: ["Empathetic", "Patient", "Collaborative", "Compassionate", "Principled"],
+    description:
+      "You're driven by the impact your work has on real people. Interpersonal connection and human well-being sit at the center of what motivates you. You're the person who remembers names, notices when someone is struggling, and shows up consistently. Helpers thrive in healthcare, education, social work, and counseling.",
+    careers: [
+      "Registered Nurse",
+      "School Counselor",
+      "Social Worker",
+      "Physical Therapist",
+      "Teacher / Educator",
+      "Public Health Officer",
+      "Occupational Therapist",
+      "HR Specialist",
+    ],
+    majors: ["Nursing", "Psychology", "Social Work", "Education", "Public Health"],
+    salary: "$50K–$115K+",
+  },
+  L: {
+    name: "The Leader",
+    tagline: "Driven · Strategic · Entrepreneurial",
+    color: "#DC2626",
+    bg: "rgba(220,38,38,0.08)",
+    traits: ["Driven", "Strategic", "Decisive", "Persuasive", "Entrepreneurial"],
+    description:
+      "You think in systems, goals, and outcomes. You're energized by challenge, competition, and the opportunity to shape direction. Leaders excel wherever ambition and strategy are rewarded — business, finance, law, entrepreneurship, and management. You're often the one who sees what needs to happen before anyone else does.",
+    careers: [
+      "Entrepreneur / Founder",
+      "Product Manager",
+      "Management Consultant",
+      "Investment Banker",
+      "Attorney",
+      "Sales Director",
+      "Operations Manager",
+      "Chief of Staff",
+    ],
+    majors: ["Business Administration", "Finance", "Political Science", "Economics", "Pre-Law"],
+    salary: "$70K–$165K+",
+  },
+  M: {
+    name: "The Communicator",
+    tagline: "Articulate · Social · Storytelling",
+    color: "#0891B2",
+    bg: "rgba(8,145,178,0.08)",
+    traits: ["Articulate", "Social", "Persuasive", "Culturally curious", "Storyteller"],
+    description:
+      "You think in words, stories, and human connections. Communication is your superpower — whether through writing, speaking, social media, or film. Communicators thrive in journalism, marketing, public relations, media, advocacy, and politics — anywhere that rewards voice and narrative.",
+    careers: [
+      "Marketing Manager",
+      "Journalist",
+      "Public Relations Manager",
+      "Content Strategist",
+      "Documentary Filmmaker",
+      "Brand Manager",
+      "Speechwriter",
+      "Communications Director",
+    ],
+    majors: ["Communications", "Journalism", "Marketing", "English", "Political Science"],
+    salary: "$55K–$120K+",
+  },
 };
 
-// ── Questions ─────────────────────────────────────────────────────────────────
+// ── Questions ──────────────────────────────────────────────────────────────
+type Option = { label: string; cat: Cat };
+type Question = { q: string; options: Option[] };
+
 const QUESTIONS: Question[] = [
   {
-    question: "What kind of work energizes you most?",
+    q: "What type of problem gets you most excited to tackle?",
     options: [
-      { label: "Solving complex technical problems", category: "T" },
-      { label: "Creating something from scratch", category: "C" },
-      { label: "Helping or caring for others", category: "H" },
-      { label: "Leading a team or running something", category: "B" },
-      { label: "Understanding people and society", category: "S" },
+      { label: "A complex data puzzle or logical challenge", cat: "A" },
+      { label: "A physical or mechanical challenge to build a solution", cat: "B" },
+      { label: "A creative challenge with no single right answer", cat: "C" },
+      { label: "Helping someone overcome a difficult personal situation", cat: "H" },
+      { label: "Organizing people and resources toward a clear goal", cat: "L" },
+      { label: "Crafting a message that truly resonates with an audience", cat: "M" },
     ],
   },
   {
-    question: "Which class do you naturally look forward to?",
+    q: "Which describes your ideal work environment?",
     options: [
-      { label: "Math or Science", category: "T" },
-      { label: "Art, Music, or Creative Writing", category: "C" },
-      { label: "Biology or Health class", category: "H" },
-      { label: "Economics or Business", category: "B" },
-      { label: "History, English, or Social Studies", category: "S" },
+      { label: "Quiet, focused, analytical — working independently on deep problems", cat: "A" },
+      { label: "Active and hands-on — building or fixing real things", cat: "B" },
+      { label: "Open and creative — where bold ideas are encouraged", cat: "C" },
+      { label: "Warm and people-centered — where I make a direct difference", cat: "H" },
+      { label: "Fast-paced and goal-oriented — where I can lead and drive results", cat: "L" },
+      { label: "Social and communicative — where I present, write, or connect", cat: "M" },
     ],
   },
   {
-    question: "When you have a free afternoon, you're most likely to...",
+    q: "What do your friends or classmates tend to come to you for?",
     options: [
-      { label: "Build, code, or fix something", category: "T" },
-      { label: "Draw, write, make music, or design", category: "C" },
-      { label: "Volunteer, help a friend, or mentor someone", category: "H" },
-      { label: "Plan, organize, or start a side project", category: "B" },
-      { label: "Read, research, or watch a documentary", category: "S" },
+      { label: "Thinking through a hard decision logically", cat: "A" },
+      { label: "Help fixing, building, or setting something up", cat: "B" },
+      { label: "Creative ideas, design input, or honest aesthetic feedback", cat: "C" },
+      { label: "Emotional support and a genuine ear", cat: "H" },
+      { label: "Organizing a plan or stepping up to lead the group", cat: "L" },
+      { label: "Explaining something clearly or speaking for the group", cat: "M" },
     ],
   },
   {
-    question: "In a group project, your role tends to be...",
+    q: "If you had an unexpected free weekend, how would you most likely spend it?",
     options: [
-      { label: "The one who figures out how things work", category: "T" },
-      { label: "The one who makes it look good and creative", category: "C" },
-      { label: "The one who keeps the team together", category: "H" },
-      { label: "The one who leads and delegates", category: "B" },
-      { label: "The one who researches and builds the case", category: "S" },
+      { label: "Going deep on a topic I have been wanting to research", cat: "A" },
+      { label: "Working on a hands-on project — building, fixing, or making", cat: "B" },
+      { label: "Creating something — writing, art, film, music, or design", cat: "C" },
+      { label: "Spending time with people I care about or volunteering", cat: "H" },
+      { label: "Planning something big or working on a side project", cat: "L" },
+      { label: "Exploring somewhere new and documenting the experience", cat: "M" },
     ],
   },
   {
-    question: "Which outcome matters most to you?",
+    q: "Which type of class came most naturally to you in school?",
     options: [
-      { label: "Building something that actually works", category: "T" },
-      { label: "Making something beautiful or meaningful", category: "C" },
-      { label: "Improving someone's health or wellbeing", category: "H" },
-      { label: "Growing revenue, a team, or an organization", category: "B" },
-      { label: "Changing minds or influencing policy", category: "S" },
+      { label: "Math, Statistics, Physics, or Computer Science", cat: "A" },
+      { label: "Tech Ed, Engineering, Shop, or Design Technology", cat: "B" },
+      { label: "Art, Music, Drama, or Creative Writing", cat: "C" },
+      { label: "Biology, Health, Psychology, or Human Development", cat: "H" },
+      { label: "Economics, Business, or Student Leadership", cat: "L" },
+      { label: "English, Journalism, History, or Foreign Language", cat: "M" },
     ],
   },
   {
-    question: "What type of environment sounds best to you?",
+    q: "On a group project, you naturally take on which role?",
     options: [
-      { label: "Lab, tech company, or engineering firm", category: "T" },
-      { label: "Studio, agency, or on a film set", category: "C" },
-      { label: "Hospital, clinic, or school", category: "H" },
-      { label: "Office, startup, or conference room", category: "B" },
-      { label: "Nonprofit, government, or university", category: "S" },
+      { label: "Researcher — I dig into the data and find what is actually true", cat: "A" },
+      { label: "Builder — I take the lead on creating the actual deliverable", cat: "B" },
+      { label: "Designer — I make it look and feel right", cat: "C" },
+      { label: "Supporter — I keep team morale up and make sure no one falls behind", cat: "H" },
+      { label: "Organizer — I set the timeline, assign roles, and hold everyone accountable", cat: "L" },
+      { label: "Presenter — I write the narrative and deliver it to the audience", cat: "M" },
     ],
   },
   {
-    question: "What's most satisfying about learning something new?",
+    q: "Which of these careers sounds most interesting to you right now?",
     options: [
-      { label: "Understanding exactly how it works under the hood", category: "T" },
-      { label: "Finding a new way to express or visualize it", category: "C" },
-      { label: "Being able to share it with someone who needs it", category: "H" },
-      { label: "Figuring out how to use it to make an impact", category: "B" },
-      { label: "Connecting it to bigger historical or social patterns", category: "S" },
+      { label: "Data Scientist or Research Analyst", cat: "A" },
+      { label: "Civil or Mechanical Engineer", cat: "B" },
+      { label: "UX Designer or Creative Director", cat: "C" },
+      { label: "Nurse, Therapist, or Social Worker", cat: "H" },
+      { label: "Entrepreneur or Operations Manager", cat: "L" },
+      { label: "Journalist or Marketing Director", cat: "M" },
     ],
   },
   {
-    question: "Which skill do you most want to develop?",
+    q: "What does meaningful impact look like to you?",
     options: [
-      { label: "Coding, data analysis, or engineering", category: "T" },
-      { label: "Design, storytelling, or performance", category: "C" },
-      { label: "Patient care, counseling, or teaching", category: "H" },
-      { label: "Strategy, leadership, or finance", category: "B" },
-      { label: "Writing, research, or public policy", category: "S" },
+      { label: "Uncovering insights that change how people make decisions", cat: "A" },
+      { label: "Building something durable that people rely on every day", cat: "B" },
+      { label: "Creating something that moves, inspires, or shifts how people see the world", cat: "C" },
+      { label: "Directly improving someone's quality of life or well-being", cat: "H" },
+      { label: "Growing an organization that creates real opportunity and jobs", cat: "L" },
+      { label: "Changing how people think about an issue through storytelling", cat: "M" },
     ],
   },
   {
-    question: "What kind of problem excites you most?",
+    q: "Which skill would you most like to develop over the next few years?",
     options: [
-      { label: "Technical - there's a right answer if you dig deep enough", category: "T" },
-      { label: "Creative - it's about finding something that hasn't been done before", category: "C" },
-      { label: "Human - understanding why people do what they do", category: "H" },
-      { label: "Strategic - how to allocate resources for the best outcome", category: "B" },
-      { label: "Ethical or social - what's fair, just, or historically true", category: "S" },
+      { label: "Data analysis, machine learning, or statistical modeling", cat: "A" },
+      { label: "CAD design, fabrication, or engineering systems", cat: "B" },
+      { label: "Photography, illustration, animation, or visual design", cat: "C" },
+      { label: "Counseling techniques, clinical skills, or empathetic communication", cat: "H" },
+      { label: "Negotiation, financial strategy, or executive leadership", cat: "L" },
+      { label: "Public speaking, long-form writing, or broadcast journalism", cat: "M" },
     ],
   },
   {
-    question: "How do you want people to describe your work in 10 years?",
+    q: "What frustrates you most in a work or school environment?",
     options: [
-      { label: "'She built something that changed how we do X'", category: "T" },
-      { label: "'That was genuinely original and beautiful'", category: "C" },
-      { label: "'She helped me through the hardest time of my life'", category: "H" },
-      { label: "'She grew that team or company from the ground up'", category: "B" },
-      { label: "'Her research or teaching actually mattered to people'", category: "S" },
+      { label: "Decisions made without data or evidence", cat: "A" },
+      { label: "Too much talking and planning, not enough doing", cat: "B" },
+      { label: "Rigid rules with no room for creativity or originality", cat: "C" },
+      { label: "People being treated as numbers instead of human beings", cat: "H" },
+      { label: "No one taking charge while everything drifts without direction", cat: "L" },
+      { label: "Poor communication that leaves everyone confused and misaligned", cat: "M" },
+    ],
+  },
+  {
+    q: "What kind of book would you most enjoy reading?",
+    options: [
+      { label: "A deep investigation into science, economics, or how systems work", cat: "A" },
+      { label: "A biography of an engineer, inventor, or maker", cat: "B" },
+      { label: "Fiction, poetry, or a memoir by a creative visionary", cat: "C" },
+      { label: "Stories about caregiving, community, or social justice", cat: "H" },
+      { label: "Business strategy or a founder building something from scratch", cat: "L" },
+      { label: "Narrative journalism, travel writing, or cultural commentary", cat: "M" },
+    ],
+  },
+  {
+    q: "How would you describe the way you make decisions?",
+    options: [
+      { label: "I gather as much data as possible before committing to anything", cat: "A" },
+      { label: "I test the most practical option first, then iterate from there", cat: "B" },
+      { label: "I trust my intuition and lean into the option that feels most right", cat: "C" },
+      { label: "I consider how every option affects the people around me", cat: "H" },
+      { label: "I evaluate which path delivers the best outcome with available resources", cat: "L" },
+      { label: "I think about how each option will be perceived and communicated externally", cat: "M" },
+    ],
+  },
+  {
+    q: "Which tech tool would you be most excited to master?",
+    options: [
+      { label: "Python, R, or SQL for data analysis", cat: "A" },
+      { label: "CAD software, 3D printing tools, or simulation platforms", cat: "B" },
+      { label: "Adobe Creative Suite, Figma, or video editing software", cat: "C" },
+      { label: "Electronic health record systems or therapy platforms", cat: "H" },
+      { label: "CRM tools, financial modeling software, or business intelligence dashboards", cat: "L" },
+      { label: "Content management systems, podcasting tools, or social analytics", cat: "M" },
+    ],
+  },
+  {
+    q: "Describe your dream day at work:",
+    options: [
+      { label: "Finding an unexpected pattern in a dataset that unlocks a key insight", cat: "A" },
+      { label: "Designing a prototype in the morning and stress-testing it in the afternoon", cat: "B" },
+      { label: "Sketching a concept and watching it come to life on screen", cat: "C" },
+      { label: "Having a breakthrough conversation with someone I am supporting", cat: "H" },
+      { label: "Closing a deal, launching something, or hitting a major milestone", cat: "L" },
+      { label: "Writing a piece I am proud of or delivering a presentation that truly lands", cat: "M" },
+    ],
+  },
+  {
+    q: "Your closest friends would most likely describe you as...",
+    options: [
+      { label: "Analytical — always asking why and digging deeper than most", cat: "A" },
+      { label: "Dependable — a person of action who gets things done", cat: "B" },
+      { label: "Original — you see things differently and are not afraid to show it", cat: "C" },
+      { label: "Caring — you genuinely invest in the people around you", cat: "H" },
+      { label: "Driven — ambitious, decisive, and comfortable taking the lead", cat: "L" },
+      { label: "Articulate — you express ideas clearly and make people feel heard", cat: "M" },
+    ],
+  },
+  {
+    q: "When you face a new problem, your first instinct is to...",
+    options: [
+      { label: "Research it — understand the root cause before touching anything", cat: "A" },
+      { label: "Start experimenting — get your hands on it and figure it out", cat: "B" },
+      { label: "Brainstorm widely — imagine every angle, including unconventional ones", cat: "C" },
+      { label: "Talk to people affected — understand how they are experiencing it", cat: "H" },
+      { label: "Build a plan — figure out the goal, the steps, and who needs to be involved", cat: "L" },
+      { label: "Frame it clearly — define what the real question is before anything else", cat: "M" },
+    ],
+  },
+  {
+    q: "What matters most to you in a job or career?",
+    options: [
+      { label: "Intellectual depth — problems that genuinely challenge the way I think", cat: "A" },
+      { label: "Tangible results — being able to point to what I built or fixed", cat: "B" },
+      { label: "Creative freedom — the ability to express myself through my work", cat: "C" },
+      { label: "Direct impact — knowing my work genuinely helps real people", cat: "H" },
+      { label: "Advancement — clear paths to grow, lead, and be rewarded for results", cat: "L" },
+      { label: "Influence — shaping how people think, feel, or act about something", cat: "M" },
+    ],
+  },
+  {
+    q: "Which activity could you do for hours without getting bored?",
+    options: [
+      { label: "Researching a topic I find fascinating, following rabbit holes", cat: "A" },
+      { label: "Working on a physical or hands-on project", cat: "B" },
+      { label: "Drawing, writing, composing, designing, or making something", cat: "C" },
+      { label: "Volunteering, tutoring, or spending time helping someone I care about", cat: "H" },
+      { label: "Planning, negotiating, or building something toward a concrete goal", cat: "L" },
+      { label: "Writing, filming, performing, or sharing ideas with an audience", cat: "M" },
+    ],
+  },
+  {
+    q: "Pick the description that sounds most like you:",
+    options: [
+      { label: "I need to understand things fully before I act", cat: "A" },
+      { label: "I would rather build a rough version than spend extra time planning", cat: "B" },
+      { label: "I need creative outlets to feel fully alive", cat: "C" },
+      { label: "Relationships and community are at the center of everything I do", cat: "H" },
+      { label: "I am here to grow, compete, and lead — and I am honest about that", cat: "L" },
+      { label: "I think in stories, and I believe the right words can change anything", cat: "M" },
+    ],
+  },
+  {
+    q: "Which quote resonates with you most?",
+    options: [
+      { label: "\"The answer is somewhere in the data — you just have to find it.\"", cat: "A" },
+      { label: "\"Done is better than perfect. Build it and learn from it.\"", cat: "B" },
+      { label: "\"Constraints are for people who lack imagination.\"", cat: "C" },
+      { label: "\"The most powerful thing you can do is truly listen.\"", cat: "H" },
+      { label: "\"If you want something done right, you have to lead it.\"", cat: "L" },
+      { label: "\"A great story can change how the world sees something.\"", cat: "M" },
+    ],
+  },
+  {
+    q: "Which college major sounds most appealing to you?",
+    options: [
+      { label: "Computer Science, Statistics, or Economics", cat: "A" },
+      { label: "Mechanical Engineering, Architecture, or Industrial Design", cat: "B" },
+      { label: "Fine Arts, Film, Graphic Design, or Creative Writing", cat: "C" },
+      { label: "Nursing, Psychology, Social Work, or Education", cat: "H" },
+      { label: "Business Administration, Finance, or Political Science", cat: "L" },
+      { label: "Communications, Journalism, Marketing, or English", cat: "M" },
+    ],
+  },
+  {
+    q: "Which of these real-world challenges would you most want to work on?",
+    options: [
+      { label: "Building a predictive model to detect disease outbreaks early", cat: "A" },
+      { label: "Designing a bridge structure that uses 30% fewer materials", cat: "B" },
+      { label: "Rebranding a struggling nonprofit with a fresh identity and campaign", cat: "C" },
+      { label: "Expanding mental health access in underserved communities", cat: "H" },
+      { label: "Turning a struggling small business into a profitable operation", cat: "L" },
+      { label: "Writing a documentary that brings a hidden story to mainstream attention", cat: "M" },
+    ],
+  },
+  {
+    q: "How do you tend to relate to risk?",
+    options: [
+      { label: "I want to fully understand the risk before acting — data first", cat: "A" },
+      { label: "I take calculated risks — build a prototype, fail fast, improve", cat: "B" },
+      { label: "I embrace risk as a natural part of creative exploration", cat: "C" },
+      { label: "I avoid risks that could harm the people who depend on me", cat: "H" },
+      { label: "I take bold risks when the potential upside is big enough", cat: "L" },
+      { label: "I take social risks — putting my ideas and voice in front of audiences", cat: "M" },
+    ],
+  },
+  {
+    q: "Ten years from now, what does success look like to you?",
+    options: [
+      { label: "Being a recognized expert — someone who knows more about my field than almost anyone", cat: "A" },
+      { label: "Having built something real — a product, structure, or system that people rely on", cat: "B" },
+      { label: "Having a body of work I am proud of — art, design, or writing that has touched people", cat: "C" },
+      { label: "Knowing I have genuinely improved people's lives through the work I have done", cat: "H" },
+      { label: "Leading my own organization or team toward something meaningful", cat: "L" },
+      { label: "Having a platform and an audience — being a voice that matters in my field", cat: "M" },
     ],
   },
 ];
 
-// ── Results data ──────────────────────────────────────────────────────────────
-const RESULTS: Record<Category, Result> = {
-  T: {
-    category: "T",
-    title: "Technical & STEM",
-    icon: "💻",
-    color: "#2563EB",
-    majors: ["Computer Science", "Software Engineering", "Data Science", "Electrical Engineering", "Mathematics", "Cybersecurity"],
-    desc: "You gravitate toward systems, logic, and building. You're energized by hard problems with real answers. Technical fields reward this - and the career paths are among the most in-demand and highest-compensated in the market.",
-    salaryRange: "$85k - $130k+ starting salary",
-    careers: ["Software Engineer", "Data Scientist", "Systems Architect", "Machine Learning Engineer", "Product Manager (technical)"],
-  },
-  C: {
-    category: "C",
-    title: "Creative & Design",
-    icon: "🎨",
-    color: "#8B5CF6",
-    majors: ["Graphic Design", "UX/UI Design", "Film & Media", "Architecture", "Creative Writing", "Music", "Communications"],
-    desc: "You lead with creative instinct and want your work to be felt, not just functional. Creative fields are more competitive, but people who commit fully to craft and build strong portfolios thrive. The UX and design market especially rewards both aesthetic and analytical thinking.",
-    salaryRange: "$55k - $110k+ starting salary",
-    careers: ["UX Designer", "Art Director", "Film Producer", "Architect", "Creative Strategist", "Content Creator"],
-  },
-  H: {
-    category: "H",
-    title: "Healthcare & Human Sciences",
-    icon: "⚕️",
-    color: "#10B981",
-    majors: ["Pre-Medicine", "Nursing", "Psychology", "Biology", "Public Health", "Physical Therapy", "Social Work"],
-    desc: "You're drawn to the human side of any situation. You want to make a direct, tangible difference in individual lives. Healthcare and helping professions require patience, empathy, and long training paths - but they offer unmatched stability, meaning, and scope of impact.",
-    salaryRange: "$50k - $120k+ starting (varies widely by specialization)",
-    careers: ["Physician", "Registered Nurse", "Clinical Psychologist", "Physical Therapist", "Public Health Analyst", "Counselor"],
-  },
-  B: {
-    category: "B",
-    title: "Business & Leadership",
-    icon: "📊",
-    color: "#F59E0B",
-    majors: ["Business Administration", "Finance", "Accounting", "Marketing", "Entrepreneurship", "Economics", "Operations"],
-    desc: "You think in systems, strategies, and outcomes. You want to build, lead, or own something. Business is the broadest major category - the key is to specialize early (finance vs. marketing vs. operations are very different tracks) and gain real-world experience through internships every year.",
-    salaryRange: "$60k - $120k+ starting salary",
-    careers: ["Financial Analyst", "Marketing Manager", "Consultant", "Product Manager", "Startup Founder", "Investment Banker"],
-  },
-  S: {
-    category: "S",
-    title: "Social Sciences & Humanities",
-    icon: "🌐",
-    color: "#0EA5E9",
-    majors: ["Political Science", "Sociology", "History", "Education", "Philosophy", "International Relations", "Journalism"],
-    desc: "You want to understand the world - how it got here, how it works, and how it could be better. Humanities and social science majors develop strong research, writing, and analytical skills that transfer to law, policy, nonprofit leadership, journalism, and more. The path is less linear, but highly meaningful.",
-    salaryRange: "$45k - $90k+ starting (graduate school often unlocks higher ranges)",
-    careers: ["Policy Analyst", "Journalist", "Teacher", "Lawyer (requires law school)", "Nonprofit Director", "Researcher"],
-  },
-};
-
-// ── Score calculator ──────────────────────────────────────────────────────────
-function scoreAnswers(answers: Category[]): [Category, Category] {
-  const counts: Record<Category, number> = { T: 0, C: 0, H: 0, B: 0, S: 0 };
-  answers.forEach((a) => counts[a]++);
-  const sorted = (Object.entries(counts) as [Category, number][]).sort((a, b) => b[1] - a[1]);
-  return [sorted[0][0], sorted[1][0]];
+// ── Scoring ────────────────────────────────────────────────────────────────
+function computeScores(answers: (Cat | null)[]): Record<Cat, number> {
+  const scores: Record<Cat, number> = { A: 0, B: 0, C: 0, H: 0, L: 0, M: 0 };
+  for (const cat of answers) {
+    if (cat) scores[cat]++;
+  }
+  return scores;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+function topTwo(scores: Record<Cat, number>): [Cat, Cat] {
+  const sorted = (Object.keys(scores) as Cat[]).sort((a, b) => scores[b] - scores[a]);
+  return [sorted[0], sorted[1]];
+}
+
+// ── Component ──────────────────────────────────────────────────────────────
 export default function AptitudePage() {
-  const searchParams = useSearchParams();
-  const from = searchParams.get("from") ?? "pre-college";
+  const [answers, setAnswers] = useState<(Cat | null)[]>(Array(QUESTIONS.length).fill(null));
+  const [step, setStep] = useState(0);
+  const [done, setDone] = useState(false);
 
-  const backHref = from === "during-college" ? "/during-college" : "/pre-college";
-  const backLabel = from === "during-college" ? "← During College" : "← Pre-College";
+  const totalQ = QUESTIONS.length;
+  const current = QUESTIONS[step];
+  const answered = answers[step];
+  const answeredCount = answers.filter(Boolean).length;
 
-  const [step, setStep] = useState<"intro" | "quiz" | "results">("intro");
-  const [currentQ, setCurrentQ] = useState(0);
-  const [answers, setAnswers] = useState<Category[]>([]);
-  const [selected, setSelected] = useState<Category | null>(null);
-
-  function selectOption(cat: Category) {
-    setSelected(cat);
+  function handleSelect(cat: Cat) {
+    const next = [...answers];
+    next[step] = cat;
+    setAnswers(next);
   }
 
-  function nextQuestion() {
-    if (!selected) return;
-    const newAnswers = [...answers, selected];
-    setAnswers(newAnswers);
-    setSelected(null);
-    if (currentQ + 1 < QUESTIONS.length) {
-      setCurrentQ(currentQ + 1);
+  function handleNext() {
+    if (step < totalQ - 1) {
+      setStep(step + 1);
     } else {
-      setStep("results");
+      setDone(true);
     }
   }
 
-  function prevQuestion() {
-    if (currentQ === 0) {
-      setStep("intro");
-      setAnswers([]);
-      setSelected(null);
-      return;
-    }
-    setCurrentQ(currentQ - 1);
-    setAnswers(answers.slice(0, -1));
-    setSelected(answers[currentQ - 1] ?? null);
+  function handleBack() {
+    if (step > 0) setStep(step - 1);
   }
 
-  function restart() {
-    setStep("intro");
-    setCurrentQ(0);
-    setAnswers([]);
-    setSelected(null);
+  function handleRetake() {
+    setAnswers(Array(QUESTIONS.length).fill(null));
+    setStep(0);
+    setDone(false);
   }
 
-  const q = QUESTIONS[currentQ];
-  const progress = ((currentQ + (selected ? 1 : 0)) / QUESTIONS.length) * 100;
+  // ── Results ──────────────────────────────────────────────────────────────
+  if (done) {
+    const scores = computeScores(answers);
+    const [primary, secondary] = topTwo(scores);
+    const p = ARCHETYPES[primary];
+    const s = ARCHETYPES[secondary];
+    const maxScore = Math.max(...Object.values(scores));
 
-  // ── Intro ──────────────────────────────────────────────────────────────────
-  if (step === "intro") {
     return (
-      <PremiumShell hideHeader>
-        <div style={{ maxWidth: 680, margin: "0 auto", paddingBottom: 80 }}>
-          <div style={{ marginBottom: 12 }}>
-            <Link href={backHref} style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>{backLabel}</Link>
-          </div>
+      <PremiumShell title="Your Career Personality" subtitle="Based on your responses to 24 personality questions">
+        <div style={{ maxWidth: 760, display: "grid", gap: 20 }}>
 
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)", marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>🧭</span>
-              <span style={{ fontSize: 12, fontWeight: 900, color: "#8B5CF6", letterSpacing: 0.5 }}>APTITUDE QUIZ</span>
-            </div>
-            <h1 style={{ margin: "0 0 10px", fontSize: 30, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.7, lineHeight: 1.2 }}>
-              {from === "during-college" ? "Find your career direction." : "Find your major and career fit."}
-            </h1>
-            <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7 }}>
-              {from === "during-college"
-                ? "10 questions. No right answers. Based on your responses, we'll surface 2 career tracks that fit how you think and what you value."
-                : "10 questions. No right answers. Based on your responses, we'll surface 2 majors and career paths that fit how you think and what you value."}
-            </p>
-          </div>
-
-          <div style={{ padding: "24px 28px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", marginBottom: 24 }}>
-            <div style={{ display: "grid", gap: 16 }}>
-              {[
-                { icon: "⏱️", text: "About 5 minutes" },
-                { icon: "🎯", text: "No wrong answers - pick what feels most true" },
-                { icon: "📊", text: "Results show your top 2 fits, with majors and career examples" },
-                { icon: "🔄", text: "Retake anytime - your answers aren't saved" },
-              ].map(({ icon, text }) => (
-                <div key={text} style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span style={{ fontSize: 20, flexShrink: 0 }}>{icon}</span>
-                  <span style={{ fontSize: 14, color: "var(--text-muted)" }}>{text}</span>
+          {/* Primary type card */}
+          <div style={{
+            borderRadius: 18,
+            border: `1px solid ${p.color}30`,
+            background: p.bg,
+            padding: "28px 28px 24px",
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  color: p.color,
+                  marginBottom: 6,
+                }}>
+                  Your Primary Archetype
                 </div>
+                <div style={{ fontSize: 28, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.5, lineHeight: 1.2 }}>
+                  {p.name}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4, fontWeight: 500 }}>
+                  {p.tagline}
+                </div>
+              </div>
+              <div style={{
+                padding: "6px 14px",
+                borderRadius: 99,
+                background: p.color,
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 700,
+                flexShrink: 0,
+              }}>
+                {scores[primary]} / {totalQ}
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+              {p.description}
+            </div>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+              {p.traits.map((t) => (
+                <span key={t} style={{
+                  padding: "4px 12px",
+                  borderRadius: 99,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  background: `${p.color}18`,
+                  color: p.color,
+                  border: `1px solid ${p.color}30`,
+                }}>
+                  {t}
+                </span>
               ))}
             </div>
           </div>
 
-          <button
-            onClick={() => setStep("quiz")}
-            style={{ width: "100%", padding: "14px 24px", borderRadius: 12, background: "#8B5CF6", color: "#fff", fontWeight: 950, fontSize: 16, border: "none", cursor: "pointer", letterSpacing: -0.3 }}
-          >
-            Start quiz
-          </button>
-        </div>
-      </PremiumShell>
-    );
-  }
-
-  // ── Results ────────────────────────────────────────────────────────────────
-  if (step === "results") {
-    const [first, second] = scoreAnswers(answers);
-    const primary = RESULTS[first];
-    const secondary = RESULTS[second];
-
-    return (
-      <PremiumShell hideHeader>
-        <div style={{ maxWidth: 720, margin: "0 auto", paddingBottom: 80 }}>
-          <div style={{ marginBottom: 12 }}>
-            <Link href={backHref} style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>{backLabel}</Link>
-          </div>
-
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)", marginBottom: 14 }}>
-              <span style={{ fontSize: 16 }}>🎯</span>
-              <span style={{ fontSize: 12, fontWeight: 900, color: "#8B5CF6", letterSpacing: 0.5 }}>YOUR RESULTS</span>
-            </div>
-            <h1 style={{ margin: "0 0 8px", fontSize: 28, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>
-              Your top fits
-            </h1>
-            <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>
-              Based on your answers - not a definitive answer, but a strong signal.
-            </p>
-          </div>
-
-          {/* Primary result */}
-          <div style={{ padding: "24px 28px", borderRadius: 18, border: `2px solid ${primary.color}40`, background: primary.color + "08", marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: primary.color + "20", border: `1px solid ${primary.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, flexShrink: 0 }}>{primary.icon}</div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: primary.color, textTransform: "uppercase", marginBottom: 3 }}>Strong match</div>
-                <div style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary)" }}>{primary.title}</div>
+          {/* Careers + Majors */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+            <div style={{
+              padding: "18px 20px",
+              borderRadius: 14,
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg)",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 12 }}>
+                Top Careers
+              </div>
+              <div style={{ display: "grid", gap: 7 }}>
+                {p.careers.map((c) => (
+                  <div key={c} style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 4, height: 4, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
+                    {c}
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)" }}>
+                Typical salary: <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>{p.salary}</span>
               </div>
             </div>
-            <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>{primary.desc}</p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: primary.color, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>
-                  {from === "during-college" ? "Specializations" : "Majors to consider"}
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {primary.majors.map((m) => (
-                    <span key={m} style={{ fontSize: 12, fontWeight: 700, color: primary.color, background: primary.color + "15", padding: "4px 10px", borderRadius: 99 }}>{m}</span>
-                  ))}
-                </div>
+            <div style={{
+              padding: "18px 20px",
+              borderRadius: 14,
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg)",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 12 }}>
+                Recommended Majors
               </div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: primary.color, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 8 }}>Career examples</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  {primary.careers.map((c) => (
-                    <div key={c} style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ color: primary.color, fontSize: 10 }}>●</span>{c}
+              <div style={{ display: "grid", gap: 7 }}>
+                {p.majors.map((m) => (
+                  <div key={m} style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 4, height: 4, borderRadius: "50%", background: p.color, flexShrink: 0 }} />
+                    {m}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--card-border-soft)" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 6 }}>
+                  Secondary Archetype
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: s.color }}>{s.name}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{s.tagline}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Score breakdown */}
+          <div style={{
+            padding: "18px 20px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 14 }}>
+              Full Personality Breakdown
+            </div>
+            <div style={{ display: "grid", gap: 10 }}>
+              {(Object.keys(ARCHETYPES) as Cat[])
+                .sort((a, b) => scores[b] - scores[a])
+                .map((cat) => {
+                  const arch = ARCHETYPES[cat];
+                  const pct = Math.round((scores[cat] / totalQ) * 100);
+                  return (
+                    <div key={cat}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: cat === primary ? arch.color : "var(--text-primary)" }}>
+                          {arch.name}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
+                          {scores[cat]} pts · {pct}%
+                        </span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                        <div style={{
+                          height: "100%",
+                          width: `${maxScore > 0 ? (scores[cat] / maxScore) * 100 : 0}%`,
+                          background: arch.color,
+                          borderRadius: 99,
+                          transition: "width 0.6s ease",
+                        }} />
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  );
+                })}
             </div>
-
-            <div style={{ padding: "10px 14px", borderRadius: 10, background: primary.color + "12", fontSize: 13, fontWeight: 800, color: primary.color }}>
-              {primary.salaryRange}
-            </div>
-          </div>
-
-          {/* Secondary result */}
-          <div style={{ padding: "24px 28px", borderRadius: 18, border: `1px solid ${secondary.color}30`, background: "var(--card-bg)", marginBottom: 28 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 12, background: secondary.color + "15", border: `1px solid ${secondary.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{secondary.icon}</div>
-              <div>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: secondary.color, textTransform: "uppercase", marginBottom: 3 }}>Secondary match</div>
-                <div style={{ fontSize: 17, fontWeight: 950, color: "var(--text-primary)" }}>{secondary.title}</div>
-              </div>
-            </div>
-            <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{secondary.desc}</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {secondary.majors.slice(0, 4).map((m) => (
-                <span key={m} style={{ fontSize: 12, fontWeight: 700, color: secondary.color, background: secondary.color + "12", padding: "4px 10px", borderRadius: 99 }}>{m}</span>
-              ))}
-            </div>
-          </div>
-
-          {/* Disclaimer */}
-          <div style={{ marginBottom: 24, padding: "14px 18px", borderRadius: 12, background: "var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
-            This quiz is a starting point, not a prediction. Many people who thrive in a career didn't major in the obvious subject. Use this to explore - not to decide.
           </div>
 
           {/* Actions */}
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button onClick={restart} style={{ padding: "11px 22px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 14, cursor: "pointer" }}>
-              Retake quiz
+            <button
+              onClick={handleRetake}
+              style={{
+                padding: "10px 20px",
+                borderRadius: 10,
+                border: "1px solid var(--card-border-soft)",
+                background: "var(--card-bg)",
+                color: "var(--text-muted)",
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Retake Assessment
             </button>
-            <Link href={`/career-guide/career-paths?from=${from}`} style={{ padding: "11px 22px", borderRadius: 10, background: "#8B5CF6", color: "#fff", fontWeight: 900, fontSize: 14, textDecoration: "none" }}>
-              Explore career paths →
+            <Link href="/practice" style={{ textDecoration: "none" }}>
+              <button style={{
+                padding: "10px 20px",
+                borderRadius: 10,
+                border: "none",
+                background: p.color,
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}>
+                Start Practicing Interviews
+              </button>
             </Link>
           </div>
         </div>
@@ -393,52 +668,82 @@ export default function AptitudePage() {
     );
   }
 
-  // ── Quiz ───────────────────────────────────────────────────────────────────
-  return (
-    <PremiumShell hideHeader>
-      <div style={{ maxWidth: 680, margin: "0 auto", paddingBottom: 80 }}>
+  // ── Quiz view ──────────────────────────────────────────────────────────────
+  const progress = (answeredCount / totalQ) * 100;
 
-        {/* Progress */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>Question {currentQ + 1} of {QUESTIONS.length}</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "#8B5CF6" }}>{Math.round(progress)}%</span>
+  return (
+    <PremiumShell
+      title="Career Personality Assessment"
+      subtitle="24 questions to discover your personality archetype and best-fit careers."
+    >
+      <div style={{ maxWidth: 680 }}>
+
+        {/* Progress bar */}
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
+              Question {step + 1} of {totalQ}
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
+              {answeredCount} answered
+            </span>
           </div>
-          <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg, #8B5CF6, #0EA5E9)", borderRadius: 99, transition: "width 0.3s ease" }} />
+          <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+            <div style={{
+              height: "100%",
+              width: `${progress}%`,
+              background: "var(--accent)",
+              borderRadius: 99,
+              transition: "width 0.3s ease",
+            }} />
           </div>
         </div>
 
-        {/* Question */}
-        <div style={{ marginBottom: 28 }}>
-          <h2 style={{ margin: "0 0 24px", fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.3, letterSpacing: -0.4 }}>
-            {q.question}
-          </h2>
-          <div style={{ display: "grid", gap: 10 }}>
-            {q.options.map((opt) => {
-              const isSelected = selected === opt.category;
+        {/* Question card */}
+        <div style={{
+          borderRadius: 18,
+          border: "1px solid var(--card-border-soft)",
+          background: "var(--card-bg)",
+          padding: "24px 24px 20px",
+          marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.5, marginBottom: 20 }}>
+            {current.q}
+          </div>
+
+          <div style={{ display: "grid", gap: 8 }}>
+            {current.options.map((opt) => {
+              const isSelected = answered === opt.cat;
               return (
                 <button
-                  key={opt.category}
-                  onClick={() => selectOption(opt.category)}
+                  key={opt.cat}
+                  onClick={() => handleSelect(opt.cat)}
                   style={{
-                    padding: "16px 20px", borderRadius: 14, textAlign: "left", cursor: "pointer",
-                    border: `2px solid ${isSelected ? "#8B5CF6" : "var(--card-border)"}`,
-                    background: isSelected ? "rgba(139,92,246,0.08)" : "var(--card-bg)",
-                    color: isSelected ? "#8B5CF6" : "var(--text-primary)",
-                    fontWeight: isSelected ? 900 : 700, fontSize: 14,
-                    transition: "all 150ms",
-                    display: "flex", alignItems: "center", gap: 14,
+                    padding: "12px 16px",
+                    borderRadius: 10,
+                    border: isSelected
+                      ? "1.5px solid var(--accent)"
+                      : "1px solid var(--card-border-soft)",
+                    background: isSelected ? "rgba(37,99,235,0.07)" : "transparent",
+                    color: isSelected ? "var(--text-primary)" : "var(--text-muted)",
+                    fontSize: 13,
+                    fontWeight: isSelected ? 600 : 500,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    transition: "all 0.15s ease",
                   }}
                 >
                   <div style={{
-                    width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                    border: `2px solid ${isSelected ? "#8B5CF6" : "var(--card-border)"}`,
-                    background: isSelected ? "#8B5CF6" : "transparent",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    {isSelected && <span style={{ color: "#fff", fontSize: 12, fontWeight: 900 }}>✓</span>}
-                  </div>
+                    width: 16,
+                    height: 16,
+                    borderRadius: "50%",
+                    border: isSelected ? "5px solid var(--accent)" : "2px solid var(--card-border-soft)",
+                    flexShrink: 0,
+                    transition: "all 0.15s ease",
+                  }} />
                   {opt.label}
                 </button>
               );
@@ -447,27 +752,69 @@ export default function AptitudePage() {
         </div>
 
         {/* Navigation */}
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <button
-            onClick={prevQuestion}
-            style={{ padding: "11px 22px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-muted)", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
+            onClick={handleBack}
+            disabled={step === 0}
+            style={{
+              padding: "10px 18px",
+              borderRadius: 10,
+              border: "1px solid var(--card-border-soft)",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: step === 0 ? "default" : "pointer",
+              opacity: step === 0 ? 0.4 : 1,
+            }}
           >
             Back
           </button>
+
           <button
-            onClick={nextQuestion}
-            disabled={!selected}
+            onClick={handleNext}
+            disabled={!answered}
             style={{
-              flex: 1, padding: "11px 22px", borderRadius: 10, fontWeight: 900, fontSize: 14,
-              background: selected ? "#8B5CF6" : "var(--card-border-soft)",
-              color: selected ? "#fff" : "var(--text-muted)",
-              border: "none", cursor: selected ? "pointer" : "not-allowed",
-              transition: "all 150ms",
+              padding: "10px 22px",
+              borderRadius: 10,
+              border: "none",
+              background: answered ? "var(--accent)" : "var(--card-border-soft)",
+              color: answered ? "#fff" : "var(--text-soft)",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: answered ? "pointer" : "default",
+              transition: "all 0.15s ease",
             }}
           >
-            {currentQ + 1 === QUESTIONS.length ? "See my results" : "Next"}
+            {step === totalQ - 1 ? "See My Results" : "Next"}
           </button>
         </div>
+
+        {/* Progress dots */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 20, justifyContent: "center" }}>
+          {QUESTIONS.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setStep(i)}
+              title={`Question ${i + 1}`}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                background: i === step
+                  ? "var(--accent)"
+                  : answers[i]
+                  ? "rgba(37,99,235,0.35)"
+                  : "var(--card-border-soft)",
+                transition: "background 0.15s ease",
+              }}
+            />
+          ))}
+        </div>
+
       </div>
     </PremiumShell>
   );

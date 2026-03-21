@@ -46,9 +46,10 @@ export default function PremiumShell({
                 {title ? (
                   <div
                     style={{
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: 700,
                       letterSpacing: -0.3,
+                      lineHeight: 1.3,
                       color: "var(--text-primary)",
                     }}
                   >
@@ -59,8 +60,9 @@ export default function PremiumShell({
                 {subtitle ? (
                   <div
                     style={{
-                      marginTop: 6,
+                      marginTop: 5,
                       fontSize: 13,
+                      fontWeight: 400,
                       color: "var(--text-muted)",
                       lineHeight: 1.6,
                       maxWidth: 760,
