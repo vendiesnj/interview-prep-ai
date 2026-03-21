@@ -227,6 +227,14 @@ export default function PublicSpeakingPage() {
       const { text } = await transcribeRes.json();
       setTranscript(text);
 
+      // Guard: reject ambient audio / accidental recordings
+      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+      if (wordCount < 15) {
+        setError(`Response too short (${wordCount} word${wordCount === 1 ? "" : "s"}). Make sure you're speaking into the mic, then try again.`);
+        setStage("ready");
+        return;
+      }
+
       // Feedback
       setProcessingStep("Analyzing your delivery…");
       const feedbackRes = await fetch("/api/feedback", {
@@ -244,6 +252,8 @@ export default function PublicSpeakingPage() {
       if (!feedbackRes.ok) {
         const err = await feedbackRes.json().catch(() => ({}));
         if (feedbackRes.status === 402) throw new Error("FREE_LIMIT");
+        if (err?.error === "NOT_AN_ANSWER") throw new Error(err.message ?? "NOT_AN_ANSWER");
+        if (err?.error === "RESPONSE_TOO_SHORT") throw new Error(err.message ?? "RESPONSE_TOO_SHORT");
         throw new Error(err?.error ?? "Feedback failed");
       }
 
@@ -253,6 +263,10 @@ export default function PublicSpeakingPage() {
     } catch (e: any) {
       if (e?.message === "FREE_LIMIT") {
         setError("You have used your free attempts. Upgrade to continue practicing.");
+      } else if (e?.message?.startsWith("This recording") || e?.message === "NOT_AN_ANSWER") {
+        setError(e.message.startsWith("This recording") ? e.message : "This recording doesn't appear to be a response to the prompt. Make sure you're speaking directly into your mic.");
+      } else if (e?.message?.startsWith("Response too short") || e?.message === "RESPONSE_TOO_SHORT") {
+        setError(e.message.startsWith("Response") ? e.message : "Response too short. Make sure you're speaking into the mic and try again.");
       } else {
         setError("Something went wrong. Please try again.");
       }

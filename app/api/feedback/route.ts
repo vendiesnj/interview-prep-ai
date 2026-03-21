@@ -546,7 +546,8 @@ Output rules:
 - Do not add commentary before or after
 - Do not use code fences
 - Do not omit required keys
-- If unsure, still return the required schema with best-effort values
+- Only generate feedback if the transcript is a genuine attempt to answer the question
+- Evidence, strengths, and improvements must be grounded in actual content from the transcript — never invented
 `.trim();
 
   if (framework === "star") {
@@ -1516,6 +1517,19 @@ export async function POST(req: Request) {
       });
     }
 
+    // Minimum word count — ambient audio / accidental phrases shouldn't be scored
+    const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 15) {
+      return new Response(
+        JSON.stringify({
+          error: "RESPONSE_TOO_SHORT",
+          message: `Your response was only ${wordCount} word${wordCount === 1 ? "" : "s"}. Interview answers need at least 15 words to score. Try recording a full answer.`,
+          wordCount,
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
     const fillerStats = countFillers(transcript);
 
     const aaiFillers = Array.isArray(deliveryMetrics?.fillers) ? deliveryMetrics.fillers : null;
@@ -1619,6 +1633,52 @@ export async function POST(req: Request) {
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // ── Pre-flight relevance check ─────────────────────────────────────────
+    // Cheap GPT call to verify the transcript is a genuine attempt to answer
+    // the question before running the full (expensive) analysis.
+    try {
+      const relevanceCheck = await client.chat.completions.create({
+        model: "gpt-4o-mini",
+        temperature: 0,
+        max_tokens: 60,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You detect whether a transcript is a genuine attempt to answer an interview/speaking question. " +
+              "Respond with JSON only: {\"genuine\": boolean, \"reason\": string}. " +
+              "Set genuine=false if the transcript is: a greeting, farewell, random ambient speech, " +
+              "off-topic chatter, test audio, or clearly unrelated to the question topic. " +
+              "Set genuine=true if the person is making any real attempt to address the question, even if badly.",
+          },
+          {
+            role: "user",
+            content: `Question: ${question}\n\nTranscript: ${transcript.slice(0, 600)}`,
+          },
+        ],
+      });
+
+      const raw = relevanceCheck.choices[0]?.message?.content ?? "{}";
+      let parsed: { genuine?: boolean; reason?: string } = {};
+      try { parsed = JSON.parse(raw); } catch {}
+
+      if (parsed.genuine === false) {
+        return new Response(
+          JSON.stringify({
+            error: "NOT_AN_ANSWER",
+            message:
+              "This recording doesn't appear to be a response to the question. " +
+              "Make sure you're speaking directly into your mic and answering the question shown. " +
+              (parsed.reason ? `(${parsed.reason})` : ""),
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } catch {
+      // If the relevance check itself fails, allow through — don't block the user
+    }
 
     const modelResult = await callFeedbackModel({
       client,

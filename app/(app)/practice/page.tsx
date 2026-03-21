@@ -2004,7 +2004,13 @@ async function analyzeAnswer() {
     return;
   }
 
-    if (!selectedQuestion.trim()) {
+  const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
+  if (wordCount < 15) {
+    setError(`Response too short (${wordCount} word${wordCount === 1 ? "" : "s"}). Make sure you're speaking into the mic and aim for at least 30 seconds.`);
+    return;
+  }
+
+  if (!selectedQuestion.trim()) {
     setError("Select a question first (open Questions and pick one).");
     return;
   }
@@ -2168,7 +2174,15 @@ if (res.status === 402) {
 const data = await res.json();
 
 if (!res.ok) {
-  setError(data?.error ?? "Feedback failed.");
+  const msg =
+    data?.error === "NOT_AN_ANSWER"
+      ? (data.message ?? "This recording doesn't appear to be a response to the question. Make sure you're speaking into the mic and answering the question shown.")
+      : data?.error === "RESPONSE_TOO_SHORT"
+      ? (data.message ?? "Response too short to score. Record a full answer — aim for at least 30 seconds.")
+      : data?.error === "TRANSCRIPT_TOO_LONG"
+      ? "Response is too long to analyze. Try a shorter answer."
+      : data?.error ?? "Feedback failed.";
+  setError(msg);
   setFeedbackLoading(false);
   return;
 }
