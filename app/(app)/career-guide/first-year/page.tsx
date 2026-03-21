@@ -226,7 +226,7 @@ type StageContent = {
   shellSubtitle: string;
   tipsHeading: string;
   sections: { phase: string; color: string; items: { key: string; label: string }[] }[];
-  tips: string[];
+  tips: string[] | { title: string; body: string }[];
   tipsStyled?: boolean;
 };
 
