@@ -220,6 +220,30 @@ const PRE_COLLEGE_SECTIONS = [
       },
     ],
   },
+  {
+    id: "student-taxes",
+    icon: "🧾",
+    title: "Student Taxes: The Basics",
+    color: "#F59E0B",
+    content: [
+      {
+        heading: "Do you need to file?",
+        body: "If you earned more than $13,850 in 2023 from a job, you're required to file. Even below that, file if taxes were withheld — you'll likely get a refund. Scholarship money used for room and board (not tuition) is taxable income.",
+      },
+      {
+        heading: "Forms you'll see",
+        body: "W-2 from any employer (wages + withholding), 1098-T from your school (tuition paid — used for education tax credits), 1099 if you did any gig or freelance work.",
+      },
+      {
+        heading: "Free filing options for students",
+        body: "IRS Free File (income under $79k), VITA (free in-person help, often on campus), TurboTax Free Edition, H&R Block Free Online. Never pay to file a simple student return.",
+      },
+      {
+        heading: "Education tax credits",
+        body: "American Opportunity Tax Credit: up to $2,500/year for the first 4 years of college. Lifetime Learning Credit: up to $2,000/year. Coordinate with your parents — only one party can claim the credit per year.",
+      },
+    ],
+  },
 ];
 
 const DURING_COLLEGE_SECTIONS = [
@@ -292,6 +316,30 @@ const DURING_COLLEGE_SECTIONS = [
       {
         heading: "Starting to invest even as a student",
         body: "If you have $25-50/month after expenses and a small emergency cushion, consider a Roth IRA. Contributions are after-tax but grow tax-free. The contribution limit is $7,000/year (2024) but you can only contribute up to your earned income. Starting at 20 vs. 30 can mean $200,000+ difference at retirement due to compounding.",
+      },
+    ],
+  },
+  {
+    id: "credit-during",
+    icon: "💳",
+    title: "Building Credit During College",
+    color: "#8B5CF6",
+    content: [
+      {
+        heading: "Why now is the right time",
+        body: "Credit history is measured in years. Opening a responsible card at 19-20 means a 5-6 year history by graduation — when you need it most for apartments, car loans, and eventually a mortgage. Starting later just delays that clock.",
+      },
+      {
+        heading: "Best student credit cards",
+        body: "Discover it Student Cash Back, Capital One Quicksilver Student, and Chase Freedom Student are solid no-annual-fee options. Use it for one recurring expense, pay the full balance every month. Never carry a balance.",
+      },
+      {
+        heading: "What actually moves your score",
+        body: "Payment history (35%) — pay on time, every time. Utilization (30%) — keep spending below 30% of your limit. Length of history (15%) — don't close cards. New inquiries (10%) — don't apply for multiple cards at once.",
+      },
+      {
+        heading: "Monitoring your credit for free",
+        body: "Check your credit report free at annualcreditreport.com (once per bureau per year). Use Credit Karma or your bank's free credit monitoring for ongoing tracking. Dispute errors immediately — they're more common than you think.",
       },
     ],
   },

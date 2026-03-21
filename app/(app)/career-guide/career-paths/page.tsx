@@ -8,6 +8,62 @@ function backNav(from?: string) {
   return { href: "/career-guide", label: "← Career Guide" };
 }
 
+const PRE_COLLEGE_CONTENT = [
+  {
+    id: "honest-truth",
+    title: "The honest truth about majors",
+    body: "Most majors don't lock you into one career. English majors become product managers. Biology majors go to law school. Chemistry majors become consultants. Your major signals interest and teaches a way of thinking — it's not a life sentence.",
+  },
+  {
+    id: "high-roi",
+    title: "High-ROI major categories",
+    body: "STEM (Engineering, CS, Math): high starting salaries, strong demand across every industry. Health Sciences (Nursing, Pre-Med, Bio): high demand, clear licensing path. Business (Finance, Accounting, Marketing): flexible, widely understood by employers. Humanities/Social Sciences (Poli Sci, Psychology, English): lower starting salaries on average, but strong writing/research skills — graduate school often unlocks higher earning. Creative (Design, Architecture, Film): rewarding but competitive; portfolio matters more than GPA.",
+  },
+  {
+    id: "questions-before-declaring",
+    title: "Questions to ask yourself before declaring",
+    body: "What subjects make time disappear? What would you study if salary didn't exist? Do you want grad school or work after graduation? Do you prefer working with systems, people, ideas, or objects? What does your daily work environment look like in 10 years?",
+  },
+  {
+    id: "double-majors",
+    title: "Double majors and minors — worth it?",
+    body: "A double major signals range, but only if both are strong. More often, a strong major + relevant internships + a minor beats a diluted double major. Minors worth pairing: CS minor with almost anything, Statistics minor with social sciences, Business minor with STEM, Psychology minor with pre-law or HR tracks.",
+  },
+  {
+    id: "explore-before-committing",
+    title: "How to explore before committing",
+    body: "Take intro courses in 2-3 areas before declaring. Talk to seniors in the major — ask what they wish they knew. Visit the career center — ask which employers recruit from each major. Look up recent graduates on LinkedIn — see where they actually ended up.",
+  },
+];
+
+const DURING_COLLEGE_CONTENT = [
+  {
+    id: "switch-majors",
+    title: "Should you switch majors?",
+    body: "Yes, if: the work feels meaningless to you, your grades reflect disengagement not effort, you've shadowed someone in the field and couldn't see yourself there. No, if: it's just hard — hard ≠ wrong fit. The average student spends $30-50k in extra time switching majors impulsively. Talk to your advisor and a career counselor before deciding.",
+  },
+  {
+    id: "specializing",
+    title: "Specializing within your major",
+    body: "CS: web dev, data science, ML, systems, security — recruiters care which one. Business: finance, marketing, operations, consulting — generalist resumes get passed over. Psychology: clinical, I/O (industrial-organizational), research, school counseling — very different paths. Pick a direction by junior year and build internships, projects, and coursework around it.",
+  },
+  {
+    id: "grad-vs-work",
+    title: "Grad school vs. work after graduation",
+    body: "Go to grad school if: your career requires it (medicine, law, academia), you want to specialize deeply, or you have a funded offer. Don't go if: you're avoiding the job market or have no clear reason. An unfunded master's in a humanities field is usually a poor ROI. Professional programs (MBA, JD, MD) are different — they have clear career outcomes.",
+  },
+  {
+    id: "internship-pipeline",
+    title: "The internship-to-offer pipeline",
+    body: "Most full-time hiring at top companies flows from internship programs. Recruiting for junior-year summer internships starts in September-October of junior year. Fall recruiting is for consulting, banking, and tech. If you miss the structured recruiting cycle, reach out directly — most hiring managers respond to thoughtful cold outreach from students.",
+  },
+  {
+    id: "portfolio-vs-resume",
+    title: "Building a portfolio vs. a resume",
+    body: "For design, CS, data, and creative roles: your portfolio matters as much as your resume. Start building early. Every class project, internship output, and side project is portfolio material. GitHub, Behance, personal website, or a simple PDF case study — pick the format your industry expects.",
+  },
+];
+
 const PATHS = [
   {
     industry: "Technology",
@@ -126,9 +182,66 @@ const UNIVERSAL_LESSONS = [
 ];
 
 export default function CareerPathsPage({ searchParams }: { searchParams?: { from?: string } }) {
-  const { href, label } = backNav(searchParams?.from);
+  const from = searchParams?.from;
+  const { href, label } = backNav(from);
+
+  const isPreCollege = from === "pre-college";
+  const isDuringCollege = from === "during-college";
+
+  const title = isPreCollege
+    ? "How to Choose a Major"
+    : isDuringCollege
+    ? "Career Paths & Specialization"
+    : "Career Path Explorer";
+
+  const subtitle = isPreCollege
+    ? "What to study, why it matters less than you think, and how to explore"
+    : isDuringCollege
+    ? "Specializing, pivoting, and building toward your first career"
+    : "Where do people go from entry-level roles?";
+
+  if (isPreCollege) {
+    return (
+      <PremiumShell title={title} subtitle={subtitle}>
+        <div style={{ maxWidth: 860, margin: "0 auto", paddingBottom: 48 }}>
+          <div style={{ marginBottom: 20 }}>
+            <Link href={href} style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>{label}</Link>
+          </div>
+          <div style={{ display: "grid", gap: 16 }}>
+            {PRE_COLLEGE_CONTENT.map(({ id, title: sTitle, body }) => (
+              <div key={id} style={{ padding: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
+                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>{sTitle}</div>
+                <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75 }}>{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </PremiumShell>
+    );
+  }
+
+  if (isDuringCollege) {
+    return (
+      <PremiumShell title={title} subtitle={subtitle}>
+        <div style={{ maxWidth: 860, margin: "0 auto", paddingBottom: 48 }}>
+          <div style={{ marginBottom: 20 }}>
+            <Link href={href} style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>{label}</Link>
+          </div>
+          <div style={{ display: "grid", gap: 16 }}>
+            {DURING_COLLEGE_CONTENT.map(({ id, title: sTitle, body }) => (
+              <div key={id} style={{ padding: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
+                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>{sTitle}</div>
+                <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75 }}>{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </PremiumShell>
+    );
+  }
+
   return (
-    <PremiumShell title="Career Path Explorer" subtitle="Where do people go from entry-level roles?">
+    <PremiumShell title={title} subtitle={subtitle}>
       <div style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 48 }}>
 
         <div style={{ marginBottom: 20 }}>
@@ -187,9 +300,9 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
         <div style={{ marginTop: 8 }}>
           <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16 }}>THINGS THAT APPLY TO EVERY PATH</div>
           <div style={{ display: "grid", gap: 12 }}>
-            {UNIVERSAL_LESSONS.map(({ title, body }) => (
-              <div key={title} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
-                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{title}</div>
+            {UNIVERSAL_LESSONS.map(({ title: lessonTitle, body }) => (
+              <div key={lessonTitle} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
+                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{lessonTitle}</div>
                 <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{body}</p>
               </div>
             ))}
