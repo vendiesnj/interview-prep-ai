@@ -287,6 +287,29 @@ function getAttemptStarResult(a: AttemptRow) {
   return asTenPoint(num(a.feedback?.star?.result));
 }
 
+function getAttemptPitchStd(a: AttemptRow) {
+  return (
+    num(a.deliveryMetrics?.acoustics?.pitchStd) ??
+    num(a.prosody?.pitchStdHz) ??
+    null
+  );
+}
+
+function getAttemptEnergyVariation(a: AttemptRow) {
+  return (
+    num(a.deliveryMetrics?.acoustics?.energyVariation) ??
+    null
+  );
+}
+
+function getAttemptAvgPauseMs(a: AttemptRow) {
+  return (
+    num(a.deliveryMetrics?.avgPauseMs) ??
+    num(a.deliveryMetrics?.avg_pause_ms) ??
+    null
+  );
+}
+
 function getWeaknessBuckets(attempts: AttemptRow[]) {
   const counts = new Map<string, number>();
 
@@ -931,6 +954,30 @@ export default async function AdminPage({
     avg(
       spokenAttempts
         .map(getAttemptMonotone)
+        .filter((v): v is number => v !== null)
+    )
+  );
+
+  const avgPitchStd = round1(
+    avg(
+      spokenAttempts
+        .map(getAttemptPitchStd)
+        .filter((v): v is number => v !== null)
+    )
+  );
+
+  const avgEnergyVariation = round1(
+    avg(
+      spokenAttempts
+        .map(getAttemptEnergyVariation)
+        .filter((v): v is number => v !== null)
+    )
+  );
+
+  const avgPauseMs = round1(
+    avg(
+      spokenAttempts
+        .map(getAttemptAvgPauseMs)
         .filter((v): v is number => v !== null)
     )
   );
@@ -2008,6 +2055,24 @@ const stalledPct =
                     value={avgMonotone ?? 0}
                     max={10}
                     suffix="/10"
+                  />
+                  <MiniBar
+                    label="Pitch Variety (Hz std dev)"
+                    value={avgPitchStd ?? 0}
+                    max={80}
+                    suffix=" Hz"
+                  />
+                  <MiniBar
+                    label="Energy Variation"
+                    value={avgEnergyVariation ?? 0}
+                    max={1}
+                    suffix=""
+                  />
+                  <MiniBar
+                    label="Avg Pause Duration"
+                    value={avgPauseMs ? Math.round(avgPauseMs / 100) / 10 : 0}
+                    max={3}
+                    suffix=" s"
                   />
                 </div>
               </Panel>

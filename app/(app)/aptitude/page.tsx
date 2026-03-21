@@ -436,6 +436,7 @@ export default function AptitudePage() {
   const [answers, setAnswers] = useState<(Cat | null)[]>(Array(QUESTIONS.length).fill(null));
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const totalQ = QUESTIONS.length;
   const current = QUESTIONS[step];
@@ -464,12 +465,22 @@ export default function AptitudePage() {
     setAnswers(Array(QUESTIONS.length).fill(null));
     setStep(0);
     setDone(false);
+    setSaved(false);
   }
 
   // ── Results ──────────────────────────────────────────────────────────────
   if (done) {
     const scores = computeScores(answers);
     const [primary, secondary] = topTwo(scores);
+
+    if (!saved) {
+      setSaved(true);
+      fetch("/api/aptitude/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ primary, secondary, scores }),
+      }).catch(() => {});
+    }
     const p = ARCHETYPES[primary];
     const s = ARCHETYPES[secondary];
     const maxScore = Math.max(...Object.values(scores));

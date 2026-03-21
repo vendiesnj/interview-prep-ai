@@ -8,6 +8,10 @@ import LogoutButton from "../components/LogoutButton";
 const PRACTICE_NAV = [
   { href: "/practice", label: "Practice" },
   { href: "/question-bank", label: "Question Bank" },
+  { href: "/job-profiles", label: "Job Profiles" },
+  { href: "/results", label: "Results" },
+  { href: "/progress", label: "Insights" },
+  { href: "/sessions", label: "Sessions" },
 ];
 
 function PracticeTopNav() {
@@ -109,7 +113,12 @@ function PracticeTopNav() {
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const showPracticeSubNav =
-    pathname?.startsWith("/practice") || pathname?.startsWith("/question-bank");
+    pathname?.startsWith("/practice") ||
+    pathname?.startsWith("/question-bank") ||
+    pathname?.startsWith("/job-profiles") ||
+    pathname?.startsWith("/results") ||
+    pathname?.startsWith("/progress") ||
+    pathname?.startsWith("/sessions");
 
   return (
     <div

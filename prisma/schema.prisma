@@ -32,6 +32,7 @@ model User {
   memberships          TenantMembership[]
   tenant               Tenant?              @relation("UserHomeTenant", fields: [tenantId], references: [id])
   careerCheckIns       CareerCheckIn[]
+  aptitudeResults      AptitudeResult[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -296,6 +297,20 @@ model CareerCheckIn {
   @@index([userId])
   @@index([tenantId])
   @@index([createdAt])
+}
+
+model AptitudeResult {
+  id        String   @id @default(cuid())
+  userId    String
+  tenantId  String?
+  createdAt DateTime @default(now())
+  primary   String
+  secondary String
+  scores    Json
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tenantId])
 }
 
 enum TenantRole {
