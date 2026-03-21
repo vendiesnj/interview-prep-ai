@@ -86,19 +86,16 @@ export default function DuringCollegePage() {
           <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#2563EB", textTransform: "uppercase", marginBottom: 16 }}>Practice & Tools</div>
           <div style={{ display: "grid", gap: 12 }}>
             {TODOS.map((todo) => (
-              <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: `1px solid ${todo.comingSoon ? "var(--card-border-soft)" : "var(--card-border)"}`, background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center", opacity: todo.comingSoon ? 0.55 : 1 }}>
+              <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{todo.icon}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                     <span style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{todo.label}</span>
-                    {todo.comingSoon && <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 8px", borderRadius: 99 }}>Coming soon</span>}
                     <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>{todo.time}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{todo.desc}</p>
                 </div>
-                {!todo.comingSoon && (
-                  <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: 10, background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
-                )}
+                <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: 10, background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
               </div>
             ))}
           </div>

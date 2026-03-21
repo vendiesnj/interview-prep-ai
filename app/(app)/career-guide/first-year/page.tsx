@@ -345,8 +345,8 @@ export default function FirstYearPage() {
                     <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{body}</p>
                   </div>
                 ))
-              : content.tips.map((tip) => (
-                  <div key={tip} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
+              : (content.tips as string[]).map((tip, i) => (
+                  <div key={i} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
                     <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{tip}</p>
                   </div>
                 ))
