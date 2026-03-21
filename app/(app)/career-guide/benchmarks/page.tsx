@@ -127,8 +127,15 @@ function StatCard({
   );
 }
 
+function backNav(from?: string) {
+  if (from === "pre-college") return { href: "/pre-college", label: "← Pre-College" };
+  if (from === "during-college") return { href: "/during-college", label: "← During College" };
+  if (from === "post-college") return { href: "/post-college", label: "← Post-College" };
+  return { href: "/career-guide", label: "← Career Guide" };
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default async function BenchmarksPage() {
+export default async function BenchmarksPage({ searchParams }: { searchParams?: { from?: string } }) {
   const session = await getServerSession(authOptions);
 
   const user = session?.user?.email
@@ -225,12 +232,14 @@ export default async function BenchmarksPage() {
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
 
         {/* Back */}
-        <Link
-          href="/career-guide"
-          style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 24 }}
-        >
-          ← Career Guide
-        </Link>
+        {(() => { const { href, label } = backNav(searchParams?.from); return (
+          <Link
+            href={href}
+            style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 24 }}
+          >
+            {label}
+          </Link>
+        ); })()}
 
         {/* Header */}
         <div style={{ marginBottom: 32 }}>

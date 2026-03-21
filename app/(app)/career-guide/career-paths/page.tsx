@@ -1,6 +1,13 @@
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 
+function backNav(from?: string) {
+  if (from === "pre-college") return { href: "/pre-college", label: "← Pre-College" };
+  if (from === "during-college") return { href: "/during-college", label: "← During College" };
+  if (from === "post-college") return { href: "/post-college", label: "← Post-College" };
+  return { href: "/career-guide", label: "← Career Guide" };
+}
+
 const PATHS = [
   {
     industry: "Technology",
@@ -118,13 +125,14 @@ const UNIVERSAL_LESSONS = [
   },
 ];
 
-export default function CareerPathsPage() {
+export default function CareerPathsPage({ searchParams }: { searchParams?: { from?: string } }) {
+  const { href, label } = backNav(searchParams?.from);
   return (
     <PremiumShell title="Career Path Explorer" subtitle="Where do people go from entry-level roles?">
       <div style={{ maxWidth: 960, margin: "0 auto", paddingBottom: 48 }}>
 
         <div style={{ marginBottom: 20 }}>
-          <Link href="/career-guide" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>← Career Guide</Link>
+          <Link href={href} style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>{label}</Link>
         </div>
 
         <p style={{ marginTop: 0, marginBottom: 32, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 760 }}>

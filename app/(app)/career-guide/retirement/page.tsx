@@ -2,7 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import PremiumShell from "@/app/components/PremiumShell";
+
+function backNav(from: string | null) {
+  if (from === "pre-college") return { href: "/pre-college", label: "← Pre-College" };
+  if (from === "during-college") return { href: "/during-college", label: "← During College" };
+  if (from === "post-college") return { href: "/post-college", label: "← Post-College" };
+  return { href: "/career-guide", label: "← Career Guide" };
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type CheckIn = {
@@ -208,6 +216,9 @@ function GaugeBar({ label, value, max, color }: { label: string; value: number; 
 
 // ── Main component ─────────────────────────────────────────────────────────────
 export default function RetirementPage() {
+  const searchParams = useSearchParams();
+  const { href: backHref, label: backLabel } = backNav(searchParams.get("from"));
+
   const [checkIn, setCheckIn] = useState<CheckIn | null>(null);
   const [loading, setLoading] = useState(true);
   const [aggressive, setAggressive] = useState(false);
@@ -289,8 +300,8 @@ export default function RetirementPage() {
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 0 60px" }}>
 
         {/* Back */}
-        <Link href="/career-guide" style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
-          ← Career Guide
+        <Link href={backHref} style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
+          {backLabel}
         </Link>
 
         {/* Scenario toggle */}

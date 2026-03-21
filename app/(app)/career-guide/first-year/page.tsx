@@ -2,7 +2,15 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import PremiumShell from "@/app/components/PremiumShell";
+
+function backNav(from: string | null) {
+  if (from === "pre-college") return { href: "/pre-college", label: "← Pre-College" };
+  if (from === "during-college") return { href: "/during-college", label: "← During College" };
+  if (from === "post-college") return { href: "/post-college", label: "← Post-College" };
+  return { href: "/career-guide", label: "← Career Guide" };
+}
 
 const CHECKLIST_SECTIONS = [
   {
@@ -108,6 +116,9 @@ function CheckItem({ id, label, checked, onToggle }: { id: string; label: string
 }
 
 export default function FirstYearPage() {
+  const searchParams = useSearchParams();
+  const { href: backHref, label: backLabel } = backNav(searchParams.get("from"));
+
   const [checked, setChecked] = useState<Record<string, boolean>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -134,7 +145,7 @@ export default function FirstYearPage() {
       <div style={{ maxWidth: 860, margin: "0 auto", paddingBottom: 48 }}>
 
         <div style={{ marginBottom: 8 }}>
-          <Link href="/career-guide" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>← Career Guide</Link>
+          <Link href={backHref} style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>{backLabel}</Link>
         </div>
 
         {/* Progress bar */}
