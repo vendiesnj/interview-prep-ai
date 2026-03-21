@@ -15,6 +15,13 @@ import {
   displayOverall100,
   displayTenPointAs100,
 } from "@/app/lib/scoreScale";
+import {
+  computeNaceCohortAverages,
+  NACE_META,
+  naceScoreColor,
+  naceScoreLabel,
+  type NaceKey,
+} from "@/app/lib/nace";
 
 
 type AttemptRow = {
@@ -980,6 +987,19 @@ export default async function AdminPage({
         .map(getAttemptAvgPauseMs)
         .filter((v): v is number => v !== null)
     )
+  );
+
+  const naceCohort = computeNaceCohortAverages(
+    filteredAttempts.map((a) => ({
+      score: num(a.score),
+      communicationScore: num(a.communicationScore),
+      confidenceScore: num(a.confidenceScore),
+      wpm: num(a.wpm),
+      feedback: a.feedback,
+      prosody: a.prosody,
+      deliveryMetrics: a.deliveryMetrics,
+      questionCategory: a.questionCategory,
+    }))
   );
 
   const avgResultImpact = round1(
@@ -2077,6 +2097,43 @@ const stalledPct =
                 </div>
               </Panel>
             </div>
+
+            {/* NACE Competency Cohort Panel */}
+            <Panel eyebrow="NACE Career Readiness" title="Competency Scores — Cohort Average" minHeight={280}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.6 }}>
+                Average student performance across the 8 NACE career readiness competencies, computed from practice session data.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {(Object.keys(NACE_META) as NaceKey[]).map((key) => {
+                  const score = naceCohort[key];
+                  const color = naceScoreColor(score);
+                  return (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                        background: score !== null ? color + "18" : "var(--card-bg-strong)",
+                        border: `1px solid ${score !== null ? color + "40" : "var(--card-border)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, fontWeight: 900, color: score !== null ? color : "var(--text-muted)",
+                      }}>
+                        {score ?? "—"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-primary)", marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {NACE_META[key].shortLabel}
+                        </div>
+                        <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${score ?? 0}%`, background: color, borderRadius: 99 }} />
+                        </div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                          {naceScoreLabel(score)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Panel>
 
             {/* Top Weaknesses + Question Category Demand + Role Readiness */}
             <div

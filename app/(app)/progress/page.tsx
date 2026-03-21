@@ -3,8 +3,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
+import NaceScoreCard from "../../components/NaceScoreCard";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
+import { computeNaceProfile } from "@/app/lib/nace";
 import {
   asOverall100,
   asTenPoint,
@@ -56,7 +58,7 @@ type Attempt = {
   inputMethod?: "spoken" | "pasted";
 };
 
-type InsightsTab = "overview" | "performance" | "delivery" | "notes";
+type InsightsTab = "overview" | "performance" | "delivery" | "notes" | "nace";
 type RoleFamily = "finance" | "operations" | "research" | "consulting" | "general";
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -1779,6 +1781,11 @@ export default function ProgressPage() {
                 active={activeTab === "notes"}
                 onClick={() => setActiveTab("notes")}
               />
+              <InsightsTabButton
+                label="NACE Competencies"
+                active={activeTab === "nace"}
+                onClick={() => setActiveTab("nace")}
+              />
             </div>
 
             {activeTab === "overview" && (
@@ -2351,6 +2358,66 @@ export default function ProgressPage() {
                 reminders={interviewNotes.reminders}
               />
             )}
+
+            {activeTab === "nace" && (() => {
+              const naceScores = computeNaceProfile({
+                attempts: history.map((a) => ({
+                  score: n(a.score ?? a.feedback?.score),
+                  communicationScore: n(a.communication_score ?? a.feedback?.communication_score),
+                  confidenceScore: n(a.confidence_score ?? a.feedback?.confidence_score),
+                  wpm: n(a.wpm),
+                  feedback: a.feedback,
+                  prosody: a.prosody,
+                  questionCategory: a.questionCategory,
+                })),
+              });
+              const scored = naceScores.filter((s) => s.score !== null);
+              return (
+                <div style={{ display: "grid", gap: 18 }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
+                      NACE Career Readiness Competencies
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 600 }}>
+                      The National Association of Colleges and Employers (NACE) defines 8 competencies employers look for in new graduates.
+                      Your scores are computed from your practice session data. Click any competency to see what data contributed.
+                    </div>
+                  </div>
+
+                  {history.length === 0 ? (
+                    <div style={{ padding: "32px 20px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                      Complete practice sessions to generate your NACE competency profile.
+                    </div>
+                  ) : (
+                    <>
+                      {scored.length > 0 && (
+                        <div style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(4, 1fr)",
+                          gap: 10,
+                        }}>
+                          {naceScores.filter((s) => s.score !== null).map((s) => (
+                            <div key={s.key} style={{
+                              padding: "14px 16px",
+                              borderRadius: 12,
+                              border: "1px solid var(--card-border-soft)",
+                              background: "var(--card-bg)",
+                              textAlign: "center",
+                            }}>
+                              <div style={{ fontSize: 22, fontWeight: 900, color: s.score !== null && s.score >= 65 ? "#10B981" : "#F59E0B" }}>
+                                {s.score}
+                              </div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginTop: 2 }}>{s.shortLabel}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <NaceScoreCard scores={naceScores} />
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </>
         )}
       </div>

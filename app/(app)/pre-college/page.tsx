@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { userScopedKey } from "@/app/lib/userStorage";
 import PremiumShell from "@/app/components/PremiumShell";
+import ChecklistSection from "@/app/components/ChecklistSection";
 
 // ── To-Do items (interactive tools) ──────────────────────────────────────────
 const TODOS = [
@@ -70,10 +68,6 @@ const RESOURCES = [
   { icon: "🧾", label: "Student Taxes: What You Need to Know", href: "/career-guide/finances?from=pre-college", tag: "Finance" },
 ];
 
-function safeJSONParse<T>(raw: string | null, fallback: T): T {
-  try { if (!raw) return fallback; return JSON.parse(raw) as T; } catch { return fallback; }
-}
-
 const TAG_COLORS: Record<string, string> = {
   Finance: "#10B981",
   Career: "#2563EB",
@@ -81,27 +75,6 @@ const TAG_COLORS: Record<string, string> = {
 };
 
 export default function PreCollegePage() {
-  const { data: session, status } = useSession();
-  const DONE_KEY = userScopedKey("signal_pre_done", session);
-  const [done, setDone] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    if (status === "loading") return;
-    const saved = safeJSONParse<string[]>(localStorage.getItem(DONE_KEY), []);
-    setDone(new Set(saved));
-  }, [status, DONE_KEY]);
-
-  function toggle(id: string) {
-    setDone((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      localStorage.setItem(DONE_KEY, JSON.stringify([...next]));
-      return next;
-    });
-  }
-
-  const checklistDone = CHECKLIST.filter((c) => done.has(c.id)).length;
-
   return (
     <PremiumShell hideHeader>
       <div style={{ maxWidth: 800, margin: "0 auto", paddingBottom: 80 }}>
@@ -146,34 +119,7 @@ export default function PreCollegePage() {
 
         {/* ── Checklist ── */}
         <div style={{ marginBottom: 48 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#10B981", textTransform: "uppercase" }}>Your Checklist</div>
-            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{checklistDone} / {CHECKLIST.length}</div>
-          </div>
-          {/* Progress bar */}
-          <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 18 }}>
-            <div style={{ height: "100%", width: `${Math.round((checklistDone / CHECKLIST.length) * 100)}%`, background: "linear-gradient(90deg, #10B981, #0EA5E9)", borderRadius: 99, transition: "width 0.4s ease" }} />
-          </div>
-          <div style={{ display: "grid", gap: 8 }}>
-            {CHECKLIST.map((item) => {
-              const checked = done.has(item.id);
-              return (
-                <div
-                  key={item.id}
-                  onClick={() => toggle(item.id)}
-                  style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "14px 16px", borderRadius: 14, border: `1px solid ${checked ? "rgba(16,185,129,0.35)" : "var(--card-border)"}`, background: checked ? "rgba(16,185,129,0.06)" : "var(--card-bg)", cursor: "pointer", transition: "all 150ms" }}
-                >
-                  <div style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${checked ? "#10B981" : "var(--card-border)"}`, background: checked ? "#10B981" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, fontSize: 13, color: "#fff", transition: "all 150ms" }}>
-                    {checked ? "✓" : ""}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: checked ? "var(--text-muted)" : "var(--text-primary)", textDecoration: checked ? "line-through" : "none" }}>{item.label}</div>
-                    {!checked && <div style={{ marginTop: 3, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{item.desc}</div>}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ChecklistSection stage="pre_college" items={CHECKLIST} accentColor="#10B981" />
         </div>
 
         {/* ── Resources ── */}
