@@ -694,7 +694,7 @@ boxShadow: "none",
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ cohort?: string }>;
+  searchParams?: Promise<{ cohort?: string; tab?: string }>;
 }) {
   const session = await getServerSession(authOptions);
 
@@ -704,6 +704,7 @@ export default async function AdminPage({
 
     const resolvedSearchParams = searchParams ? await searchParams : {};
   const cohortParam = resolvedSearchParams?.cohort;
+  const activeTab = resolvedSearchParams?.tab ?? "overview";
 
   const activeCohort: CohortFilter =
     cohortParam === "high" || cohortParam === "mid" || cohortParam === "low"
@@ -1261,1221 +1262,1217 @@ const stalledPct =
       subtitle="Monitor student engagement, coaching outcomes, voice delivery quality, and role-readiness signals across your school."
     >
       <div style={{ marginTop: 8, display: "grid", gap: 18 }}>
-        <div
-          style={{
+
+        {/* ── Tab navigation ─────────────────────────────────────────── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {/* Primary tabs */}
+          <div style={{
             display: "flex",
-            gap: 10,
+            gap: 2,
+            padding: "4px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
             flexWrap: "wrap",
-          }}
-        >
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: 14,
-              border: "1px solid var(--card-border-soft)",
-              background: "var(--card-bg)",
-              color: "var(--text-primary)",
-              fontSize: 12,
-              fontWeight: 800,
-            }}
-          >
-            Tenant Scope
+          }}>
+            {[
+              { key: "overview",    label: "Overview" },
+              { key: "students",    label: "Students" },
+              { key: "practice",    label: "Speaking & Practice" },
+              { key: "jobs",        label: "Job Profiles" },
+              { key: "assignments", label: "Assignments" },
+              { key: "outcomes",    label: "Outcomes" },
+            ].map((tab) => {
+              const isActive = activeTab === tab.key;
+              const cohortSuffix = activeCohort !== "all" ? `&cohort=${activeCohort}` : "";
+              return (
+                <Link
+                  key={tab.key}
+                  href={`/admin?tab=${tab.key}${cohortSuffix}`}
+                  style={{ textDecoration: "none", flex: "0 0 auto" }}
+                >
+                  <div style={{
+                    padding: "8px 16px",
+                    borderRadius: 10,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    background: isActive ? "var(--accent)" : "transparent",
+                    color: isActive ? "#fff" : "var(--text-muted)",
+                    transition: "all 0.15s ease",
+                    whiteSpace: "nowrap",
+                  }}>
+                    {tab.label}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
 
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: 14,
-              border: "1px solid var(--card-border-soft)",
-              background: "var(--card-bg)",
-              color: "var(--text-muted)",
-              fontSize: 12,
-              fontWeight: 800,
-            }}
-          >
-            Live Analytics
+          {/* Secondary controls: cohort filter + quick links + export */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              {[
+                { key: "all", label: "All" },
+                { key: "high", label: "High-performing" },
+                { key: "mid", label: "Mid-tier" },
+                { key: "low", label: "Needs support" },
+              ].map((item) => {
+                const active = activeCohort === item.key;
+                return (
+                  <Link
+                    key={item.key}
+                    href={item.key === "all" ? `/admin?tab=${activeTab}` : `/admin?cohort=${item.key}&tab=${activeTab}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <div style={{
+                      padding: "6px 12px",
+                      borderRadius: 999,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      border: active ? "1px solid var(--accent-strong)" : "1px solid var(--card-border-soft)",
+                      background: active ? "var(--accent-soft)" : "transparent",
+                      color: active ? "var(--accent)" : "var(--text-muted)",
+                      cursor: "pointer",
+                    }}>
+                      {item.label}
+                    </div>
+                  </Link>
+                );
+              })}
+              <span style={{ fontSize: 11, color: "var(--text-soft)", paddingLeft: 4 }}>
+                Cohort filter applies globally
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <Link href="/admin/roster" style={{ textDecoration: "none" }}>
+                <div style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--card-border-soft)", color: "var(--text-muted)", cursor: "pointer" }}>
+                  Roster
+                </div>
+              </Link>
+              <Link href="/admin/compliance" style={{ textDecoration: "none" }}>
+                <div style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid rgba(22,163,74,0.25)", background: "rgba(22,163,74,0.05)", color: "#16A34A", cursor: "pointer" }}>
+                  FERPA
+                </div>
+              </Link>
+              <a href="/api/admin/export" style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none" }}>
+                Export
+              </a>
+            </div>
           </div>
-
-          <Link href="/admin/roster" style={{ textDecoration: "none" }}>
-            <div style={{
-              padding: "10px 14px",
-              borderRadius: 14,
-              border: "1px solid var(--card-border-soft)",
-              background: "var(--card-bg)",
-              color: "var(--text-muted)",
-              fontSize: 12,
-              fontWeight: 800,
-            }}>
-              Roster Management
-            </div>
-          </Link>
-
-          <Link href="/admin/compliance" style={{ textDecoration: "none" }}>
-            <div style={{
-              padding: "10px 14px",
-              borderRadius: 14,
-              border: "1px solid rgba(22,163,74,0.25)",
-              background: "rgba(22,163,74,0.06)",
-              color: "#16A34A",
-              fontSize: 12,
-              fontWeight: 800,
-            }}>
-              FERPA Compliance
-            </div>
-          </Link>
         </div>
 
-           <div
-  style={{
-    display: "flex",
-    gap: 10,
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "space-between",
-  }}
->
-         <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-  {[
-    { key: "all", label: "All Students" },
-    { key: "high", label: "High-performing students" },
-    { key: "mid", label: "Mid-performing students" },
-    { key: "low", label: "Students needing support" },
-  ].map((item) => {
-    const active = activeCohort === item.key;
-
-    return (
-      <Link
-        key={item.key}
-        href={item.key === "all" ? "/admin" : `/admin?cohort=${item.key}`}
-        style={{ textDecoration: "none" }}
-      >
-        <div
-          style={{
-            padding: "10px 14px",
-            borderRadius: 999,
-            border: active
-              ? "1px solid var(--accent-strong)"
-              : "1px solid var(--card-border)",
-            background: active ? "var(--accent-soft)" : "var(--card-bg)",
-            color: active ? "var(--accent)" : "var(--text-primary)",
-            fontSize: 12,
-            fontWeight: 900,
-            cursor: "pointer",
-          }}
-        >
-          {item.label}
-        </div>
-      </Link>
-    );
-  })}
-</div>
-
-<a
-  href="/api/admin/export"
-  style={{
-    padding: "10px 14px",
-    borderRadius: 999,
-    border: "1px solid var(--accent-strong)",
-    background: "var(--accent-soft)",
-    color: "var(--accent)",
-    fontSize: 12,
-    fontWeight: 900,
-    textDecoration: "none",
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    whiteSpace: "nowrap",
-  }}
->
-  Export Excel
-</a>
-        </div>
-
-        <BulkEnrollForm />
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 14,
-          }}
-        >
-          <KpiCard
-  label="Students"
-  value={String(filteredStudents.length)}
-  subtext={
-    activeCohort === "all"
-      ? "Users in the current tenant."
-      : "Students in the selected cohort."
-  }
-/>
-<KpiCard
-  label="Attempts"
-  value={String(totalAttempts)}
-  subtext="Interview reps captured across this school."
-/>
-<KpiCard
-  label="At-Risk Students"
-  value={`${atRiskPct}%`}
-  subtext="Students currently needing coaching support."
-/>
-<KpiCard
-  label="Student Readiness"
-  value={avgScoreDisplay}
-  subtext="Average interview score across all attempts."
-/>
-<KpiCard
-  label="Avg Attempts / Student"
-  value={attemptsPerStudent}
-  subtext="practice volume"
-/>
-<KpiCard
-  label="Stalled Students"
-  value={`${stalledStudents} (${stalledPct}%)`}
-  subtext="no practice in 14+ days"
-/>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.35fr 1fr",
-            gap: 18,
-          }}
-        >
-          <Panel eyebrow="Overview" title="Engagement Overview" minHeight={300}>
+        {/* ── OVERVIEW TAB ─────────────────────────────────────────────── */}
+        {activeTab === "overview" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            {/* KPI cards */}
             <div
-  style={{
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 12,
-  }}
->
-              
-              <SmallMetric
-                label="Spoken Attempts"
-                value={`${spokenRate}%`}
-                subtext="Share of attempts with speaking data."
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 14,
+              }}
+            >
+              <KpiCard
+                label="Students"
+                value={String(filteredStudents.length)}
+                subtext={
+                  activeCohort === "all"
+                    ? "Users in the current tenant."
+                    : "Students in the selected cohort."
+                }
               />
-              <SmallMetric
-                label="Readiness Baseline"
+              <KpiCard
+                label="Attempts"
+                value={String(totalAttempts)}
+                subtext="Interview reps captured across this school."
+              />
+              <KpiCard
+                label="At-Risk Students"
+                value={`${atRiskPct}%`}
+                subtext="Students currently needing coaching support."
+              />
+              <KpiCard
+                label="Student Readiness"
                 value={avgScoreDisplay}
-                subtext="Average overall interview score."
+                subtext="Average interview score across all attempts."
+              />
+              <KpiCard
+                label="Avg Attempts / Student"
+                value={attemptsPerStudent}
+                subtext="practice volume"
+              />
+              <KpiCard
+                label="Stalled Students"
+                value={`${stalledStudents} (${stalledPct}%)`}
+                subtext="no practice in 14+ days"
               />
             </div>
 
+            {/* Score Trend + At-Risk panels */}
             <div
               style={{
-                marginTop: 16,
-                padding: 18,
-                borderRadius: 18,
-                border: "1px solid var(--card-border-soft)",
-                background:
-                  "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+                display: "grid",
+                gridTemplateColumns: "1.4fr 1fr",
+                gap: 18,
               }}
             >
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 900,
-                  color: "var(--text-muted)",
-                  letterSpacing: 0.55,
-                  textTransform: "uppercase",
-                }}
-              >
-                Admin Summary
-              </div>
+              <Panel eyebrow="Analytics" title="Score Trend (12 weeks)">
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color:
+                      overallTrendDelta === null
+                        ? "var(--text-muted)"
+                        : overallTrendDelta > 3
+                        ? "var(--chart-positive)"
+                        : overallTrendDelta < -3
+                        ? "var(--chart-critical)"
+                        : "var(--text-muted)",
+                    marginBottom: 14,
+                  }}
+                >
+                  {overallTrendLabel}
+                </div>
 
-              <div
-                style={{
-                  marginTop: 10,
-                  fontSize: 14,
-                  color: "var(--text-primary)",
-                  lineHeight: 1.8,
-                }}
-              >
+                <div style={{ position: "relative", height: 120 }}>
+                  <svg
+                    width="100%"
+                    height="120"
+                    viewBox="0 0 660 120"
+                    preserveAspectRatio="none"
+                    style={{ display: "block" }}
+                  >
+                    {weeklyTrend.map((week, i) => {
+                      const barWidth = 44;
+                      const gap = 11;
+                      const x = i * (barWidth + gap);
+                      const chartH = 90;
+                      const barH = week.avg !== null ? Math.round((week.avg / 100) * chartH) : 0;
+                      const y = chartH - barH;
 
-            
-                {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} currently average{" "}
-<strong>{avgScoreDisplay}</strong> overall, with communication at{" "}
-<strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
-<strong>{avgConfidenceDisplay}</strong>.{" "}
-{atRiskPct === 0
-  ? "No students are currently below the readiness target - the cohort is on track."
-  : <><strong>{atRiskPct}%</strong> of students in this view are currently below the readiness target and may benefit from targeted coaching support.</>
-}
-              </div>
-            </div>
-          </Panel>
+                      return (
+                        <g key={i}>
+                          {week.avg !== null ? (
+                            <>
+                              <rect
+                                x={x}
+                                y={y}
+                                width={barWidth}
+                                height={barH}
+                                rx={4}
+                                fill="var(--accent)"
+                                opacity="0.85"
+                              />
+                              <text
+                                x={x + barWidth / 2}
+                                y={y - 4}
+                                textAnchor="middle"
+                                fontSize="9"
+                                fill="var(--text-muted)"
+                                fontWeight="800"
+                              >
+                                {week.avg}
+                              </text>
+                            </>
+                          ) : (
+                            <rect
+                              x={x}
+                              y={0}
+                              width={barWidth}
+                              height={chartH}
+                              rx={4}
+                              fill="none"
+                              stroke="var(--card-border-soft)"
+                              strokeWidth="1"
+                              strokeDasharray="3 3"
+                              opacity="0.5"
+                            />
+                          )}
+                          {i % 3 === 0 && (
+                            <text
+                              x={x + barWidth / 2}
+                              y={110}
+                              textAnchor="middle"
+                              fontSize="9"
+                              fill="var(--text-muted)"
+                              fontWeight="700"
+                            >
+                              {week.label}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
+              </Panel>
 
-          <Panel eyebrow="Voice Analytics" title="Speaking Metrics" minHeight={300}>
-            <div style={{ display: "grid", gap: 12 }}>
-              <MiniBar
-                label="Average WPM"
-                value={avgWpm ?? 0}
-                max={200}
-              />
-              <MiniBar
-                label="Average Filler Rate"
-                value={avgFillers ?? 0}
-                max={6}
-                suffix="/100"
-              />
-              <MiniBar
-                label="Monotone Risk"
-                value={avgMonotone ?? 0}
-                max={10}
-                suffix="/10"
-              />
-              
-            </div>
-          </Panel>
-        </div>
-
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 18,
-          }}
-        >
-          <Panel eyebrow="Insights" title="Top Weaknesses" minHeight={280}>
-            <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
-  Most common areas where students struggle during interviews
-</div>
-            <ListRows
-              items={
-                weaknessRows.length > 0
-                  ? weaknessRows.map((row) => ({
-                      label: row.label,
-                      detail: "Most common coaching issue across current attempts.",
-                      value: `${row.count}`,
-                    }))
-                  : [
-                      {
-                        label: "No weakness data yet",
-                        detail: "Complete more attempts to surface school-wide weakness patterns.",
-                      },
-                    ]
-              }
-            />
-          </Panel>
-
-          <Panel eyebrow="Question Mix" title="Question Category Demand" minHeight={280}>
-            <ListRows
-              items={
-                questionMix.length > 0
-                  ? questionMix.map((row) => ({
-                      label: row.label,
-                      detail: `${row.count} attempts in this category.`,
-                      value: `${row.pct}%`,
-                    }))
-                  : [
-                      {
-                        label: "No category data yet",
-                        detail: "Question category analytics will appear once attempts are available.",
-                      },
-                    ]
-              }
-            />
-          </Panel>
-
-          <Panel eyebrow="Role Matching" title="Role Readiness" minHeight={280}>
-            <ListRows
-              items={
-                roleRows.length > 0
-                  ? roleRows.map((row) => ({
-                      label: row.label,
-                      detail: [
-                        row.company,
-                        row.roleType,
-                        row.matched.length
-                          ? `best on ${row.matched.join(" + ")}`
-                          : row.gaps.length
-                          ? `gap: ${row.gaps[0]}`
-                          : "signals still emerging",
-                      ]
-                        .filter(Boolean)
-                        .join(" · "),
-                      value:
-                        row.fitScore !== null
-                          ? `${pctFrom10(row.fitScore)}%`
-                          : " - ",
-                    }))
-                  : [
-                      {
-                        label: "No role readiness yet",
-                        detail: "Create job profiles and complete attempts to unlock role matching.",
-                      },
-                    ]
-              }
-            />
-          </Panel>
-        </div>
-
-        {/* Score Trend + At-Risk panels */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1.4fr 1fr",
-            gap: 18,
-          }}
-        >
-          <Panel eyebrow="Analytics" title="Score Trend (12 weeks)">
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 800,
-                color:
-                  overallTrendDelta === null
-                    ? "var(--text-muted)"
-                    : overallTrendDelta > 3
-                    ? "var(--chart-positive)"
-                    : overallTrendDelta < -3
-                    ? "var(--chart-critical)"
-                    : "var(--text-muted)",
-                marginBottom: 14,
-              }}
-            >
-              {overallTrendLabel}
-            </div>
-
-            <div style={{ position: "relative", height: 120 }}>
-              {/* SVG bar chart */}
-              <svg
-                width="100%"
-                height="120"
-                viewBox="0 0 660 120"
-                preserveAspectRatio="none"
-                style={{ display: "block" }}
-              >
-                {weeklyTrend.map((week, i) => {
-                  const barWidth = 44;
-                  const gap = 11;
-                  const x = i * (barWidth + gap);
-                  const chartH = 90;
-                  const barH = week.avg !== null ? Math.round((week.avg / 100) * chartH) : 0;
-                  const y = chartH - barH;
-
-                  return (
-                    <g key={i}>
-                      {week.avg !== null ? (
-                        <>
-                          <rect
-                            x={x}
-                            y={y}
-                            width={barWidth}
-                            height={barH}
-                            rx={4}
-                            fill="var(--accent)"
-                            opacity="0.85"
-                          />
-                          <text
-                            x={x + barWidth / 2}
-                            y={y - 4}
-                            textAnchor="middle"
-                            fontSize="9"
-                            fill="var(--text-muted)"
-                            fontWeight="800"
-                          >
-                            {week.avg}
-                          </text>
-                        </>
-                      ) : (
-                        <rect
-                          x={x}
-                          y={0}
-                          width={barWidth}
-                          height={chartH}
-                          rx={4}
-                          fill="none"
-                          stroke="var(--card-border-soft)"
-                          strokeWidth="1"
-                          strokeDasharray="3 3"
-                          opacity="0.5"
-                        />
-                      )}
-                      {i % 3 === 0 && (
-                        <text
-                          x={x + barWidth / 2}
-                          y={110}
-                          textAnchor="middle"
-                          fontSize="9"
-                          fill="var(--text-muted)"
-                          fontWeight="700"
-                        >
-                          {week.label}
-                        </text>
-                      )}
-                    </g>
-                  );
-                })}
-              </svg>
-            </div>
-          </Panel>
-
-          <Panel eyebrow="Interventions" title="At-Risk Students">
-            {atRiskStudentRows.length > 0 ? (
-              <div style={{ display: "grid", gap: 10 }}>
-                {atRiskStudentRows.map((s) => {
-                  const weakness = getTopWeakness(s);
-                  const intervention = getIntervention(s);
-                  return (
-                    <div
-                      key={s.id}
-                      style={{
-                        padding: "12px 14px",
-                        borderRadius: 14,
-                        border: "1px solid var(--card-border-soft)",
-                        background: "var(--card-bg)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "flex-start",
-                          gap: 10,
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontSize: 13,
-                              fontWeight: 900,
-                              color: "var(--text-primary)",
-                            }}
-                          >
-                            {s.name}
-                          </div>
-                          <div
-                            style={{
-                              fontSize: 12,
-                              color: "var(--text-muted)",
-                              marginTop: 2,
-                            }}
-                          >
-                            {s.email}
-                          </div>
-                        </div>
+              <Panel eyebrow="Interventions" title="At-Risk Students">
+                {atRiskStudentRows.length > 0 ? (
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {atRiskStudentRows.map((s) => {
+                      const weakness = getTopWeakness(s);
+                      const intervention = getIntervention(s);
+                      return (
                         <div
+                          key={s.id}
                           style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                            gap: 4,
-                            flexShrink: 0,
+                            padding: "12px 14px",
+                            borderRadius: 14,
+                            border: "1px solid var(--card-border-soft)",
+                            background: "var(--card-bg)",
                           }}
                         >
                           <div
                             style={{
-                              padding: "3px 8px",
-                              borderRadius: 999,
-                              background: "var(--chart-critical-soft, var(--accent-soft))",
-                              color: "var(--chart-critical, var(--accent))",
-                              fontSize: 11,
-                              fontWeight: 900,
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              gap: 10,
                             }}
                           >
-                            {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : " - "}
+                            <div style={{ minWidth: 0 }}>
+                              <div
+                                style={{
+                                  fontSize: 13,
+                                  fontWeight: 900,
+                                  color: "var(--text-primary)",
+                                }}
+                              >
+                                {s.name}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: 12,
+                                  color: "var(--text-muted)",
+                                  marginTop: 2,
+                                }}
+                              >
+                                {s.email}
+                              </div>
+                            </div>
+                            <div
+                              style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "flex-end",
+                                gap: 4,
+                                flexShrink: 0,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  padding: "3px 8px",
+                                  borderRadius: 999,
+                                  background: "var(--chart-critical-soft, var(--accent-soft))",
+                                  color: "var(--chart-critical, var(--accent))",
+                                  fontSize: 11,
+                                  fontWeight: 900,
+                                }}
+                              >
+                                {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : " - "}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  color: "var(--text-muted)",
+                                  textAlign: "right",
+                                }}
+                              >
+                                {weakness}
+                              </div>
+                            </div>
                           </div>
                           <div
                             style={{
+                              marginTop: 8,
                               fontSize: 11,
-                              fontWeight: 800,
                               color: "var(--text-muted)",
-                              textAlign: "right",
+                              fontStyle: "italic",
+                              lineHeight: 1.6,
                             }}
                           >
-                            {weakness}
-                          </div>
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          marginTop: 8,
-                          fontSize: 11,
-                          color: "var(--text-muted)",
-                          fontStyle: "italic",
-                          lineHeight: 1.6,
-                        }}
-                      >
-                        {intervention}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  border: "1px solid var(--card-border-soft)",
-                  background: "var(--card-bg)",
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                }}
-              >
-                No at-risk students in this cohort.
-              </div>
-            )}
-          </Panel>
-        </div>
-
-        {/* Full Student Roster */}
-        <GlowCard padding={22} radius={22}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 18 }}>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>
-                Student Roster
-              </div>
-              <div style={{ fontSize: 20, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)" }}>
-                {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""}
-                {activeCohort !== "all" ? ` · ${activeCohort} cohort` : ""}
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 10 }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-positive)", display: "inline-block" }} />
-                  High ≥80
-                </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-neutral)", display: "inline-block" }} />
-                  Mid 60–79
-                </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-critical)", display: "inline-block" }} />
-                  At-Risk &lt;60
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Header row */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
-            gap: 12,
-            padding: "0 14px 10px 14px",
-            fontSize: 11,
-            fontWeight: 900,
-            letterSpacing: 0.6,
-            color: "var(--text-muted)",
-            textTransform: "uppercase",
-            borderBottom: "1px solid var(--card-border-soft)",
-            marginBottom: 8,
-          }}>
-            <div>Student</div>
-            <div>Score</div>
-            <div>Comm</div>
-            <div>Conf</div>
-            <div>Trend</div>
-            <div>Attempts</div>
-            <div>Last Active</div>
-            <div />
-          </div>
-
-          <div style={{ display: "grid", gap: 6 }}>
-            {attemptsByUser.length > 0 ? attemptsByUser.map((row) => {
-              const cohortColor =
-                row.cohort === "high"
-                  ? "var(--chart-positive)"
-                  : row.cohort === "mid"
-                  ? "var(--chart-neutral)"
-                  : "var(--chart-critical)";
-              const cohortBg =
-                row.cohort === "high"
-                  ? "rgba(22,163,74,0.08)"
-                  : row.cohort === "mid"
-                  ? "rgba(245,158,11,0.09)"
-                  : "rgba(239,68,68,0.08)";
-              const cohortLabel =
-                row.cohort === "high" ? "High" : row.cohort === "mid" ? "Mid" : "At-Risk";
-
-              const userAttempts = row.attemptsRaw;
-              const commAvg = round1(avg(userAttempts.map(getAttemptComm).filter((v): v is number => v !== null)));
-              const confAvg = round1(avg(userAttempts.map(getAttemptConf).filter((v): v is number => v !== null)));
-
-              const daysSince = row.latest
-                ? Math.floor((Date.now() - new Date(row.latest).getTime()) / (1000 * 60 * 60 * 24))
-                : null;
-              const lastActiveLabel = daysSince === null ? " - "
-                : daysSince === 0 ? "Today"
-                : daysSince === 1 ? "Yesterday"
-                : daysSince <= 7 ? `${daysSince}d ago`
-                : row.latest ? new Date(row.latest).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : " - ";
-              const lastActiveColor = daysSince !== null && daysSince > 14 ? "var(--chart-critical)" : "var(--text-muted)";
-
-              return (
-                <Link key={row.id} href={`/admin/students/${row.id}`} style={{ textDecoration: "none" }}>
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
-                    gap: 12,
-                    alignItems: "center",
-                    padding: "11px 14px",
-                    borderRadius: 14,
-                    border: "1px solid var(--card-border-soft)",
-                    background: "var(--card-bg)",
-                    cursor: "pointer",
-                    transition: "border-color 0.15s",
-                  }}>
-                    <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
-                      {/* Avatar */}
-                      <div style={{
-                        width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                        background: `linear-gradient(135deg, ${cohortColor}22, ${cohortColor}44)`,
-                        border: `1.5px solid ${cohortColor}55`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, fontWeight: 900, color: cohortColor,
-                      }}>
-                        {(row.name || "?")[0].toUpperCase()}
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {row.name}
-                        </div>
-                        <div style={{ marginTop: 2, fontSize: 11, color: "var(--text-muted)" }}>
-                          {row.email}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Score with cohort pill */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
-                        {row.avgScore100 !== null ? `${row.avgScore100}` : " - "}
-                      </div>
-                      <div style={{ padding: "2px 6px", borderRadius: 999, background: cohortBg, color: cohortColor, fontSize: 10, fontWeight: 900, display: "inline-block" }}>
-                        {cohortLabel}
-                      </div>
-                    </div>
-
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                      {commAvg !== null ? `${pctFrom10(commAvg)}%` : " - "}
-                    </div>
-
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                      {confAvg !== null ? `${pctFrom10(confAvg)}%` : " - "}
-                    </div>
-
-                    <div style={{
-                      fontSize: 12,
-                      fontWeight: 900,
-                      color: row.trendDelta === null ? "var(--text-muted)"
-                        : row.trendDelta > 3 ? "var(--chart-positive)"
-                        : row.trendDelta < -3 ? "var(--chart-critical)"
-                        : "var(--text-muted)",
-                    }}>
-                      {row.trendDelta === null ? " - "
-                        : row.trendDelta > 0 ? `↑ +${row.trendDelta}`
-                        : row.trendDelta < 0 ? `↓ ${row.trendDelta}`
-                        : "→ 0"}
-                    </div>
-
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                      {row.attempts} rep{row.attempts !== 1 ? "s" : ""}
-                    </div>
-
-                    <div style={{ fontSize: 12, fontWeight: 800, color: lastActiveColor }}>
-                      {lastActiveLabel}
-                    </div>
-
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 700 }}>→</div>
-                  </div>
-                </Link>
-              );
-            }) : (
-              <div style={{ padding: "24px 14px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                No students found. Seed demo data or invite students to get started.
-              </div>
-            )}
-          </div>
-        </GlowCard>
-
-        {/* Coaching Summary */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12 }}>
-          <MetricPill label="Communication" value={avgCommunicationDisplay} />
-          <MetricPill label="Confidence" value={avgConfidenceDisplay} />
-          <MetricPill label="Spoken Attempts" value={`${spokenRate}%`} />
-          <MetricPill label="Most Common Gap" value={weaknessRows[0]?.label ?? "Still emerging"} />
-          <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : " - "} />
-        </div>
-
-        {/* Practice Frequency + Score Distribution */}
-        {(() => {
-          const total = filteredStudents.length;
-          const freqBands = [
-            { label: "Not started", min: 0, max: 0 },
-            { label: "Just started", min: 1, max: 2 },
-            { label: "Building habit", min: 3, max: 5 },
-            { label: "Active", min: 6, max: 10 },
-            { label: "Power user", min: 11, max: Infinity },
-          ].map((band) => {
-            const count = filteredStudents.filter(
-              (s) => s.attempts >= band.min && s.attempts <= band.max
-            ).length;
-            return { ...band, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
-          });
-
-          const scoreBands = [
-            { label: "Not attempted", color: "var(--text-muted)" },
-            { label: "Needs support", color: "var(--chart-critical)" },
-            { label: "Developing", color: "#F59E0B" },
-            { label: "Ready", color: "var(--accent)" },
-            { label: "High performer", color: "var(--chart-positive)" },
-          ].map((band, i) => {
-            const count = filteredStudents.filter((s) => {
-              if (i === 0) return s.avgScore100 === null;
-              if (i === 1) return s.avgScore100 !== null && s.avgScore100 < 50;
-              if (i === 2) return s.avgScore100 !== null && s.avgScore100 >= 50 && s.avgScore100 < 65;
-              if (i === 3) return s.avgScore100 !== null && s.avgScore100 >= 65 && s.avgScore100 < 80;
-              return s.avgScore100 !== null && s.avgScore100 >= 80;
-            }).length;
-            return { ...band, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
-          });
-
-          return (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-              <Panel eyebrow="Engagement" title="Practice Frequency">
-                <div style={{ display: "grid", gap: 8 }}>
-                  {freqBands.map((band) => (
-                    <div key={band.label} style={{ padding: "10px 12px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
-                        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
-                      </div>
-                      <div style={{ height: 7, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                        <div style={{ width: `${band.pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))" }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-
-              <Panel eyebrow="Performance" title="Score Distribution">
-                <div style={{ display: "flex", height: 18, borderRadius: 999, overflow: "hidden", marginBottom: 14 }}>
-                  {scoreBands.map((band) =>
-                    band.pct > 0 ? (
-                      <div key={band.label} title={`${band.label}: ${band.pct}%`} style={{ width: `${band.pct}%`, background: band.color, transition: "width 0.3s ease" }} />
-                    ) : null
-                  )}
-                </div>
-                <div style={{ display: "grid", gap: 6 }}>
-                  {scoreBands.map((band) => (
-                    <div key={band.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div style={{ width: 8, height: 8, borderRadius: 999, background: band.color, flexShrink: 0 }} />
-                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
-                      </div>
-                      <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
-                    </div>
-                  ))}
-                </div>
-              </Panel>
-            </div>
-          );
-        })()}
-
-        {/* Top Movers */}
-        {(() => {
-          const topMovers = filteredStudents
-            .filter((s) => s.trendDelta !== null && s.trendDelta > 0)
-            .sort((a, b) => (b.trendDelta ?? 0) - (a.trendDelta ?? 0))
-            .slice(0, 5);
-          if (topMovers.length === 0) return null;
-          return (
-            <Panel eyebrow="Progress" title="Top Movers">
-              <div style={{ display: "grid", gap: 8 }}>
-                {topMovers.map((s) => (
-                  <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
-                      <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>{s.attempts} rep{s.attempts !== 1 ? "s" : ""} · Score: {s.avgScore100 ?? " - "}</div>
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--chart-positive)", whiteSpace: "nowrap" }}>
-                      ↑ +{s.trendDelta} pts
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-          );
-        })()}
-
-        {/* Job Profile Targeting */}
-        {(() => {
-          const roleList = Array.from(roleGroups.values())
-            .map((g) => ({
-              label: g.label,
-              company: g.company,
-              roleType: g.roleType,
-              studentCount: new Set(g.attempts.map((a) => a.userId)).size,
-              attemptCount: g.attempts.length,
-            }))
-            .sort((a, b) => b.attemptCount - a.attemptCount)
-            .slice(0, 6);
-
-          return (
-            <Panel eyebrow="Targeting" title="Job Profile Targeting">
-              {roleList.length === 0 ? (
-                <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                  No job profiles in use yet. Students can select a target role when practicing.
-                </div>
-              ) : (
-                <div style={{ display: "grid", gap: 8 }}>
-                  {roleList.map((r) => (
-                    <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.label}</div>
-                        {(r.company || r.roleType) && (
-                          <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>
-                            {[r.company, r.roleType].filter(Boolean).join(" · ")}
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ textAlign: "right", flexShrink: 0 }}>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.studentCount} student{r.studentCount !== 1 ? "s" : ""}</div>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>{r.attemptCount} attempt{r.attemptCount !== 1 ? "s" : ""}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Panel>
-          );
-        })()}
-
-        {/* Engagement Funnel + Category Performance */}
-        {(() => {
-          const total = filteredStudents.length;
-          const funnelSteps = [
-            { label: "Enrolled", count: total, desc: "Total students in this cohort" },
-            { label: "Started", count: filteredStudents.filter((s) => s.attempts > 0).length, desc: "Completed at least 1 attempt" },
-            { label: "Building habit", count: filteredStudents.filter((s) => s.attempts >= 3).length, desc: "3 or more attempts" },
-            { label: "Active", count: filteredStudents.filter((s) => s.attempts >= 10).length, desc: "10 or more attempts" },
-            { label: "High-performing", count: filteredStudents.filter((s) => (s.avgScore100 ?? 0) >= 80).length, desc: "Avg score 80+ (interview-ready)" },
-          ];
-
-          const catScoreMap = new Map<string, number[]>();
-          for (const a of filteredAttempts) {
-            const raw = safeLabel(a.questionCategory, "other");
-            const label = titleCaseLabel(raw);
-            const score = getAttemptScore(a);
-            if (score !== null) {
-              if (!catScoreMap.has(label)) catScoreMap.set(label, []);
-              catScoreMap.get(label)!.push(score);
-            }
-          }
-          const catPerf = Array.from(catScoreMap.entries())
-            .map(([label, scores]) => ({
-              label,
-              avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
-              count: scores.length,
-            }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 6);
-
-          return (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-              <Panel eyebrow="Student Journey" title="Engagement Funnel">
-                <div style={{ display: "grid", gap: 8 }}>
-                  {funnelSteps.map((step, i) => {
-                    const pct = total > 0 ? Math.round((step.count / total) * 100) : 0;
-                    const opacity = 1 - i * 0.12;
-                    return (
-                      <div key={step.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                          <div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{step.label}</div>
-                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{step.desc}</div>
-                          </div>
-                          <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>{step.count}</div>
-                            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{pct}%</div>
-                          </div>
-                        </div>
-                        <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99, opacity }} />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </Panel>
-
-              <Panel eyebrow="Skill Breakdown" title="Category Performance">
-                {catPerf.length === 0 ? (
-                  <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                    No scored attempts yet. Category performance data will appear once students practice.
-                  </div>
-                ) : (
-                  <div style={{ display: "grid", gap: 8 }}>
-                    {catPerf.map((cat) => {
-                      const color = cat.avg >= 75 ? "#10B981" : cat.avg >= 60 ? "#F59E0B" : "var(--chart-critical)";
-                      return (
-                        <div key={cat.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat.count} attempts</span>
-                              <span style={{ fontSize: 14, fontWeight: 700, color }}>{cat.avg}</span>
-                            </div>
-                          </div>
-                          <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${cat.avg}%`, background: color, borderRadius: 99 }} />
+                            {intervention}
                           </div>
                         </div>
                       );
                     })}
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, paddingTop: 4 }}>
-                      Scores shown as 0–100 average per category. Categories below 60 suggest cohort-wide coaching opportunity.
-                    </div>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      border: "1px solid var(--card-border-soft)",
+                      background: "var(--card-bg)",
+                      fontSize: 13,
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    No at-risk students in this cohort.
                   </div>
                 )}
               </Panel>
             </div>
-          );
-        })()}
 
-        {/* Assignments Panel */}
-        <Panel eyebrow="Course Assignments" title="Active Assignments">
-          <div style={{ display: "grid", gap: 14 }}>
-            <CreateAssignmentForm />
+            {/* Engagement Funnel + Category Performance */}
+            {(() => {
+              const total = filteredStudents.length;
+              const funnelSteps = [
+                { label: "Enrolled", count: total, desc: "Total students in this cohort" },
+                { label: "Started", count: filteredStudents.filter((s) => s.attempts > 0).length, desc: "Completed at least 1 attempt" },
+                { label: "Building habit", count: filteredStudents.filter((s) => s.attempts >= 3).length, desc: "3 or more attempts" },
+                { label: "Active", count: filteredStudents.filter((s) => s.attempts >= 10).length, desc: "10 or more attempts" },
+                { label: "High-performing", count: filteredStudents.filter((s) => (s.avgScore100 ?? 0) >= 80).length, desc: "Avg score 80+ (interview-ready)" },
+              ];
 
-            {assignmentStats.length === 0 ? (
-              <div
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 14,
-                  border: "1px solid var(--card-border-soft)",
-                  background: "var(--card-bg)",
-                  fontSize: 13,
-                  color: "var(--text-muted)",
-                }}
-              >
-                No active assignments yet. Use the form above to create one.
-              </div>
-            ) : (
-              (assignmentStats as Array<{
-                id: string;
-                title: string;
-                description: string | null;
-                dueDate: Date | null;
-                questionCategories: string[];
-                minAttempts: number;
-                completedCount: number;
-                totalStudents: number;
-                completionPct: number;
-              }>).map((a) => {
-                const dueDateDisplay = a.dueDate
-                  ? new Date(a.dueDate).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  : null;
+              const catScoreMap = new Map<string, number[]>();
+              for (const a of filteredAttempts) {
+                const raw = safeLabel(a.questionCategory, "other");
+                const label = titleCaseLabel(raw);
+                const score = getAttemptScore(a);
+                if (score !== null) {
+                  if (!catScoreMap.has(label)) catScoreMap.set(label, []);
+                  catScoreMap.get(label)!.push(score);
+                }
+              }
+              const catPerf = Array.from(catScoreMap.entries())
+                .map(([label, scores]) => ({
+                  label,
+                  avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+                  count: scores.length,
+                }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 6);
 
-                const categoryLabel =
-                  a.questionCategories.length > 0
-                    ? a.questionCategories.join(", ")
-                    : "any category";
-
-                return (
-                  <div
-                    key={a.id}
-                    style={{
-                      padding: "14px 16px",
-                      borderRadius: 14,
-                      border: "1px solid var(--card-border-soft)",
-                      background: "var(--card-bg)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: 12,
-                      }}
-                    >
-                      <div style={{ minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 900,
-                            color: "var(--text-primary)",
-                          }}
-                        >
-                          {a.title}
-                        </div>
-                        {a.description && (
-                          <div
-                            style={{
-                              marginTop: 3,
-                              fontSize: 12,
-                              color: "var(--text-muted)",
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            {a.description}
+              return (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+                  <Panel eyebrow="Student Journey" title="Engagement Funnel">
+                    <div style={{ display: "grid", gap: 8 }}>
+                      {funnelSteps.map((step, i) => {
+                        const pct = total > 0 ? Math.round((step.count / total) * 100) : 0;
+                        const opacity = 1 - i * 0.12;
+                        return (
+                          <div key={step.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                              <div>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{step.label}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{step.desc}</div>
+                              </div>
+                              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>{step.count}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{pct}%</div>
+                              </div>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                              <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99, opacity }} />
+                            </div>
                           </div>
-                        )}
-                        <div
-                          style={{
-                            marginTop: 6,
-                            fontSize: 11,
-                            color: "var(--text-muted)",
-                            display: "flex",
-                            gap: 10,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          <span>
-                            Required: {a.minAttempts} attempts in {categoryLabel}
-                          </span>
-                          {dueDateDisplay && (
-                            <span style={{ color: "var(--accent)" }}>
-                              Due {dueDateDisplay}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          flexShrink: 0,
-                          fontSize: 13,
-                          fontWeight: 900,
-                          color: "var(--text-primary)",
-                          textAlign: "right",
-                        }}
-                      >
-                        {a.completedCount}/{a.totalStudents}
-                        <div
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            color: "var(--text-muted)",
-                          }}
-                        >
-                          {a.completionPct}% complete
-                        </div>
-                      </div>
+                        );
+                      })}
                     </div>
+                  </Panel>
 
-                    {/* Progress bar */}
-                    <div
-                      style={{
-                        marginTop: 10,
-                        height: 6,
-                        borderRadius: 999,
-                        background: "var(--card-border-soft)",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: `${a.completionPct}%`,
-                          height: "100%",
-                          borderRadius: 999,
-                          background: "var(--accent)",
-                          transition: "width 0.3s ease",
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                  <Panel eyebrow="Skill Breakdown" title="Category Performance">
+                    {catPerf.length === 0 ? (
+                      <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                        No scored attempts yet. Category performance data will appear once students practice.
+                      </div>
+                    ) : (
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {catPerf.map((cat) => {
+                          const color = cat.avg >= 75 ? "#10B981" : cat.avg >= 60 ? "#F59E0B" : "var(--chart-critical)";
+                          return (
+                            <div key={cat.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat.count} attempts</span>
+                                  <span style={{ fontSize: 14, fontWeight: 700, color }}>{cat.avg}</span>
+                                </div>
+                              </div>
+                              <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                <div style={{ height: "100%", width: `${cat.avg}%`, background: color, borderRadius: 99 }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, paddingTop: 4 }}>
+                          Scores shown as 0–100 average per category. Categories below 60 suggest cohort-wide coaching opportunity.
+                        </div>
+                      </div>
+                    )}
+                  </Panel>
+                </div>
+              );
+            })()}
           </div>
-        </Panel>
+        )}
 
-        {/* ── CAREER OUTCOMES ───────────────────────────────────────────── */}
-        <Panel eyebrow="Post-Graduation" title="Career Outcomes">
-          {checkInCount === 0 ? (
-            <div style={{ padding: "28px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
-              <div style={{ fontSize: 32, marginBottom: 10 }}>📊</div>
-              <div style={{ fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>No career check-ins yet</div>
-              <div style={{ maxWidth: 400, margin: "0 auto", lineHeight: 1.7 }}>
-                Students submit career check-ins from the Career Guide section. Once they do, you&apos;ll see employment rates, salary distributions, and industry placement data here.
-              </div>
-            </div>
-          ) : (
-            <div style={{ display: "grid", gap: 16 }}>
-              {/* Summary stats */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                  <div style={{ fontSize: 28, fontWeight: 950, color: "var(--accent)" }}>{checkInCount}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Check-ins submitted</div>
+        {/* ── STUDENTS TAB ─────────────────────────────────────────────── */}
+        {activeTab === "students" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <BulkEnrollForm />
+
+            {/* Full Student Roster */}
+            <GlowCard padding={22} radius={22}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>
+                    Student Roster
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)" }}>
+                    {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""}
+                    {activeCohort !== "all" ? ` · ${activeCohort} cohort` : ""}
+                  </div>
                 </div>
-                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                  <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981" }}>{employmentRate !== null ? `${employmentRate}%` : " - "}</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Employment rate</div>
-                </div>
-                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                  <div style={{ fontSize: 28, fontWeight: 950, color: "#F59E0B" }}>{avgSatisfaction ?? " - "}<span style={{ fontSize: 14 }}>/5</span></div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Avg satisfaction</div>
+                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 10 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-positive)", display: "inline-block" }} />
+                      High ≥80
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-neutral)", display: "inline-block" }} />
+                      Mid 60–79
+                    </span>
+                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-critical)", display: "inline-block" }} />
+                      At-Risk &lt;60
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Employment status breakdown */}
-              <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Employment status breakdown</div>
-                {(["employed", "employed_part", "job_searching", "graduate_school", "freelance", "other"] as const).map((status) => {
-                  const count = uniqueCheckIns.filter((c) => c.employmentStatus === status).length;
-                  if (count === 0) return null;
-                  const pct = Math.round((count / checkInCount) * 100);
-                  const label: Record<string, string> = {
-                    employed: "Employed full-time",
-                    employed_part: "Part-time / contract",
-                    job_searching: "Job searching",
-                    graduate_school: "Graduate school",
-                    freelance: "Freelance",
-                    other: "Other",
-                  };
-                  const color: Record<string, string> = {
-                    employed: "#10B981",
-                    employed_part: "#6EE7B7",
-                    job_searching: "#F59E0B",
-                    graduate_school: "var(--accent)",
-                    freelance: "#8B5CF6",
-                    other: "var(--text-muted)",
-                  };
+              {/* Header row */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
+                gap: 12,
+                padding: "0 14px 10px 14px",
+                fontSize: 11,
+                fontWeight: 900,
+                letterSpacing: 0.6,
+                color: "var(--text-muted)",
+                textTransform: "uppercase",
+                borderBottom: "1px solid var(--card-border-soft)",
+                marginBottom: 8,
+              }}>
+                <div>Student</div>
+                <div>Score</div>
+                <div>Comm</div>
+                <div>Conf</div>
+                <div>Trend</div>
+                <div>Attempts</div>
+                <div>Last Active</div>
+                <div />
+              </div>
+
+              <div style={{ display: "grid", gap: 6 }}>
+                {attemptsByUser.length > 0 ? attemptsByUser.map((row) => {
+                  const cohortColor =
+                    row.cohort === "high"
+                      ? "var(--chart-positive)"
+                      : row.cohort === "mid"
+                      ? "var(--chart-neutral)"
+                      : "var(--chart-critical)";
+                  const cohortBg =
+                    row.cohort === "high"
+                      ? "rgba(22,163,74,0.08)"
+                      : row.cohort === "mid"
+                      ? "rgba(245,158,11,0.09)"
+                      : "rgba(239,68,68,0.08)";
+                  const cohortLabel =
+                    row.cohort === "high" ? "High" : row.cohort === "mid" ? "Mid" : "At-Risk";
+
+                  const userAttempts = row.attemptsRaw;
+                  const commAvg = round1(avg(userAttempts.map(getAttemptComm).filter((v): v is number => v !== null)));
+                  const confAvg = round1(avg(userAttempts.map(getAttemptConf).filter((v): v is number => v !== null)));
+
+                  const daysSince = row.latest
+                    ? Math.floor((Date.now() - new Date(row.latest).getTime()) / (1000 * 60 * 60 * 24))
+                    : null;
+                  const lastActiveLabel = daysSince === null ? " - "
+                    : daysSince === 0 ? "Today"
+                    : daysSince === 1 ? "Yesterday"
+                    : daysSince <= 7 ? `${daysSince}d ago`
+                    : row.latest ? new Date(row.latest).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : " - ";
+                  const lastActiveColor = daysSince !== null && daysSince > 14 ? "var(--chart-critical)" : "var(--text-muted)";
+
                   return (
-                    <div key={status} style={{ marginBottom: 8 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
-                        <span>{label[status]}</span><span>{count} ({pct}%)</span>
-                      </div>
-                      <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${pct}%`, background: color[status], borderRadius: 99 }} />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    <Link key={row.id} href={`/admin/students/${row.id}`} style={{ textDecoration: "none" }}>
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
+                        gap: 12,
+                        alignItems: "center",
+                        padding: "11px 14px",
+                        borderRadius: 14,
+                        border: "1px solid var(--card-border-soft)",
+                        background: "var(--card-bg)",
+                        cursor: "pointer",
+                        transition: "border-color 0.15s",
+                      }}>
+                        <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
+                          {/* Avatar */}
+                          <div style={{
+                            width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                            background: `linear-gradient(135deg, ${cohortColor}22, ${cohortColor}44)`,
+                            border: `1.5px solid ${cohortColor}55`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 12, fontWeight: 900, color: cohortColor,
+                          }}>
+                            {(row.name || "?")[0].toUpperCase()}
+                          </div>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {row.name}
+                            </div>
+                            <div style={{ marginTop: 2, fontSize: 11, color: "var(--text-muted)" }}>
+                              {row.email}
+                            </div>
+                          </div>
+                        </div>
 
-              {/* Top industries */}
-              {topIndustries.length > 0 && (
-                <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
-                  <div style={{ display: "grid", gap: 6 }}>
-                    {topIndustries.map(([industry, count]) => (
-                      <div key={industry} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
-                        <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{industry}</span>
-                        <span style={{ color: "var(--accent)", fontWeight: 900, fontSize: 12 }}>{count} student{count !== 1 ? "s" : ""}</span>
+                        {/* Score with cohort pill */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
+                            {row.avgScore100 !== null ? `${row.avgScore100}` : " - "}
+                          </div>
+                          <div style={{ padding: "2px 6px", borderRadius: 999, background: cohortBg, color: cohortColor, fontSize: 10, fontWeight: 900, display: "inline-block" }}>
+                            {cohortLabel}
+                          </div>
+                        </div>
+
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                          {commAvg !== null ? `${pctFrom10(commAvg)}%` : " - "}
+                        </div>
+
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                          {confAvg !== null ? `${pctFrom10(confAvg)}%` : " - "}
+                        </div>
+
+                        <div style={{
+                          fontSize: 12,
+                          fontWeight: 900,
+                          color: row.trendDelta === null ? "var(--text-muted)"
+                            : row.trendDelta > 3 ? "var(--chart-positive)"
+                            : row.trendDelta < -3 ? "var(--chart-critical)"
+                            : "var(--text-muted)",
+                        }}>
+                          {row.trendDelta === null ? " - "
+                            : row.trendDelta > 0 ? `↑ +${row.trendDelta}`
+                            : row.trendDelta < 0 ? `↓ ${row.trendDelta}`
+                            : "→ 0"}
+                        </div>
+
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                          {row.attempts} rep{row.attempts !== 1 ? "s" : ""}
+                        </div>
+
+                        <div style={{ fontSize: 12, fontWeight: 800, color: lastActiveColor }}>
+                          {lastActiveLabel}
+                        </div>
+
+                        <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 700 }}>→</div>
+                      </div>
+                    </Link>
+                  );
+                }) : (
+                  <div style={{ padding: "24px 14px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                    No students found. Seed demo data or invite students to get started.
+                  </div>
+                )}
+              </div>
+            </GlowCard>
+
+            {/* Top Movers */}
+            {(() => {
+              const topMovers = filteredStudents
+                .filter((s) => s.trendDelta !== null && s.trendDelta > 0)
+                .sort((a, b) => (b.trendDelta ?? 0) - (a.trendDelta ?? 0))
+                .slice(0, 5);
+              if (topMovers.length === 0) return null;
+              return (
+                <Panel eyebrow="Progress" title="Top Movers">
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {topMovers.map((s) => (
+                      <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
+                          <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>{s.attempts} rep{s.attempts !== 1 ? "s" : ""} · Score: {s.avgScore100 ?? " - "}</div>
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--chart-positive)", whiteSpace: "nowrap" }}>
+                          ↑ +{s.trendDelta} pts
+                        </div>
                       </div>
                     ))}
                   </div>
+                </Panel>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ── PRACTICE TAB ─────────────────────────────────────────────── */}
+        {activeTab === "practice" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            {/* Engagement Overview + Speaking Metrics */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1.35fr 1fr",
+                gap: 18,
+              }}
+            >
+              <Panel eyebrow="Overview" title="Engagement Overview" minHeight={300}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                    gap: 12,
+                  }}
+                >
+                  <SmallMetric
+                    label="Spoken Attempts"
+                    value={`${spokenRate}%`}
+                    subtext="Share of attempts with speaking data."
+                  />
+                  <SmallMetric
+                    label="Readiness Baseline"
+                    value={avgScoreDisplay}
+                    subtext="Average overall interview score."
+                  />
+                </div>
+
+                <div
+                  style={{
+                    marginTop: 16,
+                    padding: 18,
+                    borderRadius: 18,
+                    border: "1px solid var(--card-border-soft)",
+                    background:
+                      "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: "var(--text-muted)",
+                      letterSpacing: 0.55,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Admin Summary
+                  </div>
+
+                  <div
+                    style={{
+                      marginTop: 10,
+                      fontSize: 14,
+                      color: "var(--text-primary)",
+                      lineHeight: 1.8,
+                    }}
+                  >
+                    {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} currently average{" "}
+                    <strong>{avgScoreDisplay}</strong> overall, with communication at{" "}
+                    <strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
+                    <strong>{avgConfidenceDisplay}</strong>.{" "}
+                    {atRiskPct === 0
+                      ? "No students are currently below the readiness target - the cohort is on track."
+                      : <><strong>{atRiskPct}%</strong> of students in this view are currently below the readiness target and may benefit from targeted coaching support.</>
+                    }
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel eyebrow="Voice Analytics" title="Speaking Metrics" minHeight={300}>
+                <div style={{ display: "grid", gap: 12 }}>
+                  <MiniBar
+                    label="Average WPM"
+                    value={avgWpm ?? 0}
+                    max={200}
+                  />
+                  <MiniBar
+                    label="Average Filler Rate"
+                    value={avgFillers ?? 0}
+                    max={6}
+                    suffix="/100"
+                  />
+                  <MiniBar
+                    label="Monotone Risk"
+                    value={avgMonotone ?? 0}
+                    max={10}
+                    suffix="/10"
+                  />
+                </div>
+              </Panel>
+            </div>
+
+            {/* Top Weaknesses + Question Category Demand + Role Readiness */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr 1fr",
+                gap: 18,
+              }}
+            >
+              <Panel eyebrow="Insights" title="Top Weaknesses" minHeight={280}>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
+                  Most common areas where students struggle during interviews
+                </div>
+                <ListRows
+                  items={
+                    weaknessRows.length > 0
+                      ? weaknessRows.map((row) => ({
+                          label: row.label,
+                          detail: "Most common coaching issue across current attempts.",
+                          value: `${row.count}`,
+                        }))
+                      : [
+                          {
+                            label: "No weakness data yet",
+                            detail: "Complete more attempts to surface school-wide weakness patterns.",
+                          },
+                        ]
+                  }
+                />
+              </Panel>
+
+              <Panel eyebrow="Question Mix" title="Question Category Demand" minHeight={280}>
+                <ListRows
+                  items={
+                    questionMix.length > 0
+                      ? questionMix.map((row) => ({
+                          label: row.label,
+                          detail: `${row.count} attempts in this category.`,
+                          value: `${row.pct}%`,
+                        }))
+                      : [
+                          {
+                            label: "No category data yet",
+                            detail: "Question category analytics will appear once attempts are available.",
+                          },
+                        ]
+                  }
+                />
+              </Panel>
+
+              <Panel eyebrow="Role Matching" title="Role Readiness" minHeight={280}>
+                <ListRows
+                  items={
+                    roleRows.length > 0
+                      ? roleRows.map((row) => ({
+                          label: row.label,
+                          detail: [
+                            row.company,
+                            row.roleType,
+                            row.matched.length
+                              ? `best on ${row.matched.join(" + ")}`
+                              : row.gaps.length
+                              ? `gap: ${row.gaps[0]}`
+                              : "signals still emerging",
+                          ]
+                            .filter(Boolean)
+                            .join(" · "),
+                          value:
+                            row.fitScore !== null
+                              ? `${pctFrom10(row.fitScore)}%`
+                              : " - ",
+                        }))
+                      : [
+                          {
+                            label: "No role readiness yet",
+                            detail: "Create job profiles and complete attempts to unlock role matching.",
+                          },
+                        ]
+                  }
+                />
+              </Panel>
+            </div>
+
+            {/* Coaching Summary pills */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12 }}>
+              <MetricPill label="Communication" value={avgCommunicationDisplay} />
+              <MetricPill label="Confidence" value={avgConfidenceDisplay} />
+              <MetricPill label="Spoken Attempts" value={`${spokenRate}%`} />
+              <MetricPill label="Most Common Gap" value={weaknessRows[0]?.label ?? "Still emerging"} />
+              <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : " - "} />
+            </div>
+
+            {/* Practice Frequency + Score Distribution */}
+            {(() => {
+              const total = filteredStudents.length;
+              const freqBands = [
+                { label: "Not started", min: 0, max: 0 },
+                { label: "Just started", min: 1, max: 2 },
+                { label: "Building habit", min: 3, max: 5 },
+                { label: "Active", min: 6, max: 10 },
+                { label: "Power user", min: 11, max: Infinity },
+              ].map((band) => {
+                const count = filteredStudents.filter(
+                  (s) => s.attempts >= band.min && s.attempts <= band.max
+                ).length;
+                return { ...band, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
+              });
+
+              const scoreBands = [
+                { label: "Not attempted", color: "var(--text-muted)" },
+                { label: "Needs support", color: "var(--chart-critical)" },
+                { label: "Developing", color: "#F59E0B" },
+                { label: "Ready", color: "var(--accent)" },
+                { label: "High performer", color: "var(--chart-positive)" },
+              ].map((band, i) => {
+                const count = filteredStudents.filter((s) => {
+                  if (i === 0) return s.avgScore100 === null;
+                  if (i === 1) return s.avgScore100 !== null && s.avgScore100 < 50;
+                  if (i === 2) return s.avgScore100 !== null && s.avgScore100 >= 50 && s.avgScore100 < 65;
+                  if (i === 3) return s.avgScore100 !== null && s.avgScore100 >= 65 && s.avgScore100 < 80;
+                  return s.avgScore100 !== null && s.avgScore100 >= 80;
+                }).length;
+                return { ...band, count, pct: total > 0 ? Math.round((count / total) * 100) : 0 };
+              });
+
+              return (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+                  <Panel eyebrow="Engagement" title="Practice Frequency">
+                    <div style={{ display: "grid", gap: 8 }}>
+                      {freqBands.map((band) => (
+                        <div key={band.label} style={{ padding: "10px 12px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                            <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
+                            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
+                          </div>
+                          <div style={{ height: 7, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                            <div style={{ width: `${band.pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))" }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </Panel>
+
+                  <Panel eyebrow="Performance" title="Score Distribution">
+                    <div style={{ display: "flex", height: 18, borderRadius: 999, overflow: "hidden", marginBottom: 14 }}>
+                      {scoreBands.map((band) =>
+                        band.pct > 0 ? (
+                          <div key={band.label} title={`${band.label}: ${band.pct}%`} style={{ width: `${band.pct}%`, background: band.color, transition: "width 0.3s ease" }} />
+                        ) : null
+                      )}
+                    </div>
+                    <div style={{ display: "grid", gap: 6 }}>
+                      {scoreBands.map((band) => (
+                        <div key={band.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: 999, background: band.color, flexShrink: 0 }} />
+                            <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
+                        </div>
+                      ))}
+                    </div>
+                  </Panel>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ── JOBS TAB ─────────────────────────────────────────────────── */}
+        {activeTab === "jobs" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            {(() => {
+              const roleList = Array.from(roleGroups.values())
+                .map((g) => ({
+                  label: g.label,
+                  company: g.company,
+                  roleType: g.roleType,
+                  studentCount: new Set(g.attempts.map((a) => a.userId)).size,
+                  attemptCount: g.attempts.length,
+                }))
+                .sort((a, b) => b.attemptCount - a.attemptCount)
+                .slice(0, 6);
+
+              return (
+                <Panel eyebrow="Targeting" title="Job Profile Targeting">
+                  {roleList.length === 0 ? (
+                    <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                      No job profiles in use yet. Students can select a target role when practicing.
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gap: 8 }}>
+                      {roleList.map((r) => (
+                        <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.label}</div>
+                            {(r.company || r.roleType) && (
+                              <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>
+                                {[r.company, r.roleType].filter(Boolean).join(" · ")}
+                              </div>
+                            )}
+                          </div>
+                          <div style={{ textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.studentCount} student{r.studentCount !== 1 ? "s" : ""}</div>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>{r.attemptCount} attempt{r.attemptCount !== 1 ? "s" : ""}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Panel>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ── ASSIGNMENTS TAB ──────────────────────────────────────────── */}
+        {activeTab === "assignments" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <Panel eyebrow="Course Assignments" title="Active Assignments">
+              <div style={{ display: "grid", gap: 14 }}>
+                <CreateAssignmentForm />
+
+                {assignmentStats.length === 0 ? (
+                  <div
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 14,
+                      border: "1px solid var(--card-border-soft)",
+                      background: "var(--card-bg)",
+                      fontSize: 13,
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    No active assignments yet. Use the form above to create one.
+                  </div>
+                ) : (
+                  (assignmentStats as Array<{
+                    id: string;
+                    title: string;
+                    description: string | null;
+                    dueDate: Date | null;
+                    questionCategories: string[];
+                    minAttempts: number;
+                    completedCount: number;
+                    totalStudents: number;
+                    completionPct: number;
+                  }>).map((a) => {
+                    const dueDateDisplay = a.dueDate
+                      ? new Date(a.dueDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })
+                      : null;
+
+                    const categoryLabel =
+                      a.questionCategories.length > 0
+                        ? a.questionCategories.join(", ")
+                        : "any category";
+
+                    return (
+                      <div
+                        key={a.id}
+                        style={{
+                          padding: "14px 16px",
+                          borderRadius: 14,
+                          border: "1px solid var(--card-border-soft)",
+                          background: "var(--card-bg)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "flex-start",
+                            gap: 12,
+                          }}
+                        >
+                          <div style={{ minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontSize: 13,
+                                fontWeight: 900,
+                                color: "var(--text-primary)",
+                              }}
+                            >
+                              {a.title}
+                            </div>
+                            {a.description && (
+                              <div
+                                style={{
+                                  marginTop: 3,
+                                  fontSize: 12,
+                                  color: "var(--text-muted)",
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                {a.description}
+                              </div>
+                            )}
+                            <div
+                              style={{
+                                marginTop: 6,
+                                fontSize: 11,
+                                color: "var(--text-muted)",
+                                display: "flex",
+                                gap: 10,
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <span>
+                                Required: {a.minAttempts} attempts in {categoryLabel}
+                              </span>
+                              {dueDateDisplay && (
+                                <span style={{ color: "var(--accent)" }}>
+                                  Due {dueDateDisplay}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              flexShrink: 0,
+                              fontSize: 13,
+                              fontWeight: 900,
+                              color: "var(--text-primary)",
+                              textAlign: "right",
+                            }}
+                          >
+                            {a.completedCount}/{a.totalStudents}
+                            <div
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 700,
+                                color: "var(--text-muted)",
+                              }}
+                            >
+                              {a.completionPct}% complete
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Progress bar */}
+                        <div
+                          style={{
+                            marginTop: 10,
+                            height: 6,
+                            borderRadius: 999,
+                            background: "var(--card-border-soft)",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: `${a.completionPct}%`,
+                              height: "100%",
+                              borderRadius: 999,
+                              background: "var(--accent)",
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </Panel>
+          </div>
+        )}
+
+        {/* ── OUTCOMES TAB ─────────────────────────────────────────────── */}
+        {activeTab === "outcomes" && (
+          <div style={{ display: "grid", gap: 18 }}>
+            <Panel eyebrow="Post-Graduation" title="Career Outcomes">
+              {checkInCount === 0 ? (
+                <div style={{ padding: "28px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
+                  <div style={{ fontSize: 32, marginBottom: 10 }}>📊</div>
+                  <div style={{ fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>No career check-ins yet</div>
+                  <div style={{ maxWidth: 400, margin: "0 auto", lineHeight: 1.7 }}>
+                    Students submit career check-ins from the Career Guide section. Once they do, you&apos;ll see employment rates, salary distributions, and industry placement data here.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 16 }}>
+                  {/* Summary stats */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                      <div style={{ fontSize: 28, fontWeight: 950, color: "var(--accent)" }}>{checkInCount}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Check-ins submitted</div>
+                    </div>
+                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                      <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981" }}>{employmentRate !== null ? `${employmentRate}%` : " - "}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Employment rate</div>
+                    </div>
+                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                      <div style={{ fontSize: 28, fontWeight: 950, color: "#F59E0B" }}>{avgSatisfaction ?? " - "}<span style={{ fontSize: 14 }}>/5</span></div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Avg satisfaction</div>
+                    </div>
+                  </div>
+
+                  {/* Employment status breakdown */}
+                  <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Employment status breakdown</div>
+                    {(["employed", "employed_part", "job_searching", "graduate_school", "freelance", "other"] as const).map((status) => {
+                      const count = uniqueCheckIns.filter((c) => c.employmentStatus === status).length;
+                      if (count === 0) return null;
+                      const pct = Math.round((count / checkInCount) * 100);
+                      const label: Record<string, string> = {
+                        employed: "Employed full-time",
+                        employed_part: "Part-time / contract",
+                        job_searching: "Job searching",
+                        graduate_school: "Graduate school",
+                        freelance: "Freelance",
+                        other: "Other",
+                      };
+                      const color: Record<string, string> = {
+                        employed: "#10B981",
+                        employed_part: "#6EE7B7",
+                        job_searching: "#F59E0B",
+                        graduate_school: "var(--accent)",
+                        freelance: "#8B5CF6",
+                        other: "var(--text-muted)",
+                      };
+                      return (
+                        <div key={status} style={{ marginBottom: 8 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
+                            <span>{label[status]}</span><span>{count} ({pct}%)</span>
+                          </div>
+                          <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color[status], borderRadius: 99 }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Top industries */}
+                  {topIndustries.length > 0 && (
+                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        {topIndustries.map(([industry, count]) => (
+                          <div key={industry} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+                            <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{industry}</span>
+                            <span style={{ color: "var(--accent)", fontWeight: 900, fontSize: 12 }}>{count} student{count !== 1 ? "s" : ""}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                    Data is self-reported by students via the Career Guide check-in. Encourage students to complete their check-in for more accurate cohort outcomes.
+                  </div>
                 </div>
               )}
+            </Panel>
+          </div>
+        )}
 
-              <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                Data is self-reported by students via the Career Guide check-in. Encourage students to complete their check-in for more accurate cohort outcomes.
-              </div>
-            </div>
-          )}
-        </Panel>
       </div>
     </PremiumShell>
   );
