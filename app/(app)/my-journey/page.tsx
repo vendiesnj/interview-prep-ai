@@ -382,11 +382,13 @@ function ScoreRing({ value, size = 80 }: { value: number; size?: number }) {
         style={{ transition: "stroke-dasharray 0.6s ease" }}
       />
       <text
-        x="50%"
-        y="50%"
-        dominantBaseline="middle"
+        x={size / 2}
+        y={size / 2}
+        dy=".35em"
         textAnchor="middle"
-        style={{ fontSize: size * 0.22, fontWeight: 900, fill: "var(--text-primary)" }}
+        fontSize={size * 0.22}
+        fontWeight={900}
+        fill="var(--text-primary)"
       >
         {pct}
       </text>
@@ -423,11 +425,13 @@ function SmallScoreCircle({ score, size = 48 }: { score: number; size?: number }
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
       />
       <text
-        x="50%"
-        y="50%"
-        dominantBaseline="middle"
+        x={size / 2}
+        y={size / 2}
+        dy=".35em"
         textAnchor="middle"
-        style={{ fontSize: size * 0.24, fontWeight: 900, fill: color }}
+        fontSize={size * 0.24}
+        fontWeight={900}
+        fill={color}
       >
         {pct}
       </text>
@@ -672,6 +676,30 @@ function PageSkeleton() {
 function OverviewTab({ data }: { data: ProfilePayload }) {
   const { profile, speaking, aptitude, completeness, skills, resumeHistory } = data;
 
+  const [summary, setSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  async function generateSummary() {
+    setSummaryLoading(true);
+    setSummaryError(null);
+    try {
+      const res = await fetch("/api/student-profile/summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error(`Request failed (${res.status})`);
+      const json = await res.json();
+      if (json.error) throw new Error(json.error);
+      setSummary(json.summary);
+    } catch (e: unknown) {
+      setSummaryError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setSummaryLoading(false);
+    }
+  }
+
   const totalSessions =
     speaking.interview.count +
     speaking.networking.count +
@@ -736,6 +764,129 @@ function OverviewTab({ data }: { data: ProfilePayload }) {
           />
         </div>
       </div>
+
+      {/* AI Profile Summary */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 10 }}>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 800,
+              textTransform: "uppercase",
+              letterSpacing: 0.8,
+              color: "var(--accent)",
+              marginBottom: 4,
+            }}
+          >
+            AI-generated summary
+          </div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>
+            Your Profile at a Glance
+          </div>
+        </div>
+
+        {summaryError && (
+          <div
+            style={{
+              padding: "8px 12px",
+              borderRadius: 8,
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.3)",
+              color: "#EF4444",
+              fontSize: 12,
+              fontWeight: 600,
+              marginBottom: 10,
+            }}
+          >
+            {summaryError}
+          </div>
+        )}
+
+        {!summary && !summaryLoading && (
+          <button
+            type="button"
+            onClick={generateSummary}
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              fontWeight: 800,
+              borderRadius: 10,
+              padding: "10px 20px",
+              border: "none",
+              fontSize: 13,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span>✨</span>
+            Generate Summary
+          </button>
+        )}
+
+        {summaryLoading && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              color: "var(--text-muted)",
+              fontSize: 13,
+              fontWeight: 600,
+              padding: "4px 0",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-block",
+                width: 16,
+                height: 16,
+                borderRadius: "50%",
+                border: "2px solid var(--card-border-soft)",
+                borderTopColor: "var(--accent)",
+                animation: "spin 0.7s linear infinite",
+              }}
+            />
+            Analyzing your profile…
+          </div>
+        )}
+
+        {summary && !summaryLoading && (
+          <div>
+            <p
+              style={{
+                fontSize: 14,
+                lineHeight: 1.8,
+                color: "var(--text-primary)",
+                margin: "0 0 14px 0",
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {summary}
+            </p>
+            <button
+              type="button"
+              onClick={generateSummary}
+              style={{
+                background: "none",
+                border: "1px solid var(--card-border-soft)",
+                borderRadius: 8,
+                padding: "5px 12px",
+                fontSize: 11,
+                fontWeight: 700,
+                color: "var(--text-muted)",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              Regenerate ↺
+            </button>
+          </div>
+        )}
+      </Card>
 
       {/* Career profile summary */}
       <Card style={{ marginBottom: 16 }}>
@@ -1640,6 +1791,9 @@ export default function MyJourneyPage() {
         @keyframes pulse {
           0%, 100% { opacity: 1; }
           50% { opacity: 0.45; }
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </PremiumShell>

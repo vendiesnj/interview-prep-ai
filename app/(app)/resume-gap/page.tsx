@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
 
 type Gap = { category: string; issue: string; fix: string };
@@ -32,7 +32,7 @@ function ScoreRing({ score, label, size = 80 }: { score: number; label: string; 
   const color = score >= 75 ? "#10B981" : score >= 55 ? "#2563EB" : score >= 40 ? "#F59E0B" : "#EF4444";
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--card-border-soft)" strokeWidth={8} />
         <circle
           cx={size / 2} cy={size / 2} r={r} fill="none"
@@ -40,12 +40,21 @@ function ScoreRing({ score, label, size = 80 }: { score: number; label: string; 
           strokeDasharray={circ}
           strokeDashoffset={circ * (1 - score / 100)}
           strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
+        <text
+          x={size / 2}
+          y={size / 2}
+          dy=".35em"
+          textAnchor="middle"
+          fontSize={size * 0.22}
+          fontWeight={900}
+          fill={color}
+        >
+          {score}
+        </text>
       </svg>
-      <div style={{ textAlign: "center", marginTop: -size / 2 - 8, position: "relative", top: -size / 2 + 4 }}>
-        <div style={{ fontSize: size * 0.22, fontWeight: 900, color }}>{score}</div>
-      </div>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginTop: -size / 2 + 4 }}>{label}</div>
+      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>{label}</div>
     </div>
   );
 }
@@ -56,6 +65,33 @@ export default function ResumeGapPage() {
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setFileLoading(true);
+    setFileError(null);
+    setFileName(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", selected);
+      const res = await fetch("/api/resume-parse", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to parse file.");
+      setResume(data.text);
+      setFileName(selected.name);
+    } catch (err: any) {
+      setFileError(err.message ?? "Failed to extract text from file.");
+    } finally {
+      setFileLoading(false);
+      // Reset input so the same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   async function analyze() {
     if (!resume.trim()) return;
@@ -91,11 +127,83 @@ export default function ResumeGapPage() {
             <label style={{ display: "block", fontSize: 12, fontWeight: 800, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.6 }}>
               Your Resume *
             </label>
+
+            {/* File upload zone */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.docx,.txt"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+            <div
+              onClick={() => !fileLoading && fileInputRef.current?.click()}
+              style={{
+                border: "1.5px dashed var(--card-border)",
+                borderRadius: 12,
+                padding: "16px 20px",
+                cursor: fileLoading ? "default" : "pointer",
+                background: "var(--card-bg)",
+                marginBottom: 10,
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+                transition: "border-color 150ms",
+              }}
+            >
+              {/* Icon area */}
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, fontSize: 17,
+              }}>
+                📄
+              </div>
+
+              {fileLoading ? (
+                <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                  Extracting text…
+                </div>
+              ) : fileName ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#10B981" }}>
+                    ✓ Extracted from {fileName}
+                  </div>
+                  <div
+                    style={{ fontSize: 12, color: "var(--accent)", cursor: "pointer", textDecoration: "underline" }}
+                    onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
+                  >
+                    Change file
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                    Upload PDF, DOCX, or TXT
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    or paste text directly below
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {fileError && (
+              <div style={{
+                marginBottom: 8, padding: "8px 12px", borderRadius: 8,
+                background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+                color: "#EF4444", fontSize: 12,
+              }}>
+                {fileError}
+              </div>
+            )}
+
             <textarea
               value={resume}
               onChange={(e) => setResume(e.target.value)}
               placeholder="Paste your full resume text here..."
-              rows={14}
+              rows={10}
               style={{
                 width: "100%", boxSizing: "border-box", padding: "12px 14px",
                 borderRadius: 12, border: "1px solid var(--card-border)",
