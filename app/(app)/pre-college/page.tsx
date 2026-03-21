@@ -63,12 +63,12 @@ const CHECKLIST = [
 
 // ── Resource links ────────────────────────────────────────────────────────────
 const RESOURCES = [
-  { icon: "📋", label: "Understanding FAFSA & Financial Aid", href: "/career-guide/finances", tag: "Finance" },
-  { icon: "💳", label: "Building Credit Before You Graduate",  href: "/career-guide/finances", tag: "Finance" },
-  { icon: "🗺️", label: "How to Choose a Major",               href: "/career-guide/career-paths", tag: "Career" },
-  { icon: "🏠", label: "On-Campus vs. Off-Campus Housing",     href: "/career-guide/housing", tag: "Life" },
-  { icon: "📈", label: "First-Gen College Student Guide",      href: "/career-guide/first-year", tag: "Life" },
-  { icon: "🧾", label: "Student Taxes: What You Need to Know", href: "/career-guide/finances", tag: "Finance" },
+  { icon: "📋", label: "Understanding FAFSA & Financial Aid", href: "/career-guide/finances?from=pre-college", tag: "Finance" },
+  { icon: "💳", label: "Building Credit Before You Graduate",  href: "/career-guide/finances?from=pre-college", tag: "Finance" },
+  { icon: "🗺️", label: "How to Choose a Major",               href: "/career-guide/career-paths?from=pre-college", tag: "Career" },
+  { icon: "🏠", label: "On-Campus vs. Off-Campus Housing",     href: "/career-guide/housing?from=pre-college", tag: "Life" },
+  { icon: "📈", label: "First-Gen College Student Guide",      href: "/career-guide/first-year?from=pre-college", tag: "Life" },
+  { icon: "🧾", label: "Student Taxes: What You Need to Know", href: "/career-guide/finances?from=pre-college", tag: "Finance" },
 ];
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {

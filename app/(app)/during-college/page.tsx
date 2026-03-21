@@ -28,12 +28,12 @@ const CHECKLIST = [
 ];
 
 const RESOURCES = [
-  { icon: "💼", label: "Landing Your First Internship",        href: "/career-guide/first-year",   tag: "Career" },
-  { icon: "🧾", label: "Filing Taxes for the First Time",      href: "/career-guide/finances",     tag: "Finance" },
-  { icon: "📊", label: "Peer Salary & Career Benchmarks",      href: "/career-guide/benchmarks",   tag: "Career" },
-  { icon: "🗺️", label: "Exploring Career Paths & Specialties", href: "/career-guide/career-paths", tag: "Career" },
-  { icon: "💳", label: "Student Credit & Building History",    href: "/career-guide/finances",     tag: "Finance" },
-  { icon: "🏠", label: "Off-Campus Housing Guide",             href: "/career-guide/housing",      tag: "Life" },
+  { icon: "💼", label: "Landing Your First Internship",        href: "/career-guide/first-year?from=during-college",   tag: "Career" },
+  { icon: "🧾", label: "Filing Taxes for the First Time",      href: "/career-guide/finances?from=during-college",     tag: "Finance" },
+  { icon: "📊", label: "Peer Salary & Career Benchmarks",      href: "/career-guide/benchmarks?from=during-college",   tag: "Career" },
+  { icon: "🗺️", label: "Exploring Career Paths & Specialties", href: "/career-guide/career-paths?from=during-college", tag: "Career" },
+  { icon: "💳", label: "Student Credit & Building History",    href: "/career-guide/finances?from=during-college",     tag: "Finance" },
+  { icon: "🏠", label: "Off-Campus Housing Guide",             href: "/career-guide/housing?from=during-college",      tag: "Life" },
 ];
 
 const TAG_COLORS: Record<string, string> = { Finance: "#10B981", Career: "#2563EB", Life: "#8B5CF6" };
