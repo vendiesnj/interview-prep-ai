@@ -40,7 +40,7 @@ export default function SignupPage() {
       });
 
       if (result?.error) {
-        setError("Account created — please log in.");
+        setError("Account created - please log in.");
         setLoading(false);
         return;
       }

@@ -5,11 +5,11 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Signal — Something big is coming",
+  title: "Signal - Something big is coming",
   description:
-    "Signal is a communication and career development platform built for students and new professionals. From pre-college to your first years in the workforce — we cover it all.",
+    "Signal is a communication and career development platform built for students and new professionals. From pre-college to your first years in the workforce - we cover it all.",
   openGraph: {
-    title: "Signal — Something big is coming",
+    title: "Signal - Something big is coming",
     description:
       "A career platform built for every stage. Pre-college, during college, and your first years in the workforce. Launching soon.",
     type: "website",
@@ -120,7 +120,7 @@ export default async function HomePage() {
             lineHeight: 1.75,
           }}
         >
-          We&apos;re rebuilding from the ground up — a full communication and career platform for every stage of your journey. Pre-college through your first years in the workforce.
+          We&apos;re rebuilding from the ground up - a full communication and career platform for every stage of your journey. Pre-college through your first years in the workforce.
         </p>
 
         {/* Three stage pills */}

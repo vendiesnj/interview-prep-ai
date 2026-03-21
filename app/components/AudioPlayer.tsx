@@ -176,7 +176,7 @@ export function AudioPlayer({ audioId }: { audioId: string | null }) {
           : isPlaying
           ? '⏸'
           : isUnavailable
-          ? '—'
+          ? ' - '
           : '▶'}
       </span>
       <span>

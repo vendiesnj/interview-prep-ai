@@ -15,15 +15,15 @@ const TODOS = [
 ];
 
 const CHECKLIST = [
-  { id: "401k_enrolled",    label: "Enroll in your 401(k)",                        desc: "Do this in your first 30 days — especially if your employer matches contributions." },
+  { id: "401k_enrolled",    label: "Enroll in your 401(k)",                        desc: "Do this in your first 30 days - especially if your employer matches contributions." },
   { id: "contribution_set", label: "Set your 401(k) contribution rate",            desc: "Aim for at least enough to get the full employer match. Increase 1% per year." },
-  { id: "benefits_reviewed", label: "Review all your benefits (health, dental, FSA)", desc: "Open enrollment windows close — missing them means waiting a full year." },
+  { id: "benefits_reviewed", label: "Review all your benefits (health, dental, FSA)", desc: "Open enrollment windows close - missing them means waiting a full year." },
   { id: "w4_set",           label: "Set up your W-4 correctly",                    desc: "Getting this wrong means a surprise tax bill or unnecessary withholding." },
   { id: "paycheck_review",  label: "Understand your first paycheck",               desc: "Gross vs. net, FICA, state taxes, and what you can actually spend." },
   { id: "loans_plan",       label: "Set up your student loan repayment plan",      desc: "Federal loans have income-driven options. Private loans should be refinanced at the right time." },
-  { id: "emergency_3mo",    label: "Build a 3-month emergency fund",               desc: "Before aggressively investing — this prevents going into debt during job transitions." },
+  { id: "emergency_3mo",    label: "Build a 3-month emergency fund",               desc: "Before aggressively investing - this prevents going into debt during job transitions." },
   { id: "renter_insurance",  label: "Get renter's insurance",                      desc: "Usually $15-20/month. Protects your belongings and provides liability coverage." },
-  { id: "credit_report",    label: "Check your credit report",                     desc: "Free at annualcreditreport.com. Dispute any errors — they're more common than you think." },
+  { id: "credit_report",    label: "Check your credit report",                     desc: "Free at annualcreditreport.com. Dispute any errors - they're more common than you think." },
   { id: "budget_post",      label: "Build a post-grad budget (50/30/20 rule)",     desc: "50% needs, 30% wants, 20% savings + debt paydown. Adjust based on your debt load." },
 ];
 

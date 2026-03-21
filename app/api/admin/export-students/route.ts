@@ -210,7 +210,7 @@ function buildPitchWalkthrough(input: {
   );
 
   talkingPoints.push(
-    `2) Open the student drilldown and show that IPC does not just score the student overall — it separates communication, confidence, and delivery quality.`
+    `2) Open the student drilldown and show that IPC does not just score the student overall - it separates communication, confidence, and delivery quality.`
   );
 
   if (input.avgClosing !== null && input.avgClosing < 6.5) {

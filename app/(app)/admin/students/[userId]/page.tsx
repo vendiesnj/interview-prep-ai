@@ -319,7 +319,7 @@ const trendDelta =
     : null;
 const trendLabel =
   trendDelta === null
-    ? "—"
+    ? " - "
     : trendDelta > 3
     ? `↑ +${trendDelta} pts`
     : trendDelta < -3
@@ -628,13 +628,13 @@ const trendLabel =
               <div style={{ color: "var(--text-muted)" }}>
                 Filler Rate:{" "}
                 <strong style={{ color: "var(--text-primary)" }}>
-                  {avgFillers !== null ? `${avgFillers}/100` : "—"}
+                  {avgFillers !== null ? `${avgFillers}/100` : " - "}
                 </strong>
               </div>
               <div style={{ color: "var(--text-muted)" }}>
                 Monotone Risk:{" "}
                 <strong style={{ color: "var(--text-primary)" }}>
-                  {avgMonotone !== null ? `${avgMonotone}/10` : "—"}
+                  {avgMonotone !== null ? `${avgMonotone}/10` : " - "}
                 </strong>
               </div>
                             <div style={{ color: "var(--text-muted)" }}>
@@ -695,7 +695,7 @@ const trendLabel =
             {row.cat.replace(/_/g, " ")}
           </span>
           <span style={{ color: "var(--text-muted)", fontWeight: 800 }}>
-            {row.avg !== null ? `${row.avg}/100` : "—"} · {row.count} attempt{row.count !== 1 ? "s" : ""}
+            {row.avg !== null ? `${row.avg}/100` : " - "} · {row.count} attempt{row.count !== 1 ? "s" : ""}
           </span>
         </div>
       ))}
@@ -800,15 +800,15 @@ const trendLabel =
                   </div>
 
               <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 800 }}>
-  {getAttemptFillers(attempt) !== null ? `${getAttemptFillers(attempt)}/100` : "—"}
+  {getAttemptFillers(attempt) !== null ? `${getAttemptFillers(attempt)}/100` : " - "}
 </div>
 
 <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 800 }}>
-  {getAttemptMonotone(attempt) !== null ? `${getAttemptMonotone(attempt)}/10` : "—"}
+  {getAttemptMonotone(attempt) !== null ? `${getAttemptMonotone(attempt)}/10` : " - "}
 </div>
 
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800 }}>
-                    {attempt.ts ? new Date(attempt.ts).toLocaleDateString() : "—"}
+                    {attempt.ts ? new Date(attempt.ts).toLocaleDateString() : " - "}
                   </div>
                 </div>
               ))

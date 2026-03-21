@@ -53,7 +53,7 @@ export default function AssignmentProgress() {
 
         setItems(enriched);
       } catch {
-        // silently fail — assignments are supplementary
+        // silently fail - assignments are supplementary
       } finally {
         setLoading(false);
       }

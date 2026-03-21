@@ -269,7 +269,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
               </div>
               <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 520, margin: "0 auto 28px" }}>
                 Peer benchmarks appear once enough users have completed the career check-in.
-                Be one of the first to contribute — your data helps everyone see how the cohort is doing.
+                Be one of the first to contribute - your data helps everyone see how the cohort is doing.
               </p>
               <Link
                 href="/career-checkin"

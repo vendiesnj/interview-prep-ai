@@ -26,7 +26,7 @@ const PATHS = [
         steps: ["PM (2–3 yrs)", "Senior PM (4–6 yrs)", "Group PM / Director of Product (7–10 yrs)", "VP Product / CPO"],
         pivot: "Founder, Venture Capital, or General Management",
         salaryRange: "$110k – $250k+ at senior levels",
-        notes: "APM programs at Google, Meta, Microsoft are highly competitive but fast-track. Domain expertise matters — PM with fintech background at a fintech company is very valuable.",
+        notes: "APM programs at Google, Meta, Microsoft are highly competitive but fast-track. Domain expertise matters - PM with fintech background at a fintech company is very valuable.",
       },
       {
         start: "Data Analyst",
@@ -104,12 +104,12 @@ const PATHS = [
 
 const UNIVERSAL_LESSONS = [
   {
-    title: "The first job matters less than you think — and more than you think",
+    title: "The first job matters less than you think - and more than you think",
     body: "Your first job doesn't lock you into an industry or function. People switch both all the time. But it does shape your initial network and mental model of how work works. Be deliberate, but don't be paralyzed by fear of the 'wrong' choice.",
   },
   {
     title: "Skills > titles on a resume",
-    body: "Hiring managers look at what you built, shipped, or fixed — not what your title was. Two people with the same title can have wildly different skill sets. Track your contributions, not your seniority.",
+    body: "Hiring managers look at what you built, shipped, or fixed - not what your title was. Two people with the same title can have wildly different skill sets. Track your contributions, not your seniority.",
   },
   {
     title: "Internal transfers beat external job searches for speed",
@@ -117,11 +117,11 @@ const UNIVERSAL_LESSONS = [
   },
   {
     title: "Your network is your actual career insurance",
-    body: "Most senior roles are filled before they're posted. The referral matters. Invest in relationships consistently — not just when you need something. One strong internal sponsor can accelerate a promotion by years.",
+    body: "Most senior roles are filled before they're posted. The referral matters. Invest in relationships consistently - not just when you need something. One strong internal sponsor can accelerate a promotion by years.",
   },
   {
     title: "Ask about comp early and often",
-    body: "The biggest comp jumps usually happen when changing companies, not during annual reviews. Research your market rate on Levels.fyi, Glassdoor, and LinkedIn Salary. Negotiating your offer is expected — not negotiating costs you more than you think compounded over years.",
+    body: "The biggest comp jumps usually happen when changing companies, not during annual reviews. Research your market rate on Levels.fyi, Glassdoor, and LinkedIn Salary. Negotiating your offer is expected - not negotiating costs you more than you think compounded over years.",
   },
 ];
 
@@ -197,7 +197,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
         </div>
 
         <div style={{ marginTop: 28, padding: "18px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 14, color: "var(--text-muted)" }}>Tell us where you landed — help build the salary benchmarks for your peers.</div>
+          <div style={{ fontSize: 14, color: "var(--text-muted)" }}>Tell us where you landed - help build the salary benchmarks for your peers.</div>
           <Link href="/career-checkin" style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 950, fontSize: 13, whiteSpace: "nowrap" }}>
             Career check-in →
           </Link>

@@ -578,7 +578,7 @@ Public speaking rules:
 - Evaluate the speech as a standalone spoken delivery: hook, structure, vocal variety, clarity, audience connection, and confidence/presence.
 - A strong hook that grabs attention immediately should score 8+. A weak or absent hook should score 4 or below.
 - Structure means a clear opening, developed body, and strong close. Trailing off without a close should cap structure at 5.
-- Vocal variety is about pitch variation, pace changes, and strategic pauses — not just speed.
+- Vocal variety is about pitch variation, pace changes, and strategic pauses - not just speed.
 - Delivery archetypes: "The Storyteller" (narrative-forward, engaging), "The Lecturer" (structured but flat), "The Rusher" (fast, nervous energy), "The Pauser" (measured, authoritative), "The Rambler" (enthusiastic but unfocused), "The Mumbler" (low energy, unclear).
 - Choose exactly one archetype that best fits the delivery. The archetype_coaching field must give one specific, actionable lever for that archetype.
 `;

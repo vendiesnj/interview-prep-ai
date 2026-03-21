@@ -130,18 +130,18 @@ function paceContext(wpm: number) {
   if (wpm <= 140) {
     return {
       label: "Ideal",
-      hint: "Great pace — clear, steady, and confident.",
+      hint: "Great pace - clear, steady, and confident.",
     };
   }
   if (wpm <= 165) {
     return {
       label: "Fast",
-      hint: "A bit quick — slow down on key points and numbers for clarity.",
+      hint: "A bit quick - slow down on key points and numbers for clarity.",
     };
   }
   return {
     label: "Very fast",
-    hint: "Too fast for most interviews — add intentional pauses after results and metrics.",
+    hint: "Too fast for most interviews - add intentional pauses after results and metrics.",
   };
 }
 
@@ -196,7 +196,7 @@ function crossSignalInsight(
 
   // High monotone + high energy = pitch flat but volume dynamic
   if (m !== null && m >= 7 && ev !== null && ev >= 6) {
-    return "Your volume varies well, but pitch stays flat — interviewers hear energy without expressiveness. Adding pitch drops on key points will sharpen the impact significantly.";
+    return "Your volume varies well, but pitch stays flat - interviewers hear energy without expressiveness. Adding pitch drops on key points will sharpen the impact significantly.";
   }
   // High monotone + low energy = fully flat
   if (m !== null && m >= 7 && ev !== null && ev < 4) {
@@ -204,19 +204,19 @@ function crossSignalInsight(
   }
   // High monotone + high WPM = fast and flat
   if (m !== null && m >= 6 && w !== null && w > 160) {
-    return "Speaking fast with flat delivery creates a particularly compressed impression — interviewers absorb less. Slow your pace on result statements to let important points land.";
+    return "Speaking fast with flat delivery creates a particularly compressed impression - interviewers absorb less. Slow your pace on result statements to let important points land.";
   }
-  // Low monotone but low energy variation — different signals
+  // Low monotone but low energy variation - different signals
   if (m !== null && m <= 3 && ev !== null && ev < 3) {
-    return "Low monotone risk is a positive signal. Note that energy variation is separate from pitch — consider adding more volume contrast between setup and result to match your pitch variety.";
+    return "Low monotone risk is a positive signal. Note that energy variation is separate from pitch - consider adding more volume contrast between setup and result to match your pitch variety.";
   }
   // Moderate monotone + good pitch std = nuanced flatness
   if (m !== null && m >= 4 && m <= 6 && ps !== null && ps >= 20) {
-    return "Moderate monotone risk but healthy pitch range suggests your voice varies, just not consistently enough. Focus on the moments when you transition to your result — that's where expressiveness matters most.";
+    return "Moderate monotone risk but healthy pitch range suggests your voice varies, just not consistently enough. Focus on the moments when you transition to your result - that's where expressiveness matters most.";
   }
   // Low monotone + slow WPM = measured and expressive
   if (m !== null && m <= 3 && w !== null && w < 120) {
-    return "Low monotone risk combined with measured pace is a strong signal. This delivery style reads as confident and considered — maintain it on your result and outcome sentences.";
+    return "Low monotone risk combined with measured pace is a strong signal. This delivery style reads as confident and considered - maintain it on your result and outcome sentences.";
   }
 
   return null;
@@ -1517,7 +1517,7 @@ const deliveryProfile = useMemo(() => {
   }}
 >
   <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Pace</span>
-                      <span>{typeof stored?.wpm === "number" ? `${stored.wpm} wpm` : "—"}</span>
+                      <span>{typeof stored?.wpm === "number" ? `${stored.wpm} wpm` : " - "}</span>
                       {typeof stored?.wpm === "number" ? (
                         <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>· {paceContext(stored.wpm).label}</span>
                       ) : null}
@@ -1747,7 +1747,7 @@ const deliveryProfile = useMemo(() => {
   },
   {
     label: "STAR Avg",
-    displayValue: typeof starAvg === "number" ? `${starAvg.toFixed(1)}` : "—",
+    displayValue: typeof starAvg === "number" ? `${starAvg.toFixed(1)}` : " - ",
     displaySuffix: typeof starAvg === "number" ? "/10" : "",
     barPct: scoreToBarPctFromTenPoint(starAvg),
     sub: "Situation/Task/Action/Result",
@@ -1770,7 +1770,7 @@ const deliveryProfile = useMemo(() => {
 
                         <div style={{ marginTop: 8, fontSize: 28, fontWeight: 700, color: "var(--text-primary)" }}>
   {m.displayValue}
-  {m.displayValue !== "—" ? m.displaySuffix : ""}
+  {m.displayValue !== " - " ? m.displaySuffix : ""}
 </div>
 
                         <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
@@ -2192,8 +2192,8 @@ const deliveryProfile = useMemo(() => {
                   <SectionCard title="Voice Delivery">
                     <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
                       {stored?.inputMethod === "pasted"
-                        ? "Paste answers don't generate audio signals. Record a spoken answer to unlock delivery coaching — pace, vocal variety, energy, and filler words are analyzed automatically."
-                        : "Record a spoken answer to unlock delivery coaching — pace, filler words, vocal variety, and energy are analyzed automatically."}
+                        ? "Paste answers don't generate audio signals. Record a spoken answer to unlock delivery coaching - pace, vocal variety, energy, and filler words are analyzed automatically."
+                        : "Record a spoken answer to unlock delivery coaching - pace, filler words, vocal variety, and energy are analyzed automatically."}
                     </div>
                   </SectionCard>
                 ) : (
@@ -2210,7 +2210,7 @@ const deliveryProfile = useMemo(() => {
                         lineHeight: 1.6,
                       }}>
                         <span style={{ fontWeight: 600, color: "rgba(251,191,36,0.9)" }}>Partial data</span>
-                        {" — "}Pace and filler words are measured from your transcript, but vocal variety and energy require audio analysis that wasn't captured for this attempt. Re-record to get the full profile.
+                        {" - "}Pace and filler words are measured from your transcript, but vocal variety and energy require audio analysis that wasn't captured for this attempt. Re-record to get the full profile.
                       </div>
                     ) : null}
 
@@ -2310,7 +2310,7 @@ const deliveryProfile = useMemo(() => {
                                 {sig.label}
                               </div>
                               <div style={{ fontSize: 11, fontWeight: 700, color: isNeeds ? "rgba(248,113,113,0.9)" : isIdeal ? "rgba(34,197,94,0.9)" : isUnavail ? "var(--text-soft)" : "var(--text-muted)" }}>
-                                {isIdeal ? "✓" : isNeeds ? "⚠" : isUnavail ? "—" : "·"}
+                                {isIdeal ? "✓" : isNeeds ? "⚠" : isUnavail ? " - " : "·"}
                               </div>
                             </div>
                             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginTop: 6, lineHeight: 1.2 }}>
@@ -2327,7 +2327,7 @@ const deliveryProfile = useMemo(() => {
                     {/* Composite delivery scores */}
                     {(() => {
                       const rows = [
-                        { label: "Overall Engagement", value: deliverySummary?.engagementScore, desc: "Vocal presence + rhythm + pace — how captivating the delivery sounds overall", accent: true },
+                        { label: "Overall Engagement", value: deliverySummary?.engagementScore, desc: "Vocal presence + rhythm + pace - how captivating the delivery sounds overall", accent: true },
                         { label: "Vocal Presence",     value: deliverySummary?.vocalPresenceScore, desc: "Pitch variety, energy dynamics, and expressiveness" },
                         { label: "Rhythm",             value: deliverySummary?.rhythmScore, desc: "Pause patterns, pacing consistency, and natural flow" },
                         { label: "Clarity",            value: deliverySummary?.clarityScore, desc: "Filler word control and absence of disruptive pauses" },

@@ -1126,11 +1126,11 @@ function getIntervention(s: { avgScore: number | null; attemptsRaw: AttemptRow[]
     fillerVals.length > 0 ? fillerVals.reduce((a, b) => a + b, 0) / fillerVals.length : 0;
 
   if (avgFillersVal > 6)
-    return "Assign 2 behavioral questions with focus on filler reduction — practice replacing 'um/like' with a 1-second pause.";
+    return "Assign 2 behavioral questions with focus on filler reduction - practice replacing 'um/like' with a 1-second pause.";
   if (avgS < 50)
     return "Start with 1 simple behavioral question per day to build baseline confidence and structure.";
   if (avgS < 60)
-    return "Focus on adding one measurable result to each answer — specificity is the fastest path to score improvement.";
+    return "Focus on adding one measurable result to each answer - specificity is the fastest path to score improvement.";
   return "Schedule a 1:1 coaching session to identify the specific structural gap limiting this student's score.";
 }
 
@@ -1206,11 +1206,11 @@ const stalledPct =
     ? Math.round((stalledStudents / filteredStudents.length) * 100)
     : 0;
 
-  const avgScoreDisplay = avgScore !== null ? avgScore.toFixed(0) : "—";
+  const avgScoreDisplay = avgScore !== null ? avgScore.toFixed(0) : " - ";
   const avgCommunicationDisplay =
-    avgCommunication !== null ? `${pctFrom10(avgCommunication)}%` : "—";
+    avgCommunication !== null ? `${pctFrom10(avgCommunication)}%` : " - ";
   const avgConfidenceDisplay =
-    avgConfidence !== null ? `${pctFrom10(avgConfidence)}%` : "—";
+    avgConfidence !== null ? `${pctFrom10(avgConfidence)}%` : " - ";
 
   const assignments = await prisma.assignment.findMany({
     where: { tenantId: currentUser.tenantId ?? undefined, isActive: true },
@@ -1458,7 +1458,7 @@ const stalledPct =
 <strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
 <strong>{avgConfidenceDisplay}</strong>.{" "}
 {atRiskPct === 0
-  ? "No students are currently below the readiness target — the cohort is on track."
+  ? "No students are currently below the readiness target - the cohort is on track."
   : <><strong>{atRiskPct}%</strong> of students in this view are currently below the readiness target and may benefit from targeted coaching support.</>
 }
               </div>
@@ -1557,7 +1557,7 @@ const stalledPct =
                       value:
                         row.fitScore !== null
                           ? `${pctFrom10(row.fitScore)}%`
-                          : "—",
+                          : " - ",
                     }))
                   : [
                       {
@@ -1734,7 +1734,7 @@ const stalledPct =
                               fontWeight: 900,
                             }}
                           >
-                            {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : "—"}
+                            {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : " - "}
                           </div>
                           <div
                             style={{
@@ -1857,11 +1857,11 @@ const stalledPct =
               const daysSince = row.latest
                 ? Math.floor((Date.now() - new Date(row.latest).getTime()) / (1000 * 60 * 60 * 24))
                 : null;
-              const lastActiveLabel = daysSince === null ? "—"
+              const lastActiveLabel = daysSince === null ? " - "
                 : daysSince === 0 ? "Today"
                 : daysSince === 1 ? "Yesterday"
                 : daysSince <= 7 ? `${daysSince}d ago`
-                : row.latest ? new Date(row.latest).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—";
+                : row.latest ? new Date(row.latest).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : " - ";
               const lastActiveColor = daysSince !== null && daysSince > 14 ? "var(--chart-critical)" : "var(--text-muted)";
 
               return (
@@ -1902,7 +1902,7 @@ const stalledPct =
                     {/* Score with cohort pill */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                       <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
-                        {row.avgScore100 !== null ? `${row.avgScore100}` : "—"}
+                        {row.avgScore100 !== null ? `${row.avgScore100}` : " - "}
                       </div>
                       <div style={{ padding: "2px 6px", borderRadius: 999, background: cohortBg, color: cohortColor, fontSize: 10, fontWeight: 900, display: "inline-block" }}>
                         {cohortLabel}
@@ -1910,11 +1910,11 @@ const stalledPct =
                     </div>
 
                     <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                      {commAvg !== null ? `${pctFrom10(commAvg)}%` : "—"}
+                      {commAvg !== null ? `${pctFrom10(commAvg)}%` : " - "}
                     </div>
 
                     <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                      {confAvg !== null ? `${pctFrom10(confAvg)}%` : "—"}
+                      {confAvg !== null ? `${pctFrom10(confAvg)}%` : " - "}
                     </div>
 
                     <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
@@ -1943,7 +1943,7 @@ const stalledPct =
           <MetricPill label="Confidence" value={avgConfidenceDisplay} />
           <MetricPill label="Spoken Attempts" value={`${spokenRate}%`} />
           <MetricPill label="Most Common Gap" value={weaknessRows[0]?.label ?? "Still emerging"} />
-          <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : "—"} />
+          <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : " - "} />
         </div>
 
         {/* Assignments Panel */}
@@ -2116,11 +2116,11 @@ const stalledPct =
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Check-ins submitted</div>
                 </div>
                 <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                  <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981" }}>{employmentRate !== null ? `${employmentRate}%` : "—"}</div>
+                  <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981" }}>{employmentRate !== null ? `${employmentRate}%` : " - "}</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Employment rate</div>
                 </div>
                 <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                  <div style={{ fontSize: 28, fontWeight: 950, color: "#F59E0B" }}>{avgSatisfaction ?? "—"}<span style={{ fontSize: 14 }}>/5</span></div>
+                  <div style={{ fontSize: 28, fontWeight: 950, color: "#F59E0B" }}>{avgSatisfaction ?? " - "}<span style={{ fontSize: 14 }}>/5</span></div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Avg satisfaction</div>
                 </div>
               </div>

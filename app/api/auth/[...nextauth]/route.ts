@@ -180,7 +180,7 @@ export const authOptions: NextAuthOptions = {
             })
           : null;
 
-        // Only assign tenant if matched by email domain — standalone users stay tenant-free
+        // Only assign tenant if matched by email domain - standalone users stay tenant-free
         if (matchedTenant) {
           await prisma.user.update({
             where: { id: effectiveUserId },

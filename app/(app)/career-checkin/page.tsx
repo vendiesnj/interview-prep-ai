@@ -116,7 +116,7 @@ export default function CareerCheckInPage() {
   };
 
   return (
-    <PremiumShell title="Career Check-In" subtitle="All questions optional — share what you're comfortable with">
+    <PremiumShell title="Career Check-In" subtitle="All questions optional - share what you're comfortable with">
       <div style={{ maxWidth: 660, margin: "0 auto", paddingBottom: 48 }}>
         <div style={{ marginBottom: 20 }}>
           <Link href="/career-guide" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>← Career Guide</Link>
@@ -167,7 +167,7 @@ export default function CareerCheckInPage() {
               {/* ── STEP 2: ROLE ── */}
               {step === "role" && (
                 <div>
-                  <StepHeader title="Tell us about your role" sub="All fields optional — share what you're comfortable with." />
+                  <StepHeader title="Tell us about your role" sub="All fields optional - share what you're comfortable with." />
                   <div style={{ display: "grid", gap: 14, marginBottom: 24 }}>
                     <Field label="Job title" placeholder="e.g. Software Engineer" value={form.jobTitle} onChange={(v) => set("jobTitle", v)} />
                     <Field label="Company" placeholder="e.g. Accenture" value={form.company} onChange={(v) => set("company", v)} />
@@ -219,7 +219,7 @@ export default function CareerCheckInPage() {
               {/* ── STEP 4: FINANCIAL ── */}
               {step === "financial" && (
                 <div>
-                  <StepHeader title="Financial snapshot" sub="Powers your retirement projection and financial health score. Completely optional — skip anything you'd prefer not to share." />
+                  <StepHeader title="Financial snapshot" sub="Powers your retirement projection and financial health score. Completely optional - skip anything you'd prefer not to share." />
 
                   <SectionLabel>Do you have a 401k or retirement account through work?</SectionLabel>
                   <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>

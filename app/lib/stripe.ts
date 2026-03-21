@@ -12,7 +12,7 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-// Legacy named export for existing callers — resolved lazily at call time
+// Legacy named export for existing callers - resolved lazily at call time
 export const stripe = new Proxy({} as Stripe, {
   get(_target, prop) {
     return (getStripe() as any)[prop];

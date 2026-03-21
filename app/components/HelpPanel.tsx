@@ -126,12 +126,12 @@ function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => v
         <Section title="How it works">
           <Step n={1} text="Set up a Job Profile with the role you're targeting. Paste a real job description for the most relevant questions." />
           <Step n={2} text="Go to Practice and answer an interview question by speaking or typing your response." />
-          <Step n={3} text="Review your Results — you'll get STAR scoring, communication feedback, delivery analysis, and a stronger-answer rewrite." />
+          <Step n={3} text="Review your Results - you'll get STAR scoring, communication feedback, delivery analysis, and a stronger-answer rewrite." />
           <Step n={4} text="Track your Progress over time. Repeat for different question types and profiles." />
         </Section>
 
         <Section title="Start here">
-          <Tip>Set your first job profile before practicing — it unlocks tailored questions and better keyword scoring.</Tip>
+          <Tip>Set your first job profile before practicing - it unlocks tailored questions and better keyword scoring.</Tip>
           <Tip>Try the Question Bank to pick a specific behavioral or technical question to work on.</Tip>
         </Section>
 
@@ -161,21 +161,21 @@ function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => v
     return (
       <>
         <Section title="Answer structure">
-          <Tip>Use STAR: Situation → Task → Action → Result. Keep Situation and Task brief — the Action and Result are what interviewers remember.</Tip>
+          <Tip>Use STAR: Situation → Task → Action → Result. Keep Situation and Task brief - the Action and Result are what interviewers remember.</Tip>
           <Tip>End every answer with a specific, measurable result. "The team met the deadline" is weak. "We shipped 2 weeks early and reduced bug reports by 40%" is strong.</Tip>
-          <Tip>Use "I" not "we" — interviewers want to know what you specifically did, not what the group accomplished.</Tip>
+          <Tip>Use "I" not "we" - interviewers want to know what you specifically did, not what the group accomplished.</Tip>
         </Section>
 
         <Section title="Delivery">
           <Tip>Speak at 130–160 WPM. Much faster sounds rushed; slower can sound unsure. Your results page shows your actual WPM.</Tip>
           <Tip>Replace filler words (um, uh, like) with a 1-second pause. Silence sounds more confident than filler.</Tip>
-          <Tip>Vary your energy when you get to the result — the outcome line should land with more weight than the setup.</Tip>
+          <Tip>Vary your energy when you get to the result - the outcome line should land with more weight than the setup.</Tip>
         </Section>
 
         <Section title="Practice habits">
           <Tip>Do at least 3 attempts per question type to see meaningful score improvement.</Tip>
           <Tip>Practice out loud, not in your head. Reading an answer silently doesn't train your delivery.</Tip>
-          <Tip>Review the "Better Answer" rewrite in your results — it shows exactly what the ideal version sounds like for your role.</Tip>
+          <Tip>Review the "Better Answer" rewrite in your results - it shows exactly what the ideal version sounds like for your role.</Tip>
         </Section>
       </>
     );
@@ -186,7 +186,7 @@ function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => v
       <>
         <Section title="Score tabs">
           <MetricRow label="Overview" what="Your overall score, headline strengths, and top improvement areas at a glance." />
-          <MetricRow label="Relevance" what="How directly your answer addressed the question — scored on directness, completeness, and on-topic focus." />
+          <MetricRow label="Relevance" what="How directly your answer addressed the question - scored on directness, completeness, and on-topic focus." />
           <MetricRow label="Structure" what="STAR breakdown with evidence excerpts from your transcript and per-component scores (S / T / A / R)." />
           <MetricRow label="Delivery" what="Speech pace (WPM), filler rate, monotone risk, energy variation, and pitch dynamics from your audio." />
           <MetricRow label="Coaching" what="Why you scored what you scored, what the next attempt should focus on, and a rewritten stronger answer." />
@@ -194,10 +194,10 @@ function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => v
         </Section>
 
         <Section title="Key metrics">
-          <MetricRow label="STAR avg" what="Average of your Situation, Task, Action, and Result scores — the core structural quality signal." />
+          <MetricRow label="STAR avg" what="Average of your Situation, Task, Action, and Result scores - the core structural quality signal." />
           <MetricRow label="Communication" what="How clearly and fluently you expressed your ideas, independent of content quality." />
-          <MetricRow label="Confidence" what="Ownership language, assertive phrasing, and avoidance of hedging — not how you felt, but how you sounded." />
-          <MetricRow label="Closing Impact" what="How strong your Result statement was — the single highest-leverage thing to improve in most answers." />
+          <MetricRow label="Confidence" what="Ownership language, assertive phrasing, and avoidance of hedging - not how you felt, but how you sounded." />
+          <MetricRow label="Closing Impact" what="How strong your Result statement was - the single highest-leverage thing to improve in most answers." />
           <MetricRow label="Monotone Risk" what="Higher = flatter delivery. Aim below 5/10. Raise energy especially on your result line." />
         </Section>
       </>
@@ -213,7 +213,7 @@ function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => v
       />
       <FaqItem
         q="What's a good overall score?"
-        a="Scores above 70/100 indicate a solid, structured answer. Scores of 80+ are strong. Most first attempts land between 45–65 — improvement after feedback is common and expected."
+        a="Scores above 70/100 indicate a solid, structured answer. Scores of 80+ are strong. Most first attempts land between 45–65 - improvement after feedback is common and expected."
       />
       <FaqItem
         q="What is STAR scoring?"
@@ -221,7 +221,7 @@ function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => v
       />
       <FaqItem
         q="Can I practice without a job profile?"
-        a="Yes — you can answer general behavioral questions without a profile. Adding a profile unlocks role-tailored questions and better keyword alignment scoring."
+        a="Yes - you can answer general behavioral questions without a profile. Adding a profile unlocks role-tailored questions and better keyword alignment scoring."
       />
       <FaqItem
         q="How do I improve my Confidence score?"

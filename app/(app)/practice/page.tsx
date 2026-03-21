@@ -871,9 +871,9 @@ const conf = last5
   // 1) Overall trend callout (more specific)
   if (overall.length >= 2) {
   const d = trend(overall);
-  if (d >= 5) tips.push(`Up ${Math.round(d)} points overall in your last ${overall.length} attempts — keep the same structure and tighten the close.`);
-  else if (d <= -5) tips.push(`Down ${Math.round(Math.abs(d))} points overall recently — simplify: 1 clear claim → 2 support points → 1 strong close.`);
-  else tips.push(`Stable overall lately — pick ONE lever next attempt (STAR result, fillers, pace, or vocal variety).`);
+  if (d >= 5) tips.push(`Up ${Math.round(d)} points overall in your last ${overall.length} attempts - keep the same structure and tighten the close.`);
+  else if (d <= -5) tips.push(`Down ${Math.round(Math.abs(d))} points overall recently - simplify: 1 clear claim → 2 support points → 1 strong close.`);
+  else tips.push(`Stable overall lately - pick ONE lever next attempt (STAR result, fillers, pace, or vocal variety).`);
 }
 
   // 2) Biggest lever (lowest average dimension)
@@ -912,7 +912,7 @@ const aConf = avgTenPoint(conf);
   // 5) Pace (spoken only)
   const aWpm = avg(wpmSeries);
   if (aWpm !== null) {
-    if (aWpm < 100) tips.push(`Spoken pace trends slow (avg ${Math.round(aWpm)} wpm). Tighten pauses—aim 115–145.`);
+    if (aWpm < 100) tips.push(`Spoken pace trends slow (avg ${Math.round(aWpm)} wpm). Tighten pauses- aim 115–145.`);
     if (aWpm > 165) tips.push(`Spoken pace trends fast (avg ${Math.round(aWpm)} wpm). Add micro-pauses after metrics.`);
   }
 
@@ -1246,9 +1246,9 @@ async function analyzeProsodyFromBlob(blob: Blob) {
   const monotoneScore = Math.round(clamp(0.75 * pitchScore + 0.25 * energyScore, 1, 10));
 
   let feedback = "";
-  if (monotoneScore <= 3) feedback = "You sound a bit monotone — lift pitch on key points and land sentences confidently.";
-  else if (monotoneScore <= 6) feedback = "Moderate vocal variety — emphasize outcomes and pause after metrics.";
-  else feedback = "Nice vocal variety — your tone sounds engaging and confident.";
+  if (monotoneScore <= 3) feedback = "You sound a bit monotone - lift pitch on key points and land sentences confidently.";
+  else if (monotoneScore <= 6) feedback = "Moderate vocal variety - emphasize outcomes and pause after metrics.";
+  else feedback = "Nice vocal variety - your tone sounds engaging and confident.";
 
   try { await audioCtx.close(); } catch {}
 
@@ -1547,7 +1547,7 @@ function drawWaveform() {
 
     // Line
     ctxNow.lineWidth = 2 * dpr;
-    ctxNow.strokeStyle = "rgba(34,211,238,0.95)"; // canvas — uses theme --accent
+    ctxNow.strokeStyle = "rgba(34,211,238,0.95)"; // canvas - uses theme --accent
     ctxNow.beginPath();
 
     const sliceWidth = canvasNow.width / bufferLength;
@@ -2051,7 +2051,7 @@ if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
 
 console.log("[voice-metrics] result:", freshestVoiceMetrics
   ? { acousticsKeys: freshestVoiceMetrics ? Object.keys((freshestVoiceMetrics as any).acoustics ?? {}) : null, hasAcoustics: !!(freshestVoiceMetrics as any).acoustics }
-  : "null — voice-metrics failed or not yet complete");
+  : "null - voice-metrics failed or not yet complete");
 
 const normalizedAcoustics = (() => {
   const m = freshestVoiceMetrics as any;
@@ -2178,7 +2178,7 @@ const activeProfileRoleType = activeJobProfile?.roleType ?? null;
   wpm: inputMethod === "spoken" ? wpm : null,
   inputMethod,
 
-  // ✅ local replay id (IndexedDB) — keep if you still want same-device replay
+  // ✅ local replay id (IndexedDB) - keep if you still want same-device replay
   audioId: inputMethod === "spoken" ? attemptIdRef.current : null,
 
   // ✅ cross-device replay (Supabase Storage)
@@ -2407,7 +2407,7 @@ return (
     lineHeight: 1.55,
   }}
 >
-        Record answers, get scoring on communication, confidence, answer structure, fillers, pace, and vocal variety —
+        Record answers, get scoring on communication, confidence, answer structure, fillers, pace, and vocal variety -
     then follow a game plan for your next attempt.
   </div>
 
@@ -3471,12 +3471,12 @@ e.currentTarget.style.borderColor = "var(--card-border)";
 >
   <span style={{ color: "var(--text-muted)" }}>Free attempts:</span>
   <span style={{ color: "var(--accent)", fontWeight: 600 }}>
-    {entitlement?.cap == null ? "—" : `${entitlement.used}/${entitlement.cap}`}
+    {entitlement?.cap == null ? " - " : `${entitlement.used}/${entitlement.cap}`}
   </span>
   <span style={{ color: "var(--text-muted)" }}>•</span>
   <span style={{ color: "var(--text-muted)" }}>Remaining:</span>
   <span style={{ color: "var(--accent)", fontWeight: 600 }}>
-    {entitlement?.remaining == null ? "—" : entitlement.remaining}
+    {entitlement?.remaining == null ? " - " : entitlement.remaining}
   </span>
 </div>
 ) : null}
@@ -3856,22 +3856,22 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
           <div>
             <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
-            <div style={{ marginTop: 4, fontWeight: 700 }}>{avgScore ?? "—"}</div>
+            <div style={{ marginTop: 4, fontWeight: 700 }}>{avgScore ?? " - "}</div>
           </div>
           <div>
             <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Min</div>
-            <div style={{ marginTop: 4, fontWeight: 700 }}>{minScore ?? "—"}</div>
+            <div style={{ marginTop: 4, fontWeight: 700 }}>{minScore ?? " - "}</div>
           </div>
           <div>
             <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Max</div>
-            <div style={{ marginTop: 4, fontWeight: 700 }}>{maxScore ?? "—"}</div>
+            <div style={{ marginTop: 4, fontWeight: 700 }}>{maxScore ?? " - "}</div>
           </div>
         </div>
 
         <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)" }}>
           {history.length < 2
             ? "Do a couple attempts to see the trend line."
-            : "Trend updates as you practice — newest attempt is on the right."}
+            : "Trend updates as you practice - newest attempt is on the right."}
         </div>
       </div>
     </div>
@@ -4001,7 +4001,7 @@ onMouseLeave={(e) =>
                   }}
                   title={h.question}
                 >
-                  Q: {h.question || "—"}
+                  Q: {h.question || " - "}
                 </div>
               </div>
 

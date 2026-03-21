@@ -286,7 +286,7 @@ export const lightTheme: AppTheme = {
     pageBgAccentA: "rgba(37,99,235,0.05)",
     pageBgAccentB: "rgba(14,165,233,0.04)",
 
-    // Slate typography — rich contrast without harsh pure black
+    // Slate typography - rich contrast without harsh pure black
     text: "#0F172A",
     textMuted: "#64748B",
     textSoft: "#94A3B8",
@@ -300,7 +300,7 @@ export const lightTheme: AppTheme = {
     inputBg: "#F8FAFC",
     inputBorder: "rgba(15,23,42,0.13)",
 
-    // Blue as the primary accent — matches the IPC logo
+    // Blue as the primary accent - matches the IPC logo
     accent: "#2563EB",
     accentSoft: "rgba(37,99,235,0.08)",
     accentStrong: "rgba(37,99,235,0.22)",

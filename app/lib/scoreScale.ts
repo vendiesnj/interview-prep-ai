@@ -10,12 +10,12 @@ export function asTenPoint(value: number | null | undefined): number | null {
 
 export function displayOverall100(value: number | null | undefined): string {
   const normalized = asOverall100(value);
-  return normalized === null ? "—" : `${Math.round(normalized)}/100`;
+  return normalized === null ? " - " : `${Math.round(normalized)}/100`;
 }
 
 export function displayTenPointAs100(value: number | null | undefined): string {
   const normalized = asTenPoint(value);
-  return normalized === null ? "—" : `${Math.round(normalized * 10)}/100`;
+  return normalized === null ? " - " : `${Math.round(normalized * 10)}/100`;
 }
 
 export function avgOverall100(values: Array<number | null | undefined>): number | null {

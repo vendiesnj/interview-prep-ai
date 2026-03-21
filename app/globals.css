@@ -19,8 +19,8 @@ body {
   font-family: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+ -webkit-font-smoothing: antialiased;
+ -moz-osx-font-smoothing: grayscale;
 
   background:
     radial-gradient(900px 500px at 10% -10%, var(--app-bg-accent-a), transparent 60%),
@@ -51,14 +51,14 @@ a {
  
  
   /* Hardcoded IPC dark theme */
-  --background: #070a12;
-  --foreground: var(--text-primary);
+ --background: #070a12;
+ --foreground: var(--text-primary);
 
-  --card-bg: rgba(255, 255, 255, 0.03);
-  --card-border: rgba(255, 255, 255, 0.10);
+ --card-bg: rgba(255, 255, 255, 0.03);
+ --card-border: rgba(255, 255, 255, 0.10);
 
-  --muted: var(--text-muted);
-  --accent: #a5f3fc;
+ --muted: var(--text-muted);
+ --accent: #a5f3fc;
 
   color-scheme: dark;
 }
@@ -149,7 +149,7 @@ a {
 }
 
 /* =========================
-   Landing page — rich animations
+   Landing page - rich animations
    ========================= */
 
 /* Slow floating gradient behind hero */
@@ -163,7 +163,7 @@ a {
   will-change: transform;
 }
 
-/* Stat counter shimmer — runs once on load */
+/* Stat counter shimmer - runs once on load */
 @keyframes ipcStatPop {
   0%   { opacity: 0; transform: scale(0.82) translateY(6px); filter: blur(4px); }
   60%  { opacity: 1; transform: scale(1.06) translateY(-2px); filter: blur(0); }
@@ -211,8 +211,8 @@ a {
   );
   background-size: 300% 300%;
   animation: ipcBorderSpin 5s ease infinite;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
+ -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+ -webkit-mask-composite: xor;
   mask-composite: exclude;
   pointer-events: none;
   opacity: 0.7;
@@ -240,8 +240,8 @@ a {
     var(--accent) 80%
   );
   background-size: 200% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+ -webkit-background-clip: text;
+ -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: ipcTextShimmer 4s linear infinite;
 }
@@ -289,7 +289,7 @@ a {
   .ipc-slide-in,
   .ipc-help-pulse {
     animation: none !important;
-    -webkit-text-fill-color: var(--accent);
+   -webkit-text-fill-color: var(--accent);
   }
   .ipc-card-lift {
     transition: none !important;
@@ -364,7 +364,7 @@ textarea::placeholder {
 }
 
 /* =============================================================
-   MOBILE RESPONSIVE — IPC
+   MOBILE RESPONSIVE - IPC
    Breakpoints:
      sm  ≤ 480px   (phone portrait)
      md  ≤ 768px   (tablet/phone landscape)
@@ -504,7 +504,7 @@ textarea::placeholder {
   }
   .ipc-tab-bar {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+   -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
   .ipc-tab-bar::-webkit-scrollbar {
@@ -532,7 +532,7 @@ textarea::placeholder {
 @media (max-width: 768px) {
   .ipc-table-scroll {
     overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+   -webkit-overflow-scrolling: touch;
     width: 100%;
   }
   .ipc-table-scroll table {

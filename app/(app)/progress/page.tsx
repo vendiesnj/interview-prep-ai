@@ -121,7 +121,7 @@ function trendDirection(values: number[]) {
 }
 
 function scoreLabel(score100: number | null) {
-  if (score100 === null) return "—";
+  if (score100 === null) return " - ";
   if (score100 >= 85) return "Excellent";
   if (score100 >= 75) return "Strong";
   if (score100 >= 65) return "Good";
@@ -130,13 +130,13 @@ function scoreLabel(score100: number | null) {
 }
 
 function formatDelta(v: number | null, suffix = "") {
-  if (v === null) return "—";
+  if (v === null) return " - ";
   if (v > 0) return `+${v}${suffix}`;
   return `${v}${suffix}`;
 }
 
 function paceLabel(wpm: number | null) {
-  if (wpm === null) return "—";
+  if (wpm === null) return " - ";
   if (wpm < 100) return "Slow";
   if (wpm <= 145) return "Strong";
   if (wpm <= 165) return "Fast";
@@ -500,7 +500,7 @@ function ScoreBarRow({
         </div>
 
         <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
-          {avgScore === null ? "—" : `${Math.round(avgScore)}/100`}
+          {avgScore === null ? " - " : `${Math.round(avgScore)}/100`}
         </div>
       </div>
 
@@ -1494,16 +1494,16 @@ export default function ProgressPage() {
     const reminders: string[] = [];
 
     if (strongestDimension?.label === "Communication") {
-      leanInto.push("Lead with the headline of your answer — clear framing is already one of your strengths.");
+      leanInto.push("Lead with the headline of your answer - clear framing is already one of your strengths.");
     }
     if (strongestDimension?.label === "Confidence") {
-      leanInto.push("Use direct language and strong ownership — your tone carries authority when you trust your first sentence.");
+      leanInto.push("Use direct language and strong ownership - your tone carries authority when you trust your first sentence.");
     }
     if (strongestCategory?.label) {
       leanInto.push(`You are most natural in ${strongestCategory.label.toLowerCase()} questions, so borrow that same structure in weaker categories.`);
     }
     if (overview.avgPace !== null && overview.avgPace >= 115 && overview.avgPace <= 145) {
-      leanInto.push("Your pacing is already in a strong interview range — keep that same tempo under pressure.");
+      leanInto.push("Your pacing is already in a strong interview range - keep that same tempo under pressure.");
     }
 
     if (overview.avgFillers !== null && overview.avgFillers >= 3) {
@@ -1549,18 +1549,18 @@ export default function ProgressPage() {
     }
 
     reminders.push("Open with the answer first, then support it with 2–3 details.");
-    reminders.push("Make the final line sound finished — result, takeaway, or impact.");
+    reminders.push("Make the final line sound finished - result, takeaway, or impact.");
     reminders.push("If you start rambling, shorten the sentence instead of adding more explanation.");
 
     if (watchouts.length === 0) {
       if (biggestGap?.label === "Closing Impact") {
-        watchouts.push("Do not let solid answers fade at the end — your final sentence should clearly state the result.");
+        watchouts.push("Do not let solid answers fade at the end - your final sentence should clearly state the result.");
       } else if (biggestGap?.label === "Communication") {
-        watchouts.push("Do not bury your best point in too much setup — get to the answer faster.");
+        watchouts.push("Do not bury your best point in too much setup - get to the answer faster.");
       } else if (biggestGap?.label === "Confidence") {
-        watchouts.push("Do not undersell good examples — stronger ownership will improve how credible you sound.");
+        watchouts.push("Do not undersell good examples - stronger ownership will improve how credible you sound.");
       } else {
-        watchouts.push("Do not try to improve everything at once — one focused adjustment will help more than five vague ones.");
+        watchouts.push("Do not try to improve everything at once - one focused adjustment will help more than five vague ones.");
       }
     }
 
@@ -1697,7 +1697,7 @@ export default function ProgressPage() {
                 >
                   <BigMetricCard
                     label="Avg Overall"
-                    value={overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall)}
+                    value={overview.avgOverall === null ? " - " : displayOverall100(overview.avgOverall)}
                     subtext={
                       percentiles.overall !== null
                         ? `Top ${100 - percentiles.overall}% of candidates`
@@ -1713,7 +1713,7 @@ export default function ProgressPage() {
 
                   <BigMetricCard
                     label="Top Strength"
-                    value={strongestDimension?.label ?? "—"}
+                    value={strongestDimension?.label ?? " - "}
                     subtext={
                       strongestDimension?.value !== null && strongestDimension?.value !== undefined
                         ? `${displayTenPointAs100(strongestDimension.value)} average`
@@ -1723,7 +1723,7 @@ export default function ProgressPage() {
 
                   <BigMetricCard
                     label="Biggest Gap"
-                    value={biggestGap?.label ?? "—"}
+                    value={biggestGap?.label ?? " - "}
                     subtext={
                       biggestGap?.value !== null && biggestGap?.value !== undefined
                         ? `${displayTenPointAs100(biggestGap.value)} average`
@@ -1733,7 +1733,7 @@ export default function ProgressPage() {
 
                   <BigMetricCard
                     label="Top Category"
-                    value={overview.topCategory ? titleCaseLabel(overview.topCategory) : "—"}
+                    value={overview.topCategory ? titleCaseLabel(overview.topCategory) : " - "}
                     subtext="Most-practiced question type"
                   />
 
@@ -2014,7 +2014,7 @@ export default function ProgressPage() {
                                 whiteSpace: "nowrap",
                               }}
                             >
-                              {row.fitLabel} · {row.fitScore === null ? "—" : displayTenPointAs100(row.fitScore)}
+                              {row.fitLabel} · {row.fitScore === null ? " - " : displayTenPointAs100(row.fitScore)}
                             </div>
                           </div>
 
@@ -2041,7 +2041,7 @@ export default function ProgressPage() {
                                 Overall
                               </div>
                               <div style={{ marginTop: 6, fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
-                                {row.avgScore === null ? "—" : displayOverall100(row.avgScore)}
+                                {row.avgScore === null ? " - " : displayOverall100(row.avgScore)}
                               </div>
                             </div>
 
@@ -2255,25 +2255,25 @@ export default function ProgressPage() {
                 >
                   <BigMetricCard
                     label="Pace"
-                    value={overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} WPM`}
+                    value={overview.avgPace === null ? " - " : `${Math.round(overview.avgPace)} WPM`}
                     subtext={overview.avgPace === null ? "Average spoken pace" : `${paceLabel(overview.avgPace)} pace`}
                   />
 
                   <BigMetricCard
                     label="Fillers"
-                    value={overview.avgFillers === null ? "—" : `${overview.avgFillers}/100`}
+                    value={overview.avgFillers === null ? " - " : `${overview.avgFillers}/100`}
                     subtext="Average filler rate"
                   />
 
                   <BigMetricCard
                     label="Monotone Risk"
-                    value={overview.avgMonotone === null ? "—" : `${overview.avgMonotone.toFixed(1)}/10`}
+                    value={overview.avgMonotone === null ? " - " : `${overview.avgMonotone.toFixed(1)}/10`}
                     subtext="Lower is generally better"
                   />
 
                   <BigMetricCard
                     label="Closing Impact"
-                    value={overview.avgStarResult === null ? "—" : displayTenPointAs100(overview.avgStarResult)}
+                    value={overview.avgStarResult === null ? " - " : displayTenPointAs100(overview.avgStarResult)}
                     subtext="Average STAR result quality"
                   />
                 </div>
@@ -2328,7 +2328,7 @@ export default function ProgressPage() {
                           }) === "monotone"
                         ? "Your biggest delivery win is emphasis. Make the result sound different from the setup."
                         : "Keep building spoken reps so the system can identify a stronger delivery priority.",
-                      "Do not try to fix everything at once — one clear adjustment is enough for the next attempt.",
+                      "Do not try to fix everything at once - one clear adjustment is enough for the next attempt.",
                     ]}
                   />
 

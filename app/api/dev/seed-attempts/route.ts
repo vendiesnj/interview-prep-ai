@@ -92,7 +92,7 @@ async function ensureJobProfile(params: {
 }
 
 // ---------------------------------------------------------------------------
-// Feedback builder — builds normalized JSON inline then passes to composeRichFeedback
+// Feedback builder - builds normalized JSON inline then passes to composeRichFeedback
 // ---------------------------------------------------------------------------
 
 function buildFeedback(params: {
@@ -258,19 +258,19 @@ function spreadTimestamps(count: number, spanDays: number, gapVariance = 0.3): D
 
 // ---------------------------------------------------------------------------
 // ============================================================
-// FEATURED STUDENTS — 5 persona-driven community college students
+// FEATURED STUDENTS - 5 persona-driven community college students
 // ============================================================
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
-// 1. Maria Santos — struggling improver
+// 1. Maria Santos - struggling improver
 // ---------------------------------------------------------------------------
 async function seedMariaSantos(tenantId: string) {
   const user = await ensureUser({
     tenantId,
     name: "Maria Santos",
     email: "maria@demo-college.edu",
-    demoPersona: "Struggling Improver — Healthcare Admin",
+    demoPersona: "Struggling Improver - Healthcare Admin",
   });
   await ensureMembership(tenantId, user.id);
 
@@ -308,14 +308,14 @@ async function seedMariaSantos(tenantId: string) {
 
   const earlyTranscripts = [
     "Um, so there was this patient who was really upset about her appointment and like, she was at the front desk being really loud and I kind of didn't know what to do. Um, I tried to calm her down and like, brought her to a quiet area. And um, I talked to her and eventually she kind of settled down. It worked out I think.",
-    "I had like a lot of things happening at once — phones ringing, patients checking in, and a doctor needed something from me. Um, I tried to handle everything but it was kind of overwhelming. I got through it eventually and um, nothing went too badly I think.",
+    "I had like a lot of things happening at once - phones ringing, patients checking in, and a doctor needed something from me. Um, I tried to handle everything but it was kind of overwhelming. I got through it eventually and um, nothing went too badly I think.",
     "There was this problem with how we were scheduling appointments and um, it was causing patients to wait a long time. I noticed it was a problem and mentioned it to my supervisor. Um, I think they made some changes after that.",
   ];
 
   const lateTranscripts = [
     "A patient came to the front desk very distressed because she had been given the wrong appointment time for a specialist referral. My task was to resolve it immediately while keeping the waiting room calm. I pulled up her chart, confirmed the referring doctor's instructions, called the specialist office directly, and secured a same-day slot at 3 PM. I stayed on the line until it was confirmed and handed the patient a written confirmation before she left. She thanked the office manager later that week, and the situation became part of our new same-day resolution protocol.",
-    "During a week when we were short-staffed, I was handling check-in, phones, and insurance verification at the same time. I created a quick triage system on a notepad — incoming calls got a callback time, walk-ins were triaged by appointment urgency, and insurance issues were flagged for end-of-day batch processing. We processed 47 patients that day with no appointment gaps and no billing backlogs. The office manager said it was one of our smoothest short-staffed days in months.",
-    "I noticed our appointment cancellation rate was high on Monday mornings — about 30% of our 9 AM slots. I tracked it over three weeks and found most cancellations came from patients who had forgotten to confirm. I proposed a Friday reminder call workflow to my supervisor, piloted it for four weeks, and our Monday cancellation rate dropped to 11%. We now do Friday confirmations for the whole week.",
+    "During a week when we were short-staffed, I was handling check-in, phones, and insurance verification at the same time. I created a quick triage system on a notepad - incoming calls got a callback time, walk-ins were triaged by appointment urgency, and insurance issues were flagged for end-of-day batch processing. We processed 47 patients that day with no appointment gaps and no billing backlogs. The office manager said it was one of our smoothest short-staffed days in months.",
+    "I noticed our appointment cancellation rate was high on Monday mornings - about 30% of our 9 AM slots. I tracked it over three weeks and found most cancellations came from patients who had forgotten to confirm. I proposed a Friday reminder call workflow to my supervisor, piloted it for four weeks, and our Monday cancellation rate dropped to 11%. We now do Friday confirmations for the whole week.",
   ];
 
   const timestamps = spreadTimestamps(10, 84, 0.3);
@@ -328,7 +328,7 @@ async function seedMariaSantos(tenantId: string) {
     const trajectoryNote = i === 0
       ? "First attempt: answer lacks STAR structure and result is missing. Focus: add a specific outcome to every answer before the next session."
       : i === 4
-      ? "Maria is consistently adding context and action detail. Result statements are still the weakest component — coach specifically on closing with a measurable or meaningful outcome."
+      ? "Maria is consistently adding context and action detail. Result statements are still the weakest component - coach specifically on closing with a measurable or meaningful outcome."
       : i === 9
       ? "Strong improvement over 10 attempts. STAR structure is now reliable. Result statements have improved dramatically. Maria is approaching interview-ready for entry-level healthcare admin roles."
       : null;
@@ -351,19 +351,19 @@ async function seedMariaSantos(tenantId: string) {
         : ["Strong specific example with clear ownership.", "Result is measurable and memorable.", "Delivery is calm and professional."],
       improvements: isEarly
         ? [
-            "Result is missing — always end with what specifically changed.",
-            "High filler rate — pause instead of saying 'um'.",
-            "Situation setup is vague — add one specific detail about stakes.",
+            "Result is missing - always end with what specifically changed.",
+            "High filler rate - pause instead of saying 'um'.",
+            "Situation setup is vague - add one specific detail about stakes.",
           ]
         : [
             "Minor: briefly acknowledge the team involved in the solution.",
             "Consider adding one sentence on what you'd replicate in a future role.",
           ],
       confidenceExplanation: isEarly
-        ? "Voice sounds uncertain and rushed. Filler words signal anxiety. Try writing the answer outline before speaking — structure creates confidence."
+        ? "Voice sounds uncertain and rushed. Filler words signal anxiety. Try writing the answer outline before speaking - structure creates confidence."
         : "Delivery is measured and assured. Clear ownership language throughout. This is the right register for a healthcare admin interview.",
       betterAnswer: isEarly
-        ? "Describe the situation in one sentence, state your specific responsibility, walk through the concrete steps you took, then close with a specific outcome — what changed for the patient or for the office."
+        ? "Describe the situation in one sentence, state your specific responsibility, walk through the concrete steps you took, then close with a specific outcome - what changed for the patient or for the office."
         : "Your answer is strong. One enhancement: after the result, add one sentence about what you'd carry into your next role from this experience.",
       keywords_used: isEarly ? ["patient", "appointment"] : ["patient", "scheduling", "protocol", "cancellation rate"],
       keywords_missing: isEarly ? ["specific outcome", "result", "metric"] : ["team coordination"],
@@ -417,14 +417,14 @@ async function seedMariaSantos(tenantId: string) {
 }
 
 // ---------------------------------------------------------------------------
-// 2. James Okafor — average plateau
+// 2. James Okafor - average plateau
 // ---------------------------------------------------------------------------
 async function seedJamesOkafor(tenantId: string) {
   const user = await ensureUser({
     tenantId,
     name: "James Okafor",
     email: "james@demo-college.edu",
-    demoPersona: "Average Plateau — IT Support",
+    demoPersona: "Average Plateau - IT Support",
   });
   await ensureMembership(tenantId, user.id);
 
@@ -447,7 +447,7 @@ async function seedJamesOkafor(tenantId: string) {
     "Describe a time you had to quickly learn a new tool or system.",
   ];
 
-  // 10 attempts, 6.3-6.8 flat — reliable but not growing
+  // 10 attempts, 6.3-6.8 flat - reliable but not growing
   const overallSeq  = [6.3, 6.5, 6.4, 6.7, 6.5, 6.6, 6.3, 6.8, 6.5, 6.7];
   const commSeq     = [6.5, 6.7, 6.6, 6.9, 6.7, 6.8, 6.5, 7.0, 6.7, 6.9];
   const confSeq     = [6.2, 6.4, 6.3, 6.6, 6.4, 6.5, 6.2, 6.7, 6.4, 6.6];
@@ -461,9 +461,9 @@ async function seedJamesOkafor(tenantId: string) {
   const starR = [5.5, 5.7, 5.6, 5.9, 5.7, 5.8, 5.5, 6.0, 5.7, 5.9];
 
   const transcripts = [
-    "I had a situation at my last help desk job where a county employee's computer wouldn't connect to the network. I went through the standard troubleshooting steps — checked the cable, restarted the network adapter, verified the IP settings. Turned out the DHCP lease had expired because of a configuration issue. I renewed it and got her back online. She was pretty relieved because she had a meeting coming up.",
+    "I had a situation at my last help desk job where a county employee's computer wouldn't connect to the network. I went through the standard troubleshooting steps - checked the cable, restarted the network adapter, verified the IP settings. Turned out the DHCP lease had expired because of a configuration issue. I renewed it and got her back online. She was pretty relieved because she had a meeting coming up.",
     "I had a staff member who needed to understand how to set up two-factor authentication on their county email. She wasn't very tech-savvy and was getting frustrated. I walked her through it step by step and used an analogy about a key and a deadbolt to explain why it's secure. She got it set up and said it made more sense after that.",
-    "I was managing about 12 open tickets at once during a system upgrade rollout. I categorized them by urgency — anything blocking active work got priority, then new device setups, then software installs. I worked through them in order and escalated one ticket to the network team that was outside my scope. Most got resolved that day.",
+    "I was managing about 12 open tickets at once during a system upgrade rollout. I categorized them by urgency - anything blocking active work got priority, then new device setups, then software installs. I worked through them in order and escalated one ticket to the network team that was outside my scope. Most got resolved that day.",
   ];
 
   const timestamps = spreadTimestamps(10, 90, 0.35);
@@ -489,19 +489,19 @@ async function seedJamesOkafor(tenantId: string) {
       monotoneScore: monotoneSeq[i],
       starSubscores: { S: starS[i], T: starT[i], A: starA[i], R: starR[i] },
       strengths: [
-        "Clear and methodical action steps — demonstrates structured troubleshooting.",
+        "Clear and methodical action steps - demonstrates structured troubleshooting.",
         "STAR components are all present and logically sequenced.",
         "Relevant technical vocabulary used appropriately.",
       ],
       improvements: [
-        "Result needs a quantified or time-bound outcome — 'she was relieved' doesn't land as strongly as 'she was back online in 8 minutes before her meeting.'",
-        "Closing impact is consistently your weakest component — commit to ending with a specific, memorable result.",
+        "Result needs a quantified or time-bound outcome - 'she was relieved' doesn't land as strongly as 'she was back online in 8 minutes before her meeting.'",
+        "Closing impact is consistently your weakest component - commit to ending with a specific, memorable result.",
         "Consider adding a brief reflection: what would you do the same way next time, and why?",
       ],
       confidenceExplanation:
-        "Delivery is measured and calm — James projects competence. The monotone pattern, while not severe, creates a ceiling on perceived enthusiasm. Minor pitch variation on key moments would increase engagement.",
+        "Delivery is measured and calm - James projects competence. The monotone pattern, while not severe, creates a ceiling on perceived enthusiasm. Minor pitch variation on key moments would increase engagement.",
       betterAnswer:
-        "Your content is solid. The upgrade: after 'she got it set up,' add the concrete outcome — 'She was able to log in independently within 10 minutes, and I documented the walkthrough for our user guide so we could help future staff faster.'",
+        "Your content is solid. The upgrade: after 'she got it set up,' add the concrete outcome - 'She was able to log in independently within 10 minutes, and I documented the walkthrough for our user guide so we could help future staff faster.'",
       keywords_used: ["IT support", "troubleshooting", "help desk", "county"],
       keywords_missing: ["quantified outcome", "time to resolution", "ticket closure"],
       trajectoryNote,
@@ -554,14 +554,14 @@ async function seedJamesOkafor(tenantId: string) {
 }
 
 // ---------------------------------------------------------------------------
-// 3. Priya Nair — strong communicator, weak structure
+// 3. Priya Nair - strong communicator, weak structure
 // ---------------------------------------------------------------------------
 async function seedPriyaNair(tenantId: string) {
   const user = await ensureUser({
     tenantId,
     name: "Priya Nair",
     email: "priya@demo-college.edu",
-    demoPersona: "Strong Comm / Weak Structure — Business Admin",
+    demoPersona: "Strong Comm / Weak Structure - Business Admin",
   });
   await ensureMembership(tenantId, user.id);
 
@@ -584,7 +584,7 @@ async function seedPriyaNair(tenantId: string) {
     "Describe how you stay organized when managing multiple ongoing tasks.",
   ];
 
-  // Communication scores high, structure/closing lower — stays mid-high overall
+  // Communication scores high, structure/closing lower - stays mid-high overall
   const overallSeq  = [6.8, 6.5, 7.1, 6.4, 7.0, 6.6, 7.2, 6.5, 7.1, 6.8];
   const commSeq     = [8.2, 7.9, 8.4, 7.8, 8.3, 8.0, 8.5, 7.9, 8.4, 8.1];
   const confSeq     = [7.5, 7.2, 7.8, 7.1, 7.6, 7.3, 7.9, 7.2, 7.7, 7.4];
@@ -598,8 +598,8 @@ async function seedPriyaNair(tenantId: string) {
   const starR = [3.8, 3.5, 4.2, 3.2, 4.0, 3.6, 4.5, 3.4, 4.1, 3.8];
 
   const transcripts = [
-    "Oh, I love this question because I had a really meaningful experience at my last job at the community bank. There was a member who came in absolutely distraught — she had just lost her husband and was trying to sort out the accounts and she didn't know where to start. I sat with her for over an hour. We went through every account together. I explained everything in plain language and I made sure she left feeling like she had a plan. She actually came back two weeks later to say thank you, which meant a lot to me. I really believe that financial institutions have a responsibility to be human when people are going through hard times.",
-    "I'm very detail-oriented when it comes to documentation, and it actually caught a significant error once. We had a loan application where the income verification didn't match between two submitted documents, and I flagged it before it went to underwriting. My supervisor said it would have caused a compliance issue downstream. I really pride myself on catching those things — I believe accuracy is the foundation of trust in financial services, especially for a credit union where members are counting on us.",
+    "Oh, I love this question because I had a really meaningful experience at my last job at the community bank. There was a member who came in absolutely distraught - she had just lost her husband and was trying to sort out the accounts and she didn't know where to start. I sat with her for over an hour. We went through every account together. I explained everything in plain language and I made sure she left feeling like she had a plan. She actually came back two weeks later to say thank you, which meant a lot to me. I really believe that financial institutions have a responsibility to be human when people are going through hard times.",
+    "I'm very detail-oriented when it comes to documentation, and it actually caught a significant error once. We had a loan application where the income verification didn't match between two submitted documents, and I flagged it before it went to underwriting. My supervisor said it would have caused a compliance issue downstream. I really pride myself on catching those things - I believe accuracy is the foundation of trust in financial services, especially for a credit union where members are counting on us.",
     "This is something I deal with all the time. In my current role, accuracy is non-negotiable but so is turnaround time. I've developed a system where I complete the high-stakes documentation first thing when I'm freshest, then handle routine transactions in the afternoon. I also double-check my work on anything that involves member funds. I find that being organized about my own workflow means I rarely have to choose between speed and accuracy.",
   ];
 
@@ -607,9 +607,9 @@ async function seedPriyaNair(tenantId: string) {
 
   for (let i = 0; i < 10; i++) {
     const trajectoryNote = i === 3
-      ? "High communication scores confirm Priya's natural storytelling ability. The persistent gap is in result specificity — Situation and Task are vivid but the closing outcome rarely lands with a concrete metric. Coaching recommendation: end every answer with 'The result was [specific thing that changed].'"
+      ? "High communication scores confirm Priya's natural storytelling ability. The persistent gap is in result specificity - Situation and Task are vivid but the closing outcome rarely lands with a concrete metric. Coaching recommendation: end every answer with 'The result was [specific thing that changed].'"
       : i === 9
-      ? "Communication remains a clear strength — top of the cohort. Structure pattern has not closed: result scores remain 2-3 points below communication scores after 10 attempts. Focused coaching on STAR completion required."
+      ? "Communication remains a clear strength - top of the cohort. Structure pattern has not closed: result scores remain 2-3 points below communication scores after 10 attempts. Focused coaching on STAR completion required."
       : null;
 
     const feedback = buildFeedback({
@@ -626,19 +626,19 @@ async function seedPriyaNair(tenantId: string) {
       monotoneScore: monotoneSeq[i],
       starSubscores: { S: starS[i], T: starT[i], A: starA[i], R: starR[i] },
       strengths: [
-        "Exceptional communication — warm, engaging, and memorable storytelling.",
+        "Exceptional communication - warm, engaging, and memorable storytelling.",
         "Situation and context are vivid and specific.",
         "Authentic delivery that builds trust with interviewers.",
       ],
       improvements: [
-        "Result is consistently the weakest component — close every answer with a specific, concrete outcome.",
-        "Avoid editorial commentary after the result ('I really believe...') — let the outcome speak for itself.",
+        "Result is consistently the weakest component - close every answer with a specific, concrete outcome.",
+        "Avoid editorial commentary after the result ('I really believe...') - let the outcome speak for itself.",
         "Add one quantified detail to the result: time saved, error rate reduced, member satisfaction, etc.",
       ],
       confidenceExplanation:
-        "Delivery is warm, natural, and compelling. Priya's communication is a genuine strength. The gap is structural, not vocal — she tells great stories that end too softly. A strong result close would make these answers top-tier.",
+        "Delivery is warm, natural, and compelling. Priya's communication is a genuine strength. The gap is structural, not vocal - she tells great stories that end too softly. A strong result close would make these answers top-tier.",
       betterAnswer:
-        "Your story is excellent. Change the ending: instead of 'She came back to say thank you,' close with 'She came back two weeks later to say it was the first time she felt she understood her own finances — and she referred her sister to the branch the following month.' Specific impact makes it memorable.",
+        "Your story is excellent. Change the ending: instead of 'She came back to say thank you,' close with 'She came back two weeks later to say it was the first time she felt she understood her own finances - and she referred her sister to the branch the following month.' Specific impact makes it memorable.",
       keywords_used: ["credit union", "documentation", "accuracy", "member", "compliance"],
       keywords_missing: ["quantified result", "specific outcome", "metric"],
       trajectoryNote,
@@ -691,14 +691,14 @@ async function seedPriyaNair(tenantId: string) {
 }
 
 // ---------------------------------------------------------------------------
-// 4. Derek Williams — analytical flat (good content, monotone delivery)
+// 4. Derek Williams - analytical flat (good content, monotone delivery)
 // ---------------------------------------------------------------------------
 async function seedDerekWilliams(tenantId: string) {
   const user = await ensureUser({
     tenantId,
     name: "Derek Williams",
     email: "derek@demo-college.edu",
-    demoPersona: "Analytical Flat — Early Childhood Education",
+    demoPersona: "Analytical Flat - Early Childhood Education",
   });
   await ensureMembership(tenantId, user.id);
 
@@ -721,7 +721,7 @@ async function seedDerekWilliams(tenantId: string) {
     "Describe a time you onboarded or trained a new staff member.",
   ];
 
-  // Good scores, flat trajectory — content is strong but delivery is persistently monotone
+  // Good scores, flat trajectory - content is strong but delivery is persistently monotone
   const overallSeq  = [6.9, 7.0, 6.8, 7.1, 6.9, 7.0, 7.2, 7.0, 7.1, 7.2];
   const commSeq     = [7.4, 7.5, 7.3, 7.6, 7.4, 7.5, 7.7, 7.5, 7.6, 7.7];
   const confSeq     = [6.8, 6.9, 6.7, 7.0, 6.8, 6.9, 7.1, 6.9, 7.0, 7.1];
@@ -744,9 +744,9 @@ async function seedDerekWilliams(tenantId: string) {
 
   for (let i = 0; i < 10; i++) {
     const trajectoryNote = i === 4
-      ? "Derek's content quality is consistently high — structured answers with good specificity and outcomes. The persistent coaching opportunity is vocal delivery: monotone score has not improved across 5 attempts. Recommend a session focused specifically on vocal emphasis and energy variation."
+      ? "Derek's content quality is consistently high - structured answers with good specificity and outcomes. The persistent coaching opportunity is vocal delivery: monotone score has not improved across 5 attempts. Recommend a session focused specifically on vocal emphasis and energy variation."
       : i === 9
-      ? "Strong content throughout all 10 attempts. Monotone delivery remains the primary limiter — Derek's answers would be significantly more compelling with added vocal variety. Content is interview-ready; delivery coaching needed."
+      ? "Strong content throughout all 10 attempts. Monotone delivery remains the primary limiter - Derek's answers would be significantly more compelling with added vocal variety. Content is interview-ready; delivery coaching needed."
       : null;
 
     const feedback = buildFeedback({
@@ -764,16 +764,16 @@ async function seedDerekWilliams(tenantId: string) {
       starSubscores: { S: starS[i], T: starT[i], A: starA[i], R: starR[i] },
       strengths: [
         "Excellent STAR structure with clear ownership at each stage.",
-        "Strong specific metrics — compliance rates, timelines, concrete outcomes.",
+        "Strong specific metrics - compliance rates, timelines, concrete outcomes.",
         "Demonstrates program management competence clearly.",
       ],
       improvements: [
-        "Vocal delivery is flat throughout — vary your tone and pace to emphasize key outcomes.",
-        "Slow down slightly before your result statement — a brief pause signals its importance.",
-        "Add a moment of warmth when describing family interactions — the content is there, let it come through in your voice.",
+        "Vocal delivery is flat throughout - vary your tone and pace to emphasize key outcomes.",
+        "Slow down slightly before your result statement - a brief pause signals its importance.",
+        "Add a moment of warmth when describing family interactions - the content is there, let it come through in your voice.",
       ],
       confidenceExplanation:
-        "Derek's content projects real competence, but the flat delivery creates a gap between substance and impact. Interviewers may sense the answer is strong without feeling it. Strategic vocal variation — even one emphasis per sentence — would significantly improve impression.",
+        "Derek's content projects real competence, but the flat delivery creates a gap between substance and impact. Interviewers may sense the answer is strong without feeling it. Strategic vocal variation - even one emphasis per sentence - would significantly improve impression.",
       betterAnswer:
         "Your answer is strong. The one change that would make it land harder: when you say 'the child's incident reports decreased by roughly half,' pause briefly before that result and let the number carry weight. That moment of emphasis signals to the interviewer that the outcome matters.",
       keywords_used: ["early childhood", "compliance", "IEP", "staffing", "district"],
@@ -828,14 +828,14 @@ async function seedDerekWilliams(tenantId: string) {
 }
 
 // ---------------------------------------------------------------------------
-// 5. Ashley Chen — high performer
+// 5. Ashley Chen - high performer
 // ---------------------------------------------------------------------------
 async function seedAshleyChen(tenantId: string) {
   const user = await ensureUser({
     tenantId,
     name: "Ashley Chen",
     email: "ashley@demo-college.edu",
-    demoPersona: "High Performer — Healthcare Admin",
+    demoPersona: "High Performer - Healthcare Admin",
   });
   await ensureMembership(tenantId, user.id);
 
@@ -895,17 +895,17 @@ async function seedAshleyChen(tenantId: string) {
       starSubscores: { S: starS[i], T: starT[i], A: starA[i], R: starR[i] },
       strengths: [
         "Exceptional STAR structure with measurable, specific outcomes at every stage.",
-        "Confident, measured delivery — authoritative without being cold.",
+        "Confident, measured delivery - authoritative without being cold.",
         "Role-aligned language that demonstrates real operational knowledge.",
       ],
       improvements: [
         "Minor: consider adding one sentence on what this experience taught you or how it shapes your approach now.",
-        "Action section is comprehensive — could briefly note how you handled any stakeholder pushback.",
+        "Action section is comprehensive - could briefly note how you handled any stakeholder pushback.",
       ],
       confidenceExplanation:
         "Delivery is assured, natural, and trust-building. Controlled pacing, declarative language, and zero hedging. This is exactly what hiring managers in clinical operations environments are looking for.",
       betterAnswer:
-        "This is a strong answer. One optional enhancement: after the result, add a single sentence about what you'd carry forward — 'I now do a monthly audit of pre-auth completion rates so we catch these gaps before they reach patients.' That shows proactive process thinking.",
+        "This is a strong answer. One optional enhancement: after the result, add a single sentence about what you'd carry forward - 'I now do a monthly audit of pre-auth completion rates so we catch these gaps before they reach patients.' That shows proactive process thinking.",
       keywords_used: ["pre-authorization", "insurance", "patient", "medical office", "compliance", "training"],
       keywords_missing: ["reflection", "process ownership"],
       trajectoryNote: i === 7
@@ -961,7 +961,7 @@ async function seedAshleyChen(tenantId: string) {
 
 // ---------------------------------------------------------------------------
 // ============================================================
-// SUPPORTING CAST — community college cohort
+// SUPPORTING CAST - community college cohort
 // ============================================================
 // ---------------------------------------------------------------------------
 
@@ -987,31 +987,31 @@ type SupportingStudent = {
 const SUPPORTING_STUDENTS: SupportingStudent[] = [
   // HIGH PERFORMERS (5)
   {
-    name: "Rosa Gutierrez", email: "rosa.gutierrez@demo-college.edu", persona: "High Performer — Nursing Support",
+    name: "Rosa Gutierrez", email: "rosa.gutierrez@demo-college.edu", persona: "High Performer - Nursing Support",
     cohort: "high",
     role: { title: "Patient Care Technician", company: "Valley Medical Center", roleType: "healthcare", jobDescription: "Assist RNs with patient monitoring, vital signs, ADL support, and clinical documentation in a busy acute-care unit.", framework: "star", questionCategory: "behavioral" },
     baseScore: 8.0, scoreVariance: 0.3, attempts: 7, trajectory: "up",
   },
   {
-    name: "Michael Torres", email: "michael.torres@demo-college.edu", persona: "High Performer — Admin",
+    name: "Michael Torres", email: "michael.torres@demo-college.edu", persona: "High Performer - Admin",
     cohort: "high",
     role: { title: "Office Manager", company: "Community Non-Profit Services", roleType: "operations", jobDescription: "Oversee daily administrative operations, manage donor records, support grant reporting, and coordinate a team of five.", framework: "star", questionCategory: "behavioral" },
     baseScore: 7.8, scoreVariance: 0.35, attempts: 6, trajectory: "up",
   },
   {
-    name: "Destiny Johnson", email: "destiny.johnson@demo-college.edu", persona: "High Performer — Customer Service",
+    name: "Destiny Johnson", email: "destiny.johnson@demo-college.edu", persona: "High Performer - Customer Service",
     cohort: "high",
     role: { title: "Customer Service Supervisor", company: "County Utilities Authority", roleType: "operations", jobDescription: "Lead a team of eight representatives handling billing inquiries, service disputes, and account management for residential and commercial customers.", framework: "star", questionCategory: "behavioral" },
     baseScore: 7.9, scoreVariance: 0.3, attempts: 8, trajectory: "flat",
   },
   {
-    name: "Samuel Park", email: "samuel.park@demo-college.edu", persona: "High Performer — Pharmacy",
+    name: "Samuel Park", email: "samuel.park@demo-college.edu", persona: "High Performer - Pharmacy",
     cohort: "high",
     role: { title: "Pharmacy Technician", company: "Walgreens", roleType: "healthcare", jobDescription: "Process prescriptions, manage inventory, support pharmacist clinical duties, and maintain compliance with DEA and state board regulations.", framework: "experience_depth", questionCategory: "behavioral" },
     baseScore: 7.6, scoreVariance: 0.4, attempts: 6, trajectory: "up",
   },
   {
-    name: "Angela Reyes", email: "angela.reyes@demo-college.edu", persona: "High Performer — Education Support",
+    name: "Angela Reyes", email: "angela.reyes@demo-college.edu", persona: "High Performer - Education Support",
     cohort: "high",
     role: { title: "Instructional Aide", company: "Riverside Unified School District", roleType: "education", jobDescription: "Support classroom instruction for K-3 students with diverse learning needs, assist with differentiated activities, and maintain student progress documentation.", framework: "star", questionCategory: "behavioral" },
     baseScore: 7.7, scoreVariance: 0.35, attempts: 7, trajectory: "up",
@@ -1019,49 +1019,49 @@ const SUPPORTING_STUDENTS: SupportingStudent[] = [
 
   // MID PERFORMERS (8)
   {
-    name: "Kevin Murphy", email: "kevin.murphy@demo-college.edu", persona: "Mid Performer — Billing",
+    name: "Kevin Murphy", email: "kevin.murphy@demo-college.edu", persona: "Mid Performer - Billing",
     cohort: "mid",
     role: { title: "Medical Billing Specialist", company: "Regional Health System", roleType: "finance", jobDescription: "Process insurance claims, resolve billing disputes, verify patient coverage, and follow up on denied claims across multiple payer types.", framework: "star", questionCategory: "behavioral" },
     baseScore: 6.5, scoreVariance: 0.6, attempts: 6, trajectory: "flat",
   },
   {
-    name: "Tanya Williams", email: "tanya.williams@demo-college.edu", persona: "Mid Performer — Library",
+    name: "Tanya Williams", email: "tanya.williams@demo-college.edu", persona: "Mid Performer - Library",
     cohort: "mid",
     role: { title: "Library Services Assistant", company: "City Public Library", roleType: "general", jobDescription: "Support circulation, reference assistance, program coordination, and community outreach for a branch serving a diverse urban population.", framework: "star", questionCategory: "behavioral" },
     baseScore: 6.3, scoreVariance: 0.7, attempts: 7, trajectory: "up",
   },
   {
-    name: "Carlos Rivera", email: "carlos.rivera@demo-college.edu", persona: "Mid Performer — IT",
+    name: "Carlos Rivera", email: "carlos.rivera@demo-college.edu", persona: "Mid Performer - IT",
     cohort: "mid",
     role: { title: "Help Desk Technician", company: "City Housing Authority", roleType: "operations", jobDescription: "Provide technical support to 200+ agency staff, manage service requests, troubleshoot network and software issues, and maintain IT asset inventory.", framework: "technical_explanation", questionCategory: "technical" },
     baseScore: 6.6, scoreVariance: 0.6, attempts: 5, trajectory: "up",
   },
   {
-    name: "Monique Davis", email: "monique.davis@demo-college.edu", persona: "Mid Performer — Social Work Aide",
+    name: "Monique Davis", email: "monique.davis@demo-college.edu", persona: "Mid Performer - Social Work Aide",
     cohort: "mid",
     role: { title: "Social Services Assistant", company: "County Department of Social Services", roleType: "general", jobDescription: "Support case managers with client intake, benefit eligibility screenings, documentation, and resource referrals for low-income families.", framework: "experience_depth", questionCategory: "behavioral" },
     baseScore: 6.4, scoreVariance: 0.7, attempts: 6, trajectory: "up",
   },
   {
-    name: "Brian Nguyen", email: "brian.nguyen@demo-college.edu", persona: "Mid Performer — Banking",
+    name: "Brian Nguyen", email: "brian.nguyen@demo-college.edu", persona: "Mid Performer - Banking",
     cohort: "mid",
     role: { title: "Bank Teller", company: "Community Credit Union", roleType: "finance", jobDescription: "Process member transactions, handle cash, assist with account inquiries, support member onboarding, and identify cross-sell opportunities for financial products.", framework: "star", questionCategory: "behavioral" },
     baseScore: 6.7, scoreVariance: 0.5, attempts: 7, trajectory: "flat",
   },
   {
-    name: "Keisha Brown", email: "keisha.brown@demo-college.edu", persona: "Mid Performer — Childcare",
+    name: "Keisha Brown", email: "keisha.brown@demo-college.edu", persona: "Mid Performer - Childcare",
     cohort: "mid",
     role: { title: "Childcare Center Teacher", company: "Little Learners Academy", roleType: "education", jobDescription: "Lead developmental activities for toddlers and preschoolers, maintain daily observation records, support family communication, and ensure licensing compliance.", framework: "star", questionCategory: "behavioral" },
     baseScore: 6.2, scoreVariance: 0.8, attempts: 6, trajectory: "volatile",
   },
   {
-    name: "Andre Mitchell", email: "andre.mitchell@demo-college.edu", persona: "Mid Performer — Accounts Payable",
+    name: "Andre Mitchell", email: "andre.mitchell@demo-college.edu", persona: "Mid Performer - Accounts Payable",
     cohort: "mid",
     role: { title: "Accounts Payable Clerk", company: "County Government Finance Office", roleType: "finance", jobDescription: "Process vendor invoices, verify purchase orders, reconcile accounts, and ensure timely payment within compliance and audit requirements.", framework: "star", questionCategory: "behavioral" },
     baseScore: 6.5, scoreVariance: 0.6, attempts: 5, trajectory: "up",
   },
   {
-    name: "Jennifer Lee", email: "jennifer.lee@demo-college.edu", persona: "Mid Performer — Medical Reception",
+    name: "Jennifer Lee", email: "jennifer.lee@demo-college.edu", persona: "Mid Performer - Medical Reception",
     cohort: "mid",
     role: { title: "Medical Receptionist", company: "Family Health Clinic", roleType: "healthcare", jobDescription: "Greet patients, manage scheduling and check-in, collect copays, coordinate with clinical staff, and handle insurance verification for a high-volume primary care clinic.", framework: "star", questionCategory: "behavioral" },
     baseScore: 6.8, scoreVariance: 0.5, attempts: 7, trajectory: "up",
@@ -1069,25 +1069,25 @@ const SUPPORTING_STUDENTS: SupportingStudent[] = [
 
   // LOW / AT-RISK (4)
   {
-    name: "Darius Thompson", email: "darius.thompson@demo-college.edu", persona: "At-Risk — Career Pivot",
+    name: "Darius Thompson", email: "darius.thompson@demo-college.edu", persona: "At-Risk - Career Pivot",
     cohort: "low",
     role: { title: "Administrative Assistant", company: "County Assessor's Office", roleType: "operations", jobDescription: "Support property assessment operations, maintain records, assist the public with inquiries, and provide clerical support to assessors.", framework: "star", questionCategory: "behavioral" },
     baseScore: 5.0, scoreVariance: 0.8, attempts: 6, trajectory: "down",
   },
   {
-    name: "Lisa Martinez", email: "lisa.martinez@demo-college.edu", persona: "At-Risk — Needs Structure",
+    name: "Lisa Martinez", email: "lisa.martinez@demo-college.edu", persona: "At-Risk - Needs Structure",
     cohort: "low",
     role: { title: "Customer Service Representative", company: "State Employment Development Department", roleType: "general", jobDescription: "Assist job seekers and employers with benefit claims, eligibility questions, appeals support, and referrals to employment programs.", framework: "star", questionCategory: "behavioral" },
     baseScore: 4.8, scoreVariance: 0.9, attempts: 5, trajectory: "volatile",
   },
   {
-    name: "Jerome Washington", email: "jerome.washington@demo-college.edu", persona: "At-Risk — Struggling",
+    name: "Jerome Washington", email: "jerome.washington@demo-college.edu", persona: "At-Risk - Struggling",
     cohort: "low",
     role: { title: "Warehouse Associate", company: "Regional Distribution Center", roleType: "operations", jobDescription: "Support receiving, inventory management, order fulfillment, and safety compliance in a high-volume distribution environment.", framework: "star", questionCategory: "behavioral" },
     baseScore: 4.5, scoreVariance: 1.0, attempts: 5, trajectory: "down",
   },
   {
-    name: "Alexis Cooper", email: "alexis.cooper@demo-college.edu", persona: "At-Risk — Early Stage",
+    name: "Alexis Cooper", email: "alexis.cooper@demo-college.edu", persona: "At-Risk - Early Stage",
     cohort: "low",
     role: { title: "Dental Office Assistant", company: "Community Dental Clinic", roleType: "healthcare", jobDescription: "Support front-office operations including scheduling, patient intake, insurance verification, and coordination with clinical staff.", framework: "star", questionCategory: "behavioral" },
     baseScore: 4.6, scoreVariance: 1.1, attempts: 6, trajectory: "volatile",
@@ -1130,7 +1130,7 @@ const SUPPORTING_TRANSCRIPTS: Record<"high" | "mid" | "low", string[]> = {
   mid: [
     "I had a patient who was upset because she had been waiting longer than expected and no one had explained the delay. I went over and introduced myself, acknowledged the wait, explained what was happening with her provider, and offered to get her water while she waited. She seemed calmer after that. The appointment went okay and she thanked me at checkout.",
     "There was a billing error where a patient had been charged for a service that wasn't covered at their tier. I caught it when I was processing the next month's statement. I flagged it to my supervisor and we issued a correction. It took a few days to process but we got it sorted out and notified the patient.",
-    "I had multiple things going on at once — phones, walk-ins, and a deadline for some paperwork. I tried to handle the most urgent things first and communicate with my supervisor about the ones I couldn't get to right away. Everything got done eventually. It was stressful but I managed.",
+    "I had multiple things going on at once - phones, walk-ins, and a deadline for some paperwork. I tried to handle the most urgent things first and communicate with my supervisor about the ones I couldn't get to right away. Everything got done eventually. It was stressful but I managed.",
   ],
   low: [
     "Um, there was a situation that came up and like, I wasn't totally sure how to handle it. I tried my best and talked to someone about it. I think it kind of worked out. Um yeah, it was a learning experience.",
@@ -1199,8 +1199,8 @@ async function seedSupportingStudents(tenantId: string) {
       const improvements = student.cohort === "high"
         ? ["Add one more quantified metric to strengthen the result.", "Minor: tighten the action section slightly."]
         : student.cohort === "mid"
-        ? ["Close with a more specific, quantified result.", "Closing impact could be stronger — state exactly what changed."]
-        : ["Use STAR structure — Situation, Task, Action, Result.", "Result is missing entirely — always close with what changed.", "Reduce filler words — pause instead of saying 'um'."];
+        ? ["Close with a more specific, quantified result.", "Closing impact could be stronger - state exactly what changed."]
+        : ["Use STAR structure - Situation, Task, Action, Result.", "Result is missing entirely - always close with what changed.", "Reduce filler words - pause instead of saying 'um'."];
 
       const starSubscores = student.role.framework === "star" ? {
         S: r1(clamp(communication + rand(-0.5, 0.5), 3.0, 9.5)),
@@ -1225,14 +1225,14 @@ async function seedSupportingStudents(tenantId: string) {
         strengths,
         improvements,
         confidenceExplanation: student.cohort === "high"
-          ? "Confident, measured delivery throughout — clear ownership from the first sentence."
+          ? "Confident, measured delivery throughout - clear ownership from the first sentence."
           : student.cohort === "mid"
-          ? "Moderate confidence — some hedging language, but generally composed and on-topic."
+          ? "Moderate confidence - some hedging language, but generally composed and on-topic."
           : "Low confidence detected. Unstructured delivery and filler words signal uncertainty. Building a structured answer framework would improve both confidence and clarity.",
         betterAnswer: student.cohort === "high"
           ? "Strong answer. Optional enhancement: after the result, add one sentence on how you'd replicate this approach in a new role."
           : student.cohort === "mid"
-          ? "Add a specific metric to your result — 'it improved' becomes 'wait time dropped from 15 minutes to 8 minutes.' That's the difference between a forgettable answer and one that sticks."
+          ? "Add a specific metric to your result - 'it improved' becomes 'wait time dropped from 15 minutes to 8 minutes.' That's the difference between a forgettable answer and one that sticks."
           : "Structure your answer: one sentence on the situation, one on your specific role, two to three sentences on what you did (specific steps), then close with what changed. Practice this pattern before recording again.",
         keywords_used: [student.role.roleType, student.role.company],
         keywords_missing: student.cohort === "high" ? ["reflection"] : student.cohort === "mid" ? ["quantified outcome", "metric"] : ["STAR structure", "result", "specific outcome"],

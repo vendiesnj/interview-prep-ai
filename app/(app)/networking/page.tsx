@@ -36,7 +36,7 @@ const SCENARIO_CATEGORIES = [
     prompts: [
       "You're at an industry event and someone asks 'so what do you do?' Answer in a way that starts a real conversation.",
       "You just sat next to someone at a conference session. The break starts in 60 seconds. Introduce yourself.",
-      "You're at a panel Q&A and the speaker walks past you after. You have one shot — introduce yourself and make an ask.",
+      "You're at a panel Q&A and the speaker walks past you after. You have one shot - introduce yourself and make an ask.",
     ],
   },
   {
@@ -379,7 +379,7 @@ export default function NetworkingPage() {
               {formatTime(elapsed)}
             </div>
             <div style={{ fontSize: 13, color: elapsed > 60 ? "#EF4444" : "var(--text-muted)", fontWeight: elapsed > 60 ? 900 : 400 }}>
-              {elapsed > 90 ? "Wrapping up soon? Great pitches stay under 60s." : elapsed > 60 ? "Getting long — start closing." : "Aim for 30–60 seconds"}
+              {elapsed > 90 ? "Wrapping up soon? Great pitches stay under 60s." : elapsed > 60 ? "Getting long - start closing." : "Aim for 30–60 seconds"}
             </div>
 
             <button

@@ -11,7 +11,7 @@ import {
 } from "@/app/lib/jobProfiles";
 
 function formatDate(ts?: number | string) {
-  if (!ts) return "—";
+  if (!ts) return " - ";
   try {
     return new Date(ts).toLocaleDateString([], {
       month: "short",
@@ -19,7 +19,7 @@ function formatDate(ts?: number | string) {
       year: "numeric",
     });
   } catch {
-    return "—";
+    return " - ";
   }
 }
 

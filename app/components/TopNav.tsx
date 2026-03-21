@@ -46,7 +46,7 @@ export default function TopNav() {
   if (isMobile) {
     return (
       <>
-        {/* Mobile top bar — logo + menu */}
+        {/* Mobile top bar - logo + menu */}
         <header style={{
           position: "sticky", top: 0, zIndex: 100, height: 52,
           background: "var(--card-bg)", borderBottom: "1px solid var(--card-border-soft)",

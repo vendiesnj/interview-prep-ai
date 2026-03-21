@@ -22,7 +22,7 @@ const GUIDES = [
     href: "/career-guide/finances",
     eyebrow: "Finances",
     title: "Money & benefits 101",
-    desc: "401k enrollment, health insurance, HSA vs FSA, direct deposit, emergency fund — everything HR assumes you already know.",
+    desc: "401k enrollment, health insurance, HSA vs FSA, direct deposit, emergency fund - everything HR assumes you already know.",
     icon: "💰",
     color: "#10B981",
   },
@@ -71,10 +71,10 @@ export default async function CareerGuidePage() {
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
           <h1 style={{ fontSize: 30, fontWeight: 950, letterSpacing: -0.5, color: "var(--text-primary)", margin: 0 }}>
-            Hey {firstName} — landing the job is just the start.
+            Hey {firstName} - landing the job is just the start.
           </h1>
           <p style={{ marginTop: 10, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 680 }}>
-            Most career tools stop the moment you accept an offer. This section covers everything that comes next — financial setup, your first 90 days, housing, and where your career can go from here.
+            Most career tools stop the moment you accept an offer. This section covers everything that comes next - financial setup, your first 90 days, housing, and where your career can go from here.
           </p>
         </div>
 
@@ -120,7 +120,7 @@ export default async function CareerGuidePage() {
           <div>
             <div style={{ fontSize: 16, fontWeight: 950, color: "var(--accent)" }}>Already in the workforce?</div>
             <div style={{ marginTop: 4, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
-              Complete your career check-in — it takes 2 minutes and helps track your progress and benchmark your salary against peers.
+              Complete your career check-in - it takes 2 minutes and helps track your progress and benchmark your salary against peers.
             </div>
           </div>
           <Link

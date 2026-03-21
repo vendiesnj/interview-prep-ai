@@ -9,7 +9,7 @@ const STAGES = [
     id: "pre_college",
     icon: "🎓",
     label: "Pre-College",
-    sub: "Getting ready for college — orientation, major exploration, communication skills",
+    sub: "Getting ready for college - orientation, major exploration, communication skills",
     color: "#10B981",
     examples: ["Choosing a major", "Preparing for orientation", "Building confidence before college"],
   },
@@ -17,7 +17,7 @@ const STAGES = [
     id: "during_college",
     icon: "📚",
     label: "During College",
-    sub: "Currently in college — interview prep, internships, public speaking, career planning",
+    sub: "Currently in college - interview prep, internships, public speaking, career planning",
     color: "#2563EB",
     examples: ["Internship interviews", "Class presentations", "Career fair prep"],
   },
@@ -25,7 +25,7 @@ const STAGES = [
     id: "post_college",
     icon: "🚀",
     label: "Post-College",
-    sub: "In the workforce — career growth, financial planning, professional development",
+    sub: "In the workforce - career growth, financial planning, professional development",
     color: "#8B5CF6",
     examples: ["Salary benchmarks", "401k & finances", "Career progression"],
   },
@@ -51,7 +51,7 @@ export default function OnboardingPage() {
       });
       await update();
     } catch {
-      // non-critical — continue anyway
+      // non-critical - continue anyway
     }
 
     router.push("/dashboard");

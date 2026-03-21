@@ -163,7 +163,7 @@ function buildLevers(base: ReturnType<typeof buildProjection>): Array<{
 
   levers.push({
     title: "Open a Roth IRA",
-    desc: "Contribute up to $7,000/yr after-tax. Roth grows tax-free — withdrawals in retirement are completely untaxed.",
+    desc: "Contribute up to $7,000/yr after-tax. Roth grows tax-free - withdrawals in retirement are completely untaxed.",
     impact: formatCurrency(futureValue(0, 7000 / 12, 0.07 / 12, base.yearsToRetirement * 12)) + " projected",
     tag: "Tax-free growth",
     tagColor: "#8B5CF6",

@@ -40,7 +40,7 @@ export default function PrivacyPage() {
 
         <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 22 }}>Your choices</h2>
         <ul>
-          <li>Don’t record audio — you can paste a transcript instead.</li>
+          <li>Don’t record audio - you can paste a transcript instead.</li>
           <li>Clear saved history from inside the app.</li>
           <li>Contact us to request deletion of your account data.</li>
         </ul>

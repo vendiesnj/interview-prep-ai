@@ -55,7 +55,7 @@ function safeJSONParse<T>(raw: string | null, fallback: T): T {
 }
 
 function formatDate(ts?: number) {
-  if (!ts) return "—";
+  if (!ts) return " - ";
   return new Date(ts).toLocaleString();
 }
 
@@ -588,7 +588,7 @@ async function ensureSignedUrl(path: string) {
     whiteSpace: "nowrap",
   }}
 >
-  {toPercentScore(overall) !== null ? `${toPercentScore(overall)}/100` : "—"}
+  {toPercentScore(overall) !== null ? `${toPercentScore(overall)}/100` : " - "}
 </div>
 </div>
 

@@ -12,7 +12,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 
 function label(v?: string | null) {
-  return v && v.trim().length ? v : "—";
+  return v && v.trim().length ? v : " - ";
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -220,7 +220,7 @@ export default async function AccountPage() {
 
               <FieldRow
                 label="Renewal"
-                value={user.currentPeriodEnd ? user.currentPeriodEnd.toLocaleDateString() : "—"}
+                value={user.currentPeriodEnd ? user.currentPeriodEnd.toLocaleDateString() : " - "}
                 valueColor="var(--text-muted)"
               />
 

@@ -370,7 +370,7 @@ export function BulkEnrollForm() {
                     letterSpacing: 0.55,
                   }}
                 >
-                  Preview — {totalRows} student{totalRows !== 1 ? "s" : ""}{" "}
+                  Preview - {totalRows} student{totalRows !== 1 ? "s" : ""}{" "}
                   found
                 </div>
                 <div style={{ display: "grid", gap: 6 }}>

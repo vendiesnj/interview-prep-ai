@@ -24,7 +24,7 @@ const PROMPT_CATEGORIES = [
     color: "#8B5CF6",
     icon: "🎤",
     prompts: [
-      "Present a project you worked on — what the problem was, your approach, and the result.",
+      "Present a project you worked on - what the problem was, your approach, and the result.",
       "Explain a concept from your field of study to someone who has no background in it.",
       "Walk through a decision you made, the trade-offs you considered, and what you learned.",
     ],
@@ -47,7 +47,7 @@ const PROMPT_CATEGORIES = [
     icon: "📖",
     prompts: [
       "Tell a story about a moment that changed how you think about your career or field.",
-      "Describe a challenge you overcame. Make it compelling — not just what happened, but what it meant.",
+      "Describe a challenge you overcame. Make it compelling - not just what happened, but what it meant.",
       "Share something you believe that most people in your field disagree with, and why.",
     ],
   },

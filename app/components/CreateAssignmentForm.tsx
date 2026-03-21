@@ -137,7 +137,7 @@ export default function CreateAssignmentForm() {
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Behavioral Interview Practice — Week 3"
+              placeholder="e.g. Behavioral Interview Practice - Week 3"
               required
               style={{
                 width: "100%",
@@ -231,7 +231,7 @@ export default function CreateAssignmentForm() {
                 marginBottom: 8,
               }}
             >
-              Question Categories (optional — leave blank for any)
+              Question Categories (optional - leave blank for any)
             </div>
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               {QUESTION_CATEGORIES.map((cat) => {
