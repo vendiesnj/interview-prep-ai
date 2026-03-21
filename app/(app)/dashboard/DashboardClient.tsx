@@ -54,8 +54,8 @@ const TRACKS: Record<string, TrackItem[]> = {
     { id: "public_speaking_1", icon: "🎤", label: "First Public Speaking Session", desc: "Practice a 60-second intro speech and get AI feedback on your delivery.", href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
     { id: "interview_prep_1", icon: "🎙️", label: "Practice Interview Questions", desc: "Get comfortable with common questions before college interviews or orientation.", href: "/practice", color: "#2563EB", time: "~15 min" },
     { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Learn to introduce yourself at orientation, fairs, and campus events.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
-    { id: "fafsa_guide", icon: "📋", label: "FAFSA & Financial Aid", desc: "Understanding your award letter, deadlines, and what to do next.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
-    { id: "credit_guide", icon: "💳", label: "Building Credit Early", desc: "Why starting now matters and how to do it safely as a student.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
+    { id: "fafsa_guide", icon: "📋", label: "FAFSA & Financial Aid", desc: "Understanding your award letter, deadlines, and what to do next.", href: "/career-guide/finances?from=pre-college", color: "#F59E0B", time: "5 min read", guideOnly: true },
+    { id: "credit_guide", icon: "💳", label: "Building Credit Early", desc: "Why starting now matters and how to do it safely as a student.", href: "/career-guide/finances?from=pre-college", color: "#F59E0B", time: "5 min read", guideOnly: true },
     { id: "college_aptitude", icon: "🧭", label: "Major & Career Aptitude Quiz", desc: "Answer a few questions to find majors and career paths that fit how you think.", href: "/aptitude?from=pre-college", color: "#10B981", time: "~5 min" },
   ],
   during_college: [
@@ -63,7 +63,7 @@ const TRACKS: Record<string, TrackItem[]> = {
     { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Career fair cold approaches, coffee chats, and LinkedIn outreach.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
     { id: "public_speaking_1", icon: "🎤", label: "Public Speaking Session", desc: "Class presentations, club pitches, and panel prep.", href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
     { id: "career_checkin", icon: "✅", label: "Career Check-In", desc: "Log your current role, salary goals, and financial snapshot.", href: "/career-checkin", color: "#10B981", time: "~5 min" },
-    { id: "taxes_guide", icon: "🧾", label: "Filing Taxes for the First Time", desc: "W-2s, 1098-Ts, and free filing options for students.", href: "/career-guide/finances", color: "#F59E0B", time: "7 min read", guideOnly: true },
+    { id: "taxes_guide", icon: "🧾", label: "Filing Taxes for the First Time", desc: "W-2s, 1098-Ts, and free filing options for students.", href: "/career-guide/finances?from=during-college", color: "#F59E0B", time: "7 min read", guideOnly: true },
     { id: "internship_guide", icon: "💼", label: "Making the Most of an Internship", desc: "How to network, deliver, and convert to a return offer.", href: "/career-guide/first-year?from=during-college", color: "#F59E0B", time: "5 min read", guideOnly: true },
   ],
   post_college: [
