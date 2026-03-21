@@ -839,6 +839,20 @@ export default async function AdminPage({
 
     const latest = userAttempts[0]?.ts ?? null;
 
+    // Improvement trend: avg of first 3 vs avg of last 3 scored attempts
+    const scoredAttempts = [...userAttempts]
+      .filter((a) => getAttemptScore(a) !== null)
+      .sort((a, b) => new Date(a.ts).getTime() - new Date(b.ts).getTime());
+    const first3Avg = scoredAttempts.length >= 3
+      ? avg(scoredAttempts.slice(0, 3).map(getAttemptScore).filter((v): v is number => v !== null))
+      : null;
+    const last3Avg = scoredAttempts.length >= 4
+      ? avg(scoredAttempts.slice(-3).map(getAttemptScore).filter((v): v is number => v !== null))
+      : null;
+    const trendDelta = (first3Avg !== null && last3Avg !== null)
+      ? Math.round(last3Avg - first3Avg)
+      : null;
+
     return {
       id: user.id,
       name: user.name || (user.email ? user.email.split("@")[0] : "Student"),
@@ -847,6 +861,7 @@ export default async function AdminPage({
       avgScore: userScore,
       avgScore100: userScore100,
       latest,
+      trendDelta,
       cohort,
       attemptsRaw: userAttempts,
     };
@@ -1280,6 +1295,34 @@ const stalledPct =
           >
             Live Analytics
           </div>
+
+          <Link href="/admin/roster" style={{ textDecoration: "none" }}>
+            <div style={{
+              padding: "10px 14px",
+              borderRadius: 14,
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg)",
+              color: "var(--text-muted)",
+              fontSize: 12,
+              fontWeight: 800,
+            }}>
+              Roster Management
+            </div>
+          </Link>
+
+          <Link href="/admin/compliance" style={{ textDecoration: "none" }}>
+            <div style={{
+              padding: "10px 14px",
+              borderRadius: 14,
+              border: "1px solid rgba(22,163,74,0.25)",
+              background: "rgba(22,163,74,0.06)",
+              color: "#16A34A",
+              fontSize: 12,
+              fontWeight: 800,
+            }}>
+              FERPA Compliance
+            </div>
+          </Link>
         </div>
 
            <div
@@ -1813,7 +1856,7 @@ const stalledPct =
           {/* Header row */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "1.6fr 80px 80px 80px 100px 110px 36px",
+            gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
             gap: 12,
             padding: "0 14px 10px 14px",
             fontSize: 11,
@@ -1828,6 +1871,7 @@ const stalledPct =
             <div>Score</div>
             <div>Comm</div>
             <div>Conf</div>
+            <div>Trend</div>
             <div>Attempts</div>
             <div>Last Active</div>
             <div />
@@ -1868,7 +1912,7 @@ const stalledPct =
                 <Link key={row.id} href={`/admin/students/${row.id}`} style={{ textDecoration: "none" }}>
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: "1.6fr 80px 80px 80px 100px 110px 36px",
+                    gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
                     gap: 12,
                     alignItems: "center",
                     padding: "11px 14px",
@@ -1915,6 +1959,20 @@ const stalledPct =
 
                     <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
                       {confAvg !== null ? `${pctFrom10(confAvg)}%` : " - "}
+                    </div>
+
+                    <div style={{
+                      fontSize: 12,
+                      fontWeight: 900,
+                      color: row.trendDelta === null ? "var(--text-muted)"
+                        : row.trendDelta > 3 ? "var(--chart-positive)"
+                        : row.trendDelta < -3 ? "var(--chart-critical)"
+                        : "var(--text-muted)",
+                    }}>
+                      {row.trendDelta === null ? " - "
+                        : row.trendDelta > 0 ? `↑ +${row.trendDelta}`
+                        : row.trendDelta < 0 ? `↓ ${row.trendDelta}`
+                        : "→ 0"}
                     </div>
 
                     <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>

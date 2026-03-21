@@ -281,59 +281,58 @@ export const lightTheme: AppTheme = {
   name: "ipc-light",
 
   colors: {
-    // Pure white page with a faint blue wash at the edges
-    pageBg: "#FFFFFF",
-    pageBgAccentA: "rgba(37,99,235,0.05)",
-    pageBgAccentB: "rgba(14,165,233,0.04)",
+    // Warm off-white background (PostHog-inspired)
+    pageBg: "#F8F7F5",
+    pageBgAccentA: "rgba(37,99,235,0.04)",
+    pageBgAccentB: "rgba(14,165,233,0.03)",
 
-    // Slate typography - rich contrast without harsh pure black
-    text: "#0F172A",
-    textMuted: "#64748B",
-    textSoft: "#94A3B8",
+    // Warm near-black typography
+    text: "#1C1917",
+    textMuted: "#78716C",
+    textSoft: "#A8A29E",
 
-    // Cards: white on white, differentiated by a cool-gray tint
+    // Cards: white on warm-gray page
     cardBg: "#FFFFFF",
-    cardBgStrong: "#F8FAFC",
-    cardBorder: "rgba(15,23,42,0.09)",
-    cardBorderSoft: "rgba(15,23,42,0.055)",
+    cardBgStrong: "#FAFAF9",
+    cardBorder: "rgba(28,25,23,0.08)",
+    cardBorderSoft: "rgba(28,25,23,0.05)",
 
-    inputBg: "#F8FAFC",
-    inputBorder: "rgba(15,23,42,0.13)",
+    inputBg: "#FFFFFF",
+    inputBorder: "rgba(28,25,23,0.12)",
 
-    // Blue as the primary accent - matches the IPC logo
+    // Blue as the primary accent
     accent: "#2563EB",
     accentSoft: "rgba(37,99,235,0.08)",
-    accentStrong: "rgba(37,99,235,0.22)",
+    accentStrong: "rgba(37,99,235,0.20)",
 
     // Sky blue as the secondary accent
     accent2: "#0EA5E9",
     accent2Soft: "rgba(14,165,233,0.09)",
 
-    danger: "#EF4444",
-    dangerSoft: "rgba(239,68,68,0.08)",
+    danger: "#DC2626",
+    dangerSoft: "rgba(220,38,38,0.07)",
 
-    success: "#10B981",
-    successSoft: "rgba(16,185,129,0.09)",
+    success: "#16A34A",
+    successSoft: "rgba(22,163,74,0.08)",
 
-    chartPositive: "#10B981",
-    chartNegative: "#EF4444",
-    chartNeutral: "#F59E0B",
-    chartCritical: "#DC2626",
+    chartPositive: "#16A34A",
+    chartNegative: "#DC2626",
+    chartNeutral: "#D97706",
+    chartCritical: "#B91C1C",
   },
 
   radii: {
-    xs: 10,
-    sm: 12,
-    md: 16,
-    lg: 18,
+    xs: 8,
+    sm: 10,
+    md: 14,
+    lg: 16,
     xl: 20,
   },
 
   shadows: {
-    // Soft layered shadow: hairline + indigo-tinted depth
-    card: "0 1px 3px rgba(15,23,42,0.07), 0 10px 28px rgba(99,102,241,0.07), inset 0 1px 0 rgba(255,255,255,0.9)",
-    cardSoft: "0 1px 2px rgba(15,23,42,0.05), 0 4px 12px rgba(15,23,42,0.04)",
-    glow: "0 8px 24px rgba(99,102,241,0.22)",
+    card: "0 1px 2px rgba(28,25,23,0.06), 0 4px 16px rgba(28,25,23,0.06)",
+    cardSoft: "0 1px 2px rgba(28,25,23,0.04), 0 2px 8px rgba(28,25,23,0.03)",
+    glow: "0 8px 24px rgba(37,99,235,0.18)",
     none: "none",
   },
 };
@@ -369,19 +368,19 @@ export const ipcBlueTheme: AppTheme = {
   name: "ipc-blue",
   colors: {
     ...lightTheme.colors,
-    pageBgAccentA: "rgba(29,78,216,0.07)",
-    pageBgAccentB: "rgba(2,132,199,0.06)",
+    pageBgAccentA: "rgba(29,78,216,0.05)",
+    pageBgAccentB: "rgba(2,132,199,0.04)",
 
     accent: "#1D4ED8",
-    accentSoft: "rgba(29,78,216,0.09)",
-    accentStrong: "rgba(29,78,216,0.22)",
+    accentSoft: "rgba(29,78,216,0.08)",
+    accentStrong: "rgba(29,78,216,0.20)",
 
     accent2: "#0284C7",
-    accent2Soft: "rgba(2,132,199,0.10)",
+    accent2Soft: "rgba(2,132,199,0.09)",
   },
   shadows: {
-    card: "0 1px 3px rgba(15,23,42,0.07), 0 10px 28px rgba(29,78,216,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
-    cardSoft: "0 1px 2px rgba(15,23,42,0.05), 0 4px 12px rgba(15,23,42,0.04)",
+    card: "0 1px 2px rgba(28,25,23,0.06), 0 4px 16px rgba(29,78,216,0.07)",
+    cardSoft: "0 1px 2px rgba(28,25,23,0.04), 0 2px 8px rgba(28,25,23,0.03)",
     glow: "0 8px 24px rgba(29,78,216,0.22)",
     none: "none",
   },

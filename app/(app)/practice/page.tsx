@@ -12,6 +12,7 @@ import AssignmentProgress from "@/app/components/AssignmentProgress";
 import { getProfile } from "../../lib/profileStore";
 import {
   getActiveJobProfileId,
+  setActiveJobProfileId,
   type JobProfile,
 } from "@/app/lib/jobProfiles";
 import { createPortal } from "react-dom";
@@ -432,6 +433,8 @@ const HOME_STATE_FALLBACK_KEY = "ipc_home_state";
   const FOCUS_KEY = userScopedKey("ipc_focus_goal", session);
   const [jobDesc, setJobDesc] = useState("");
 const [activeJobProfile, setActiveJobProfile] = useState<JobProfile | null>(null);
+const [allProfiles, setAllProfiles] = useState<JobProfile[]>([]);
+const [showProfilePicker, setShowProfilePicker] = useState(false);
 const [questions, setQuestions] = useState<string[]>([]);
 type QuestionBuckets = {
   behavioral: string[];
@@ -493,23 +496,22 @@ const [mode, setMode] = React.useState<"setup" | "questions" | "answer">("setup"
 async function refreshActiveJobProfile() {
   try {
     const activeId = getActiveJobProfileId();
+    const res = await fetch("/api/job-profiles", { cache: "no-store" });
+    const json = await res.json();
+    const profiles: JobProfile[] = Array.isArray(json?.profiles) ? json.profiles : [];
+    setAllProfiles(profiles);
 
     if (!activeId) {
       setActiveJobProfile(null);
       return;
     }
 
-    const res = await fetch("/api/job-profiles", { cache: "no-store" });
-    const json = await res.json();
+    const profile = profiles.find((p) => p.id === activeId) ?? null;
+    setActiveJobProfile(profile);
 
-    const profiles = Array.isArray(json?.profiles) ? json.profiles : [];
-    const profile = profiles.find((p: any) => p.id === activeId) ?? null;
-
-setActiveJobProfile(profile);
-
-if (profile?.jobDescription) {
-  setJobDesc(profile.jobDescription);
-}
+    if (profile?.jobDescription) {
+      setJobDesc(profile.jobDescription);
+    }
   } catch {
     setActiveJobProfile(null);
   }
@@ -2743,8 +2745,69 @@ return (
         >
           Refresh
         </button>
+
+        {allProfiles.length > 1 && (
+          <button
+            type="button"
+            onClick={() => setShowProfilePicker((v) => !v)}
+            style={{
+              padding: "9px 12px",
+              borderRadius: "var(--radius-sm)",
+              border: "none",
+              background: "transparent",
+              color: "var(--text-muted)",
+              fontWeight: 500,
+              fontSize: 12,
+              cursor: "pointer",
+            }}
+          >
+            Switch profile
+          </button>
+        )}
       </div>
     </div>
+
+    {showProfilePicker && allProfiles.length > 1 && (
+      <div style={{ display: "grid", gap: 6, marginTop: 2 }}>
+        {allProfiles.filter((p) => p.id !== activeJobProfile?.id).map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => {
+              setActiveJobProfileId(p.id);
+              setActiveJobProfile(p);
+              setJobDesc(p.jobDescription ?? "");
+              setShowProfilePicker(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "9px 12px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg-strong)",
+              cursor: "pointer",
+              textAlign: "left",
+              width: "100%",
+            }}
+          >
+            <div style={{ fontSize: 18, flexShrink: 0 }}>💼</div>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {p.title}
+              </div>
+              {p.company && (
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{p.company}</div>
+              )}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", flexShrink: 0 }}>
+              Switch →
+            </div>
+          </button>
+        ))}
+      </div>
+    )}
 
     <div
       style={{
@@ -2768,12 +2831,52 @@ return (
       borderRadius: "var(--radius-lg)",
       border: "1px dashed var(--card-border)",
       background: "var(--card-bg)",
-      color: "var(--text-muted)",
-      fontSize: 13,
-      lineHeight: 1.6,
     }}
   >
-    No active job profile selected. You can still paste a job description manually, or set one in Job Profiles.
+    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: allProfiles.length > 0 ? 12 : 0 }}>
+      No active job profile selected. You can still paste a job description manually, or set one below.
+    </div>
+    {allProfiles.length > 0 && (
+      <div style={{ display: "grid", gap: 6 }}>
+        {allProfiles.slice(0, 4).map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            onClick={() => {
+              setActiveJobProfileId(p.id);
+              setActiveJobProfile(p);
+              setJobDesc(p.jobDescription ?? "");
+              setShowProfilePicker(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "9px 12px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg-strong)",
+              cursor: "pointer",
+              textAlign: "left",
+              width: "100%",
+            }}
+          >
+            <div style={{ fontSize: 20, flexShrink: 0 }}>💼</div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {p.title}
+              </div>
+              {p.company && (
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{p.company}</div>
+              )}
+            </div>
+            <div style={{ marginLeft: "auto", fontSize: 11, fontWeight: 700, color: "var(--accent)", flexShrink: 0 }}>
+              Use this →
+            </div>
+          </button>
+        ))}
+      </div>
+    )}
   </div>
 )}
 
