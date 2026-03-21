@@ -22,6 +22,24 @@ const TOOL_LINKS = [
   { label: "Results", href: "/results" },
 ];
 
+const INTERVIEW_PREP_ROUTES = [
+  "/practice",
+  "/question-bank",
+  "/job-profiles",
+  "/results",
+  "/progress",
+  "/sessions",
+];
+
+const INTERVIEW_PREP_TABS = [
+  { href: "/practice", label: "Practice" },
+  { href: "/question-bank", label: "Question Bank" },
+  { href: "/job-profiles", label: "Job Profiles" },
+  { href: "/results", label: "Results" },
+  { href: "/progress", label: "Insights" },
+  { href: "/sessions", label: "Sessions" },
+];
+
 const MOBILE_BOTTOM = [
   { label: "Pre-College",   href: "/pre-college",   icon: "🎓" },
   { label: "During",        href: "/during-college", icon: "📚" },
@@ -109,6 +127,12 @@ export default function TopNav() {
                   {item.label}
                 </Link>
               ))}
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginTop: 16, marginBottom: 12 }}>Interview Prep</div>
+              {INTERVIEW_PREP_TABS.map((item) => (
+                <Link key={item.href} href={item.href} onClick={() => setDrawerOpen(false)} style={{ display: "flex", alignItems: "center", padding: "10px 16px", borderRadius: 12, textDecoration: "none", color: isActive(item.href) ? "var(--accent)" : "var(--text-primary)", background: isActive(item.href) ? "var(--accent-soft)" : "transparent", fontWeight: 700, fontSize: 14, marginBottom: 2 }}>
+                  {item.label}
+                </Link>
+              ))}
               <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
                 <BillingSidebarButton collapsed={false} />
                 <div style={{ borderRadius: 12, overflow: "hidden" }}><LogoutButton /></div>
@@ -121,12 +145,15 @@ export default function TopNav() {
   }
 
   // ── DESKTOP ──────────────────────────────────────────────────────────────────
+  const showInterviewSubNav = !isAdmin && INTERVIEW_PREP_ROUTES.some((r) => pathname?.startsWith(r));
+
   return (
+    <>
     <header style={{
       position: "sticky", top: 0, zIndex: 100,
       height: 56, width: "100%",
       background: "var(--card-bg)",
-      borderBottom: "1px solid var(--card-border-soft)",
+      borderBottom: showInterviewSubNav ? "none" : "1px solid var(--card-border-soft)",
       display: "flex", alignItems: "center",
       padding: "0 24px", gap: 0,
       boxSizing: "border-box",
@@ -193,5 +220,43 @@ export default function TopNav() {
         <LogoutButton />
       </div>
     </header>
+
+    {showInterviewSubNav && (
+      <nav style={{
+        position: "sticky", top: 56, zIndex: 99,
+        background: "var(--card-bg)",
+        borderBottom: "1px solid var(--card-border-soft)",
+        padding: "0 24px",
+        display: "flex", alignItems: "center", gap: 4,
+        height: 44,
+        boxSizing: "border-box",
+        overflowX: "auto",
+      }}>
+        {INTERVIEW_PREP_TABS.map((item) => {
+          const active = pathname === item.href || pathname?.startsWith(item.href + "/");
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                textDecoration: "none",
+                padding: "5px 12px",
+                borderRadius: 6,
+                fontSize: 13,
+                fontWeight: active ? 900 : 700,
+                color: active ? "var(--accent)" : "var(--text-muted)",
+                background: active ? "var(--accent-soft)" : "transparent",
+                whiteSpace: "nowrap",
+                transition: "all 120ms",
+                borderBottom: active ? "2px solid var(--accent)" : "2px solid transparent",
+              }}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+    )}
+    </>
   );
 }
