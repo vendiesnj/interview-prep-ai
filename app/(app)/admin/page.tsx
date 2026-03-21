@@ -792,8 +792,10 @@ export default async function AdminPage({
           employmentStatus: true,
           industry: true,
           salaryRange: true,
+          salaryExact: true,
           satisfactionScore: true,
           jobTitle: true,
+          company: true,
           graduationYear: true,
           monthsSinceGrad: true,
           createdAt: true,
@@ -820,6 +822,43 @@ export default async function AdminPage({
     if (ci.industry) industryCounts[ci.industry] = (industryCounts[ci.industry] ?? 0) + 1;
   }
   const topIndustries = Object.entries(industryCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  // Salary bands (mid-point mapping for avg estimate)
+  const SALARY_MIDPOINTS: Record<string, number> = {
+    under_40k: 35000, "40_50k": 45000, "50_60k": 55000,
+    "60_75k": 67500, "75_90k": 82500, "90_110k": 100000,
+    "110_130k": 120000, over_130k: 145000,
+  };
+  const salaryVals = uniqueCheckIns
+    .filter((c) => c.employmentStatus === "employed")
+    .flatMap((c) => {
+      if (c.salaryExact) return [c.salaryExact];
+      if (c.salaryRange && SALARY_MIDPOINTS[c.salaryRange]) return [SALARY_MIDPOINTS[c.salaryRange]];
+      return [];
+    });
+  const avgSalary = salaryVals.length
+    ? Math.round(salaryVals.reduce((a, b) => a + b, 0) / salaryVals.length)
+    : null;
+
+  const salaryBandCounts: Record<string, number> = {};
+  for (const ci of uniqueCheckIns) {
+    if (ci.salaryRange) salaryBandCounts[ci.salaryRange] = (salaryBandCounts[ci.salaryRange] ?? 0) + 1;
+  }
+  const salaryBands = Object.entries(salaryBandCounts).sort((a, b) => b[1] - a[1]);
+
+  // Top employers
+  const companyCounts: Record<string, number> = {};
+  for (const ci of uniqueCheckIns) {
+    if (ci.company) companyCounts[ci.company] = (companyCounts[ci.company] ?? 0) + 1;
+  }
+  const topEmployers = Object.entries(companyCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  // Placement velocity: % employed within 6mo of grad
+  const recentGrads = uniqueCheckIns.filter((c) => c.monthsSinceGrad !== null && (c.monthsSinceGrad ?? 999) <= 6);
+  const recentGradsEmployed = recentGrads.filter((c) => c.employmentStatus === "employed").length;
+  const earlyPlacementRate = recentGrads.length > 0
+    ? Math.round((recentGradsEmployed / recentGrads.length) * 100)
+    : null;
 
   const attempts: AttemptRow[] = await prisma.attempt.findMany({
     where: {
@@ -853,6 +892,7 @@ export default async function AdminPage({
   });
 
   const totalStudents = tenantUsers.length;
+  const checkInCoverage = totalStudents > 0 ? Math.round((checkInCount / totalStudents) * 100) : null;
 
    const studentsWithStats = tenantUsers.map((user) => {
     const userAttempts = attempts.filter((a) => a.userId === user.id);
@@ -2519,75 +2559,109 @@ const stalledPct =
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 16 }}>
-                  {/* Summary stats */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                      <div style={{ fontSize: 28, fontWeight: 950, color: "var(--accent)" }}>{checkInCount}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Check-ins submitted</div>
-                    </div>
-                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                      <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981" }}>{employmentRate !== null ? `${employmentRate}%` : " - "}</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Employment rate</div>
-                    </div>
-                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                      <div style={{ fontSize: 28, fontWeight: 950, color: "#F59E0B" }}>{avgSatisfaction ?? " - "}<span style={{ fontSize: 14 }}>/5</span></div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>Avg satisfaction</div>
-                    </div>
-                  </div>
-
-                  {/* Employment status breakdown */}
-                  <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                    <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Employment status breakdown</div>
-                    {(["employed", "employed_part", "job_searching", "graduate_school", "freelance", "other"] as const).map((status) => {
-                      const count = uniqueCheckIns.filter((c) => c.employmentStatus === status).length;
-                      if (count === 0) return null;
-                      const pct = Math.round((count / checkInCount) * 100);
-                      const label: Record<string, string> = {
-                        employed: "Employed full-time",
-                        employed_part: "Part-time / contract",
-                        job_searching: "Job searching",
-                        graduate_school: "Graduate school",
-                        freelance: "Freelance",
-                        other: "Other",
-                      };
-                      const color: Record<string, string> = {
-                        employed: "#10B981",
-                        employed_part: "#6EE7B7",
-                        job_searching: "#F59E0B",
-                        graduate_school: "var(--accent)",
-                        freelance: "#8B5CF6",
-                        other: "var(--text-muted)",
-                      };
-                      return (
-                        <div key={status} style={{ marginBottom: 8 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
-                            <span>{label[status]}</span><span>{count} ({pct}%)</span>
-                          </div>
-                          <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${pct}%`, background: color[status], borderRadius: 99 }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Top industries */}
-                  {topIndustries.length > 0 && (
-                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
-                      <div style={{ display: "grid", gap: 6 }}>
-                        {topIndustries.map(([industry, count]) => (
-                          <div key={industry} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
-                            <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{industry}</span>
-                            <span style={{ color: "var(--accent)", fontWeight: 900, fontSize: 12 }}>{count} student{count !== 1 ? "s" : ""}</span>
-                          </div>
-                        ))}
+                  {/* KPI row */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
+                    {[
+                      { label: "Check-ins submitted", value: `${checkInCount}`, sub: `${checkInCoverage ?? "—"}% of cohort`, color: "var(--accent)" },
+                      { label: "Employment rate", value: employmentRate !== null ? `${employmentRate}%` : "—", sub: "full-time", color: "#10B981" },
+                      { label: "6-mo placement", value: earlyPlacementRate !== null ? `${earlyPlacementRate}%` : "—", sub: "within 6 mo of grad", color: "#0EA5E9" },
+                      { label: "Avg starting salary", value: avgSalary ? `$${Math.round(avgSalary / 1000)}K` : "—", sub: "employed students", color: "#F59E0B" },
+                      { label: "Avg satisfaction", value: avgSatisfaction ? `${avgSatisfaction}/5` : "—", sub: "career satisfaction", color: "#8B5CF6" },
+                    ].map((stat) => (
+                      <div key={stat.label} style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
+                        <div style={{ fontSize: 26, fontWeight: 950, color: stat.color }}>{stat.value}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>{stat.label}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{stat.sub}</div>
                       </div>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    {/* Employment status breakdown */}
+                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Employment status</div>
+                      {(["employed", "employed_part", "job_searching", "graduate_school", "freelance", "other"] as const).map((status) => {
+                        const count = uniqueCheckIns.filter((c) => c.employmentStatus === status).length;
+                        if (count === 0) return null;
+                        const pct = Math.round((count / checkInCount) * 100);
+                        const labels: Record<string, string> = { employed: "Employed full-time", employed_part: "Part-time / contract", job_searching: "Job searching", graduate_school: "Graduate school", freelance: "Freelance", other: "Other" };
+                        const colors: Record<string, string> = { employed: "#10B981", employed_part: "#6EE7B7", job_searching: "#F59E0B", graduate_school: "var(--accent)", freelance: "#8B5CF6", other: "var(--text-muted)" };
+                        return (
+                          <div key={status} style={{ marginBottom: 8 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
+                              <span>{labels[status]}</span><span>{count} ({pct}%)</span>
+                            </div>
+                            <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                              <div style={{ height: "100%", width: `${pct}%`, background: colors[status], borderRadius: 99 }} />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                  )}
+
+                    {/* Salary distribution */}
+                    <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Salary distribution</div>
+                      {salaryBands.length === 0 ? (
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No salary data yet.</div>
+                      ) : salaryBands.map(([band, count]) => {
+                        const labels: Record<string, string> = { under_40k: "Under $40K", "40_50k": "$40–50K", "50_60k": "$50–60K", "60_75k": "$60–75K", "75_90k": "$75–90K", "90_110k": "$90–110K", "110_130k": "$110–130K", over_130k: "$130K+" };
+                        const pct = Math.round((count / checkInCount) * 100);
+                        return (
+                          <div key={band} style={{ marginBottom: 8 }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
+                              <span>{labels[band] ?? band}</span><span>{count} ({pct}%)</span>
+                            </div>
+                            <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                              <div style={{ height: "100%", width: `${pct}%`, background: "#F59E0B", borderRadius: 99 }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                    {/* Top industries */}
+                    {topIndustries.length > 0 && (
+                      <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
+                        <div style={{ display: "grid", gap: 8 }}>
+                          {topIndustries.map(([industry, count]) => {
+                            const pct = Math.round((count / checkInCount) * 100);
+                            return (
+                              <div key={industry}>
+                                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-muted)", marginBottom: 3 }}>
+                                  <span>{industry}</span><span>{count} ({pct}%)</span>
+                                </div>
+                                <div style={{ height: 5, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                                  <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99 }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Top employers */}
+                    {topEmployers.length > 0 && (
+                      <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top employers</div>
+                        <div style={{ display: "grid", gap: 6 }}>
+                          {topEmployers.map(([company, count]) => (
+                            <div key={company} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>
+                              <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{company}</span>
+                              <span style={{ padding: "2px 8px", borderRadius: 99, fontSize: 11, fontWeight: 700, background: "rgba(37,99,235,0.1)", color: "var(--accent)" }}>{count}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                    Data is self-reported by students via the Career Guide check-in. Encourage students to complete their check-in for more accurate cohort outcomes.
+                    Data is self-reported by students via the Career Guide check-in. {checkInCoverage !== null && checkInCoverage < 60 && `Only ${checkInCoverage}% of students have submitted a check-in — encourage more submissions for accurate cohort data.`}
                   </div>
                 </div>
               )}

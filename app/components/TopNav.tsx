@@ -30,6 +30,7 @@ const INTERVIEW_PREP_ROUTES = [
   "/results",
   "/progress",
   "/sessions",
+  "/financial-literacy",
 ];
 
 const INTERVIEW_PREP_TABS = [
@@ -40,6 +41,7 @@ const INTERVIEW_PREP_TABS = [
   { href: "/results", label: "Results" },
   { href: "/progress", label: "Insights" },
   { href: "/sessions", label: "Sessions" },
+  { href: "/financial-literacy", label: "Financial Literacy" },
 ];
 
 const MOBILE_BOTTOM = [

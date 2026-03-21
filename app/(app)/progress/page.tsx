@@ -7,6 +7,7 @@ import NaceScoreCard from "../../components/NaceScoreCard";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 import { computeNaceProfile } from "@/app/lib/nace";
+import { downloadNacePdf } from "@/app/lib/nace-pdf";
 import {
   asOverall100,
   asTenPoint,
@@ -2374,14 +2375,43 @@ export default function ProgressPage() {
               const scored = naceScores.filter((s) => s.score !== null);
               return (
                 <div style={{ display: "grid", gap: 18 }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
-                      NACE Career Readiness Competencies
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
+                        NACE Career Readiness Competencies
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 560 }}>
+                        The National Association of Colleges and Employers (NACE) defines 8 competencies employers look for in new graduates.
+                        Your scores are computed from your practice session data. Click any competency to see what data contributed.
+                      </div>
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 600 }}>
-                      The National Association of Colleges and Employers (NACE) defines 8 competencies employers look for in new graduates.
-                      Your scores are computed from your practice session data. Click any competency to see what data contributed.
-                    </div>
+                    {scored.length > 0 && (
+                      <button
+                        onClick={() =>
+                          downloadNacePdf({
+                            scores: naceScores,
+                            studentName: session?.user?.name ?? session?.user?.email ?? "Student",
+                          })
+                        }
+                        style={{
+                          flexShrink: 0,
+                          padding: "8px 16px",
+                          borderRadius: 9,
+                          border: "1px solid var(--accent)",
+                          background: "transparent",
+                          color: "var(--accent)",
+                          fontWeight: 800,
+                          fontSize: 12,
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        ⬇ Export PDF
+                      </button>
+                    )}
                   </div>
 
                   {history.length === 0 ? (
