@@ -56,7 +56,7 @@ const TRACKS: Record<string, TrackItem[]> = {
     { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Learn to introduce yourself at orientation, fairs, and campus events.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
     { id: "fafsa_guide", icon: "📋", label: "FAFSA & Financial Aid", desc: "Understanding your award letter, deadlines, and what to do next.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
     { id: "credit_guide", icon: "💳", label: "Building Credit Early", desc: "Why starting now matters and how to do it safely as a student.", href: "/career-guide/finances", color: "#F59E0B", time: "5 min read", guideOnly: true },
-    { id: "college_ready", icon: "🎓", label: "College Ready Assessment", desc: "A guided checklist to prepare for your first semester.", href: "/college-ready", color: "#10B981", time: "~20 min", comingSoon: true },
+    { id: "college_aptitude", icon: "🧭", label: "Major & Career Aptitude Quiz", desc: "Answer a few questions to find majors and career paths that fit how you think.", href: "/aptitude?from=pre-college", color: "#10B981", time: "~5 min" },
   ],
   during_college: [
     { id: "interview_prep_1", icon: "🎙️", label: "Interview Prep Session", desc: "Practice behavioral questions for internship and job interviews.", href: "/practice", color: "#2563EB", time: "~15 min" },
@@ -64,7 +64,7 @@ const TRACKS: Record<string, TrackItem[]> = {
     { id: "public_speaking_1", icon: "🎤", label: "Public Speaking Session", desc: "Class presentations, club pitches, and panel prep.", href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
     { id: "career_checkin", icon: "✅", label: "Career Check-In", desc: "Log your current role, salary goals, and financial snapshot.", href: "/career-checkin", color: "#10B981", time: "~5 min" },
     { id: "taxes_guide", icon: "🧾", label: "Filing Taxes for the First Time", desc: "W-2s, 1098-Ts, and free filing options for students.", href: "/career-guide/finances", color: "#F59E0B", time: "7 min read", guideOnly: true },
-    { id: "internship_guide", icon: "💼", label: "Making the Most of an Internship", desc: "How to network, deliver, and convert to a return offer.", href: "/career-guide/first-year", color: "#F59E0B", time: "5 min read", guideOnly: true },
+    { id: "internship_guide", icon: "💼", label: "Making the Most of an Internship", desc: "How to network, deliver, and convert to a return offer.", href: "/career-guide/first-year?from=during-college", color: "#F59E0B", time: "5 min read", guideOnly: true },
   ],
   post_college: [
     { id: "career_checkin", icon: "✅", label: "Career Check-In", desc: "Log your current role, salary, savings, and loan balance.", href: "/career-checkin", color: "#10B981", time: "~5 min" },
@@ -298,7 +298,7 @@ export default function DashboardPage() {
             {persona === "pre_college"
               ? "Let's get you ready for college and beyond."
               : persona === "post_college"
-              ? "Keep growing — your career and finances, all in one place."
+              ? "Keep growing - your career and finances, all in one place."
               : "Your platform for interviews, speaking, and career growth."}
           </p>
 

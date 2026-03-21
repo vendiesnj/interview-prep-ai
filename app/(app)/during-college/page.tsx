@@ -11,20 +11,20 @@ const TODOS = [
   { id: "networking",      icon: "🤝", label: "Networking Pitch Practice",  desc: "Career fair cold approaches, LinkedIn outreach, and alumni coffee chats.",             href: "/networking",     color: "#0EA5E9", time: "~10 min" },
   { id: "public_speaking", icon: "🎤", label: "Public Speaking Session",    desc: "Class presentations, club pitches, and leadership panel prep.",                        href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
   { id: "career_checkin",  icon: "✅", label: "Career Check-In",            desc: "Log your GPA, internship status, salary goals, and financial snapshot.",               href: "/career-checkin",  color: "#10B981", time: "~5 min" },
-  { id: "aptitude",        icon: "🧭", label: "Job Fit & Aptitude Quiz",    desc: "Answer questions about your strengths and interests to surface career directions.",     href: "#",               color: "#F59E0B", time: "~8 min", comingSoon: true },
+  { id: "aptitude",        icon: "🧭", label: "Job Fit & Aptitude Quiz",    desc: "Answer questions about your strengths and interests to surface career directions.",     href: "/aptitude?from=during-college", color: "#F59E0B", time: "~5 min" },
 ];
 
 const CHECKLIST = [
   { id: "resume",           label: "Build your first resume",                       desc: "One page, action verbs, quantified results. Less is more." },
   { id: "linkedin",         label: "Set up or update LinkedIn",                     desc: "Add your education, a headshot, and 2-3 skills. Recruiters search for students." },
-  { id: "internship_apps",  label: "Apply to at least 3 internships",              desc: "Start early — many internship apps open 6-9 months in advance." },
+  { id: "internship_apps",  label: "Apply to at least 3 internships",              desc: "Start early - many internship apps open 6-9 months in advance." },
   { id: "taxes_filed",      label: "File your taxes (every April)",                desc: "If you worked or have a scholarship, you likely need to file. Free options exist." },
   { id: "fafsa_renewed",    label: "Renew FAFSA each year",                        desc: "Aid doesn't auto-renew. File October 1 each year you're enrolled." },
   { id: "advisor_semester", label: "Meet with advisor each semester",              desc: "Stay on track for graduation requirements and catch issues early." },
   { id: "career_fair",      label: "Attend at least one career fair",              desc: "Bring resumes, dress professionally, and practice your pitch beforehand." },
-  { id: "rec_letter",       label: "Ask a professor for a recommendation letter",  desc: "Build the relationship early — don't ask the week before a deadline." },
+  { id: "rec_letter",       label: "Ask a professor for a recommendation letter",  desc: "Build the relationship early - don't ask the week before a deadline." },
   { id: "gpa_check",        label: "Check internship/grad school GPA requirements", desc: "Many programs have minimums. Know where you stand each semester." },
-  { id: "emergency_fund",   label: "Start a $500 emergency fund",                 desc: "Before extra spending — this prevents going into debt for unexpected costs." },
+  { id: "emergency_fund",   label: "Start a $500 emergency fund",                 desc: "Before extra spending - this prevents going into debt for unexpected costs." },
 ];
 
 const RESOURCES = [
@@ -77,7 +77,7 @@ export default function DuringCollegePage() {
             Build skills that land opportunities.
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 600 }}>
-            College is the time to practice, explore, and build the foundation your career sits on. Use these tools and guides to stay ahead — not just in class, but in the real world.
+            College is the time to practice, explore, and build the foundation your career sits on. Use these tools and guides to stay ahead - not just in class, but in the real world.
           </p>
         </div>
 

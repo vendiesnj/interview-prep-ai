@@ -40,23 +40,22 @@ const TODOS = [
     icon: "🧭",
     label: "Major & Career Aptitude Quiz",
     desc: "Not sure what to study? Answer a few questions to find directions that fit you.",
-    href: "#",
+    href: "/aptitude?from=pre-college",
     color: "#10B981",
-    time: "~8 min",
-    comingSoon: true,
+    time: "~5 min",
   },
 ];
 
 // ── Checklist items ───────────────────────────────────────────────────────────
 const CHECKLIST = [
-  { id: "fafsa_done",        label: "Complete FAFSA or renewal",                   desc: "Priority #1 — opens October 1 each year. Earlier = more aid." },
+  { id: "fafsa_done",        label: "Complete FAFSA or renewal",                   desc: "Priority #1 - opens October 1 each year. Earlier = more aid." },
   { id: "aid_letter",        label: "Review your financial aid award letter",       desc: "Understand grants (free money) vs. loans (money you repay)." },
-  { id: "orientation",       label: "Sign up for orientation",                     desc: "Many schools require registration — don't miss the deadline." },
+  { id: "orientation",       label: "Sign up for orientation",                     desc: "Many schools require registration - don't miss the deadline." },
   { id: "housing",           label: "Submit housing application",                  desc: "On-campus deadlines are often earlier than you think." },
   { id: "email_setup",       label: "Set up your student email",                   desc: "Your .edu email unlocks free software, discounts, and campus resources." },
   { id: "budget_first",      label: "Build your first college budget",             desc: "Map out tuition, housing, food, and spending money per semester." },
   { id: "credit_card",       label: "Consider a student credit card",              desc: "Starting credit at 18-19 sets you up for apartments and loans later." },
-  { id: "advisor_meeting",   label: "Book a meeting with your academic advisor",   desc: "Do this in week 1 — they help you pick courses and plan your degree." },
+  { id: "advisor_meeting",   label: "Book a meeting with your academic advisor",   desc: "Do this in week 1 - they help you pick courses and plan your degree." },
   { id: "campus_resources",  label: "Find tutoring, mental health & career center",desc: "Know where they are before you need them." },
   { id: "linkedin_setup",    label: "Create or update your LinkedIn profile",      desc: "Internship recruiters will look you up before sophomore year." },
 ];
@@ -117,7 +116,7 @@ export default function PreCollegePage() {
             Get ready for what's next.
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 600 }}>
-            Whether you're heading to college in a few months or just starting to think about it — this is your launchpad. Complete the to-do's, work through the checklist, and use the guides when you need them.
+            Whether you're heading to college in a few months or just starting to think about it - this is your launchpad. Complete the to-do's, work through the checklist, and use the guides when you need them.
           </p>
         </div>
 
