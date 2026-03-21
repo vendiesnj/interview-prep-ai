@@ -1,6 +1,8 @@
 "use client";
 
 import UpgradeModal from "@/app/components/UpgradeModal";
+import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
+import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -477,6 +479,8 @@ const audioCtxRef = useRef<AudioContext | null>(null);
 const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null);
 const animationRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const webcamRef = useRef<WebcamOverlayHandle>(null);
+  const faceMetricsRef = useRef<FaceMetrics | null>(null);
   const attemptIdRef = useRef<string | null>(null);
   const audioPathRef = useRef<string | null>(null); // ✅ Supabase Storage path for replay across devices
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -1707,6 +1711,10 @@ audioPathRef.current = null; // reset each attempt
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
 
+    // Start webcam face analysis (non-blocking — silently skips if camera denied)
+    faceMetricsRef.current = null;
+    webcamRef.current?.start().catch(() => {});
+
     startWaveform(stream);
 
 
@@ -1904,6 +1912,10 @@ function stopRecording() {
   setTimerRunning(false);
   const mr = mediaRecorderRef.current;
   if (!mr) return;
+
+  // Collect face analysis metrics before stopping
+  const faceResult = webcamRef.current?.stop();
+  if (faceResult) faceMetricsRef.current = faceResult;
 
   cleanupWaveform();
 
@@ -2201,7 +2213,10 @@ jobProfileRoleType: activeProfileRoleType,
 
 questions,
 questionBuckets,
-deliveryMetrics: normalizedVoiceMetrics,
+deliveryMetrics: {
+  ...(normalizedVoiceMetrics ?? {}),
+  ...(faceMetricsRef.current ? { face: faceMetricsRef.current } : {}),
+},
 };
 
 
@@ -3624,8 +3639,9 @@ e.currentTarget.style.borderColor = "var(--card-border)";
 </div>
 
 
-{/* Live waveform */}
-  <div style={{ marginTop: 12 }}>
+{/* Live waveform + webcam */}
+  <div style={{ marginTop: 12, position: "relative" }}>
+    <WebcamOverlay ref={webcamRef} isRecording={recording} position="bottom-right" />
     <canvas
   ref={waveformCanvasRef}
   style={{

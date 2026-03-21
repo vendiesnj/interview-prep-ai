@@ -20,6 +20,7 @@ const TOOL_LINKS = [
   { label: "Public Speaking", href: "/public-speaking" },
   { label: "Networking", href: "/networking" },
   { label: "Financial Literacy", href: "/financial-literacy" },
+  { label: "Career Instincts", href: "/career-instincts" },
   { label: "My Journey", href: "/my-journey" },
 ];
 

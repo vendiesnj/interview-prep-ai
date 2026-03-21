@@ -167,12 +167,11 @@ export async function POST(req: NextRequest) {
   const dataBlock = lines.join("\n");
 
   const systemPrompt =
-    "You are a career development coach writing a holistic profile summary for a student. " +
-    "Based on their performance data below, write a warm, encouraging, and specific 2-3 paragraph " +
-    "narrative summary of who this student is as a professional. Be specific — reference their actual " +
-    "scores, skills, and patterns. Highlight their standout strengths, note 1-2 areas of clear growth " +
-    "opportunity without being harsh, and end with an encouraging statement about their trajectory. " +
-    "Write in second person ('You are...', 'Your...'). Be conversational, not clinical. 200-300 words.";
+    "You are writing an objective professional profile summary based on student performance data. " +
+    "Write 2-3 paragraphs in third person (e.g., 'This student...', 'Their...'). " +
+    "Be specific and data-driven — reference actual scores, skills, and observed patterns. " +
+    "State strengths and growth areas factually, without softening or editorializing. " +
+    "Do not use filler phrases or motivational language. Aim for the tone of a professional assessment report. 150-250 words.";
 
   try {
     const completion = await openai.chat.completions.create({

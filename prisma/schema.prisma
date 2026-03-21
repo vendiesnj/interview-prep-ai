@@ -42,6 +42,7 @@ model User {
   interviewActivities  InterviewActivity[]
   studentSkills        StudentSkill[]
   resumeAnalyses       ResumeAnalysis[]
+  instinctSessions     InstinctSession[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -410,6 +411,21 @@ model StudentSkill {
 
   @@unique([userId, skill])
   @@index([userId])
+  @@index([tenantId])
+}
+
+model InstinctSession {
+  id              String   @id @default(cuid())
+  userId          String
+  tenantId        String?
+  createdAt       DateTime @default(now())
+  scenariosPlayed String[] @default([])
+  responses       Json     // Array<{ scenarioId, choiceIndex }>
+  dimensions      Json     // { teamwork, leadership, communication, criticalThinking, professionalism, adaptability }
+  xpEarned        Int      @default(0)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
   @@index([tenantId])
 }
 

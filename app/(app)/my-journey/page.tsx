@@ -15,6 +15,7 @@ type TabId =
   | "resume"
   | "financial"
   | "skills"
+  | "instincts"
   | "nace"
   | "pipeline";
 
@@ -115,6 +116,23 @@ interface ProfilePayload {
     offers: number;
     accepted: number;
   };
+  faceMetrics?: {
+    eyeContact: number;
+    expressiveness: number;
+    headStability: number;
+    sessionsAnalyzed: number;
+  } | null;
+  instincts?: {
+    sessions: Array<{
+      id: string;
+      createdAt: string;
+      dimensions: Record<string, number>;
+      xpEarned: number;
+      scenariosPlayed: string[];
+    }>;
+    dimensions: Record<string, number> | null;
+    totalXp: number;
+  } | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1573,6 +1591,209 @@ function SkillsTab({
   );
 }
 
+// ── Instincts Tab ─────────────────────────────────────────────────────────────
+
+const INSTINCT_COLORS: Record<string, string> = {
+  teamwork: "#10B981",
+  leadership: "#F59E0B",
+  communication: "#3B82F6",
+  criticalThinking: "#8B5CF6",
+  professionalism: "#0EA5E9",
+  adaptability: "#EC4899",
+};
+
+const INSTINCT_ICONS: Record<string, string> = {
+  teamwork: "🤝",
+  leadership: "⚡",
+  communication: "💬",
+  criticalThinking: "🧠",
+  professionalism: "🏛️",
+  adaptability: "🌊",
+};
+
+const INSTINCT_LABELS: Record<string, string> = {
+  teamwork: "Teamwork",
+  leadership: "Leadership",
+  communication: "Communication",
+  criticalThinking: "Critical Thinking",
+  professionalism: "Professionalism",
+  adaptability: "Adaptability",
+};
+
+function InstinctsTab({ data }: { data: ProfilePayload }) {
+  const instincts = data.instincts;
+  const face = data.faceMetrics;
+
+  if (!instincts || instincts.sessions.length === 0) {
+    return (
+      <div style={{ textAlign: "center", padding: "60px 20px" }}>
+        <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>
+          No instinct data yet
+        </div>
+        <p style={{ color: "var(--text-muted)", marginBottom: 20 }}>
+          Play Career Instincts to discover how you naturally navigate workplace situations.
+        </p>
+        <a
+          href="/career-instincts"
+          style={{
+            display: "inline-block", padding: "12px 28px", borderRadius: 12,
+            background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 14,
+            textDecoration: "none",
+          }}
+        >
+          Play Now →
+        </a>
+      </div>
+    );
+  }
+
+  const dims = instincts.dimensions!;
+  const sortedDims = Object.keys(dims).sort((a, b) => dims[b] - dims[a]);
+  const top2 = sortedDims.slice(0, 2);
+  const growth = sortedDims[sortedDims.length - 1];
+
+  return (
+    <div style={{ display: "grid", gap: 20 }}>
+      {/* XP + sessions header */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", textAlign: "center" }}>
+          <div style={{ fontSize: 22, fontWeight: 950, color: "var(--accent)" }}>{instincts.totalXp}</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 2 }}>Total XP</div>
+        </div>
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", textAlign: "center" }}>
+          <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 2 }}>Sessions</div>
+        </div>
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", textAlign: "center" }}>
+          <div style={{ fontSize: 22, fontWeight: 950, color: INSTINCT_COLORS[top2[0]] }}>{INSTINCT_ICONS[top2[0]]}</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 2 }}>Top Trait</div>
+        </div>
+      </div>
+
+      {/* Top strengths */}
+      <div>
+        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 12 }}>Your Standout Traits</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {top2.map((d, i) => (
+            <div key={d} style={{
+              background: INSTINCT_COLORS[d] + "12",
+              border: `1px solid ${INSTINCT_COLORS[d]}35`,
+              borderRadius: 14, padding: "16px 16px",
+            }}>
+              <div style={{ fontSize: 24, marginBottom: 6 }}>{INSTINCT_ICONS[d]}</div>
+              <div style={{ fontSize: 10, fontWeight: 900, color: INSTINCT_COLORS[d], letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 3 }}>
+                {i === 0 ? "Strongest" : "Also Strong"}
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
+                {INSTINCT_LABELS[d]}
+              </div>
+              <div style={{ fontSize: 18, fontWeight: 950, color: INSTINCT_COLORS[d], marginTop: 4 }}>
+                {Math.round(dims[d] * 100)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* All dimensions */}
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: "20px 22px" }}>
+        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>All Dimensions</div>
+        {sortedDims.map((d) => (
+          <div key={d} style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                {INSTINCT_ICONS[d]} {INSTINCT_LABELS[d]}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: INSTINCT_COLORS[d] }}>{Math.round(dims[d] * 100)}</span>
+            </div>
+            <div style={{ height: 7, borderRadius: 99, background: "var(--card-bg-strong)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 99, background: INSTINCT_COLORS[d], width: `${dims[d] * 100}%` }} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Growth area */}
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ fontSize: 28 }}>🌱</div>
+        <div>
+          <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 }}>Growth Opportunity</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{INSTINCT_LABELS[growth]}</div>
+        </div>
+        <a href="/career-instincts" style={{ marginLeft: "auto", padding: "8px 16px", borderRadius: 10, background: "var(--accent-soft)", color: "var(--accent)", fontWeight: 800, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap" }}>
+          Play Again
+        </a>
+      </div>
+
+      {/* Visual Delivery (face metrics) */}
+      {face && (
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: "20px 22px" }}>
+          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>
+            Visual Delivery · {face.sessionsAnalyzed} session{face.sessionsAnalyzed !== 1 ? "s" : ""} analyzed
+          </div>
+          {[
+            { label: "Eye Contact", value: face.eyeContact, icon: "👁️", description: "Gaze directed toward camera" },
+            { label: "Expressiveness", value: face.expressiveness, icon: "😊", description: "Facial movement and engagement" },
+            { label: "Head Stability", value: face.headStability, icon: "🎯", description: "Consistent positioning, minimal drift" },
+          ].map(({ label, value, icon, description }) => (
+            <div key={label} style={{ marginBottom: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 16 }}>{icon}</span>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{label}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{description}</div>
+                  </div>
+                </div>
+                <span style={{ fontSize: 14, fontWeight: 900, color: scoreColor(value * 100) }}>
+                  {Math.round(value * 100)}%
+                </span>
+              </div>
+              <div style={{ height: 7, borderRadius: 99, background: "var(--card-bg-strong)", overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 99, background: scoreColor(value * 100), width: `${value * 100}%` }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Recent sessions */}
+      {instincts.sessions.length > 1 && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 12 }}>Session History</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {instincts.sessions.slice(0, 5).map((s, i) => {
+              const sd = s.dimensions as Record<string, number>;
+              const topDim = Object.keys(sd).sort((a, b) => sd[b] - sd[a])[0];
+              return (
+                <div key={s.id} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 12, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Session {instincts.sessions.length - i}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                      {new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      {" · "}
+                      {s.scenariosPlayed.length} scenarios
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: INSTINCT_COLORS[topDim] }}>
+                      {INSTINCT_ICONS[topDim]} {INSTINCT_LABELS[topDim]}
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", background: "var(--accent-soft)", borderRadius: 99, padding: "3px 10px" }}>
+                      +{s.xpEarned} XP
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NaceTab({ data }: { data: ProfilePayload }) {
   const [exporting, setExporting] = useState(false);
 
@@ -1693,6 +1914,7 @@ export default function MyJourneyPage() {
     { id: "resume", label: "Resume" },
     { id: "financial", label: "Financial" },
     { id: "skills", label: "Skills" },
+    { id: "instincts", label: "Instincts" },
     { id: "nace", label: "NACE" },
     { id: "pipeline", label: "Pipeline" },
   ];
@@ -1781,6 +2003,7 @@ export default function MyJourneyPage() {
                   extracting={extracting}
                 />
               )}
+              {activeTab === "instincts" && <InstinctsTab data={data} />}
               {activeTab === "nace" && <NaceTab data={data} />}
             </>
           )}

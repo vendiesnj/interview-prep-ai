@@ -228,6 +228,7 @@ export async function GET() {
     interviewActivities,
     studentSkills,
     resumeAnalyses,
+    instinctSessions,
   ] = await Promise.all([
     // 1. Attempts — all non-deleted
     prisma.attempt.findMany({
@@ -321,6 +322,20 @@ export async function GET() {
         jobDescSnippet: true,
       },
     }),
+
+    // 8. Instinct sessions — last 10
+    prisma.instinctSession.findMany({
+      where: { userId },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+      select: {
+        id: true,
+        createdAt: true,
+        dimensions: true,
+        xpEarned: true,
+        scenariosPlayed: true,
+      },
+    }),
   ]);
 
   // ── Speaking segments ─────────────────────────────────────────────────────
@@ -359,6 +374,35 @@ export async function GET() {
     if (!byCategory[skill.category]) byCategory[skill.category] = [];
     byCategory[skill.category].push(skill);
   }
+
+  // ── Face metrics (aggregate from deliveryMetrics.face) ───────────────────
+
+  const faceAttempts = rawAttempts.filter((a) => {
+    const dm = a.deliveryMetrics as any;
+    return dm?.face?.framesAnalyzed > 0;
+  });
+  const faceMetricsAggregate = faceAttempts.length > 0 ? (() => {
+    const dm = faceAttempts.map((a) => (a.deliveryMetrics as any).face);
+    const avg = (key: string) => Math.round((dm.reduce((s: number, f: any) => s + (f[key] ?? 0), 0) / dm.length) * 100) / 100;
+    return {
+      eyeContact: avg("eyeContact"),
+      expressiveness: avg("expressiveness"),
+      headStability: avg("headStability"),
+      sessionsAnalyzed: faceAttempts.length,
+    };
+  })() : null;
+
+  // ── Instinct profile (aggregate dimensions across sessions) ───────────────
+
+  const instinctDimensionsAggregate = instinctSessions.length > 0 ? (() => {
+    const dims = ["teamwork", "leadership", "communication", "criticalThinking", "professionalism", "adaptability"];
+    const result: Record<string, number> = {};
+    for (const d of dims) {
+      const vals = instinctSessions.map((s) => ((s.dimensions as any)?.[d] ?? 0) as number);
+      result[d] = Math.round((vals.reduce((a, v) => a + v, 0) / vals.length) * 100) / 100;
+    }
+    return result;
+  })() : null;
 
   // ── NACE scores ───────────────────────────────────────────────────────────
 
@@ -468,6 +512,14 @@ export async function GET() {
     resumeHistory: resumeAnalyses,
 
     naceScores,
+
+    faceMetrics: faceMetricsAggregate,
+
+    instincts: {
+      sessions: instinctSessions,
+      dimensions: instinctDimensionsAggregate,
+      totalXp: instinctSessions.reduce((s, sess) => s + (sess.xpEarned ?? 0), 0),
+    },
 
     completeness,
   };
