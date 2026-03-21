@@ -20,6 +20,7 @@ const TOOL_LINKS = [
   { label: "Public Speaking", href: "/public-speaking" },
   { label: "Networking", href: "/networking" },
   { label: "Financial Literacy", href: "/financial-literacy" },
+  { label: "My Journey", href: "/my-journey" },
 ];
 
 const INTERVIEW_PREP_ROUTES = [

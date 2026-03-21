@@ -24,6 +24,11 @@ model User {
   freeAttemptsUsed     Int                  @default(0)
   tenantId             String?
   demoPersona          String?
+  // Career profile fields
+  graduationYear       Int?
+  major                String?
+  targetRole           String?
+  targetIndustry       String?
   accounts             Account[]
   attempts             Attempt[]
   jobProfiles          JobProfile[]
@@ -34,6 +39,8 @@ model User {
   careerCheckIns       CareerCheckIn[]
   aptitudeResults      AptitudeResult[]
   checklistProgress    ChecklistProgress[]
+  interviewActivities  InterviewActivity[]
+  studentSkills        StudentSkill[]
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -339,6 +346,46 @@ model AptitudeResult {
   scores    Json
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([tenantId])
+}
+
+model InterviewActivity {
+  id            String    @id @default(cuid())
+  userId        String
+  tenantId      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  company       String
+  role          String
+  industry      String?
+  appliedDate   DateTime?
+  interviewDate DateTime?
+  // "applied" | "phone_screen" | "technical" | "on_site" | "final_round" | "offer" | "rejected" | "accepted" | "declined"
+  stage         String    @default("applied")
+  outcome       String?   // "pending" | "rejected" | "offer_received" | "accepted" | "declined"
+  salaryOffered Int?      // annual, in dollars
+  notes         String?
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([tenantId, createdAt])
+}
+
+model StudentSkill {
+  id         String   @id @default(cuid())
+  userId     String
+  tenantId   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  skill      String
+  category   String   // "technical" | "communication" | "leadership" | "analytical" | "interpersonal" | "domain"
+  confidence Float    @default(0.7) // 0–1, AI confidence
+  source     String   @default("ai_extracted") // "ai_extracted" | "self_reported"
+  attemptIds String[] @default([])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skill])
   @@index([userId])
   @@index([tenantId])
 }

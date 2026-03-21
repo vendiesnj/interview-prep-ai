@@ -777,6 +777,11 @@ export default async function AdminPage({
       id: true,
       name: true,
       email: true,
+      graduationYear: true,
+      major: true,
+      targetRole: true,
+      targetIndustry: true,
+      createdAt: true,
     },
     orderBy: {
       createdAt: "asc",
@@ -891,10 +896,48 @@ export default async function AdminPage({
     take: 1000,
   });
 
+  // Profile completeness data: aptitude, checklist, interview activity, skills
+  const [aptitudeByUser, checklistByUser, interviewActivityByUser, skillsByUser] = await Promise.all([
+    prisma.aptitudeResult.findMany({
+      where: { tenantId: currentUser.tenantId ?? null },
+      select: { userId: true },
+    }),
+    prisma.checklistProgress.findMany({
+      where: { tenantId: currentUser.tenantId ?? null, done: true },
+      select: { userId: true },
+    }),
+    prisma.interviewActivity.findMany({
+      where: { tenantId: currentUser.tenantId ?? null },
+      select: { userId: true },
+    }),
+    prisma.studentSkill.findMany({
+      where: { tenantId: currentUser.tenantId ?? null },
+      select: { userId: true, skill: true, category: true, confidence: true },
+    }),
+  ]);
+
+  const aptitudeUserIds = new Set(aptitudeByUser.map((a) => a.userId));
+  const checklistCountByUser = new Map<string, number>();
+  for (const c of checklistByUser) checklistCountByUser.set(c.userId, (checklistCountByUser.get(c.userId) ?? 0) + 1);
+  const interviewActivityUserIds = new Set(interviewActivityByUser.map((a) => a.userId));
+  const skillCountByUser = new Map<string, number>();
+  for (const s of skillsByUser) skillCountByUser.set(s.userId, (skillCountByUser.get(s.userId) ?? 0) + 1);
+
+  // Cohort-wide skill inventory
+  const allSkillCounts: Record<string, { count: number; category: string }> = {};
+  for (const s of skillsByUser) {
+    if (!allSkillCounts[s.skill]) allSkillCounts[s.skill] = { count: 0, category: s.category };
+    allSkillCounts[s.skill].count++;
+  }
+  const topCohortSkills = Object.entries(allSkillCounts)
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 20)
+    .map(([skill, { count, category }]) => ({ skill, count, category }));
+
   const totalStudents = tenantUsers.length;
   const checkInCoverage = totalStudents > 0 ? Math.round((checkInCount / totalStudents) * 100) : null;
 
-   const studentsWithStats = tenantUsers.map((user) => {
+  const studentsWithStats = tenantUsers.map((user) => {
     const userAttempts = attempts.filter((a) => a.userId === user.id);
 
     const userScore = round1(
@@ -924,10 +967,33 @@ export default async function AdminPage({
       ? Math.round(last3Avg - first3Avg)
       : null;
 
+    // Profile completeness score (0–100)
+    let completeness = 0;
+    if (user.graduationYear) completeness += 10;
+    if (user.major) completeness += 10;
+    if (user.targetRole) completeness += 10;
+    if (user.targetIndustry) completeness += 10;
+    if (userAttempts.length >= 5) completeness += 20;
+    else if (userAttempts.length >= 1) completeness += 8;
+    if (aptitudeUserIds.has(user.id)) completeness += 10;
+    if (latestCheckInByUser.has(user.id)) completeness += 15;
+    if ((checklistCountByUser.get(user.id) ?? 0) >= 3) completeness += 5;
+    if (interviewActivityUserIds.has(user.id)) completeness += 5;
+    if ((skillCountByUser.get(user.id) ?? 0) >= 3) completeness += 5;
+
+    // Days since last active
+    const daysSinceActive = latest
+      ? Math.floor((Date.now() - new Date(latest).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+
     return {
       id: user.id,
       name: user.name || (user.email ? user.email.split("@")[0] : "Student"),
       email: user.email,
+      graduationYear: user.graduationYear,
+      major: user.major,
+      targetRole: user.targetRole,
+      targetIndustry: user.targetIndustry,
       attempts: userAttempts.length,
       avgScore: userScore,
       avgScore100: userScore100,
@@ -935,6 +1001,13 @@ export default async function AdminPage({
       trendDelta,
       cohort,
       attemptsRaw: userAttempts,
+      completeness,
+      daysSinceActive,
+      hasAptitude: aptitudeUserIds.has(user.id),
+      hasCheckIn: latestCheckInByUser.has(user.id),
+      hasInterview: interviewActivityUserIds.has(user.id),
+      skillCount: skillCountByUser.get(user.id) ?? 0,
+      checklistCount: checklistCountByUser.get(user.id) ?? 0,
     };
   });
 
@@ -1385,6 +1458,7 @@ const stalledPct =
             {[
               { key: "overview",    label: "Overview" },
               { key: "students",    label: "Students" },
+              { key: "profiles",    label: "Student Profiles" },
               { key: "practice",    label: "Speaking & Practice" },
               { key: "jobs",        label: "Job Profiles" },
               { key: "assignments", label: "Assignments" },
@@ -2023,6 +2097,192 @@ const stalledPct =
             })()}
           </div>
         )}
+
+        {/* ── PROFILES TAB ─────────────────────────────────────────────── */}
+        {activeTab === "profiles" && (() => {
+          const atRisk = studentsWithStats.filter(
+            (s) => s.completeness < 30 || (s.daysSinceActive !== null && s.daysSinceActive > 30 && s.attempts < 5)
+          );
+          const avgCompleteness = studentsWithStats.length
+            ? Math.round(studentsWithStats.reduce((sum, s) => sum + s.completeness, 0) / studentsWithStats.length)
+            : 0;
+          const fullyProfiled = studentsWithStats.filter((s) => s.completeness >= 80).length;
+          const majorCounts: Record<string, number> = {};
+          const roleCounts: Record<string, number> = {};
+          const industryCounts2: Record<string, number> = {};
+          for (const s of studentsWithStats) {
+            if (s.major) majorCounts[s.major] = (majorCounts[s.major] ?? 0) + 1;
+            if (s.targetRole) roleCounts[s.targetRole] = (roleCounts[s.targetRole] ?? 0) + 1;
+            if (s.targetIndustry) industryCounts2[s.targetIndustry] = (industryCounts2[s.targetIndustry] ?? 0) + 1;
+          }
+          const topMajors = Object.entries(majorCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+          const topRoles = Object.entries(roleCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+          const topIndustries2 = Object.entries(industryCounts2).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
+          const COMPLETENESS_COLS = [
+            { key: "graduationYear", label: "Grad Year" },
+            { key: "major", label: "Major" },
+            { key: "targetRole", label: "Target Role" },
+            { key: "targetIndustry", label: "Industry" },
+            { key: "attempts5", label: "5+ Sessions" },
+            { key: "hasAptitude", label: "Aptitude" },
+            { key: "hasCheckIn", label: "Check-In" },
+            { key: "hasInterview", label: "Interview Log" },
+          ] as const;
+
+          return (
+            <div style={{ display: "grid", gap: 18 }}>
+
+              {/* KPI row */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
+                {[
+                  { label: "Avg Completeness", value: `${avgCompleteness}%`, sub: "across all students" },
+                  { label: "Fully Profiled", value: `${fullyProfiled}`, sub: "≥80% complete" },
+                  { label: "At-Risk Students", value: `${atRisk.length}`, sub: "need outreach" },
+                  { label: "Skills Extracted", value: `${skillsByUser.length}`, sub: "across cohort" },
+                ].map((kpi) => (
+                  <GlowCard key={kpi.label} padding={20} radius={18}>
+                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 28, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>{kpi.value}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{kpi.sub}</div>
+                  </GlowCard>
+                ))}
+              </div>
+
+              {/* Profile completeness heatmap */}
+              <GlowCard padding={22} radius={22}>
+                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>Profile Completeness</div>
+                <div style={{ fontSize: 18, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Student-by-Category Heatmap</div>
+
+                {/* Header */}
+                <div style={{ display: "grid", gridTemplateColumns: `180px repeat(${COMPLETENESS_COLS.length}, 1fr) 80px`, gap: 4, marginBottom: 6 }}>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase" }}>Student</div>
+                  {COMPLETENESS_COLS.map((col) => (
+                    <div key={col.key} style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", textAlign: "center", lineHeight: 1.3 }}>{col.label}</div>
+                  ))}
+                  <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", textAlign: "center" }}>Score</div>
+                </div>
+
+                <div style={{ display: "grid", gap: 3 }}>
+                  {studentsWithStats.sort((a, b) => b.completeness - a.completeness).map((s) => {
+                    const cells = [
+                      !!s.graduationYear,
+                      !!s.major,
+                      !!s.targetRole,
+                      !!s.targetIndustry,
+                      s.attempts >= 5,
+                      s.hasAptitude,
+                      s.hasCheckIn,
+                      s.hasInterview,
+                    ];
+                    const completenessColor = s.completeness >= 80 ? "#10B981" : s.completeness >= 50 ? "#F59E0B" : "#EF4444";
+                    return (
+                      <div key={s.id} style={{ display: "grid", gridTemplateColumns: `180px repeat(${COMPLETENESS_COLS.length}, 1fr) 80px`, gap: 4, alignItems: "center" }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</div>
+                        {cells.map((filled, i) => (
+                          <div key={i} style={{ height: 20, borderRadius: 4, background: filled ? "#10B98130" : "var(--card-border-soft)", border: `1px solid ${filled ? "#10B98150" : "transparent"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: filled ? "#10B981" : "transparent" }}>
+                            {filled ? "✓" : ""}
+                          </div>
+                        ))}
+                        <div style={{ textAlign: "center", fontSize: 12, fontWeight: 900, color: completenessColor }}>{s.completeness}%</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </GlowCard>
+
+              {/* At-risk students */}
+              {atRisk.length > 0 && (
+                <GlowCard padding={22} radius={22}>
+                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "#EF4444", textTransform: "uppercase", marginBottom: 4 }}>Needs Outreach</div>
+                  <div style={{ fontSize: 18, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>At-Risk Students ({atRisk.length})</div>
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {atRisk.map((s) => {
+                      const reasons: string[] = [];
+                      if (s.completeness < 30) reasons.push("profile incomplete");
+                      if (s.daysSinceActive !== null && s.daysSinceActive > 30) reasons.push(`inactive ${s.daysSinceActive}d`);
+                      if (s.attempts < 5) reasons.push(`only ${s.attempts} session${s.attempts !== 1 ? "s" : ""}`);
+                      return (
+                        <div key={s.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.04)" }}>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{s.email}</div>
+                          </div>
+                          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                            {reasons.map((r) => (
+                              <span key={r} style={{ padding: "2px 8px", borderRadius: 99, fontSize: 11, fontWeight: 700, background: "rgba(239,68,68,0.1)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.2)" }}>{r}</span>
+                            ))}
+                            <span style={{ padding: "2px 8px", borderRadius: 99, fontSize: 11, fontWeight: 700, background: "var(--card-bg-strong)", color: "var(--text-muted)" }}>{s.completeness}% complete</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </GlowCard>
+              )}
+
+              {/* Cohort demographics */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14 }}>
+                {[
+                  { title: "Top Majors", data: topMajors },
+                  { title: "Target Roles", data: topRoles },
+                  { title: "Target Industries", data: topIndustries2 },
+                ].map(({ title, data }) => (
+                  <GlowCard key={title} padding={20} radius={18}>
+                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>{title}</div>
+                    {data.length === 0 ? (
+                      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No data yet</div>
+                    ) : (
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {data.map(([label, count]) => {
+                          const pct = Math.round((count / studentsWithStats.length) * 100);
+                          return (
+                            <div key={label}>
+                              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "70%" }}>{label}</span>
+                                <span style={{ color: "var(--text-muted)", flexShrink: 0 }}>{count}</span>
+                              </div>
+                              <div style={{ height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                <div style={{ width: `${pct}%`, height: "100%", borderRadius: 99, background: "var(--accent)" }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </GlowCard>
+                ))}
+              </div>
+
+              {/* Cohort skills inventory */}
+              {topCohortSkills.length > 0 && (
+                <GlowCard padding={22} radius={22}>
+                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>AI-Extracted</div>
+                  <div style={{ fontSize: 18, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Cohort Skills Inventory</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {topCohortSkills.map(({ skill, count, category }) => {
+                      const catColors: Record<string, string> = {
+                        technical: "#2563EB", communication: "#10B981", leadership: "#8B5CF6",
+                        analytical: "#F59E0B", interpersonal: "#EC4899", domain: "#0EA5E9",
+                      };
+                      const color = catColors[category] ?? "#6B7280";
+                      return (
+                        <div key={skill} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 99, border: `1px solid ${color}30`, background: `${color}10` }}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color }}>{skill}</span>
+                          <span style={{ fontSize: 10, fontWeight: 900, color, opacity: 0.7 }}>{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)" }}>
+                    Skills are automatically extracted from student interview transcripts via AI. Run "Extract Skills" from a student's profile to update.
+                  </div>
+                </GlowCard>
+              )}
+
+            </div>
+          );
+        })()}
 
         {/* ── PRACTICE TAB ─────────────────────────────────────────────── */}
         {activeTab === "practice" && (
