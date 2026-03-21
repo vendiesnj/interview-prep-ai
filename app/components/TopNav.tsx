@@ -19,7 +19,7 @@ const TOOL_LINKS = [
   { label: "Interview Prep", href: "/practice" },
   { label: "Public Speaking", href: "/public-speaking" },
   { label: "Networking", href: "/networking" },
-  { label: "Results", href: "/results" },
+  { label: "Financial Literacy", href: "/financial-literacy" },
 ];
 
 const INTERVIEW_PREP_ROUTES = [
@@ -30,7 +30,6 @@ const INTERVIEW_PREP_ROUTES = [
   "/results",
   "/progress",
   "/sessions",
-  "/financial-literacy",
 ];
 
 const INTERVIEW_PREP_TABS = [
@@ -41,7 +40,6 @@ const INTERVIEW_PREP_TABS = [
   { href: "/results", label: "Results" },
   { href: "/progress", label: "Insights" },
   { href: "/sessions", label: "Sessions" },
-  { href: "/financial-literacy", label: "Financial Literacy" },
 ];
 
 const MOBILE_BOTTOM = [
