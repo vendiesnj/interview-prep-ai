@@ -6,6 +6,35 @@ import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 import PremiumShell from "../../components/PremiumShell";
 
+// ── Guide definitions ─────────────────────────────────────────────────────────
+
+const GUIDES: Record<string, Array<{ icon: string; label: string; href: string; tag: string; tagColor: string }>> = {
+  pre_college: [
+    { icon: "📋", label: "Understanding FAFSA & Financial Aid", href: "/career-guide/finances?from=pre-college",      tag: "Finance", tagColor: "#10B981" },
+    { icon: "💳", label: "Building Credit Before You Graduate",  href: "/career-guide/finances?from=pre-college",      tag: "Finance", tagColor: "#10B981" },
+    { icon: "🗺️", label: "How to Choose a Major",               href: "/career-guide/career-paths?from=pre-college",  tag: "Career",  tagColor: "#2563EB" },
+    { icon: "🏠", label: "On-Campus vs. Off-Campus Housing",     href: "/career-guide/housing?from=pre-college",       tag: "Life",    tagColor: "#8B5CF6" },
+    { icon: "📈", label: "First-Gen College Student Guide",      href: "/career-guide/first-year?from=pre-college",    tag: "Life",    tagColor: "#8B5CF6" },
+    { icon: "🧾", label: "Student Taxes: What You Need to Know", href: "/career-guide/finances?from=pre-college",      tag: "Finance", tagColor: "#10B981" },
+  ],
+  during_college: [
+    { icon: "💼", label: "Landing Your First Internship",        href: "/career-guide/first-year?from=during-college",   tag: "Career",  tagColor: "#2563EB" },
+    { icon: "🧾", label: "Filing Taxes for the First Time",      href: "/career-guide/finances?from=during-college",     tag: "Finance", tagColor: "#10B981" },
+    { icon: "📊", label: "Peer Salary & Career Benchmarks",      href: "/career-guide/benchmarks?from=during-college",   tag: "Career",  tagColor: "#2563EB" },
+    { icon: "🗺️", label: "Exploring Career Paths & Specialties", href: "/career-guide/career-paths?from=during-college", tag: "Career",  tagColor: "#2563EB" },
+    { icon: "💳", label: "Student Credit & Building History",    href: "/career-guide/finances?from=during-college",     tag: "Finance", tagColor: "#10B981" },
+    { icon: "🏠", label: "Off-Campus Housing Guide",             href: "/career-guide/housing?from=during-college",      tag: "Life",    tagColor: "#8B5CF6" },
+  ],
+  post_college: [
+    { icon: "🏦", label: "401k & Retirement Basics",          href: "/career-guide/retirement?from=post-college",    tag: "Finance", tagColor: "#10B981" },
+    { icon: "💰", label: "Understanding Your Paycheck",        href: "/career-guide/finances?from=post-college",      tag: "Finance", tagColor: "#10B981" },
+    { icon: "📋", label: "Student Loan Repayment Options",     href: "/career-guide/finances?from=post-college",      tag: "Finance", tagColor: "#10B981" },
+    { icon: "📈", label: "Salary Negotiation Guide",           href: "/career-guide/first-year?from=post-college",   tag: "Career",  tagColor: "#8B5CF6" },
+    { icon: "🏠", label: "Renting vs. Buying Your First Home", href: "/career-guide/housing?from=post-college",       tag: "Life",    tagColor: "#0EA5E9" },
+    { icon: "🗺️", label: "Career Progression & Paths",         href: "/career-guide/career-paths?from=post-college", tag: "Career",  tagColor: "#8B5CF6" },
+  ],
+};
+
 // ── Track definitions ─────────────────────────────────────────────────────────
 
 type TrackItem = {
@@ -300,6 +329,25 @@ export default function DashboardPage() {
               interviewDone={history.length > 0}
             />
           ))}
+        </div>
+
+        {/* ── Guides & Resources ── */}
+        <div style={{ marginTop: 48 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
+            {(GUIDES[persona] ?? GUIDES.during_college).map((r) => (
+              <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
+                <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>{r.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
+                    <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: r.tagColor, background: r.tagColor + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
+                  </div>
+                  <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
       </div>
