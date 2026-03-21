@@ -395,7 +395,7 @@ export async function GET() {
   // ── Instinct profile (aggregate dimensions across sessions) ───────────────
 
   const instinctDimensionsAggregate = instinctSessions.length > 0 ? (() => {
-    const dims = ["teamwork", "leadership", "communication", "criticalThinking", "professionalism", "adaptability"];
+    const dims = ["teamwork", "leadership", "communication", "criticalThinking", "professionalism", "adaptability", "equityInclusion"];
     const result: Record<string, number> = {};
     for (const d of dims) {
       const vals = instinctSessions.map((s) => ((s.dimensions as any)?.[d] ?? 0) as number);
@@ -433,11 +433,20 @@ export async function GET() {
       ? (aptitudeResult.scores as Partial<Record<"A" | "B" | "C" | "H" | "L" | "M", number>>)
       : null;
 
+  const technicalSkillsCount = studentSkills.filter(
+    (s) => s.category.toLowerCase().includes("tech") || s.category.toLowerCase().includes("software") || s.category.toLowerCase().includes("data") || s.category.toLowerCase().includes("engineer")
+  ).length;
+
   const naceScores: NaceScore[] = computeNaceProfile({
     attempts: naceInputs,
     aptitudeScores: aptitudeScores ?? undefined,
     hasCompletedAptitude: !!aptitudeResult,
     hasCompletedCareerCheckIn: !!careerCheckIn,
+    instinctDimensions: instinctDimensionsAggregate,
+    instinctSessionCount: instinctSessions.length,
+    technicalSkillsCount,
+    hasResumeAnalysis: resumeAnalyses.length > 0,
+    totalAttempts: rawAttempts.length,
   });
 
   // ── Completeness ──────────────────────────────────────────────────────────

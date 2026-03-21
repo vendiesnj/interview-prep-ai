@@ -7,6 +7,8 @@ export type ChecklistItemDef = {
   id: string;
   label: string;
   desc: string; // default description (fallback)
+  linkHref?: string;   // default external/internal link
+  linkLabel?: string;  // default link label
 };
 
 type ContentOverride = {
@@ -295,17 +297,19 @@ export default function ChecklistSection({
                       <p style={{ margin: "0 0 10px", fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>
                         {bodyText}
                       </p>
-                      {(override?.linkHref) && (
-                        <Link
-                          href={override.linkHref}
+                      {(override?.linkHref || item.linkHref) && (
+                        <a
+                          href={override?.linkHref || item.linkHref}
+                          target={override?.linkHref?.startsWith("http") || item.linkHref?.startsWith("http") ? "_blank" : undefined}
+                          rel="noopener noreferrer"
                           style={{
                             display: "inline-flex", alignItems: "center", gap: 5,
                             fontSize: 12, fontWeight: 700, color: accentColor,
                             textDecoration: "none",
                           }}
                         >
-                          {override.linkLabel || "Learn more"} →
-                        </Link>
+                          {override?.linkLabel || item.linkLabel || "Learn more"} →
+                        </a>
                       )}
                     </div>
                   )}

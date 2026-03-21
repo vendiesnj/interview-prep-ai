@@ -31,6 +31,7 @@ const DIMENSION_ICONS: Record<Dimension, string> = {
   criticalThinking: "🧠",
   professionalism: "🏛️",
   adaptability: "🌊",
+  equityInclusion: "⚖️",
 };
 
 const DIMENSION_COLORS: Record<Dimension, string> = {
@@ -40,6 +41,7 @@ const DIMENSION_COLORS: Record<Dimension, string> = {
   criticalThinking: "#8B5CF6",
   professionalism: "#0EA5E9",
   adaptability: "#EC4899",
+  equityInclusion: "#14B8A6",
 };
 
 function getTopDimensions(dims: Record<Dimension, number>, n: number): Dimension[] {
@@ -49,7 +51,10 @@ function getTopDimensions(dims: Record<Dimension, number>, n: number): Dimension
 }
 
 function getLowestDimension(dims: Record<Dimension, number>): Dimension {
-  return (Object.keys(dims) as Dimension[]).sort((a, b) => dims[a] - dims[b])[0];
+  return (Object.keys(dims) as Dimension[])
+    // exclude equityInclusion from "lowest" if no E&I scenarios were played (score=0 is absence of data, not a weakness)
+    .filter((d) => d !== "equityInclusion" || dims.equityInclusion > 0)
+    .sort((a, b) => dims[a] - dims[b])[0];
 }
 
 // ── Subcomponents ─────────────────────────────────────────────────────────────

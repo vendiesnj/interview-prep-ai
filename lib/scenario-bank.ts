@@ -4,7 +4,8 @@ export type Dimension =
   | "communication"
   | "criticalThinking"
   | "professionalism"
-  | "adaptability";
+  | "adaptability"
+  | "equityInclusion";
 
 export const DIMENSION_LABELS: Record<Dimension, string> = {
   teamwork: "Teamwork",
@@ -13,6 +14,7 @@ export const DIMENSION_LABELS: Record<Dimension, string> = {
   criticalThinking: "Critical Thinking",
   professionalism: "Professionalism",
   adaptability: "Adaptability",
+  equityInclusion: "Equity & Inclusion",
 };
 
 export const DIMENSION_DESCRIPTIONS: Record<Dimension, string> = {
@@ -22,6 +24,7 @@ export const DIMENSION_DESCRIPTIONS: Record<Dimension, string> = {
   criticalThinking: "How you analyze, decide, and solve problems",
   professionalism: "How you handle ethics, accountability, and boundaries",
   adaptability: "How you respond to change, ambiguity, and pressure",
+  equityInclusion: "How you recognize, respond to, and actively support equity and inclusion",
 };
 
 export interface Choice {
@@ -619,6 +622,158 @@ export const SCENARIOS: Scenario[] = [
       },
     ],
   },
+
+  // ── Equity & Inclusion scenarios ─────────────────────────────────────────
+
+  {
+    id: "s21",
+    category: "equityInclusion",
+    label: "Talked Over",
+    situation:
+      "In a team meeting, a junior colleague keeps getting interrupted mid-sentence. Their ideas are substantive, but the conversation keeps moving past them without acknowledgment.",
+    choices: [
+      {
+        text: "Say something in the moment: 'I think [name] was making a point — let's hear it'",
+        dimensions: { equityInclusion: 1.0, communication: 0.9, leadership: 0.8 },
+        insight: "You intervene directly when you see someone being excluded — high psychological safety and moral courage.",
+      },
+      {
+        text: "Make a point of asking the colleague for their input directly",
+        dimensions: { equityInclusion: 0.9, teamwork: 0.9, communication: 0.7 },
+        insight: "You redirect rather than confront — creates space without triggering defensiveness.",
+      },
+      {
+        text: "Mention it to the meeting facilitator privately afterward",
+        dimensions: { equityInclusion: 0.7, communication: 0.8, professionalism: 0.7 },
+        insight: "You work through the right channel — procedural rather than in-the-moment.",
+      },
+      {
+        text: "Check in with the colleague after the meeting to see if they're okay",
+        dimensions: { equityInclusion: 0.6, teamwork: 0.8, communication: 0.7 },
+        insight: "You prioritize the person's experience over the system — relational and supportive.",
+      },
+    ],
+  },
+
+  {
+    id: "s22",
+    category: "equityInclusion",
+    label: "Holiday Conflict",
+    situation:
+      "Your team schedules an important optional team event on a religious holiday. A colleague who observes that holiday says nothing but looks visibly uncomfortable when it's announced.",
+    choices: [
+      {
+        text: "Suggest rescheduling before the event is confirmed: 'We should check for conflicts first'",
+        dimensions: { equityInclusion: 1.0, communication: 0.9, professionalism: 0.8 },
+        insight: "You address inclusion proactively, before harm is done — systemic, not just reactive.",
+      },
+      {
+        text: "Privately check in with the colleague and advocate for a change if they want one",
+        dimensions: { equityInclusion: 0.9, teamwork: 0.9, communication: 0.8 },
+        insight: "You center the affected person's agency — ask first, act second.",
+      },
+      {
+        text: "Suggest the team build a shared calendar of religious observances going forward",
+        dimensions: { equityInclusion: 0.9, leadership: 0.7, criticalThinking: 0.8 },
+        insight: "You solve structurally — address the root cause so this doesn't recur.",
+      },
+      {
+        text: "Hope the colleague speaks up if they're affected — it's not your place to assume",
+        dimensions: { equityInclusion: 0.2, adaptability: 0.4, professionalism: 0.3 },
+        insight: "You avoid assumption but may leave the burden entirely on the affected person to advocate for themselves.",
+      },
+    ],
+  },
+
+  {
+    id: "s23",
+    category: "equityInclusion",
+    label: "Informal Exclusion",
+    situation:
+      "You notice that a new hire — who comes from a very different background than the rest of the team — is never included in the informal Slack channels and after-work conversations where real relationships form.",
+    choices: [
+      {
+        text: "Directly invite them into the channels and introduce them to the group",
+        dimensions: { equityInclusion: 1.0, teamwork: 1.0, communication: 0.8 },
+        insight: "You act rather than observe — include actively, not passively.",
+      },
+      {
+        text: "Mention the pattern to your manager as a team culture observation",
+        dimensions: { equityInclusion: 0.8, leadership: 0.7, communication: 0.8 },
+        insight: "You escalate structural issues — understand that culture problems require leadership attention.",
+      },
+      {
+        text: "Build a personal relationship with the new hire and bring them into your network",
+        dimensions: { equityInclusion: 0.8, teamwork: 0.9, adaptability: 0.6 },
+        insight: "You start where you have influence — individual action in service of belonging.",
+      },
+      {
+        text: "Assume they'll find their way in — it just takes time on any new team",
+        dimensions: { equityInclusion: 0.2, adaptability: 0.5, teamwork: 0.3 },
+        insight: "You normalize the pattern — may underestimate that informal exclusion compounds over time.",
+      },
+    ],
+  },
+
+  {
+    id: "s24",
+    category: "equityInclusion",
+    label: "Client Language",
+    situation:
+      "During a client call, the client uses an outdated and potentially offensive term for a demographic group. Your teammates say nothing. The call continues.",
+    choices: [
+      {
+        text: "Gently redirect in the moment: 'Just to note, the more current term is...'",
+        dimensions: { equityInclusion: 1.0, communication: 1.0, professionalism: 0.8 },
+        insight: "You correct even in high-stakes external settings — high-conviction, high-risk intervention.",
+      },
+      {
+        text: "Raise it with your team lead after the call to decide how to handle with the client",
+        dimensions: { equityInclusion: 0.8, professionalism: 0.9, communication: 0.8 },
+        insight: "You involve the right stakeholders before acting externally — politically aware but still action-oriented.",
+      },
+      {
+        text: "Note it internally and raise it if it happens again",
+        dimensions: { equityInclusion: 0.5, adaptability: 0.6, criticalThinking: 0.5 },
+        insight: "You choose your battles — first offense gets documented, not escalated.",
+      },
+      {
+        text: "Say nothing — correcting a client mid-call could damage the relationship",
+        dimensions: { equityInclusion: 0.1, professionalism: 0.4, adaptability: 0.3 },
+        insight: "You prioritize the business relationship over the inclusion signal — may normalize harmful language.",
+      },
+    ],
+  },
+
+  {
+    id: "s25",
+    category: "equityInclusion",
+    label: "Calibration Gap",
+    situation:
+      "You're on a peer feedback panel for performance reviews. You notice a high-performing colleague consistently receives lower ratings than peers with nearly identical output. The colleague is one of few people from an underrepresented group on the team.",
+    choices: [
+      {
+        text: "Name the pattern directly: 'I want to flag that this person's ratings may not reflect their output'",
+        dimensions: { equityInclusion: 1.0, leadership: 0.9, communication: 0.9, professionalism: 0.8 },
+        insight: "You're willing to challenge group consensus when you see a pattern that looks like bias — high integrity, high risk.",
+      },
+      {
+        text: "Provide specific evidence of their contributions to counterbalance the ratings",
+        dimensions: { equityInclusion: 0.9, criticalThinking: 1.0, communication: 0.8 },
+        insight: "You argue with data, not accusation — evidence-based approach to bias correction.",
+      },
+      {
+        text: "Talk to HR about what you observed after the panel concludes",
+        dimensions: { equityInclusion: 0.7, professionalism: 0.8, communication: 0.7 },
+        insight: "You use the right channel — formal process over in-the-moment confrontation.",
+      },
+      {
+        text: "You're not sure it's bias — stay quiet to avoid making it about something it might not be",
+        dimensions: { equityInclusion: 0.1, adaptability: 0.4, criticalThinking: 0.3 },
+        insight: "You default to uncertainty over action — risk of inaction when patterns are statistically visible.",
+      },
+    ],
+  },
 ];
 
 export function getRandomScenarios(count: number = 10): Scenario[] {
@@ -636,6 +791,7 @@ export function computeSessionDimensions(
     criticalThinking: 0,
     professionalism: 0,
     adaptability: 0,
+    equityInclusion: 0,
   };
   const counts: Record<Dimension, number> = { ...totals };
 
@@ -652,7 +808,10 @@ export function computeSessionDimensions(
 
   const result: Record<Dimension, number> = { ...totals };
   for (const dim of Object.keys(totals) as Dimension[]) {
-    result[dim] = counts[dim] > 0 ? Math.round((totals[dim] / counts[dim]) * 100) / 100 : 0.5;
+    // equityInclusion: return 0 when no E&I scenarios were played (no fabricated neutral score)
+    // All other dimensions: 0.5 neutral when no samples yet
+    const fallback = dim === "equityInclusion" ? 0 : 0.5;
+    result[dim] = counts[dim] > 0 ? Math.round((totals[dim] / counts[dim]) * 100) / 100 : fallback;
   }
   return result;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import PremiumShell from "@/app/components/PremiumShell";
@@ -84,47 +84,76 @@ const POST_COLLEGE_TIPS = [
 
 const PRE_COLLEGE_SECTIONS = [
   {
-    phase: "Week 1",
+    phase: "Week 1 — Navigate the New Environment",
     color: "#10B981",
     items: [
-      { key: "pc_w1_orientation", label: "Attend orientation fully (it's worth it)" },
-      { key: "pc_w1_neighbors", label: "Introduce yourself to your RA and at least 3 neighbors" },
-      { key: "pc_w1_resources", label: "Locate the library, tutoring center, career center, and counseling center" },
-      { key: "pc_w1_classes", label: "Find out where your classes are before the first day" },
-      { key: "pc_w1_portal", label: "Set up your student email and university portal" },
+      { key: "pc_w1_orientation", label: "Attend orientation fully — the information matters, and so does showing up" },
+      { key: "pc_w1_neighbors", label: "Introduce yourself to your RA and 2-3 neighbors by name" },
+      { key: "pc_w1_resources", label: "Physically walk to: tutoring center, writing lab, career center, and counseling services" },
+      { key: "pc_w1_classes", label: "Find your classrooms before the first day — don't walk in late and anxious" },
+      { key: "pc_w1_portal", label: "Set up your student email and learn your university portal (Canvas, Blackboard, etc.)" },
+      { key: "pc_w1_finaid_disbursement", label: "Find out when and how your financial aid disbursement arrives — and budget it before spending any" },
     ],
   },
   {
-    phase: "Month 1",
+    phase: "Month 1 — Build Your Foundation",
     color: "#2563EB",
     items: [
-      { key: "pc_m1_advisor", label: "Meet with your academic advisor" },
-      { key: "pc_m1_clubs", label: "Join 1-2 clubs or organizations (not 5)" },
-      { key: "pc_m1_schedule", label: "Establish a study schedule before midterms" },
-      { key: "pc_m1_finaid", label: "Figure out how your financial aid disbursement works" },
-      { key: "pc_m1_officehours", label: "Find at least one professor whose office hours you'll actually attend" },
+      { key: "pc_m1_advisor", label: "Meet with your academic advisor before your second semester registration" },
+      { key: "pc_m1_officehours", label: "Go to at least one professor's office hours — even if you don't have a question yet" },
+      { key: "pc_m1_clubs", label: "Join 1-2 clubs or organizations — not 5. Quality over quantity." },
+      { key: "pc_m1_schedule", label: "Establish a study routine before midterms, not after your first bad grade" },
+      { key: "pc_m1_career_center", label: "Visit the career center — even in freshman year, they can help with resume and planning" },
+      { key: "pc_m1_support", label: "Identify one person on campus you could call if something went wrong — RA, advisor, campus counselor" },
     ],
   },
   {
-    phase: "First Semester",
+    phase: "First Semester — Set Your Trajectory",
     color: "#8B5CF6",
     items: [
-      { key: "pc_s1_professor", label: "Build a relationship with at least one professor (rec letters come from these)" },
-      { key: "pc_s1_degree", label: "Understand your degree requirements and 4-year plan" },
-      { key: "pc_s1_workstudy", label: "Apply for any work-study jobs if you have the award" },
-      { key: "pc_s1_summer", label: "Start thinking about summer - research programs and internships open early" },
-      { key: "pc_s1_gpa", label: "Check your GPA threshold for any scholarships you received" },
+      { key: "pc_s1_professor", label: "Build a real relationship with one professor — attend office hours, engage, follow up after class" },
+      { key: "pc_s1_degree", label: "Understand your degree requirements and map a rough 4-year plan with your advisor" },
+      { key: "pc_s1_workstudy", label: "Apply for work-study or campus jobs if you have the award or need income" },
+      { key: "pc_s1_summer", label: "Research summer opportunities in December — internship and research program apps open early" },
+      { key: "pc_s1_gpa", label: "Know the GPA requirements for any scholarships you received — some have minimums to maintain" },
+      { key: "pc_s1_brag_doc", label: "Start a running list of things you've done, learned, and contributed — you'll use this later" },
     ],
   },
 ];
 
 const PRE_COLLEGE_TIPS = [
-  "Office hours aren't just for struggling - they're how you get to know professors who write you recommendations",
-  "Your advisor is your GPS - meet every semester, not just when something is wrong",
-  "The career center is useful from freshman year, not just senior year",
-  "Asking for help isn't weakness - the students who thrive are the ones who use every resource",
-  "Everyone feels out of place freshman year - even the ones who look confident",
+  {
+    title: "You're not behind — you just haven't been taught the unwritten rules yet",
+    body: "First-gen students often arrive without knowing things their classmates take for granted: how to email a professor, what office hours are actually for, that advisors exist to help not gatekeep, or that asking questions is respected not embarrassing. None of this means you're less prepared. It means you're navigating systems that weren't designed to explain themselves. You'll learn them, and quickly.",
+  },
+  {
+    title: "Code-switching is real — and it's a skill, not a betrayal",
+    body: "You may find yourself speaking differently in class, in professional settings, or around certain groups than you do at home. This is normal. Many first-gen students feel guilt about it — like changing how you present yourself means leaving your identity behind. It doesn't. Learning to move between environments is a professional skill. The version of you at home and the version of you in a board room are both real. You don't have to choose.",
+  },
+  {
+    title: "Imposter syndrome will feel like a fact, not a feeling",
+    body: "At some point you'll look around and think everyone else belongs here and you're the mistake. That thought is a liar. Every student in that room has their own version of it. First-gen students often carry an extra layer because you don't have a parent who went through this to tell you it's normal. So here it is: it's normal. The discomfort doesn't mean you're wrong to be there. It means you're growing.",
+  },
+  {
+    title: "Family may not understand — and that's hard, but real",
+    body: "Your family may have limited frame of reference for what college actually involves. They may not understand why you need to stay for finals week, why networking is part of your education, or why you're stressed about something that 'just sounds like school.' They love you and have no context. You may need to explain yourself more than you expected. That's a real emotional cost. Find people on campus — professors, advisors, counselors, other first-gen students — who get it without explanation.",
+  },
+  {
+    title: "Using resources isn't charity — it's strategy",
+    body: "Tutoring, counseling, writing centers, financial aid assistance, career coaching — these exist because your tuition and fees fund them. Using them isn't a sign of weakness or need. It's what students who succeed do. The students who max out every resource aren't the ones who struggled most — they're often the ones who ended up strongest. Treat campus resources like equipment in a gym. They're there. Use them.",
+  },
+  {
+    title: "Relationships with professors change everything",
+    body: "Professors write recommendation letters that open graduate school and job doors. They know researchers who have lab openings. They connect students to fellowships, scholarships, and opportunities that never get posted publicly. You access all of this by going to office hours before you need something — just to talk about ideas, ask questions, share what you're working on. First-gen students often underuse this. Don't.",
+  },
+  {
+    title: "Your financial reality is different — plan accordingly",
+    body: "If you're on financial aid, work-study, or managing costs your classmates aren't thinking about, budget your aid disbursement the moment it arrives. Know your refund schedule. Know whether your scholarship requires maintaining a certain GPA or credit load. Know that the financial aid office will work with you if something changes at home — a parent's job loss, a family emergency — but only if you tell them. They can't help what they don't know about.",
+  },
 ];
+
+// Override to use styled tips (title+body format)
+const PRE_COLLEGE_TIPS_STYLED = true;
 
 // ── DURING-COLLEGE ────────────────────────────────────────────────────────────
 
@@ -233,11 +262,12 @@ type StageContent = {
 function getContent(from: string | null): StageContent {
   if (from === "pre-college") {
     return {
-      shellTitle: "Starting College on the Right Foot",
-      shellSubtitle: "Academic habits, campus resources, and getting ahead from week one",
-      tipsHeading: "THINGS FIRST-GEN STUDENTS WISH THEY KNEW",
+      shellTitle: "First-Gen College Student Guide",
+      shellSubtitle: "The unwritten rules, cultural shifts, and practical steps for navigating college when no one in your family has done it before",
+      tipsHeading: "THINGS NOBODY TELLS FIRST-GEN STUDENTS",
       sections: PRE_COLLEGE_SECTIONS,
       tips: PRE_COLLEGE_TIPS,
+      tipsStyled: PRE_COLLEGE_TIPS_STYLED,
     };
   }
   if (from === "during-college") {
@@ -260,7 +290,7 @@ function getContent(from: string | null): StageContent {
   };
 }
 
-export default function FirstYearPage() {
+function FirstYearContent() {
   const searchParams = useSearchParams();
   const from = searchParams.get("from");
   const { href: backHref, label: backLabel } = backNav(from);
@@ -362,5 +392,13 @@ export default function FirstYearPage() {
         </div>
       </div>
     </PremiumShell>
+  );
+}
+
+export default function FirstYearPage() {
+  return (
+    <Suspense>
+      <FirstYearContent />
+    </Suspense>
   );
 }

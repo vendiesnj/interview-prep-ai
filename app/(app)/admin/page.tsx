@@ -1059,6 +1059,13 @@ export default async function AdminPage({
     });
   const totalAttempts = filteredAttempts.length;
 
+  // Framework-split attempt counts for admin display
+  const filteredInterviewAttempts = filteredAttempts.filter(
+    (a) => !a.evaluationFramework || !["networking_pitch", "public_speaking"].includes(a.evaluationFramework)
+  );
+  const filteredNetworkingAttempts = filteredAttempts.filter((a) => a.evaluationFramework === "networking_pitch");
+  const filteredPsAttempts = filteredAttempts.filter((a) => a.evaluationFramework === "public_speaking");
+
     const scoreVals = filteredAttempts
     .map(getAttemptScore)
     .filter((v): v is number => v !== null);
@@ -1491,7 +1498,7 @@ const stalledPct =
               { key: "overview",    label: "Overview" },
               { key: "students",    label: "Students" },
               { key: "profiles",    label: "Student Profiles" },
-              { key: "practice",    label: "Speaking & Practice" },
+              { key: "practice",    label: "Speaking & Delivery" },
               { key: "jobs",        label: "Job Profiles" },
               { key: "assignments", label: "Assignments" },
               { key: "outcomes",    label: "Outcomes" },
@@ -1596,9 +1603,9 @@ const stalledPct =
                 }
               />
               <KpiCard
-                label="Attempts"
+                label="Total Sessions"
                 value={String(totalAttempts)}
-                subtext="Interview reps captured across this school."
+                subtext={`Interview: ${filteredInterviewAttempts.length} · Networking: ${filteredNetworkingAttempts.length} · Public Speaking: ${filteredPsAttempts.length}`}
               />
               <KpiCard
                 label="At-Risk Students"
@@ -1608,7 +1615,7 @@ const stalledPct =
               <KpiCard
                 label="Student Readiness"
                 value={avgScoreDisplay}
-                subtext="Average interview score across all attempts."
+                subtext="Average speaking score across all practice modules."
               />
               <KpiCard
                 label="Avg Attempts / Student"
@@ -2388,6 +2395,22 @@ const stalledPct =
         {/* ── PRACTICE TAB ─────────────────────────────────────────────── */}
         {activeTab === "practice" && (
           <div style={{ display: "grid", gap: 18 }}>
+            {/* Module breakdown row */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+              {[
+                { label: "Interview Prep", count: filteredInterviewAttempts.length, color: "#2563EB", icon: "🎤", desc: "Behavioral & STAR practice" },
+                { label: "Networking", count: filteredNetworkingAttempts.length, color: "#10B981", icon: "🤝", desc: "Elevator pitch sessions" },
+                { label: "Public Speaking", count: filteredPsAttempts.length, color: "#8B5CF6", icon: "📢", desc: "Presentation & speaking" },
+              ].map(({ label, count, color, icon, desc }) => (
+                <div key={label} style={{ padding: "16px 18px", borderRadius: 14, border: `1px solid ${color}25`, background: `${color}08` }}>
+                  <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{label}</div>
+                  <div style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{count}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
+
             {/* Engagement Overview + Speaking Metrics */}
             <div
               style={{
@@ -2405,14 +2428,14 @@ const stalledPct =
                   }}
                 >
                   <SmallMetric
-                    label="Spoken Attempts"
+                    label="Sessions w/ Voice Data"
                     value={`${spokenRate}%`}
-                    subtext="Share of attempts with speaking data."
+                    subtext="Share of sessions with speaking analytics."
                   />
                   <SmallMetric
-                    label="Readiness Baseline"
+                    label="Avg Speaking Score"
                     value={avgScoreDisplay}
-                    subtext="Average overall interview score."
+                    subtext="Across all speaking modules."
                   />
                 </div>
 
@@ -2446,13 +2469,16 @@ const stalledPct =
                       lineHeight: 1.8,
                     }}
                   >
-                    {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} currently average{" "}
-                    <strong>{avgScoreDisplay}</strong> overall, with communication at{" "}
+                    {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} average{" "}
+                    <strong>{avgScoreDisplay}</strong> across speaking sessions, with communication at{" "}
                     <strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
                     <strong>{avgConfidenceDisplay}</strong>.{" "}
+                    Sessions break down as: <strong>{filteredInterviewAttempts.length}</strong> interview,{" "}
+                    <strong>{filteredNetworkingAttempts.length}</strong> networking, and{" "}
+                    <strong>{filteredPsAttempts.length}</strong> public speaking.{" "}
                     {atRiskPct === 0
-                      ? "No students are currently below the readiness target - the cohort is on track."
-                      : <><strong>{atRiskPct}%</strong> of students in this view are currently below the readiness target and may benefit from targeted coaching support.</>
+                      ? "No students are currently below the readiness target."
+                      : <><strong>{atRiskPct}%</strong> of students may benefit from targeted coaching support.</>
                     }
                   </div>
                 </div>
@@ -2502,7 +2528,7 @@ const stalledPct =
             {/* NACE Competency Cohort Panel */}
             <Panel eyebrow="NACE Career Readiness" title="Competency Scores — Cohort Average" minHeight={280}>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.6 }}>
-                Average student performance across the 8 NACE career readiness competencies, computed from practice session data.
+                Average student performance across the 8 NACE career readiness competencies, computed from interview, networking, and public speaking sessions.
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {(Object.keys(NACE_META) as NaceKey[]).map((key) => {
@@ -2546,7 +2572,7 @@ const stalledPct =
             >
               <Panel eyebrow="Insights" title="Top Weaknesses" minHeight={280}>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
-                  Most common areas where students struggle during interviews
+                  Most common areas where students struggle across speaking sessions
                 </div>
                 <ListRows
                   items={

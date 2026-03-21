@@ -1600,6 +1600,7 @@ const INSTINCT_COLORS: Record<string, string> = {
   criticalThinking: "#8B5CF6",
   professionalism: "#0EA5E9",
   adaptability: "#EC4899",
+  equityInclusion: "#14B8A6",
 };
 
 const INSTINCT_ICONS: Record<string, string> = {
@@ -1609,6 +1610,7 @@ const INSTINCT_ICONS: Record<string, string> = {
   criticalThinking: "🧠",
   professionalism: "🏛️",
   adaptability: "🌊",
+  equityInclusion: "⚖️",
 };
 
 const INSTINCT_LABELS: Record<string, string> = {
@@ -1618,6 +1620,7 @@ const INSTINCT_LABELS: Record<string, string> = {
   criticalThinking: "Critical Thinking",
   professionalism: "Professionalism",
   adaptability: "Adaptability",
+  equityInclusion: "Equity & Inclusion",
 };
 
 function InstinctsTab({ data }: { data: ProfilePayload }) {

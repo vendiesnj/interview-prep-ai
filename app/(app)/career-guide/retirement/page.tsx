@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import PremiumShell from "@/app/components/PremiumShell";
@@ -215,7 +215,7 @@ function GaugeBar({ label, value, max, color }: { label: string; value: number; 
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
-export default function RetirementPage() {
+function RetirementContent() {
   const searchParams = useSearchParams();
   const { href: backHref, label: backLabel } = backNav(searchParams.get("from"));
 
@@ -439,5 +439,13 @@ export default function RetirementPage() {
         </div>
       </div>
     </PremiumShell>
+  );
+}
+
+export default function RetirementPage() {
+  return (
+    <Suspense>
+      <RetirementContent />
+    </Suspense>
   );
 }

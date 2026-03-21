@@ -129,55 +129,60 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                   background: "var(--card-bg-strong)",
                 }}
               >
-                <p
-                  style={{
-                    margin: "0 0 10px",
-                    fontSize: 12,
-                    color: "var(--text-muted)",
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {s.description}
+                {/* Official NACE definition */}
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--text-muted)", marginBottom: 4 }}>
+                  NACE Definition
+                </div>
+                <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-soft)", lineHeight: 1.6, fontStyle: "italic" }}>
+                  "{s.definition}"
                 </p>
-                <div
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "var(--text-muted)",
-                    textTransform: "uppercase",
-                    letterSpacing: 0.6,
-                    marginBottom: 6,
-                  }}
-                >
-                  Data sources
+
+                {/* What we measure */}
+                {s.observableIndicators.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--text-muted)", marginBottom: 6 }}>
+                      Behavioral Indicators We Measure
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      {s.observableIndicators.map((ind) => (
+                        <div key={ind} style={{ display: "flex", alignItems: "flex-start", gap: 6, fontSize: 12, color: "var(--text-soft)", lineHeight: 1.5 }}>
+                          <span style={{ color: "#10B981", fontWeight: 800, flexShrink: 0, marginTop: 1 }}>✓</span>
+                          {ind}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Data sources */}
+                {s.evidenceSources.length > 0 && s.evidenceSources[0] !== "Not assessable from interview practice data" && (
+                  <div style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, color: "var(--text-muted)", marginBottom: 6 }}>
+                      Data Sources
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {s.evidenceSources.map((src) => (
+                        <span key={src} style={{ padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 600, background: "var(--card-border-soft)", color: "var(--text-muted)" }}>
+                          {src}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Signal quality note */}
+                <div style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 3, color: s.assessability === "not_assessable" ? "#EF4444" : s.assessability === "high" ? "#10B981" : s.assessability === "moderate" ? "#F59E0B" : "var(--text-muted)" }}>
+                    {s.assessability === "not_assessable" ? "Not Assessable" : s.assessability === "high" ? "High Confidence" : s.assessability === "moderate" ? "Moderate Confidence" : "Low Confidence"} · Signal Quality
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                    {s.assessabilityNote}
+                  </p>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {s.evidenceSources.map((src) => (
-                    <span
-                      key={src}
-                      style={{
-                        padding: "3px 10px",
-                        borderRadius: 99,
-                        fontSize: 11,
-                        fontWeight: 600,
-                        background: "var(--card-border-soft)",
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {src}
-                    </span>
-                  ))}
-                </div>
-                {s.score === null && (
-                  <p
-                    style={{
-                      margin: "10px 0 0",
-                      fontSize: 11,
-                      color: "var(--text-muted)",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    Complete more practice sessions to generate a score for this competency.
+
+                {s.score === null && s.assessability !== "not_assessable" && (
+                  <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--text-muted)", fontStyle: "italic" }}>
+                    {s.key === "teamwork" ? "Answer teamwork/collaboration questions" : s.key === "technology" ? "Answer technical questions or extract resume skills" : s.key === "leadership" ? "Answer leadership questions or complete Career Instincts sessions" : "Complete more practice sessions"} to generate a score.
                   </p>
                 )}
               </div>
