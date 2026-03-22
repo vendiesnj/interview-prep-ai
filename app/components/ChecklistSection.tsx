@@ -176,12 +176,15 @@ export default function ChecklistSection({
       `}</style>
 
       {/* Progress bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
         <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase" }}>
           Your Checklist
         </div>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>
-          {doneCount} / {items.length}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", opacity: 0.7 }}>drag items → calendar</div>
+          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>
+            {doneCount} / {items.length}
+          </div>
         </div>
       </div>
       <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 16 }}>
@@ -208,12 +211,18 @@ export default function ChecklistSection({
           return (
             <div
               key={item.id}
+              draggable={!checked}
+              onDragStart={(e) => {
+                e.dataTransfer.setData("text/plain", item.id);
+                e.dataTransfer.effectAllowed = "link";
+              }}
               style={{
                 borderRadius: 14,
                 border: `1px solid ${checked ? accentColor + "35" : "var(--card-border)"}`,
                 background: checked ? accentColor + "06" : "var(--card-bg)",
                 overflow: "hidden",
                 transition: "border-color 150ms, background 150ms",
+                cursor: checked ? "default" : "grab",
               }}
             >
               {/* Main row */}

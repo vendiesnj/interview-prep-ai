@@ -38,6 +38,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", stage, on
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [schedulingItemId, setSchedulingItemId] = useState<string | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
 
   // Build map: dateKey → items scheduled that day
   const scheduleMap = new Map<string, ScheduledItem[]>();
@@ -117,20 +118,37 @@ export default function MiniCalendar({ items, accentColor = "#10B981", stage, on
             const hasDot = scheduled.length > 0;
             const allDone = hasDot && scheduled.every(s => s.done);
 
+            const isDragOver = dragOverDay === key;
+
             return (
               <button
                 key={key}
                 onClick={() => handleDayClick(day)}
+                onDragOver={(e) => { e.preventDefault(); setDragOverDay(key); }}
+                onDragLeave={() => setDragOverDay(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOverDay(null);
+                  const itemId = e.dataTransfer.getData("text/plain");
+                  if (itemId) {
+                    onSchedule(itemId, key);
+                    setSelectedDay(key);
+                  }
+                }}
                 style={{
                   position: "relative",
                   width: "100%", aspectRatio: "1",
                   borderRadius: 8,
-                  border: isSelected ? `2px solid ${accentColor}` : isToday ? `1px solid ${accentColor}66` : "1px solid transparent",
-                  background: isSelected ? accentColor + "18" : isToday ? accentColor + "08" : "transparent",
+                  border: isDragOver
+                    ? `2px dashed ${accentColor}`
+                    : isSelected ? `2px solid ${accentColor}` : isToday ? `1px solid ${accentColor}66` : "1px solid transparent",
+                  background: isDragOver
+                    ? accentColor + "22"
+                    : isSelected ? accentColor + "18" : isToday ? accentColor + "08" : "transparent",
                   cursor: "pointer",
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1,
                   fontSize: 12, fontWeight: isToday ? 900 : 500,
-                  color: isSelected ? accentColor : isToday ? accentColor : "var(--text-primary)",
+                  color: isDragOver ? accentColor : isSelected ? accentColor : isToday ? accentColor : "var(--text-primary)",
                   transition: "all 100ms",
                 }}
               >
