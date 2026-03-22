@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
         {
           role: "system",
           content: `You analyze spoken responses to career personality questions and determine which archetype they best align with.
-Archetypes: A=Analyst, B=Builder, C=Creator, H=Helper, L=Leader, M=Communicator.
-Return JSON: {"category": "A"|"B"|"C"|"H"|"L"|"M", "confidence": 0-1, "reasoning": "one sentence"}`,
+Archetypes: A=Analyst, B=Builder (engineering/design), C=Creator, H=Helper, L=Leader, M=Communicator, T=Technician (skilled trades: electrician, plumber, HVAC, welder, auto/diesel tech, machinist, avionics).
+Return JSON: {"category": "A"|"B"|"C"|"H"|"L"|"M"|"T", "confidence": 0-1, "reasoning": "one sentence"}`,
         },
         {
           role: "user",

@@ -109,6 +109,14 @@ interface ProfilePayload {
   };
   resumeHistory: ResumeAnalysis[];
   naceScores: NaceScore[];
+  signalScore: number | null;
+  nextAction: {
+    title: string;
+    description: string;
+    href: string;
+    naceKey: string;
+    currentScore: number | null;
+  } | null;
   completeness: number;
   interviewPipeline: {
     total: number;
@@ -692,7 +700,7 @@ function PageSkeleton() {
 // ── Tab panels ────────────────────────────────────────────────────────────────
 
 function OverviewTab({ data }: { data: ProfilePayload }) {
-  const { profile, speaking, aptitude, completeness, skills, resumeHistory } = data;
+  const { profile, speaking, aptitude, completeness, skills, resumeHistory, signalScore, nextAction } = data;
 
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -731,8 +739,58 @@ function OverviewTab({ data }: { data: ProfilePayload }) {
   ];
   const missingProfileFields = profileFields.filter((v) => !v).length;
 
+  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 80 ? "#10B981" : signalScore >= 65 ? "#2563EB" : signalScore >= 50 ? "#F59E0B" : "#EF4444";
+  const signalLabel = signalScore === null ? "—" : signalScore >= 80 ? "Strong" : signalScore >= 65 ? "Developing" : signalScore >= 50 ? "Emerging" : "Beginning";
+
   return (
     <div>
+      {/* Signal Score hero */}
+      <Card style={{ marginBottom: 16, padding: "20px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+          {/* Big score */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 80 }}>
+            <div style={{ fontSize: 52, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
+              {signalScore ?? "—"}
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 900, color: signalColor, letterSpacing: 0.5 }}>{signalLabel}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>Signal Score</div>
+          </div>
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 64, background: "var(--card-border-soft)", flexShrink: 0 }} />
+
+          {/* NACE mini bars */}
+          <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "6px 16px" }}>
+            {data.naceScores.filter(n => n.score !== null && n.key !== "equity_inclusion").map(ns => (
+              <div key={ns.key}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{ns.shortLabel}</span>
+                  <span style={{ fontSize: 10, fontWeight: 900, color: ns.score! >= 70 ? "#10B981" : ns.score! >= 50 ? "#F59E0B" : "#EF4444" }}>{ns.score}</span>
+                </div>
+                <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 99, width: `${ns.score}%`, background: ns.score! >= 70 ? "#10B981" : ns.score! >= 50 ? "#F59E0B" : "#EF4444", transition: "width 0.6s ease" }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
+      {/* Next Action */}
+      {nextAction && (
+        <a href={nextAction.href} style={{ textDecoration: "none", display: "block", marginBottom: 16 }}>
+          <Card style={{ padding: "14px 18px", borderLeft: "3px solid var(--accent)", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+            <div style={{ fontSize: 24, flexShrink: 0 }}>🎯</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 2 }}>Recommended next step</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{nextAction.title}</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{nextAction.description}</div>
+            </div>
+            <div style={{ color: "var(--accent)", fontSize: 18, flexShrink: 0 }}>→</div>
+          </Card>
+        </a>
+      )}
+
       {/* Top grid: ring + stats */}
       <div
         style={{

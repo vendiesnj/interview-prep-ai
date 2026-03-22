@@ -5,7 +5,7 @@ import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 
 // ── Archetypes ─────────────────────────────────────────────────────────────
-type Cat = "A" | "B" | "C" | "H" | "L" | "M";
+type Cat = "A" | "B" | "C" | "H" | "L" | "M" | "T";
 
 const ARCHETYPES: Record<Cat, {
   name: string;
@@ -41,24 +41,45 @@ const ARCHETYPES: Record<Cat, {
   },
   B: {
     name: "The Builder",
-    tagline: "Practical · Hands-on · Results-driven",
+    tagline: "Systematic · Engineering-minded · Design-driven",
     color: "#D97706",
     bg: "rgba(217,119,6,0.08)",
-    traits: ["Practical", "Hands-on", "Resourceful", "Reliable", "Tenacious"],
+    traits: ["Systematic", "Precise", "Resourceful", "Innovative", "Detail-oriented"],
     description:
-      "You need to see and touch the results of your work. Abstract theory doesn't interest you nearly as much as making something real — a product, a structure, a working system. You're at your best when iterating and building. Builders are the backbone of engineering, manufacturing, product development, and construction.",
+      "You're energized by the challenge of designing and engineering systems that work. You love understanding how things function at a deep level — and then making them better. Builders thrive where technical knowledge meets structured problem-solving: engineering, architecture, product development, and advanced manufacturing. You want to see your designs become real things people depend on.",
     careers: [
       "Mechanical Engineer",
       "Civil Engineer",
       "Architect",
       "Product Designer",
       "Industrial Engineer",
-      "Construction Manager",
       "Biomedical Engineer",
-      "Product Manager",
+      "Construction Manager",
+      "Manufacturing Engineer",
     ],
     majors: ["Mechanical Engineering", "Civil Engineering", "Architecture", "Industrial Design", "Computer Engineering"],
     salary: "$65K–$135K+",
+  },
+  T: {
+    name: "The Technician",
+    tagline: "Skilled · Precise · Master of the craft",
+    color: "#92400E",
+    bg: "rgba(146,64,14,0.08)",
+    traits: ["Skilled", "Methodical", "Self-reliant", "Reliable", "Hands-on problem-solver"],
+    description:
+      "You learn best by doing and you're never more satisfied than when you've solved a real-world technical problem with your own hands. Whether it's wiring a building, diagnosing an engine, welding structural steel, or troubleshooting an HVAC system, you bring mastery and precision to physical work. Technicians are in enormous demand, earn excellent incomes, and often achieve financial independence faster than many four-year degree graduates. The trades are the backbone of modern infrastructure.",
+    careers: [
+      "Electrician (Journeyman / Master)",
+      "Plumber / Pipefitter",
+      "HVAC/R Technician",
+      "Automotive / Diesel Technician",
+      "Welder / Fabricator",
+      "CNC Machinist / Operator",
+      "Aircraft Mechanic / Avionics Tech",
+      "Wind Turbine / Solar Technician",
+    ],
+    majors: ["Electrical Technology", "HVAC/R Technology", "Welding Technology", "Automotive Technology", "Aviation Maintenance", "Plumbing & Pipefitting (Apprenticeship)"],
+    salary: "$55K–$120K+ (Master trades regularly exceed $100K)",
   },
   C: {
     name: "The Creator",
@@ -155,33 +176,36 @@ const QUESTIONS: Question[] = [
     q: "What type of problem gets you most excited to tackle?",
     options: [
       { label: "A complex data puzzle or logical challenge", cat: "A" },
-      { label: "A physical or mechanical challenge to build a solution", cat: "B" },
+      { label: "An engineering or design challenge — making a system work better", cat: "B" },
       { label: "A creative challenge with no single right answer", cat: "C" },
       { label: "Helping someone overcome a difficult personal situation", cat: "H" },
       { label: "Organizing people and resources toward a clear goal", cat: "L" },
       { label: "Crafting a message that truly resonates with an audience", cat: "M" },
+      { label: "A hands-on technical problem — diagnosing, repairing, or installing something", cat: "T" },
     ],
   },
   {
     q: "Which describes your ideal work environment?",
     options: [
       { label: "Quiet, focused, analytical — working independently on deep problems", cat: "A" },
-      { label: "Active and hands-on — building or fixing real things", cat: "B" },
+      { label: "Structured and technical — designing systems and engineering solutions", cat: "B" },
       { label: "Open and creative — where bold ideas are encouraged", cat: "C" },
       { label: "Warm and people-centered — where I make a direct difference", cat: "H" },
       { label: "Fast-paced and goal-oriented — where I can lead and drive results", cat: "L" },
       { label: "Social and communicative — where I present, write, or connect", cat: "M" },
+      { label: "Active and physical — in the field, shop, or job site solving real problems", cat: "T" },
     ],
   },
   {
     q: "What do your friends or classmates tend to come to you for?",
     options: [
       { label: "Thinking through a hard decision logically", cat: "A" },
-      { label: "Help fixing, building, or setting something up", cat: "B" },
+      { label: "Help designing something or thinking through engineering challenges", cat: "B" },
       { label: "Creative ideas, design input, or honest aesthetic feedback", cat: "C" },
       { label: "Emotional support and a genuine ear", cat: "H" },
       { label: "Organizing a plan or stepping up to lead the group", cat: "L" },
       { label: "Explaining something clearly or speaking for the group", cat: "M" },
+      { label: "Help fixing, building, or setting something up with their hands", cat: "T" },
     ],
   },
   {
@@ -226,6 +250,7 @@ const QUESTIONS: Question[] = [
       { label: "Nurse, Therapist, or Social Worker", cat: "H" },
       { label: "Entrepreneur or Operations Manager", cat: "L" },
       { label: "Journalist or Marketing Director", cat: "M" },
+      { label: "Master Electrician, Plumber, HVAC Tech, or Welder", cat: "T" },
     ],
   },
   {
@@ -243,11 +268,12 @@ const QUESTIONS: Question[] = [
     q: "Which skill would you most like to develop over the next few years?",
     options: [
       { label: "Data analysis, machine learning, or statistical modeling", cat: "A" },
-      { label: "CAD design, fabrication, or engineering systems", cat: "B" },
+      { label: "CAD design, simulation software, or advanced engineering systems", cat: "B" },
       { label: "Photography, illustration, animation, or visual design", cat: "C" },
       { label: "Counseling techniques, clinical skills, or empathetic communication", cat: "H" },
       { label: "Negotiation, financial strategy, or executive leadership", cat: "L" },
       { label: "Public speaking, long-form writing, or broadcast journalism", cat: "M" },
+      { label: "Electrical systems, pipefitting, welding, or advanced diagnostics", cat: "T" },
     ],
   },
   {
@@ -284,14 +310,15 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
-    q: "Which tech tool would you be most excited to master?",
+    q: "Which skill or tool would you be most excited to master?",
     options: [
       { label: "Python, R, or SQL for data analysis", cat: "A" },
       { label: "CAD software, 3D printing tools, or simulation platforms", cat: "B" },
       { label: "Adobe Creative Suite, Figma, or video editing software", cat: "C" },
-      { label: "Electronic health record systems or therapy platforms", cat: "H" },
+      { label: "Electronic health record systems or patient care skills", cat: "H" },
       { label: "CRM tools, financial modeling software, or business intelligence dashboards", cat: "L" },
       { label: "Content management systems, podcasting tools, or social analytics", cat: "M" },
+      { label: "Diagnostic equipment, multimeters, pipe threading machines, or welding rigs", cat: "T" },
     ],
   },
   {
@@ -372,7 +399,7 @@ const QUESTIONS: Question[] = [
     ],
   },
   {
-    q: "Which college major sounds most appealing to you?",
+    q: "Which program sounds most appealing to you?",
     options: [
       { label: "Computer Science, Statistics, or Economics", cat: "A" },
       { label: "Mechanical Engineering, Architecture, or Industrial Design", cat: "B" },
@@ -380,6 +407,7 @@ const QUESTIONS: Question[] = [
       { label: "Nursing, Psychology, Social Work, or Education", cat: "H" },
       { label: "Business Administration, Finance, or Political Science", cat: "L" },
       { label: "Communications, Journalism, Marketing, or English", cat: "M" },
+      { label: "Electrical Technology, HVAC/R, Welding, or an Apprenticeship program", cat: "T" },
     ],
   },
   {
@@ -408,18 +436,67 @@ const QUESTIONS: Question[] = [
     q: "Ten years from now, what does success look like to you?",
     options: [
       { label: "Being a recognized expert — someone who knows more about my field than almost anyone", cat: "A" },
-      { label: "Having built something real — a product, structure, or system that people rely on", cat: "B" },
+      { label: "Having designed systems or structures that people depend on", cat: "B" },
       { label: "Having a body of work I am proud of — art, design, or writing that has touched people", cat: "C" },
       { label: "Knowing I have genuinely improved people's lives through the work I have done", cat: "H" },
       { label: "Leading my own organization or team toward something meaningful", cat: "L" },
       { label: "Having a platform and an audience — being a voice that matters in my field", cat: "M" },
+      { label: "Running my own trade business or being a Master-level craftsperson others call on", cat: "T" },
+    ],
+  },
+  {
+    q: "What's your honest reaction to the idea of a four-year college degree?",
+    options: [
+      { label: "It's the right path for me — I want deep academic knowledge in my field", cat: "A" },
+      { label: "Worth it for the engineering or design credentials it opens up", cat: "B" },
+      { label: "Important for the creative communities and portfolio opportunities", cat: "C" },
+      { label: "Necessary for the licensure and credibility my field requires", cat: "H" },
+      { label: "A good foundation for business and networking, but not the only path", cat: "L" },
+      { label: "Helpful for building connections and a platform, but not essential", cat: "M" },
+      { label: "Not for me — I want to earn while I learn through apprenticeship or a 2-year program", cat: "T" },
+    ],
+  },
+  {
+    q: "Which scenario would make you feel most proud?",
+    options: [
+      { label: "Publishing research that changes how an industry operates", cat: "A" },
+      { label: "Having my engineering design selected and built at large scale", cat: "B" },
+      { label: "Seeing my creative work in a gallery, publication, or on screen", cat: "C" },
+      { label: "A client or patient telling you that you changed their life", cat: "H" },
+      { label: "Hitting a major milestone or closing a deal that took months to build", cat: "L" },
+      { label: "Watching an article or campaign I created go viral and shift opinion", cat: "M" },
+      { label: "Completing a complex installation or repair job that no one else could figure out", cat: "T" },
+    ],
+  },
+  {
+    q: "Which of these things genuinely appeals to you?",
+    options: [
+      { label: "Finding patterns in complex datasets that others miss", cat: "A" },
+      { label: "Designing and modeling a product before it gets manufactured", cat: "B" },
+      { label: "The feeling of finishing something visually beautiful from scratch", cat: "C" },
+      { label: "Being the person someone calls during one of the hardest moments of their life", cat: "H" },
+      { label: "Owning the outcome — being accountable for the whole result", cat: "L" },
+      { label: "Having your voice, writing, or ideas reach a large audience", cat: "M" },
+      { label: "Working with your hands to fix or build something essential that wasn't working before", cat: "T" },
+    ],
+  },
+  {
+    q: "If you had to bet on what your ideal weekday looks like, which is closest?",
+    options: [
+      { label: "At a computer, deep in analysis, building models or running experiments", cat: "A" },
+      { label: "In front of a CAD screen or on a site visit reviewing drawings and specs", cat: "B" },
+      { label: "In a studio, creative agency, or on a shoot or production", cat: "C" },
+      { label: "In a clinic, school, or community center working directly with people", cat: "H" },
+      { label: "In meetings, on calls, reviewing metrics, and driving toward goals", cat: "L" },
+      { label: "Writing, pitching, filming, or presenting in front of an audience", cat: "M" },
+      { label: "On a job site, in a shop, or under the hood — doing skilled technical work", cat: "T" },
     ],
   },
 ];
 
 // ── Scoring ────────────────────────────────────────────────────────────────
 function computeScores(answers: (Cat | null)[]): Record<Cat, number> {
-  const scores: Record<Cat, number> = { A: 0, B: 0, C: 0, H: 0, L: 0, M: 0 };
+  const scores: Record<Cat, number> = { A: 0, B: 0, C: 0, H: 0, L: 0, M: 0, T: 0 };
   for (const cat of answers) {
     if (cat) scores[cat]++;
   }

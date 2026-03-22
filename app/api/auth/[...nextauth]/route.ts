@@ -235,8 +235,24 @@ export const authOptions: NextAuthOptions = {
 
       return session;
     },
-  }, 
+  },
 
+  events: {
+    async signIn({ user, account }) {
+      // Keep Account tokens fresh every time the user re-authenticates with Google
+      if (account?.provider === "google" && user?.id && account.access_token) {
+        await prisma.account.updateMany({
+          where: { userId: user.id, provider: "google" },
+          data: {
+            access_token: account.access_token,
+            ...(account.refresh_token ? { refresh_token: account.refresh_token } : {}),
+            ...(account.expires_at ? { expires_at: account.expires_at } : {}),
+            ...(account.scope ? { scope: account.scope } : {}),
+          },
+        });
+      }
+    },
+  },
 
 };
 

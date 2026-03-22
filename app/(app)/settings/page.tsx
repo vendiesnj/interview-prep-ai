@@ -1,9 +1,16 @@
 "use client";
 
 import React from "react";
+import { useSession } from "next-auth/react";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
 import { getProfile, saveProfile, type UserProfile } from "../../lib/profileStore";
+
+const STAGES = [
+  { id: "pre_college",    label: "Pre-College",    icon: "🎓", color: "#10B981", desc: "High school → college prep" },
+  { id: "during_college", label: "During College",  icon: "📚", color: "#2563EB", desc: "Internships, interviews, campus life" },
+  { id: "post_college",   label: "Post-College",    icon: "🚀", color: "#8B5CF6", desc: "First job, finances, career growth" },
+] as const;
 
 const TARGET_INDUSTRY_OPTIONS = [
   "Technology",
@@ -117,6 +124,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function SettingsPage() {
+  const { data: session, update } = useSession();
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
 
   // Career profile state
@@ -129,6 +137,22 @@ export default function SettingsPage() {
   });
   const [saving, setSaving] = React.useState(false);
   const [savedMsg, setSavedMsg] = React.useState(false);
+
+  // Stage state
+  const [stageSaving, setStageSaving] = React.useState(false);
+  const currentStage: string = (session?.user as any)?.demoPersona ?? "during_college";
+
+  async function switchStage(stageId: string) {
+    if (stageId === currentStage || stageSaving) return;
+    setStageSaving(true);
+    await fetch("/api/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ demoPersona: stageId }),
+    });
+    await update();
+    setStageSaving(false);
+  }
 
   React.useEffect(() => {
     setProfile(getProfile());
@@ -197,6 +221,39 @@ export default function SettingsPage() {
       subtitle="Control scoring behavior, timing, and the app experience."
     >
       <div style={{ display: "grid", gap: 16, maxWidth: 920 }}>
+        {/* Stage selector */}
+        <PremiumCard style={{ padding: 16, borderRadius: "var(--radius-md)" }}>
+          <SectionTitle>My Stage</SectionTitle>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4, marginBottom: 16 }}>
+            Controls which checklist and resources you see when you log in.
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            {STAGES.map((s) => {
+              const active = currentStage === s.id;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => switchStage(s.id)}
+                  disabled={stageSaving}
+                  style={{
+                    padding: "14px 12px", borderRadius: 12, textAlign: "left",
+                    border: `2px solid ${active ? s.color : "var(--card-border)"}`,
+                    background: active ? s.color + "12" : "var(--card-bg-strong)",
+                    cursor: stageSaving ? "wait" : "pointer",
+                    transition: "all 150ms",
+                    opacity: stageSaving && !active ? 0.6 : 1,
+                  }}
+                >
+                  <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
+                  <div style={{ fontSize: 13, fontWeight: active ? 950 : 800, color: active ? s.color : "var(--text-primary)" }}>{s.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{s.desc}</div>
+                  {active && <div style={{ marginTop: 8, fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "18", padding: "2px 8px", borderRadius: 99, display: "inline-block" }}>Current</div>}
+                </button>
+              );
+            })}
+          </div>
+        </PremiumCard>
+
         {/* Career Profile card */}
         <PremiumCard
           style={{

@@ -437,6 +437,13 @@ export async function GET() {
     (s) => s.category.toLowerCase().includes("tech") || s.category.toLowerCase().includes("software") || s.category.toLowerCase().includes("data") || s.category.toLowerCase().includes("engineer")
   ).length;
 
+  // Checklist completion 0–1 (average across the 3 stage checklists)
+  const CHECKLIST_TOTALS = { pre_college: 8, during_college: 10, post_college: 8 };
+  const checklistCompletionPct =
+    (preCollegeDone / CHECKLIST_TOTALS.pre_college +
+      duringCollegeDone / CHECKLIST_TOTALS.during_college +
+      postCollegeDone / CHECKLIST_TOTALS.post_college) / 3;
+
   const naceScores: NaceScore[] = computeNaceProfile({
     attempts: naceInputs,
     aptitudeScores: aptitudeScores ?? undefined,
@@ -447,7 +454,52 @@ export async function GET() {
     technicalSkillsCount,
     hasResumeAnalysis: resumeAnalyses.length > 0,
     totalAttempts: rawAttempts.length,
+    visualScores: faceMetricsAggregate
+      ? {
+          eyeContact: faceMetricsAggregate.eyeContact,
+          expressiveness: faceMetricsAggregate.expressiveness,
+          headStability: faceMetricsAggregate.headStability,
+        }
+      : null,
+    checklistCompletionPct,
   });
+
+  // ── Signal Score (weighted composite of NACE) ─────────────────────────────
+  // Weights reflect assessability confidence and employer survey importance
+  const SIGNAL_WEIGHTS: Partial<Record<NaceScore["key"], number>> = {
+    communication:    0.28,
+    professionalism:  0.22,
+    critical_thinking: 0.20,
+    leadership:       0.15,
+    career_dev:       0.10,
+    teamwork:         0.05,
+  };
+  let signalNumerator = 0;
+  let signalDenominator = 0;
+  for (const ns of naceScores) {
+    const w = SIGNAL_WEIGHTS[ns.key];
+    if (w && ns.score !== null) {
+      signalNumerator += ns.score * w;
+      signalDenominator += w;
+    }
+  }
+  const signalScore = signalDenominator > 0 ? Math.round(signalNumerator / signalDenominator) : null;
+
+  // ── Next Action recommendation ────────────────────────────────────────────
+  const ACTION_MAP: Record<NaceScore["key"], { title: string; description: string; href: string }> = {
+    communication:    { title: "Practice speaking",         description: "Your communication score has the most room to grow. Do another interview session to improve clarity and pace.", href: "/practice" },
+    critical_thinking:{ title: "Work on your STAR answers", description: "Structure your answers with clear situation, task, action, and result to boost your critical thinking score.", href: "/practice" },
+    professionalism:  { title: "Build your presence",       description: "Practice public speaking to strengthen composure and reduce filler words.", href: "/public-speaking" },
+    leadership:       { title: "Demonstrate initiative",    description: "Your STAR action scores suggest room to better highlight your decision-making. Practice leadership-focused questions.", href: "/practice" },
+    teamwork:         { title: "Try Career Instincts",      description: "Play scenario-based situations to build your teamwork and collaboration profile.", href: "/career-instincts" },
+    career_dev:       { title: "Complete your profile",     description: "Finish the aptitude quiz and career check-in to strengthen your Career Development score.", href: "/aptitude" },
+    technology:       { title: "Upload your resume",        description: "A resume analysis will surface technical skills and boost your Technology competency score.", href: "/resume-gap" },
+    equity_inclusion: { title: "Explore Career Instincts",  description: "Play through diversity and inclusion scenarios to build your equity score.", href: "/career-instincts" },
+  };
+
+  const scoredNace = naceScores.filter((n) => n.score !== null && n.key !== "equity_inclusion");
+  const lowestNace = scoredNace.sort((a, b) => (a.score ?? 100) - (b.score ?? 100))[0];
+  const nextAction = lowestNace ? { ...ACTION_MAP[lowestNace.key], naceKey: lowestNace.key, currentScore: lowestNace.score } : null;
 
   // ── Completeness ──────────────────────────────────────────────────────────
 
@@ -521,6 +573,8 @@ export async function GET() {
     resumeHistory: resumeAnalyses,
 
     naceScores,
+    signalScore,
+    nextAction,
 
     faceMetrics: faceMetricsAggregate,
 

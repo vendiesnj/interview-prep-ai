@@ -255,6 +255,10 @@ export type NaceProfileInput = {
   hasResumeAnalysis?: boolean;
   /** Total speaking attempt count */
   totalAttempts?: number;
+  /** Average visual delivery scores from webcam sessions (0–10 scale) */
+  visualScores?: { eyeContact?: number; expressiveness?: number; headStability?: number } | null;
+  /** Average checklist completion 0–1 across pre/during/post stages */
+  checklistCompletionPct?: number | null;
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -453,6 +457,8 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     technicalSkillsCount = 0,
     hasResumeAnalysis = false,
     totalAttempts = 0,
+    visualScores,
+    checklistCompletionPct,
   } = input;
 
   const buckets: Record<NaceKey, number[]> = {
@@ -516,13 +522,33 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     }
   }
 
-  // ── 3. Profile completion → Career & Self-Development ────────────────────
+  // ── 3. Visual delivery scores (webcam) ───────────────────────────────────
+  // Eye contact + expressiveness → Communication (visual delivery component)
+  // Head stability → Professionalism (composure/preparation)
+  if (visualScores) {
+    const eyeContact = visualScores.eyeContact != null ? clamp(visualScores.eyeContact * 10) : null;
+    const expressiveness = visualScores.expressiveness != null ? clamp(visualScores.expressiveness * 10) : null;
+    const headStability = visualScores.headStability != null ? clamp(visualScores.headStability * 10) : null;
+
+    // Eye contact improves communication score (weighted lower than audio — secondary signal)
+    if (eyeContact !== null) buckets.communication.push(eyeContact);
+    // Expressiveness adds to communication (vocal variety complement)
+    if (expressiveness !== null) buckets.communication.push(expressiveness);
+    // Head stability reflects composure — a professionalism indicator
+    if (headStability !== null) buckets.professionalism.push(headStability);
+  }
+
+  // ── 4. Profile completion → Career & Self-Development ────────────────────
   // NACE indicators: "identify areas for growth", "commit to lifelong learning"
   if (hasCompletedAptitude)      buckets.career_dev.push(80);
   if (hasCompletedCareerCheckIn) buckets.career_dev.push(75);
   if (hasResumeAnalysis)         buckets.career_dev.push(70);
   if (instinctSessionCount >= 3) buckets.career_dev.push(80);
   else if (instinctSessionCount >= 1) buckets.career_dev.push(65);
+  // Checklist completion reflects proactive career self-development
+  if (checklistCompletionPct != null && checklistCompletionPct > 0) {
+    buckets.career_dev.push(clamp(checklistCompletionPct * 100));
+  }
 
   // Speaking volume as self-development signal — consistent practice = growth mindset
   if (totalAttempts >= 15)      buckets.career_dev.push(85);
@@ -570,10 +596,10 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     const score = avg(vals);
 
     const sources: string[] = [];
-    if (key === "communication")    sources.push("Oral clarity score", "Pace (WPM)", "Filler rate", "Vocal monotone score");
+    if (key === "communication")    sources.push("Oral clarity score", "Pace (WPM)", "Filler rate", "Vocal monotone score", ...(visualScores ? ["Eye contact (webcam)", "Expressiveness (webcam)"] : []));
     if (key === "critical_thinking") sources.push("STAR situation score", "STAR task score", "Overall answer quality");
-    if (key === "professionalism")   sources.push("Confidence/ownership score", "Filler rate", "Pacing");
-    if (key === "career_dev")        sources.push("STAR result quality", "Aptitude quiz completion", "Career check-in completion");
+    if (key === "professionalism")   sources.push("Confidence/ownership score", "Filler rate", "Pacing", ...(visualScores?.headStability != null ? ["Head stability (webcam)"] : []));
+    if (key === "career_dev")        sources.push("STAR result quality", "Aptitude quiz completion", "Career check-in completion", ...(checklistCompletionPct != null ? ["Checklist progress"] : []));
     if (key === "leadership")        sources.push("STAR action score (initiative + decision-making)");
     if (key === "teamwork")          sources.push("Performance on teamwork/collaboration questions only");
     if (key === "technology")        sources.push("Performance on technical questions only");

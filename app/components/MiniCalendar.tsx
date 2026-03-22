@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { signIn } from "next-auth/react";
 
 type GCalEvent = {
   id: string;
@@ -342,7 +343,10 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
         {gcalConnected === false && (
           <div style={{ marginBottom: 10, padding: "8px 12px", borderRadius: 10, background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <span style={{ fontSize: 11, color: "#4285F4", fontWeight: 600 }}>Connect Google Calendar to sync tasks</span>
-            <a href="/api/auth/signin/google" style={{ fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 99, background: "#4285F4", color: "#fff", textDecoration: "none", whiteSpace: "nowrap" as const }}>Connect</a>
+            <button
+              onClick={() => signIn("google", { callbackUrl: window.location.href })}
+              style={{ fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 99, background: "#4285F4", color: "#fff", border: "none", cursor: "pointer", whiteSpace: "nowrap" as const }}
+            >Connect</button>
           </div>
         )}
         {gcalConnected === true && (

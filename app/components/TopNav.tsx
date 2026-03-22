@@ -16,6 +16,7 @@ const STAGE_TABS = [
 ] as const;
 
 const TOOL_LINKS = [
+  { label: "Mock Interview", href: "/mock-interview" },
   { label: "Interview Prep", href: "/practice" },
   { label: "Public Speaking", href: "/public-speaking" },
   { label: "Networking", href: "/networking" },
@@ -25,6 +26,7 @@ const TOOL_LINKS = [
 ];
 
 const INTERVIEW_PREP_ROUTES = [
+  "/mock-interview",
   "/practice",
   "/question-bank",
   "/job-profiles",

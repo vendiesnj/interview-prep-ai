@@ -1,10 +1,15 @@
-import { Suspense } from "react";
-import DashboardClient from "./DashboardClient";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<div style={{ padding: 16 }}>Loading…</div>}>
-      <DashboardClient />
-    </Suspense>
-  );
+const PERSONA_TO_PATH: Record<string, string> = {
+  pre_college: "/pre-college",
+  during_college: "/during-college",
+  post_college: "/post-college",
+};
+
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+  const persona = (session?.user as any)?.demoPersona ?? "during_college";
+  redirect(PERSONA_TO_PATH[persona] ?? "/during-college");
 }
