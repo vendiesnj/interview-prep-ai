@@ -1,6 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+type GCalEvent = {
+  id: string;
+  summary: string;
+  start: string;
+  end: string;
+  htmlLink?: string;
+};
 
 export type ScheduledItem = {
   itemId: string;
@@ -51,6 +59,19 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [schedulingOpen, setSchedulingOpen] = useState(false);
   const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [gcalEvents, setGcalEvents] = useState<GCalEvent[]>([]);
+  const [gcalConnected, setGcalConnected] = useState<boolean | null>(null);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/google-calendar/events")
+      .then(r => r.json())
+      .then(d => {
+        setGcalConnected(d.connected ?? false);
+        setGcalEvents(d.events ?? []);
+      })
+      .catch(() => setGcalConnected(false));
+  }, []);
 
   // Build schedule map: dateKey → items
   const scheduleMap = new Map<string, ScheduledItem[]>();
@@ -62,13 +83,44 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
     }
   }
 
+  // Build gcal event map: dateKey → events
+  const gcalMap = new Map<string, GCalEvent[]>();
+  for (const ev of gcalEvents) {
+    const key = ev.start.slice(0, 10);
+    if (!gcalMap.has(key)) gcalMap.set(key, []);
+    gcalMap.get(key)!.push(ev);
+  }
+
   const unscheduled = items.filter(i => !i.scheduledDate && !i.done);
 
-  function handleDrop(e: React.DragEvent, key: string) {
+  async function handleDrop(e: React.DragEvent, key: string) {
     e.preventDefault();
     setDragOverDay(null);
     const itemId = e.dataTransfer.getData("text/plain");
-    if (itemId) { onSchedule(itemId, key); setSelectedDay(key); }
+    if (!itemId) return;
+    onSchedule(itemId, key);
+    setSelectedDay(key);
+
+    // Also create in Google Calendar if connected
+    if (gcalConnected) {
+      const item = items.find(i => i.itemId === itemId);
+      if (item) {
+        setSyncingId(itemId);
+        try {
+          const res = await fetch("/api/google-calendar/events", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ summary: item.label, dateKey: key, description: "Career Readiness checklist task" }),
+          });
+          if (res.ok) {
+            const newEvent = await res.json();
+            setGcalEvents(prev => [...prev, { id: newEvent.id, summary: item.label, start: key, end: key, htmlLink: newEvent.htmlLink }]);
+          }
+        } finally {
+          setSyncingId(null);
+        }
+      }
+    }
   }
 
   function dropProps(key: string) {
@@ -82,6 +134,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
   function removeSchedule(itemId: string) { onSchedule(itemId, null); }
 
   const selectedItems = selectedDay ? (scheduleMap.get(selectedDay) ?? []) : [];
+  const selectedGcal = selectedDay ? (gcalMap.get(selectedDay) ?? []) : [];
 
   // ── Navigation ────────────────────────────────────────────────────────────
   function navPrev() {
@@ -110,7 +163,9 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
     const isSelected = selectedDay === dateKey;
     const isDragOver = dragOverDay === dateKey;
     const scheduled = scheduleMap.get(dateKey) ?? [];
+    const gcalDay = gcalMap.get(dateKey) ?? [];
     const hasTasks = scheduled.length > 0;
+    const hasGcal = gcalDay.length > 0;
     const allDone = hasTasks && scheduled.every(s => s.done);
 
     const bg = isDragOver ? accentColor + "28"
@@ -137,25 +192,28 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
         }}
       >
         <span style={{ lineHeight: 1 }}>{dayNum}</span>
-        {large && hasTasks && (
+        {large && (hasTasks || hasGcal) && (
           <div style={{ display: "flex", flexDirection: "column", gap: 2, width: "100%", padding: "0 3px", marginTop: 4 }}>
             {scheduled.slice(0, 2).map(s => (
-              <div key={s.itemId} style={{
-                fontSize: 9, fontWeight: 700, padding: "2px 4px", borderRadius: 4, textAlign: "left",
-                background: s.done ? "rgba(16,185,129,0.15)" : accentColor + "20",
-                color: s.done ? "#10B981" : accentColor,
-                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-              }}>
+              <div key={s.itemId} style={{ fontSize: 9, fontWeight: 700, padding: "2px 4px", borderRadius: 4, textAlign: "left", background: s.done ? "rgba(16,185,129,0.15)" : accentColor + "20", color: s.done ? "#10B981" : accentColor, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {s.label}
               </div>
             ))}
-            {scheduled.length > 2 && (
-              <div style={{ fontSize: 9, color: "var(--text-muted)", paddingLeft: 4 }}>+{scheduled.length - 2} more</div>
+            {gcalDay.slice(0, 2).map(ev => (
+              <div key={ev.id} style={{ fontSize: 9, fontWeight: 700, padding: "2px 4px", borderRadius: 4, textAlign: "left", background: "rgba(66,133,244,0.12)", color: "#4285F4", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {ev.summary}
+              </div>
+            ))}
+            {(scheduled.length + gcalDay.length) > 4 && (
+              <div style={{ fontSize: 9, color: "var(--text-muted)", paddingLeft: 4 }}>+{scheduled.length + gcalDay.length - 4} more</div>
             )}
           </div>
         )}
-        {!large && hasTasks && (
-          <div style={{ width: 4, height: 4, borderRadius: 99, background: allDone ? "#10B981" : accentColor }} />
+        {!large && (hasTasks || hasGcal) && (
+          <div style={{ display: "flex", gap: 2 }}>
+            {hasTasks && <div style={{ width: 4, height: 4, borderRadius: 99, background: allDone ? "#10B981" : accentColor }} />}
+            {hasGcal && <div style={{ width: 4, height: 4, borderRadius: 99, background: "#4285F4" }} />}
+          </div>
         )}
       </button>
     );
@@ -280,6 +338,21 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
           <button onClick={navNext} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 18, padding: "0 6px", lineHeight: 1 }}>›</button>
         </div>
 
+        {/* Google Calendar connection status */}
+        {gcalConnected === false && (
+          <div style={{ marginBottom: 10, padding: "8px 12px", borderRadius: 10, background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <span style={{ fontSize: 11, color: "#4285F4", fontWeight: 600 }}>Connect Google Calendar to sync tasks</span>
+            <a href="/api/auth/signin/google" style={{ fontSize: 11, fontWeight: 800, padding: "4px 10px", borderRadius: 99, background: "#4285F4", color: "#fff", textDecoration: "none", whiteSpace: "nowrap" as const }}>Connect</a>
+          </div>
+        )}
+        {gcalConnected === true && (
+          <div style={{ marginBottom: 10, display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#4285F4" }}>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="#4285F4"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            Google Calendar synced · {gcalEvents.length} event{gcalEvents.length !== 1 ? "s" : ""} loaded
+            {syncingId && <span style={{ marginLeft: 6, opacity: 0.6 }}>syncing…</span>}
+          </div>
+        )}
+
         {/* Drop hint + export */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.6 }}>
@@ -312,6 +385,19 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
           <div style={{ fontSize: 11, fontWeight: 800, color: accentColor, letterSpacing: 0.5, marginBottom: 10 }}>
             {new Date(selectedDay + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
           </div>
+
+          {/* Real Google Calendar events for this day */}
+          {selectedGcal.length > 0 && (
+            <div style={{ marginBottom: 8, display: "grid", gap: 5 }}>
+              {selectedGcal.map(ev => (
+                <a key={ev.id} href={ev.htmlLink ?? "#"} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 10, background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", textDecoration: "none" }}>
+                  <div style={{ width: 8, height: 8, borderRadius: 99, background: "#4285F4", flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, flex: 1, color: "var(--text-primary)", lineHeight: 1.4 }}>{ev.summary}</span>
+                  <span style={{ fontSize: 10, color: "#4285F4", flexShrink: 0 }}>↗</span>
+                </a>
+              ))}
+            </div>
+          )}
 
           {selectedItems.length > 0 ? (
             <div style={{ display: "grid", gap: 6 }}>
