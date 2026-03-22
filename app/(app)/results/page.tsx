@@ -1932,6 +1932,62 @@ const deliveryProfile = useMemo(() => {
     )}
   </div>
 </div>
+
+              {/* Webcam / Visual Delivery — always visible on Overview */}
+              {(() => {
+                const face = (dm as any)?.face;
+                const hasData = face && typeof face.eyeContact === "number";
+                const WEBCAM_METRICS = [
+                  { label: "Eye Contact", icon: "👁️", key: "eyeContact", desc: "Camera gaze" },
+                  { label: "Expressiveness", icon: "😊", key: "expressiveness", desc: "Facial engagement" },
+                  { label: "Head Stability", icon: "🎯", key: "headStability", desc: "Positioning" },
+                ];
+                return (
+                  <div style={{ marginTop: 18, padding: "16px 18px", borderRadius: "var(--radius-lg)", border: `1px solid ${hasData ? "rgba(16,185,129,0.3)" : "var(--card-border-soft)"}`, background: hasData ? "rgba(16,185,129,0.04)" : "var(--card-bg-strong)" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: hasData ? 14 : 10 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 15 }}>📷</span>
+                        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.5, color: hasData ? "#10B981" : "var(--text-muted)", textTransform: "uppercase" as const }}>Visual Delivery</span>
+                        {hasData && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(16,185,129,0.15)", color: "#10B981", fontWeight: 700 }}>ANALYZED</span>}
+                      </div>
+                      {hasData && face.framesAnalyzed && (
+                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{face.framesAnalyzed} frames · {face.durationSeconds}s</span>
+                      )}
+                    </div>
+
+                    {hasData ? (
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                        {WEBCAM_METRICS.map(({ label, icon, key, desc }) => {
+                          const pct = Math.round((face[key] as number) * 100);
+                          const color = pct >= 70 ? "#10B981" : pct >= 45 ? "#F59E0B" : "#EF4444";
+                          return (
+                            <div key={label} style={{ padding: "12px 14px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", textAlign: "center" as const }}>
+                              <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
+                              <div style={{ fontSize: 22, fontWeight: 950, color, lineHeight: 1 }}>{pct}<span style={{ fontSize: 12, fontWeight: 600 }}>%</span></div>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", marginTop: 4 }}>{label}</div>
+                              <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{desc}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" as const }}>
+                        <div style={{ display: "flex", gap: 16 }}>
+                          {WEBCAM_METRICS.map(({ label, icon }) => (
+                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, opacity: 0.4 }}>
+                              <span style={{ fontSize: 14 }}>{icon}</span>
+                              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{label}</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>—</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Enable webcam before recording to unlock these metrics →</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               </SectionCard>
             ) : null}
 
