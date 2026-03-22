@@ -529,32 +529,46 @@ export default function PublicSpeakingPage() {
             )}
 
             {/* Visual Delivery (webcam) */}
-            {faceMetricsRef.current && (
-              <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 4 }}>Visual Delivery · Webcam Analysis</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>{faceMetricsRef.current.framesAnalyzed} frames · {faceMetricsRef.current.durationSeconds}s</div>
-                {[
-                  { label: "Eye Contact", value: faceMetricsRef.current.eyeContact, desc: "Fraction of frames looking toward the camera" },
-                  { label: "Expressiveness", value: faceMetricsRef.current.expressiveness, desc: "Facial movement and engagement signals" },
-                  { label: "Head Stability", value: faceMetricsRef.current.headStability, desc: "Consistent framing, minimal distracting movement" },
-                ].map(({ label, value, desc }) => {
-                  const pct = Math.round(value * 100);
-                  const color = pct >= 70 ? "#10B981" : pct >= 45 ? "#F59E0B" : "#EF4444";
-                  return (
-                    <div key={label} style={{ marginBottom: 14 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{label}</span>
-                        <span style={{ fontSize: 13, fontWeight: 900, color }}>{pct}%</span>
+            {(() => {
+              const face = faceMetricsRef.current;
+              const hasData = !!face;
+              const METRIC_DEFS = [
+                { label: "Eye Contact", icon: "👁️", key: "eyeContact" as const, desc: "Fraction of frames looking toward the camera" },
+                { label: "Expressiveness", icon: "😊", key: "expressiveness" as const, desc: "Facial movement and engagement signals" },
+                { label: "Head Stability", icon: "🎯", key: "headStability" as const, desc: "Consistent framing, minimal distracting movement" },
+              ];
+              return (
+                <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                    <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>📷 Visual Delivery · Webcam Analysis</div>
+                    {hasData && <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{face!.framesAnalyzed} frames · {face!.durationSeconds}s</div>}
+                  </div>
+                  <div style={{ marginBottom: 16 }} />
+                  {METRIC_DEFS.map(({ label, icon, key, desc }) => {
+                    const value = hasData ? face![key] : null;
+                    const pct = value !== null ? Math.round(value * 100) : null;
+                    const color = pct !== null ? (pct >= 70 ? "#10B981" : pct >= 45 ? "#F59E0B" : "#EF4444") : "var(--card-border)";
+                    return (
+                      <div key={label} style={{ marginBottom: 14, opacity: hasData ? 1 : 0.5 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{icon} {label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: pct !== null ? color : "var(--text-muted)" }}>{pct !== null ? `${pct}%` : "—"}</span>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: pct !== null ? `${pct}%` : "0%", borderRadius: 99, background: color, transition: "width 600ms ease" }} />
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{desc}</div>
                       </div>
-                      <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${pct}%`, borderRadius: 99, background: color, transition: "width 600ms ease" }} />
-                      </div>
-                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{desc}</div>
+                    );
+                  })}
+                  {!hasData && (
+                    <div style={{ marginTop: 4, padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                      Enable webcam before your next recording to get eye contact, expressiveness, and head stability scores.
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Transcript */}
             {transcript && (
