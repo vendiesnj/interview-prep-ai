@@ -13,6 +13,7 @@ const TODOS = [
   { id: "public_speaking", icon: "🎤", label: "Public Speaking Session",    desc: "Class presentations, club pitches, and leadership panel prep.",                        href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
   { id: "career_checkin",  icon: "✅", label: "Career Check-In",            desc: "Log your GPA, internship status, salary goals, and financial snapshot.",               href: "/career-checkin",  color: "#10B981", time: "~5 min" },
   { id: "aptitude",        icon: "🧭", label: "Job Fit & Aptitude Quiz",    desc: "Answer questions about your strengths and interests to surface career directions.",     href: "/aptitude?from=during-college", color: "#F59E0B", time: "~5 min" },
+  { id: "budget_tool", icon: "💳", label: "Monthly Budget Builder", desc: "Track internship income, rent, groceries, and subscriptions to see where your money goes in real time.", href: "/career-guide/budget", color: "#10B981", time: "~5 min" },
 ];
 
 const CHECKLIST = [
@@ -29,12 +30,62 @@ const CHECKLIST = [
 ];
 
 const RESOURCES = [
-  { icon: "💼", label: "Landing Your First Internship",        href: "/career-guide/first-year?from=during-college",   tag: "Career" },
-  { icon: "🧾", label: "Filing Taxes for the First Time",      href: "/career-guide/finances?from=during-college",     tag: "Finance" },
-  { icon: "💳", label: "Monthly Budget Builder",               href: "/career-guide/budget",                           tag: "Finance" },
-  { icon: "🗺️", label: "Exploring Career Paths & Specialties", href: "/career-guide/career-paths?from=during-college", tag: "Career" },
-  { icon: "📊", label: "Peer Salary & Career Benchmarks",      href: "/career-guide/benchmarks?from=during-college",   tag: "Career" },
-  { icon: "🏠", label: "Off-Campus Housing Guide",             href: "/career-guide/housing?from=during-college",      tag: "Life" },
+  {
+    icon: "💼",
+    label: "Landing Your First Internship",
+    desc: "Before you start, first two weeks, mid-internship, and how to get a return offer — full checklist.",
+    href: "/career-guide/first-year?from=during-college",
+    tag: "Career",
+  },
+  {
+    icon: "🧾",
+    label: "Filing Taxes for the First Time",
+    desc: "Do you need to file? W-2 vs. 1099 internships, education credits, and free filing options.",
+    href: "/career-guide/finances?from=during-college",
+    tag: "Finance",
+  },
+  {
+    icon: "💰",
+    label: "Managing Money on a Student Income",
+    desc: "50/30/20 adapted for students, grocery strategy, student discounts, and starting a Roth IRA early.",
+    href: "/career-guide/finances?from=during-college",
+    tag: "Finance",
+  },
+  {
+    icon: "💳",
+    label: "Building Credit During College",
+    desc: "Best student cards, what actually moves your score, and monitoring your credit for free.",
+    href: "/career-guide/finances?from=during-college",
+    tag: "Finance",
+  },
+  {
+    icon: "🗺️",
+    label: "Career Paths & Specialization",
+    desc: "How to specialize within your major, grad school vs. work, and the internship-to-offer pipeline.",
+    href: "/career-guide/career-paths?from=during-college",
+    tag: "Career",
+  },
+  {
+    icon: "🏠",
+    label: "Off-Campus Housing Guide",
+    desc: "Finding listings, understanding your first lease, splitting costs with roommates, and getting your deposit back.",
+    href: "/career-guide/housing?from=during-college",
+    tag: "Life",
+  },
+  {
+    icon: "📊",
+    label: "Peer Salary & Career Benchmarks",
+    desc: "See how your cohort is doing — employment rate, salary distribution, industry breakdown.",
+    href: "/career-guide/benchmarks?from=during-college",
+    tag: "Career",
+  },
+  {
+    icon: "📄",
+    label: "Resume Gap Analyzer",
+    desc: "Paste a job description and your resume to instantly identify missing keywords and skill gaps.",
+    href: "/resume-gap",
+    tag: "Career",
+  },
 ];
 
 const TAG_COLORS: Record<string, string> = { Finance: "#10B981", Career: "#2563EB", Life: "#8B5CF6" };
@@ -111,6 +162,7 @@ export default function DuringCollegePage() {
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
+                        {r.desc && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>{r.desc}</div>}
                         <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: TAG_COLORS[r.tag] ?? "var(--accent)", background: (TAG_COLORS[r.tag] ?? "var(--accent)") + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
                       </div>
                       <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>→</span>

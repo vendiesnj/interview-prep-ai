@@ -45,6 +45,15 @@ const TODOS = [
     color: "#10B981",
     time: "~5 min",
   },
+  {
+    id: "budget_tool",
+    icon: "💳",
+    label: "Monthly Budget Builder",
+    desc: "Map out your college costs — tuition gap, meal plan, books, and personal spending — before the semester starts.",
+    href: "/career-guide/budget",
+    color: "#10B981",
+    time: "~5 min",
+  },
 ];
 
 // ── Checklist items ───────────────────────────────────────────────────────────
@@ -63,12 +72,62 @@ const CHECKLIST = [
 
 // ── Resource links ────────────────────────────────────────────────────────────
 const RESOURCES = [
-  { icon: "📋", label: "Understanding FAFSA & Financial Aid", href: "/career-guide/finances?from=pre-college", tag: "Finance" },
-  { icon: "💳", label: "Building Credit Before You Graduate",  href: "/career-guide/finances?from=pre-college", tag: "Finance" },
-  { icon: "🗺️", label: "How to Choose a Major",               href: "/career-guide/career-paths?from=pre-college", tag: "Career" },
-  { icon: "🏠", label: "On-Campus vs. Off-Campus Housing",     href: "/career-guide/housing?from=pre-college", tag: "Life" },
-  { icon: "📈", label: "First-Gen College Student Guide",      href: "/career-guide/first-year?from=pre-college", tag: "Life" },
-  { icon: "🧾", label: "Student Taxes: What You Need to Know", href: "/career-guide/finances?from=pre-college", tag: "Finance" },
+  {
+    icon: "📋",
+    label: "FAFSA & Financial Aid",
+    desc: "Understand your award letter: what's free money vs. what you repay. Filing tips and deadlines.",
+    href: "/career-guide/finances?from=pre-college",
+    tag: "Finance",
+  },
+  {
+    icon: "🎓",
+    label: "Grants, Scholarships & Loans",
+    desc: "How to find scholarships, what work-study actually means, and how much to borrow.",
+    href: "/career-guide/finances?from=pre-college",
+    tag: "Finance",
+  },
+  {
+    icon: "💳",
+    label: "Building Credit as a Student",
+    desc: "Why starting at 18–19 matters. Best student cards, what moves your score, what to avoid.",
+    href: "/career-guide/finances?from=pre-college",
+    tag: "Finance",
+  },
+  {
+    icon: "🗺️",
+    label: "How to Choose a Major",
+    desc: "Majors don't lock you in. High-ROI paths, trades vs. degrees, and how to explore before committing.",
+    href: "/career-guide/career-paths?from=pre-college",
+    tag: "Career",
+  },
+  {
+    icon: "🏠",
+    label: "On-Campus vs. Off-Campus Housing",
+    desc: "Why freshmen should live on campus, real cost comparison, and what to expect in a dorm.",
+    href: "/career-guide/housing?from=pre-college",
+    tag: "Life",
+  },
+  {
+    icon: "📈",
+    label: "First-Gen College Student Guide",
+    desc: "The unwritten rules, imposter syndrome, how to use professors and campus resources effectively.",
+    href: "/career-guide/first-year?from=pre-college",
+    tag: "Life",
+  },
+  {
+    icon: "🧾",
+    label: "Student Taxes: The Basics",
+    desc: "Do you need to file? Education tax credits, free filing options, and forms you'll receive.",
+    href: "/career-guide/finances?from=pre-college",
+    tag: "Finance",
+  },
+  {
+    icon: "💰",
+    label: "Financial Literacy Modules",
+    desc: "Interactive modules on budgeting, emergency funds, credit cards, investing, and retirement.",
+    href: "/financial-literacy",
+    tag: "Finance",
+  },
 ];
 
 const TAG_COLORS: Record<string, string> = {
@@ -170,6 +229,7 @@ export default function PreCollegePage() {
                       <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
+                        {r.desc && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>{r.desc}</div>}
                         <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: TAG_COLORS[r.tag] ?? "var(--accent)", background: (TAG_COLORS[r.tag] ?? "var(--accent)") + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
                       </div>
                       <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>→</span>

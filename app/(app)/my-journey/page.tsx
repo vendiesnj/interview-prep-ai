@@ -699,87 +699,418 @@ function PageSkeleton() {
 
 // ── Tab panels ────────────────────────────────────────────────────────────────
 
-function OverviewTab({ data }: { data: ProfilePayload }) {
-  const { profile, speaking, aptitude, completeness, skills, resumeHistory, signalScore, nextAction } = data;
+// ── NACE Radar Chart ──────────────────────────────────────────────────────────
+function NaceRadarChart({ scores }: { scores: NaceScore[] }) {
+  const scoreable = scores.filter(s => s.key !== "equity_inclusion" && s.score !== null);
+  const n = scoreable.length;
+  if (n < 3) return null;
 
-  const [summary, setSummary] = useState<string | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const cx = 160;
+  const cy = 160;
+  const maxR = 110;
+  const rings = [20, 40, 60, 80, 100];
 
-  async function generateSummary() {
-    setSummaryLoading(true);
-    setSummaryError(null);
-    try {
-      const res = await fetch("/api/student-profile/summary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error(`Request failed (${res.status})`);
-      const json = await res.json();
-      if (json.error) throw new Error(json.error);
-      setSummary(json.summary);
-    } catch (e: unknown) {
-      setSummaryError(e instanceof Error ? e.message : "Something went wrong");
-    } finally {
-      setSummaryLoading(false);
-    }
-  }
+  // Angle for each axis (start from top, go clockwise)
+  const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
 
-  const totalSessions =
-    speaking.interview.count +
-    speaking.networking.count +
-    speaking.publicSpeaking.count;
+  // Point on axis for a given score (0-100) and index
+  const axisPoint = (i: number, score: number) => {
+    const r = (score / 100) * maxR;
+    return {
+      x: cx + r * Math.cos(angle(i)),
+      y: cy + r * Math.sin(angle(i)),
+    };
+  };
 
-  const profileFields = [
-    profile.graduationYear,
-    profile.major,
-    profile.targetRole,
-    profile.targetIndustry,
+  // Label position (slightly outside maxR)
+  const labelPoint = (i: number) => {
+    const r = maxR + 24;
+    return {
+      x: cx + r * Math.cos(angle(i)),
+      y: cy + r * Math.sin(angle(i)),
+    };
+  };
+
+  // Build score polygon path
+  const polyPoints = scoreable.map((s, i) => axisPoint(i, s.score!));
+  const polyPath = polyPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
+
+  // Ring paths
+  const ringPath = (pct: number) => {
+    const r = (pct / 100) * maxR;
+    return Array.from({ length: n }, (_, i) => {
+      const x = (cx + r * Math.cos(angle(i))).toFixed(1);
+      const y = (cy + r * Math.sin(angle(i))).toFixed(1);
+      return `${i === 0 ? "M" : "L"}${x},${y}`;
+    }).join(" ") + " Z";
+  };
+
+  return (
+    <svg width={320} height={320} viewBox="0 0 320 320" style={{ overflow: "visible" }}>
+      {/* Background rings */}
+      {rings.map(pct => (
+        <path key={pct} d={ringPath(pct)} fill="none" stroke="var(--card-border)" strokeWidth={1} opacity={0.6} />
+      ))}
+
+      {/* Axis lines */}
+      {scoreable.map((_, i) => {
+        const ep = axisPoint(i, 100);
+        return <line key={i} x1={cx} y1={cy} x2={ep.x} y2={ep.y} stroke="var(--card-border)" strokeWidth={1} opacity={0.5} />;
+      })}
+
+      {/* Score polygon — filled */}
+      <path d={polyPath} fill="var(--accent)" fillOpacity={0.15} stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" />
+
+      {/* Score dots */}
+      {scoreable.map((s, i) => {
+        const p = axisPoint(i, s.score!);
+        return <circle key={i} cx={p.x} cy={p.y} r={4} fill="var(--accent)" />;
+      })}
+
+      {/* Labels */}
+      {scoreable.map((s, i) => {
+        const lp = labelPoint(i);
+        const ang = angle(i);
+        const isLeft = Math.cos(ang) < -0.1;
+        const isRight = Math.cos(ang) > 0.1;
+        const textAnchor = isLeft ? "end" : isRight ? "start" : "middle";
+        // Shorten labels for the chart
+        const shortLabels: Record<string, string> = {
+          communication: "Communication",
+          critical_thinking: "Critical\nThinking",
+          professionalism: "Professionalism",
+          leadership: "Leadership",
+          teamwork: "Teamwork",
+          career_dev: "Career Dev",
+          technology: "Technology",
+        };
+        const label = shortLabels[s.key] ?? s.shortLabel;
+        const lines = label.split("\n");
+        return (
+          <text key={i} x={lp.x} y={lp.y} textAnchor={textAnchor} dominantBaseline="middle" fontSize={10} fontWeight={700} fill="var(--text-muted)">
+            {lines.map((line, li) => (
+              <tspan key={li} x={lp.x} dy={li === 0 ? 0 : 12}>{line}</tspan>
+            ))}
+          </text>
+        );
+      })}
+
+      {/* Ring labels (20, 40, 60, 80) */}
+      {[20, 40, 60, 80].map(pct => (
+        <text key={pct} x={cx + 3} y={cy - (pct / 100) * maxR - 3} fontSize={8} fill="var(--text-muted)" opacity={0.7}>{pct}</text>
+      ))}
+    </svg>
+  );
+}
+
+function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (tab: TabId) => void }) {
+  const { profile, speaking, aptitude, completeness, skills, resumeHistory, signalScore, nextAction, naceScores } = data;
+  const [expandedNace, setExpandedNace] = useState<string | null>(null);
+
+  const totalSessions = speaking.interview.count + speaking.networking.count + speaking.publicSpeaking.count;
+
+  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 60 ? "#10B981" : signalScore >= 35 ? "#F59E0B" : "#EF4444";
+  const signalLabel = signalScore === null ? "—" : signalScore >= 60 ? "Building strong" : signalScore >= 35 ? "In progress" : "Just starting";
+
+  // Section tiles definition
+  const tiles: Array<{
+    id: TabId;
+    icon: string;
+    title: string;
+    stat: string;
+    sub: string;
+    color: string;
+  }> = [
+    {
+      id: "speaking",
+      icon: "🎙️",
+      title: "Speaking",
+      stat: `${totalSessions} session${totalSessions !== 1 ? "s" : ""}`,
+      sub: speaking.interview.avgScore !== null ? `Avg score: ${speaking.interview.avgScore}` : "No sessions yet",
+      color: "#2563EB",
+    },
+    {
+      id: "nace",
+      icon: "📊",
+      title: "NACE Scores",
+      stat: signalScore !== null ? `Signal: ${signalScore}` : "Building…",
+      sub: "Career readiness framework",
+      color: "var(--accent)",
+    },
+    {
+      id: "resume",
+      icon: "📄",
+      title: "Resume",
+      stat: `${resumeHistory.length} analys${resumeHistory.length !== 1 ? "es" : "is"}`,
+      sub: resumeHistory.length > 0 ? `Last score: ${resumeHistory[0].overallScore}` : "No analysis yet",
+      color: "#8B5CF6",
+    },
+    {
+      id: "instincts",
+      icon: "🧠",
+      title: "Career Instincts",
+      stat: `${data.instincts?.sessions?.length ?? 0} session${(data.instincts?.sessions?.length ?? 0) !== 1 ? "s" : ""}`,
+      sub: data.instincts?.totalXp ? `${data.instincts.totalXp} XP earned` : "Explore your instincts",
+      color: "#0EA5E9",
+    },
+    {
+      id: "skills",
+      icon: "⚡",
+      title: "Skills",
+      stat: `${skills.total} skill${skills.total !== 1 ? "s" : ""}`,
+      sub: skills.total > 0 ? `${Object.keys(skills.byCategory).length} categories` : "Extract from resume",
+      color: "#10B981",
+    },
+    {
+      id: "financial",
+      icon: "💰",
+      title: "Financial",
+      stat: data.careerCheckIn ? "Check-in done" : "No check-in yet",
+      sub: data.careerCheckIn?.salaryRange ? salaryRangeLabel(data.careerCheckIn.salaryRange) : "Log your financial snapshot",
+      color: "#F59E0B",
+    },
+    {
+      id: "pipeline",
+      icon: "🗂️",
+      title: "Pipeline",
+      stat: `${data.interviewPipeline?.total ?? 0} tracked`,
+      sub: data.interviewPipeline?.offers ? `${data.interviewPipeline.offers} offer${data.interviewPipeline.offers !== 1 ? "s" : ""}` : "Track interview activity",
+      color: "#EC4899",
+    },
   ];
-  const missingProfileFields = profileFields.filter((v) => !v).length;
 
-  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 80 ? "#10B981" : signalScore >= 65 ? "#2563EB" : signalScore >= 50 ? "#F59E0B" : "#EF4444";
-  const signalLabel = signalScore === null ? "—" : signalScore >= 80 ? "Strong" : signalScore >= 65 ? "Developing" : signalScore >= 50 ? "Emerging" : "Beginning";
+  // NACE footnotes per competency
+  const naceFootnotes: Record<string, { short: string; detail: string }> = {
+    communication: {
+      short: "From oral clarity, WPM, filler rate, and vocal monotone",
+      detail: "Scored from speaking session audio signals: communication clarity score (50%), pace in words-per-minute (20%), filler word rate (15%), and vocal monotone (15%). Builds session by session — 30+ sessions needed to reach reliable scores.",
+    },
+    critical_thinking: {
+      short: "From STAR situation/task framing and answer quality",
+      detail: "Measured by how well you frame the Situation and Task in STAR-format answers (60%) and overall answer quality (40%). Better context-setting and logical conclusions improve this score over time.",
+    },
+    professionalism: {
+      short: "From confidence, filler rate, and speaking composure",
+      detail: "Reflects ownership language, preparation, and composure. Confidence/ownership score (60%), filler rate (25%), and pace (15%). Webcam sessions also contribute head stability as a composure signal.",
+    },
+    leadership: {
+      short: "From STAR action sections — initiative and decision-making",
+      detail: "Scored only when your STAR answers contain strong Action sections describing initiative-taking and decision ownership. Speaking about leadership is not the same as demonstrating it — this is a partial signal only.",
+    },
+    teamwork: {
+      short: "From teamwork and collaboration question answers only",
+      detail: "Only scored when you answer questions categorized as teamwork, collaboration, or conflict. Other session types don't contribute. Requires deliberate practice with teamwork-category questions to build.",
+    },
+    career_dev: {
+      short: "From sustained engagement: practice volume, check-in, aptitude, checklist",
+      detail: "Combines STAR result quality (growth mindset signals), aptitude quiz completion, career check-in, resume analysis, checklist progress, and total practice sessions. This is the slowest-building score — it reflects genuine long-term investment, not one-time actions.",
+    },
+    technology: {
+      short: "From technical question answers and skills extracted from resume",
+      detail: "Scored from performance on technical-category questions, plus skills extracted from your resume. Listing skills contributes weakly — demonstrated performance in technical sessions is the stronger signal.",
+    },
+  };
+
+  const scoreableNace = naceScores.filter(s => s.key !== "equity_inclusion");
 
   return (
     <div>
       {/* Signal Score hero */}
-      <Card style={{ marginBottom: 16, padding: "20px 24px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-          {/* Big score */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 80 }}>
-            <div style={{ fontSize: 52, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
-              {signalScore ?? "—"}
-            </div>
-            <div style={{ fontSize: 11, fontWeight: 900, color: signalColor, letterSpacing: 0.5 }}>{signalLabel}</div>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>Signal Score</div>
+      <div style={{
+        padding: "24px 28px",
+        borderRadius: 16,
+        border: "1px solid var(--card-border-soft)",
+        background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))",
+        marginBottom: 20,
+        display: "flex",
+        alignItems: "center",
+        gap: 24,
+        flexWrap: "wrap",
+      }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 90 }}>
+          <div style={{ fontSize: 56, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
+            {signalScore ?? "—"}
           </div>
-
-          {/* Divider */}
-          <div style={{ width: 1, height: 64, background: "var(--card-border-soft)", flexShrink: 0 }} />
-
-          {/* NACE mini bars */}
-          <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: "6px 16px" }}>
-            {data.naceScores.filter(n => n.score !== null && n.key !== "equity_inclusion").map(ns => (
-              <div key={ns.key}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{ns.shortLabel}</span>
-                  <span style={{ fontSize: 10, fontWeight: 900, color: ns.score! >= 70 ? "#10B981" : ns.score! >= 50 ? "#F59E0B" : "#EF4444" }}>{ns.score}</span>
-                </div>
-                <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 99, width: `${ns.score}%`, background: ns.score! >= 70 ? "#10B981" : ns.score! >= 50 ? "#F59E0B" : "#EF4444", transition: "width 0.6s ease" }} />
-                </div>
-              </div>
-            ))}
+          <div style={{ fontSize: 12, fontWeight: 900, color: signalColor }}>{signalLabel}</div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>Signal Score</div>
+        </div>
+        <div style={{ width: 1, height: 60, background: "var(--card-border-soft)", flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
+            {profile.name ? `Hi ${profile.name.split(" ")[0]} —` : "Your career readiness profile"}
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 520 }}>
+            Your Signal Score builds as you practice, complete modules, and log real-world data over time.
+            Scores start near zero and grow through sustained engagement — this is a 4–6 year journey.
           </div>
         </div>
-      </Card>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: completeness >= 75 ? "#10B981" : "#F59E0B" }} />
+            <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>Profile {completeness}% complete</span>
+          </div>
+          {aptitude && (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
+              Aptitude: <span style={{ color: "var(--text-primary)" }}>{aptitude.primary}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Section tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
+        {tiles.map(tile => (
+          <div
+            key={tile.id}
+            onClick={() => onNavigate(tile.id)}
+            className="ipc-card-lift"
+            style={{
+              padding: "18px 20px",
+              borderRadius: 14,
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg)",
+              cursor: "pointer",
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 22 }}>{tile.icon}</span>
+              <span style={{ fontSize: 14, color: "var(--text-muted)" }}>→</span>
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{tile.title}</div>
+            <div style={{ fontSize: 15, fontWeight: 900, color: tile.color }}>{tile.stat}</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{tile.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* NACE section: radar + scores side by side */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        gap: 24,
+        marginBottom: 20,
+        alignItems: "start",
+      }}>
+        {/* Radar chart */}
+        <div style={{
+          padding: "20px 24px",
+          borderRadius: 16,
+          border: "1px solid var(--card-border-soft)",
+          background: "var(--card-bg)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 12,
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.7, textTransform: "uppercase" }}>
+            NACE Career Readiness
+          </div>
+          <NaceRadarChart scores={naceScores} />
+          <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", maxWidth: 240, lineHeight: 1.5 }}>
+            Polygon expands as you build evidence in each competency. Starts small — grows over time.
+          </div>
+        </div>
+
+        {/* NACE score list with footnotes */}
+        <div style={{
+          padding: "20px 24px",
+          borderRadius: 16,
+          border: "1px solid var(--card-border-soft)",
+          background: "var(--card-bg)",
+        }}>
+          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 16 }}>
+            Dimension Scores
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            {scoreableNace.map(ns => {
+              const isOpen = expandedNace === ns.key;
+              const note = naceFootnotes[ns.key];
+              const scoreNum = ns.score ?? 0;
+              const barColor = scoreNum >= 60 ? "#10B981" : scoreNum >= 35 ? "#F59E0B" : "var(--accent)";
+              return (
+                <div key={ns.key} style={{ borderRadius: 10, overflow: "hidden" }}>
+                  <div
+                    onClick={() => setExpandedNace(isOpen ? null : ns.key)}
+                    style={{
+                      padding: "10px 12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      background: isOpen ? "var(--accent-soft)" : "transparent",
+                      borderRadius: 10,
+                      transition: "background 150ms",
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{ns.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 950, color: barColor, marginLeft: 12, flexShrink: 0 }}>
+                          {ns.score !== null ? ns.score : "—"}
+                        </span>
+                      </div>
+                      <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${scoreNum}%`, background: barColor, borderRadius: 99, transition: "width 0.6s ease" }} />
+                      </div>
+                      {note && !isOpen && (
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>{note.short}</div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", flexShrink: 0, transition: "transform 150ms", transform: isOpen ? "rotate(90deg)" : "none" }}>›</div>
+                  </div>
+                  {isOpen && note && (
+                    <div style={{
+                      padding: "10px 14px 14px 14px",
+                      fontSize: 12,
+                      color: "var(--text-muted)",
+                      lineHeight: 1.7,
+                      background: "var(--accent-soft)",
+                      borderTop: "1px solid var(--accent-strong)",
+                    }}>
+                      {note.detail}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--card-border-soft)" }}>
+            <button
+              type="button"
+              onClick={() => onNavigate("nace")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "var(--accent)",
+                fontSize: 12,
+                fontWeight: 800,
+                cursor: "pointer",
+                padding: 0,
+              }}
+            >
+              View full NACE breakdown →
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Next Action */}
       {nextAction && (
         <a href={nextAction.href} style={{ textDecoration: "none", display: "block", marginBottom: 16 }}>
-          <Card style={{ padding: "14px 18px", borderLeft: "3px solid var(--accent)", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
+          <div style={{
+            padding: "14px 18px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            borderLeft: "3px solid var(--accent)",
+            background: "var(--card-bg)",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            cursor: "pointer",
+          }}>
             <div style={{ fontSize: 24, flexShrink: 0 }}>🎯</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 10, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 2 }}>Recommended next step</div>
@@ -787,314 +1118,9 @@ function OverviewTab({ data }: { data: ProfilePayload }) {
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{nextAction.description}</div>
             </div>
             <div style={{ color: "var(--accent)", fontSize: 18, flexShrink: 0 }}>→</div>
-          </Card>
+          </div>
         </a>
       )}
-
-      {/* Top grid: ring + stats */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "auto 1fr",
-          gap: 20,
-          marginBottom: 20,
-          alignItems: "start",
-        }}
-      >
-        {/* Completion ring */}
-        <Card style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, minWidth: 140 }}>
-          <ScoreRing value={completeness} size={100} />
-          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>
-            Profile completeness
-          </div>
-          {completeness < 100 && (
-            <a
-              href="/settings"
-              style={{
-                fontSize: 11,
-                fontWeight: 700,
-                color: "var(--accent)",
-                textDecoration: "none",
-              }}
-            >
-              Complete your profile →
-            </a>
-          )}
-        </Card>
-
-        {/* Stat cards */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
-            gap: 10,
-          }}
-        >
-          <StatCard label="Total sessions" value={totalSessions} sub="interview + networking + speaking" />
-          <StatCard label="Skills extracted" value={skills.total} />
-          <StatCard label="Resume analyses" value={resumeHistory.length} />
-          <StatCard
-            label="Pipeline entries"
-            value={data.interviewPipeline?.total ?? 0}
-            sub="interview activities tracked"
-          />
-        </div>
-      </div>
-
-      {/* AI Profile Summary */}
-      <Card style={{ marginBottom: 16 }}>
-        <div style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              color: "var(--accent)",
-              marginBottom: 4,
-            }}
-          >
-            AI-generated summary
-          </div>
-          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>
-            Your Profile at a Glance
-          </div>
-        </div>
-
-        {summaryError && (
-          <div
-            style={{
-              padding: "8px 12px",
-              borderRadius: 8,
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.3)",
-              color: "#EF4444",
-              fontSize: 12,
-              fontWeight: 600,
-              marginBottom: 10,
-            }}
-          >
-            {summaryError}
-          </div>
-        )}
-
-        {!summary && !summaryLoading && (
-          <button
-            type="button"
-            onClick={generateSummary}
-            style={{
-              background: "var(--accent)",
-              color: "#fff",
-              fontWeight: 800,
-              borderRadius: 10,
-              padding: "10px 20px",
-              border: "none",
-              fontSize: 13,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <span>✨</span>
-            Generate Summary
-          </button>
-        )}
-
-        {summaryLoading && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              color: "var(--text-muted)",
-              fontSize: 13,
-              fontWeight: 600,
-              padding: "4px 0",
-            }}
-          >
-            <span
-              style={{
-                display: "inline-block",
-                width: 16,
-                height: 16,
-                borderRadius: "50%",
-                border: "2px solid var(--card-border-soft)",
-                borderTopColor: "var(--accent)",
-                animation: "spin 0.7s linear infinite",
-              }}
-            />
-            Analyzing your profile…
-          </div>
-        )}
-
-        {summary && !summaryLoading && (
-          <div>
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.8,
-                color: "var(--text-primary)",
-                margin: "0 0 14px 0",
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {summary}
-            </p>
-            <button
-              type="button"
-              onClick={generateSummary}
-              style={{
-                background: "none",
-                border: "1px solid var(--card-border-soft)",
-                borderRadius: 8,
-                padding: "5px 12px",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "var(--text-muted)",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              Regenerate ↺
-            </button>
-          </div>
-        )}
-      </Card>
-
-      {/* Career profile summary */}
-      <Card style={{ marginBottom: 16 }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 14,
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>
-            Career Profile
-          </div>
-          {missingProfileFields > 0 && (
-            <a
-              href="/settings"
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: "var(--accent)",
-                textDecoration: "none",
-              }}
-            >
-              Complete your profile →
-            </a>
-          )}
-        </div>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
-            gap: 12,
-          }}
-        >
-          {[
-            { label: "Graduation Year", value: profile.graduationYear?.toString() },
-            { label: "Major", value: profile.major },
-            { label: "Target Role", value: profile.targetRole },
-            { label: "Target Industry", value: profile.targetIndustry },
-          ].map(({ label, value }) => (
-            <div key={label}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.7,
-                  color: "var(--text-muted)",
-                  marginBottom: 4,
-                }}
-              >
-                {label}
-              </div>
-              {value ? (
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-                  {value}
-                </div>
-              ) : (
-                <a
-                  href="/settings"
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: "var(--text-muted)",
-                    textDecoration: "none",
-                    fontStyle: "italic",
-                  }}
-                >
-                  Not set →
-                </a>
-              )}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Aptitude + member since */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 0 }}>
-        {aptitude ? (
-          <Card>
-            <SectionLabel>Aptitude type</SectionLabel>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <span
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: 99,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  background: "var(--accent-soft)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--card-border-soft)",
-                }}
-              >
-                {aptitude.primary}
-              </span>
-              <span
-                style={{
-                  padding: "4px 12px",
-                  borderRadius: 99,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  background: "var(--card-bg-strong)",
-                  color: "var(--text-muted)",
-                  border: "1px solid var(--card-border-soft)",
-                }}
-              >
-                {aptitude.secondary}
-              </span>
-            </div>
-          </Card>
-        ) : (
-          <Card>
-            <SectionLabel>Aptitude type</SectionLabel>
-            <a
-              href="/aptitude"
-              style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}
-            >
-              Take aptitude quiz →
-            </a>
-          </Card>
-        )}
-
-        <Card>
-          <SectionLabel>Member since</SectionLabel>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-            {formatDate(profile.memberSince)}
-          </div>
-        </Card>
-      </div>
     </div>
   );
 }
@@ -2053,7 +2079,7 @@ export default function MyJourneyPage() {
 
           {!loading && !error && data && (
             <>
-              {activeTab === "overview" && <OverviewTab data={data} />}
+              {activeTab === "overview" && <OverviewTab data={data} onNavigate={setActiveTab} />}
               {activeTab === "speaking" && <SpeakingTab data={data} />}
               {activeTab === "resume" && <ResumeTab data={data} />}
               {activeTab === "financial" && <FinancialTab data={data} />}
