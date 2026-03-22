@@ -276,6 +276,27 @@ function clamp(v: number, lo = 0, hi = 100): number {
   return Math.max(lo, Math.min(hi, v));
 }
 
+/**
+ * Data confidence multiplier — scores start near 0 and build as evidence accumulates.
+ * Prior is 0 (not 50), so a student with minimal data sees near-zero scores.
+ * This is intentional: this is a 4–6 year data-building app.
+ *
+ * formula: final = rawAvg × (n / (n + priorWeight))
+ *
+ * Examples with priorWeight=25, rawAvg=75:
+ *   1 datapoint  → 75 × (1/26)   = ~3
+ *   5 datapoints → 75 × (5/30)   = ~13
+ *   15 datapoints → 75 × (15/40) = ~28
+ *   30 datapoints → 75 × (30/55) = ~41
+ *   60 datapoints → 75 × (60/85) = ~53
+ *   120 datapoints → 75 × (120/145) = ~62
+ *   250 datapoints → 75 × (250/275) = ~68
+ */
+function withDataConfidence(rawAvg: number, n: number, priorWeight = 25): number {
+  const confidence = n / (n + priorWeight);
+  return clamp(rawAvg * confidence);
+}
+
 function to100(v: number | null): number | null {
   if (v === null) return null;
   return clamp(v * 10);
@@ -540,27 +561,32 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
 
   // ── 4. Profile completion → Career & Self-Development ────────────────────
   // NACE indicators: "identify areas for growth", "commit to lifelong learning"
-  if (hasCompletedAptitude)      buckets.career_dev.push(80);
-  if (hasCompletedCareerCheckIn) buckets.career_dev.push(75);
-  if (hasResumeAnalysis)         buckets.career_dev.push(70);
-  if (instinctSessionCount >= 3) buckets.career_dev.push(80);
-  else if (instinctSessionCount >= 1) buckets.career_dev.push(65);
-  // Checklist completion reflects proactive career self-development
+  // Values are intentionally tiny — these are starting signals, not achievements.
+  // Combined with the data confidence multiplier, completing only the aptitude
+  // quiz produces a career_dev score of ~1%. Scores must be earned over years.
+  if (hasCompletedAptitude)      buckets.career_dev.push(20);
+  if (hasCompletedCareerCheckIn) buckets.career_dev.push(18);
+  if (hasResumeAnalysis)         buckets.career_dev.push(15);
+  if (instinctSessionCount >= 3) buckets.career_dev.push(22);
+  else if (instinctSessionCount >= 1) buckets.career_dev.push(12);
+  // Checklist completion: scaled by actual % done, max value 40 at 100%
   if (checklistCompletionPct != null && checklistCompletionPct > 0) {
-    buckets.career_dev.push(clamp(checklistCompletionPct * 100));
+    buckets.career_dev.push(clamp(checklistCompletionPct * 40));
   }
 
-  // Speaking volume as self-development signal — consistent practice = growth mindset
-  if (totalAttempts >= 15)      buckets.career_dev.push(85);
-  else if (totalAttempts >= 8)  buckets.career_dev.push(75);
-  else if (totalAttempts >= 3)  buckets.career_dev.push(60);
+  // Consistent practice is the primary career_dev signal over time
+  if (totalAttempts >= 50)      buckets.career_dev.push(70);
+  else if (totalAttempts >= 25) buckets.career_dev.push(55);
+  else if (totalAttempts >= 10) buckets.career_dev.push(40);
+  else if (totalAttempts >= 3)  buckets.career_dev.push(22);
 
   // ── 4. Technical skills → Technology ─────────────────────────────────────
   // Resume/session skill extraction gives us concrete tech competency signal
-  if (technicalSkillsCount >= 8)       buckets.technology.push(90);
-  else if (technicalSkillsCount >= 5)  buckets.technology.push(80);
-  else if (technicalSkillsCount >= 2)  buckets.technology.push(65);
-  else if (technicalSkillsCount >= 1)  buckets.technology.push(50);
+  // Values are small — listing skills ≠ demonstrated proficiency
+  if (technicalSkillsCount >= 8)       buckets.technology.push(35);
+  else if (technicalSkillsCount >= 5)  buckets.technology.push(25);
+  else if (technicalSkillsCount >= 2)  buckets.technology.push(15);
+  else if (technicalSkillsCount >= 1)  buckets.technology.push(8);
 
   const keys: NaceKey[] = [
     "career_dev",
@@ -593,7 +619,22 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     }
 
     const vals = buckets[key];
-    const score = avg(vals);
+    const rawAvg = avg(vals);
+    // Apply data confidence penalty: scores regress toward 50 when based on sparse data.
+    // Different competencies require more evidence to achieve reliable scores.
+    const priorWeights: Record<NaceKey, number> = {
+      communication:     25, // HIGH assessability — still requires many sessions to build
+      critical_thinking: 25,
+      professionalism:   25,
+      leadership:        30, // LOW–MODERATE — STAR action alone is weak
+      teamwork:          30, // LOW — only scored on teamwork questions
+      career_dev:        30, // LOW — requires sustained engagement over years
+      technology:        30, // LOW — limited direct signal
+      equity_inclusion:   0, // never scored — handled above
+    };
+    const score = rawAvg !== null
+      ? withDataConfidence(rawAvg, vals.length, priorWeights[key])
+      : null;
 
     const sources: string[] = [];
     if (key === "communication")    sources.push("Oral clarity score", "Pace (WPM)", "Filler rate", "Vocal monotone score", ...(visualScores ? ["Eye contact (webcam)", "Expressiveness (webcam)"] : []));
@@ -613,7 +654,7 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
       otherDataIndicators: meta.otherDataIndicators,
       assessability: meta.assessability,
       assessabilityNote: meta.assessabilityNote,
-      score: score !== null ? Math.round(score) : null,
+      score: score !== null ? Math.round(score as number) : null,
       evidenceSources: sources,
     };
   });

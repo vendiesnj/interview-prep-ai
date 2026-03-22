@@ -27,6 +27,14 @@ const GUIDES = [
     color: "#10B981",
   },
   {
+    href: "/career-guide/budget",
+    eyebrow: "Financial planning",
+    title: "Monthly budget builder",
+    desc: "Enter your income and expenses to see your 50/30/20 breakdown in real time. Know exactly where your money goes.",
+    icon: "💳",
+    color: "#10B981",
+  },
+  {
     href: "/career-guide/housing",
     eyebrow: "Housing",
     title: "Renting your first apartment",
@@ -38,17 +46,9 @@ const GUIDES = [
     href: "/career-guide/career-paths",
     eyebrow: "Career",
     title: "Career path explorer",
-    desc: "Where do people go from entry-level roles? Common progression paths by industry and function, with realistic timelines.",
+    desc: "Where do people go from entry-level roles? Common progression paths by industry, trade, and function — with realistic timelines and salary ranges.",
     icon: "🗺",
     color: "#8B5CF6",
-  },
-  {
-    href: "/career-guide/budget",
-    eyebrow: "Financial planning",
-    title: "Monthly budget builder",
-    desc: "Enter your income and expenses to see your 50/30/20 breakdown in real time. Saves automatically — know exactly where your money goes.",
-    icon: "💳",
-    color: "#10B981",
   },
   {
     href: "/career-guide/retirement",
@@ -65,6 +65,22 @@ const GUIDES = [
     desc: "How does your salary, savings, and career satisfaction compare to peers? Anonymous, aggregated outcomes from your cohort.",
     icon: "📊",
     color: "#0EA5E9",
+  },
+  {
+    href: "/financial-literacy",
+    eyebrow: "Life skills",
+    title: "Financial literacy modules",
+    desc: "FAFSA, student loans, credit cards, investing basics, and retirement — interactive modules covering what school never taught.",
+    icon: "🎓",
+    color: "#8B5CF6",
+  },
+  {
+    href: "/resume-gap",
+    eyebrow: "Resume",
+    title: "Resume gap analyzer",
+    desc: "Paste a job description and your resume to instantly identify missing keywords, skill gaps, and how to close them.",
+    icon: "📄",
+    color: "var(--accent)",
   },
 ];
 

@@ -43,15 +43,24 @@ const STUDENT_GROUPS: NavGroup[] = [
     heading: "Platform",
     items: [
       { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
+      { label: "My Journey", href: "/my-journey", icon: <User size={18} /> },
     ],
   },
   {
-    heading: "Modules",
+    heading: "Practice",
     items: [
       { label: "Interview Prep", href: "/practice", icon: <Mic size={18} /> },
       { label: "Public Speaking", href: "/public-speaking", icon: <Radio size={18} /> },
       { label: "Networking Pitch", href: "/networking", icon: <TrendingUp size={18} /> },
-      { label: "College Ready", href: "/practice", icon: <CheckSquare size={18} />, comingSoon: true },
+    ],
+  },
+  {
+    heading: "Resources",
+    items: [
+      { label: "Career Guide", href: "/career-guide", icon: <BookOpen size={18} /> },
+      { label: "Budget Builder", href: "/career-guide/budget", icon: <LineChart size={18} /> },
+      { label: "Financial Literacy", href: "/financial-literacy", icon: <BarChart2 size={18} /> },
+      { label: "Career Check-In", href: "/career-checkin", icon: <CheckSquare size={18} /> },
     ],
   },
   {
@@ -64,13 +73,6 @@ const STUDENT_GROUPS: NavGroup[] = [
       { label: "Sessions", href: "/sessions", icon: <Clock size={18} /> },
     ],
   },
-  {
-    heading: "Career Center",
-    items: [
-      { label: "Career Guide", href: "/career-guide", icon: <BookOpen size={18} /> },
-      { label: "Check-In", href: "/career-checkin", icon: <CheckSquare size={18} /> },
-    ],
-  },
 ];
 
 // Flat list for mobile drawer
@@ -79,8 +81,8 @@ const STUDENT_NAV_FLAT: NavItem[] = STUDENT_GROUPS.flatMap((g) => g.items);
 const STUDENT_BOTTOM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={22} /> },
   { label: "Practice", href: "/practice", icon: <Mic size={22} /> },
+  { label: "Resources", href: "/career-guide", icon: <BookOpen size={22} /> },
   { label: "Results", href: "/results", icon: <BarChart2 size={22} /> },
-  { label: "Career", href: "/career-guide", icon: <BookOpen size={22} /> },
 ];
 
 const ADMIN_NAV: NavItem[] = [
