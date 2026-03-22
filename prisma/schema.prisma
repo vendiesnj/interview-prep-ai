@@ -310,14 +310,15 @@ model CareerCheckIn {
 }
 
 model ChecklistProgress {
-  id        String   @id @default(cuid())
-  userId    String
-  tenantId  String?
-  stage     String   // "pre_college" | "during_college" | "post_college"
-  itemId    String   // matches hardcoded checklist item id
-  done      Boolean  @default(true)
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  userId        String
+  tenantId      String?
+  stage         String    // "pre_college" | "during_college" | "post_college"
+  itemId        String    // matches hardcoded checklist item id
+  done          Boolean   @default(true)
+  scheduledDate DateTime? // user-chosen target date
+  updatedAt     DateTime  @updatedAt
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, stage, itemId])
   @@index([userId, stage])

@@ -18,12 +18,20 @@ type ContentOverride = {
   linkLabel?: string | null;
 };
 
+export type ChecklistProgressEntry = {
+  itemId: string;
+  done: boolean;
+  scheduledDate: string | null;
+};
+
 type Props = {
   stage: string;
   items: ChecklistItemDef[];
   accentColor?: string;
   /** If true, show inline edit controls (admin mode) */
   adminMode?: boolean;
+  /** Called when progress loads or changes — lets parent wire calendar */
+  onProgressChange?: (entries: ChecklistProgressEntry[]) => void;
 };
 
 export default function ChecklistSection({
@@ -31,14 +39,17 @@ export default function ChecklistSection({
   items,
   accentColor = "#2563EB",
   adminMode = false,
+  onProgressChange,
 }: Props) {
   const [done, setDone] = useState<Set<string>>(new Set());
+  const [scheduled, setScheduled] = useState<Map<string, string | null>>(new Map());
   const [overrides, setOverrides] = useState<Map<string, ContentOverride>>(new Map());
   const [expanded, setExpanded] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState({ body: "", linkHref: "", linkLabel: "" });
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [justChecked, setJustChecked] = useState<string | null>(null);
   const pendingRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
   // Load progress + content overrides from DB
@@ -48,6 +59,16 @@ export default function ChecklistSection({
       .then((data) => {
         if (data.progress) {
           setDone(new Set(data.progress.filter((p: any) => p.done).map((p: any) => p.itemId)));
+          const schedMap = new Map<string, string | null>();
+          for (const p of data.progress) {
+            schedMap.set(p.itemId, p.scheduledDate ?? null);
+          }
+          setScheduled(schedMap);
+          onProgressChange?.(data.progress.map((p: any) => ({
+            itemId: p.itemId,
+            done: p.done,
+            scheduledDate: p.scheduledDate ?? null,
+          })));
         }
         if (data.content) {
           const map = new Map<string, ContentOverride>();
@@ -57,13 +78,32 @@ export default function ChecklistSection({
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stage]);
+
+  // Notify parent when progress changes
+  useEffect(() => {
+    if (!loaded) return;
+    const entries: ChecklistProgressEntry[] = items.map(i => ({
+      itemId: i.id,
+      done: done.has(i.id),
+      scheduledDate: scheduled.get(i.id) ?? null,
+    }));
+    onProgressChange?.(entries);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, scheduled, loaded]);
 
   function toggle(id: string) {
     setDone((prev) => {
       const next = new Set(prev);
       const nowDone = !next.has(id);
-      if (nowDone) next.add(id); else next.delete(id);
+      if (nowDone) {
+        next.add(id);
+        setJustChecked(id);
+        setTimeout(() => setJustChecked(null), 700);
+      } else {
+        next.delete(id);
+      }
 
       // Debounce DB write
       const existing = pendingRef.current.get(id);
@@ -80,6 +120,19 @@ export default function ChecklistSection({
 
       return next;
     });
+  }
+
+  function scheduleItem(itemId: string, dateStr: string | null) {
+    setScheduled(prev => {
+      const next = new Map(prev);
+      next.set(itemId, dateStr);
+      return next;
+    });
+    fetch("/api/checklist", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stage, itemId, scheduledDate: dateStr }),
+    }).catch(() => {});
   }
 
   async function saveEdit(itemId: string) {
@@ -108,6 +161,20 @@ export default function ChecklistSection({
 
   return (
     <div>
+      <style>{`
+        @keyframes checkPop {
+          0%   { transform: scale(1); }
+          40%  { transform: scale(1.35); }
+          70%  { transform: scale(0.92); }
+          100% { transform: scale(1); }
+        }
+        @keyframes checkGlow {
+          0%   { box-shadow: 0 0 0 0 var(--check-glow, rgba(16,185,129,0.5)); }
+          60%  { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+          100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+        }
+      `}</style>
+
       {/* Progress bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase" }}>
@@ -135,6 +202,8 @@ export default function ChecklistSection({
           const override = overrides.get(item.id);
           const bodyText = override?.body || item.desc;
           const isEditing = editingId === item.id;
+          const isJustChecked = justChecked === item.id;
+          const itemScheduled = scheduled.get(item.id) ?? null;
 
           return (
             <div
@@ -158,7 +227,10 @@ export default function ChecklistSection({
                     background: checked ? accentColor : "transparent",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     flexShrink: 0, marginTop: 1, fontSize: 13, color: "#fff",
-                    cursor: "pointer", transition: "all 150ms",
+                    cursor: "pointer",
+                    transition: "all 150ms",
+                    animation: isJustChecked ? "checkPop 0.4s ease, checkGlow 0.6s ease" : "none",
+                    ["--check-glow" as any]: accentColor + "80",
                   }}
                 >
                   {checked ? "✓" : ""}
@@ -166,12 +238,22 @@ export default function ChecklistSection({
 
                 {/* Content */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{
-                    fontSize: 13, fontWeight: 900,
-                    color: checked ? "var(--text-muted)" : "var(--text-primary)",
-                    textDecoration: checked ? "line-through" : "none",
-                  }}>
-                    {item.label}
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                    <div style={{
+                      fontSize: 13, fontWeight: 900,
+                      color: checked ? "var(--text-muted)" : "var(--text-primary)",
+                      textDecoration: checked ? "line-through" : "none",
+                    }}>
+                      {item.label}
+                    </div>
+                    {itemScheduled && !checked && (
+                      <span style={{
+                        fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99,
+                        background: accentColor + "18", color: accentColor,
+                      }}>
+                        📅 {new Date(itemScheduled + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </span>
+                    )}
                   </div>
                   {!isOpen && (
                     <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.5 }}>

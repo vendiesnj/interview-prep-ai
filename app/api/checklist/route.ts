@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const [progress, content] = await Promise.all([
     prisma.checklistProgress.findMany({
       where: { userId: user.id, stage },
-      select: { itemId: true, done: true },
+      select: { itemId: true, done: true, scheduledDate: true },
     }),
     user.tenantId
       ? prisma.checklistItemContent.findMany({
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ progress, content });
 }
 
-// POST /api/checklist  { stage, itemId, done }
+// POST /api/checklist  { stage, itemId, done, scheduledDate? }
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -44,14 +44,41 @@ export async function POST(req: NextRequest) {
   });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const { stage, itemId, done } = await req.json();
+  const { stage, itemId, done, scheduledDate } = await req.json();
   if (!stage || !itemId || typeof done !== "boolean")
     return NextResponse.json({ error: "stage, itemId, done required" }, { status: 400 });
 
+  const parsedDate = scheduledDate ? new Date(scheduledDate) : undefined;
+
   await prisma.checklistProgress.upsert({
     where: { userId_stage_itemId: { userId: user.id, stage, itemId } },
-    create: { userId: user.id, tenantId: user.tenantId, stage, itemId, done },
-    update: { done },
+    create: { userId: user.id, tenantId: user.tenantId, stage, itemId, done, scheduledDate: parsedDate },
+    update: { done, ...(parsedDate !== undefined ? { scheduledDate: parsedDate } : {}) },
+  });
+
+  return NextResponse.json({ ok: true });
+}
+
+// PATCH /api/checklist  { stage, itemId, scheduledDate } — schedule only, no done change
+export async function PATCH(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, tenantId: true },
+  });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const { stage, itemId, scheduledDate } = await req.json();
+  if (!stage || !itemId) return NextResponse.json({ error: "stage, itemId required" }, { status: 400 });
+
+  const parsedDate = scheduledDate ? new Date(scheduledDate) : null;
+
+  await prisma.checklistProgress.upsert({
+    where: { userId_stage_itemId: { userId: user.id, stage, itemId } },
+    create: { userId: user.id, tenantId: user.tenantId, stage, itemId, done: false, scheduledDate: parsedDate ?? undefined },
+    update: { scheduledDate: parsedDate },
   });
 
   return NextResponse.json({ ok: true });

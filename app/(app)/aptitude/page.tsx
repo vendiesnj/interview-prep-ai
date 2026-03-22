@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 
@@ -431,25 +431,107 @@ function topTwo(scores: Record<Cat, number>): [Cat, Cat] {
   return [sorted[0], sorted[1]];
 }
 
+// ── Voice recording hook ────────────────────────────────────────────────────
+type VoiceState = "idle" | "recording" | "analyzing" | "done" | "error";
+
 // ── Component ──────────────────────────────────────────────────────────────
 export default function AptitudePage() {
   const [answers, setAnswers] = useState<(Cat | null)[]>(Array(QUESTIONS.length).fill(null));
+  const [transcripts, setTranscripts] = useState<string[]>(Array(QUESTIONS.length).fill(""));
+  const [confidences, setConfidences] = useState<number[]>(Array(QUESTIONS.length).fill(0));
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(true);
+  const [voiceState, setVoiceState] = useState<VoiceState>("idle");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
 
   const totalQ = QUESTIONS.length;
   const current = QUESTIONS[step];
   const answered = answers[step];
   const answeredCount = answers.filter(Boolean).length;
 
+  async function startRecording() {
+    setVoiceError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4" });
+      chunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunksRef.current, { type: mr.mimeType });
+        scoreVoice(blob, mr.mimeType);
+      };
+      mr.start();
+      mediaRecorderRef.current = mr;
+      setVoiceState("recording");
+    } catch {
+      setVoiceError("Microphone access denied. Use the text options below.");
+      setVoiceState("error");
+    }
+  }
+
+  function stopRecording() {
+    mediaRecorderRef.current?.stop();
+    setVoiceState("analyzing");
+  }
+
+  async function scoreVoice(blob: Blob, mimeType: string) {
+    try {
+      const ext = mimeType.includes("mp4") ? "mp4" : "webm";
+      const file = new File([blob], `aptitude.${ext}`, { type: mimeType });
+      const fd = new FormData();
+      fd.append("audio", file);
+      fd.append("question", current.q);
+      fd.append("options", JSON.stringify(current.options));
+
+      const res = await fetch("/api/aptitude/voice-score", { method: "POST", body: fd });
+      const data = await res.json();
+
+      if (data.error === "NO_SPEECH") {
+        setVoiceError("We didn't catch that. Try again or pick an option below.");
+        setVoiceState("idle");
+        return;
+      }
+      if (data.error || !data.category) {
+        setVoiceError("Couldn't score that response. Pick an option below.");
+        setVoiceState("idle");
+        return;
+      }
+
+      const cat = data.category as Cat;
+      const next = [...answers];
+      next[step] = cat;
+      setAnswers(next);
+
+      const nextT = [...transcripts];
+      nextT[step] = data.transcript ?? "";
+      setTranscripts(nextT);
+
+      const nextC = [...confidences];
+      nextC[step] = data.confidence ?? 0.5;
+      setConfidences(nextC);
+
+      setVoiceState("done");
+    } catch {
+      setVoiceError("Analysis failed. Pick an option below.");
+      setVoiceState("idle");
+    }
+  }
+
   function handleSelect(cat: Cat) {
     const next = [...answers];
     next[step] = cat;
     setAnswers(next);
+    if (voiceState === "done") setVoiceState("idle");
   }
 
   function handleNext() {
+    setVoiceState("idle");
+    setVoiceError(null);
     if (step < totalQ - 1) {
       setStep(step + 1);
     } else {
@@ -458,14 +540,20 @@ export default function AptitudePage() {
   }
 
   function handleBack() {
+    setVoiceState("idle");
+    setVoiceError(null);
     if (step > 0) setStep(step - 1);
   }
 
   function handleRetake() {
     setAnswers(Array(QUESTIONS.length).fill(null));
+    setTranscripts(Array(QUESTIONS.length).fill(""));
+    setConfidences(Array(QUESTIONS.length).fill(0));
     setStep(0);
     setDone(false);
     setSaved(false);
+    setVoiceState("idle");
+    setVoiceError(null);
   }
 
   // ── Results ──────────────────────────────────────────────────────────────
@@ -680,85 +768,174 @@ export default function AptitudePage() {
   }
 
   // ── Quiz view ──────────────────────────────────────────────────────────────
-  const progress = (answeredCount / totalQ) * 100;
+  const progressPct = (answeredCount / totalQ) * 100;
+  const currentTranscript = transcripts[step];
+  const currentConfidence = confidences[step];
+  const isRecording = voiceState === "recording";
+  const isAnalyzing = voiceState === "analyzing";
+  const isVoiceDone = voiceState === "done";
 
   return (
     <PremiumShell
       title="Career Personality Assessment"
-      subtitle="24 questions to discover your personality archetype and best-fit careers."
+      subtitle="Speak your answers — or pick from the options. 24 questions to discover your archetype."
     >
-      <div style={{ maxWidth: 680 }}>
+      <div style={{ maxWidth: 700 }}>
+
+        {/* Mode toggle */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Answer mode:</span>
+            <button
+              onClick={() => setVoiceMode(!voiceMode)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "5px 12px", borderRadius: 99,
+                border: "1px solid var(--card-border-soft)",
+                background: voiceMode ? "rgba(37,99,235,0.1)" : "var(--card-bg)",
+                color: voiceMode ? "var(--accent)" : "var(--text-muted)",
+                fontSize: 12, fontWeight: 700, cursor: "pointer",
+              }}
+            >
+              {voiceMode ? "🎤 Voice" : "☰ Text"} — switch
+            </button>
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
+            {step + 1} / {totalQ} · {answeredCount} answered
+          </span>
+        </div>
 
         {/* Progress bar */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
-              Question {step + 1} of {totalQ}
-            </span>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>
-              {answeredCount} answered
-            </span>
-          </div>
-          <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-            <div style={{
-              height: "100%",
-              width: `${progress}%`,
-              background: "var(--accent)",
-              borderRadius: 99,
-              transition: "width 0.3s ease",
-            }} />
-          </div>
+        <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 24 }}>
+          <div style={{ height: "100%", width: `${progressPct}%`, background: "var(--accent)", borderRadius: 99, transition: "width 0.3s ease" }} />
         </div>
 
         {/* Question card */}
-        <div style={{
-          borderRadius: 18,
-          border: "1px solid var(--card-border-soft)",
-          background: "var(--card-bg)",
-          padding: "24px 24px 20px",
-          marginBottom: 16,
-        }}>
+        <div style={{ borderRadius: 18, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", padding: "24px 24px 20px", marginBottom: 16 }}>
           <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.5, marginBottom: 20 }}>
             {current.q}
           </div>
 
-          <div style={{ display: "grid", gap: 8 }}>
-            {current.options.map((opt) => {
-              const isSelected = answered === opt.cat;
-              return (
-                <button
-                  key={opt.cat}
-                  onClick={() => handleSelect(opt.cat)}
-                  style={{
-                    padding: "12px 16px",
-                    borderRadius: 10,
-                    border: isSelected
-                      ? "1.5px solid var(--accent)"
-                      : "1px solid var(--card-border-soft)",
-                    background: isSelected ? "rgba(37,99,235,0.07)" : "transparent",
-                    color: isSelected ? "var(--text-primary)" : "var(--text-muted)",
-                    fontSize: 13,
-                    fontWeight: isSelected ? 600 : 500,
-                    cursor: "pointer",
-                    textAlign: "left",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    transition: "all 0.15s ease",
-                  }}
-                >
-                  <div style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
-                    border: isSelected ? "5px solid var(--accent)" : "2px solid var(--card-border-soft)",
-                    flexShrink: 0,
-                    transition: "all 0.15s ease",
-                  }} />
-                  {opt.label}
-                </button>
-              );
-            })}
+          {/* Voice section */}
+          {voiceMode && (
+            <div style={{ marginBottom: 20 }}>
+              {/* Record button */}
+              {(voiceState === "idle" || voiceState === "error") && (
+                <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
+                  <button
+                    onClick={startRecording}
+                    style={{
+                      width: 72, height: 72, borderRadius: "50%",
+                      border: "none", cursor: "pointer",
+                      background: "var(--accent)",
+                      color: "#fff", fontSize: 28,
+                      boxShadow: "0 4px 20px rgba(37,99,235,0.35)",
+                      transition: "transform 100ms",
+                    }}
+                  >
+                    🎤
+                  </button>
+                  <div style={{ marginTop: 10, fontSize: 13, color: "var(--text-muted)" }}>
+                    Tap to speak your answer
+                  </div>
+                  {voiceError && (
+                    <div style={{ marginTop: 8, fontSize: 12, color: "#EF4444" }}>{voiceError}</div>
+                  )}
+                </div>
+              )}
+
+              {/* Recording state */}
+              {isRecording && (
+                <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
+                  <button
+                    onClick={stopRecording}
+                    style={{
+                      width: 72, height: 72, borderRadius: "50%",
+                      border: "none", cursor: "pointer",
+                      background: "#EF4444", color: "#fff", fontSize: 24,
+                      animation: "pulse 1s ease-in-out infinite",
+                      boxShadow: "0 0 0 0 rgba(239,68,68,0.4)",
+                    }}
+                  >
+                    ⏹
+                  </button>
+                  <style>{`@keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 14px rgba(239,68,68,0)} }`}</style>
+                  <div style={{ marginTop: 10, fontSize: 13, color: "#EF4444", fontWeight: 700 }}>
+                    Recording… tap to stop
+                  </div>
+                </div>
+              )}
+
+              {/* Analyzing */}
+              {isAnalyzing && (
+                <div style={{ textAlign: "center" as const, padding: "20px 0" }}>
+                  <div style={{ fontSize: 32 }}>🧠</div>
+                  <div style={{ marginTop: 8, fontSize: 13, color: "var(--text-muted)" }}>Analyzing your response…</div>
+                </div>
+              )}
+
+              {/* Voice result */}
+              {isVoiceDone && answered && (
+                <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(37,99,235,0.07)", border: "1px solid rgba(37,99,235,0.2)", marginBottom: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)" }}>
+                      Detected: {ARCHETYPES[answered].name}
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                      {Math.round(currentConfidence * 100)}% confidence
+                    </span>
+                  </div>
+                  {currentTranscript && (
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", fontStyle: "italic", lineHeight: 1.5 }}>
+                      "{currentTranscript}"
+                    </div>
+                  )}
+                  <button
+                    onClick={startRecording}
+                    style={{ marginTop: 8, fontSize: 11, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}
+                  >
+                    Re-record
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Text options — always shown, but labeled differently in voice mode */}
+          <div style={{ marginBottom: 4 }}>
+            {voiceMode && (
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.4, marginBottom: 8 }}>
+                {isVoiceDone ? "OVERRIDE (optional)" : "OR PICK AN OPTION"}
+              </div>
+            )}
+            <div style={{ display: "grid", gap: 8 }}>
+              {current.options.map((opt) => {
+                const isSelected = answered === opt.cat;
+                return (
+                  <button
+                    key={opt.cat}
+                    onClick={() => handleSelect(opt.cat)}
+                    style={{
+                      padding: "12px 16px", borderRadius: 10,
+                      border: isSelected ? "1.5px solid var(--accent)" : "1px solid var(--card-border-soft)",
+                      background: isSelected ? "rgba(37,99,235,0.07)" : "transparent",
+                      color: isSelected ? "var(--text-primary)" : "var(--text-muted)",
+                      fontSize: 13, fontWeight: isSelected ? 600 : 500,
+                      cursor: "pointer", textAlign: "left" as const,
+                      display: "flex", alignItems: "center", gap: 12,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <div style={{
+                      width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                      border: isSelected ? "5px solid var(--accent)" : "2px solid var(--card-border-soft)",
+                      transition: "all 0.15s ease",
+                    }} />
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
@@ -768,36 +945,27 @@ export default function AptitudePage() {
             onClick={handleBack}
             disabled={step === 0}
             style={{
-              padding: "10px 18px",
-              borderRadius: 10,
-              border: "1px solid var(--card-border-soft)",
-              background: "transparent",
-              color: "var(--text-muted)",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: step === 0 ? "default" : "pointer",
-              opacity: step === 0 ? 0.4 : 1,
+              padding: "10px 18px", borderRadius: 10,
+              border: "1px solid var(--card-border-soft)", background: "transparent",
+              color: "var(--text-muted)", fontSize: 13, fontWeight: 600,
+              cursor: step === 0 ? "default" : "pointer", opacity: step === 0 ? 0.4 : 1,
             }}
           >
             Back
           </button>
-
           <button
             onClick={handleNext}
-            disabled={!answered}
+            disabled={!answered || isAnalyzing}
             style={{
-              padding: "10px 22px",
-              borderRadius: 10,
-              border: "none",
-              background: answered ? "var(--accent)" : "var(--card-border-soft)",
-              color: answered ? "#fff" : "var(--text-soft)",
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: answered ? "pointer" : "default",
+              padding: "10px 22px", borderRadius: 10, border: "none",
+              background: (answered && !isAnalyzing) ? "var(--accent)" : "var(--card-border-soft)",
+              color: (answered && !isAnalyzing) ? "#fff" : "var(--text-soft)",
+              fontSize: 13, fontWeight: 700,
+              cursor: (answered && !isAnalyzing) ? "pointer" : "default",
               transition: "all 0.15s ease",
             }}
           >
-            {step === totalQ - 1 ? "See My Results" : "Next"}
+            {step === totalQ - 1 ? "See My Results" : "Next →"}
           </button>
         </div>
 
@@ -806,20 +974,11 @@ export default function AptitudePage() {
           {QUESTIONS.map((_, i) => (
             <button
               key={i}
-              onClick={() => setStep(i)}
+              onClick={() => { setVoiceState("idle"); setVoiceError(null); setStep(i); }}
               title={`Question ${i + 1}`}
               style={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                border: "none",
-                padding: 0,
-                cursor: "pointer",
-                background: i === step
-                  ? "var(--accent)"
-                  : answers[i]
-                  ? "rgba(37,99,235,0.35)"
-                  : "var(--card-border-soft)",
+                width: 8, height: 8, borderRadius: "50%", border: "none", padding: 0, cursor: "pointer",
+                background: i === step ? "var(--accent)" : answers[i] ? "rgba(37,99,235,0.35)" : "var(--card-border-soft)",
                 transition: "background 0.15s ease",
               }}
             />

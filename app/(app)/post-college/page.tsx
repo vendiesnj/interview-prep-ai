@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
-import ChecklistSection from "@/app/components/ChecklistSection";
+import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
+import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
+import StreakBanner from "@/app/components/StreakBanner";
 
 const TODOS = [
   { id: "career_checkin",   icon: "✅", label: "Career Check-In",           desc: "Log your current role, salary, savings, and loan balance for a full financial snapshot.",         href: "/career-checkin",         color: "#10B981", time: "~5 min" },
@@ -37,9 +40,24 @@ const RESOURCES = [
 const TAG_COLORS: Record<string, string> = { Finance: "#10B981", Career: "#8B5CF6", Life: "#0EA5E9" };
 
 export default function PostCollegePage() {
+  const [progress, setProgress] = useState<ChecklistProgressEntry[]>([]);
+
+  const scheduledItems: ScheduledItem[] = CHECKLIST.map(item => {
+    const entry = progress.find(p => p.itemId === item.id);
+    return { itemId: item.id, label: item.label, stage: "post_college", done: entry?.done ?? false, scheduledDate: entry?.scheduledDate ?? null };
+  });
+
+  function handleSchedule(itemId: string, date: string | null) {
+    setProgress(prev => {
+      const existing = prev.find(p => p.itemId === itemId);
+      if (existing) return prev.map(p => p.itemId === itemId ? { ...p, scheduledDate: date } : p);
+      return [...prev, { itemId, done: false, scheduledDate: date }];
+    });
+  }
+
   return (
     <PremiumShell hideHeader>
-      <div style={{ maxWidth: 800, margin: "0 auto", paddingBottom: 80 }}>
+      <div style={{ maxWidth: 1120, margin: "0 auto", paddingBottom: 80 }}>
 
         <div style={{ marginBottom: 36 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)", marginBottom: 14 }}>
@@ -50,52 +68,60 @@ export default function PostCollegePage() {
             Own your career and your finances.
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 600 }}>
-            The first few years after graduation shape the next decade. Stay sharp on communication, get your financial foundation right, and keep building toward where you actually want to go.
+            The first few years after graduation shape the next decade. Schedule tasks, stay sharp on communication, and keep building toward where you actually want to go.
           </p>
         </div>
 
-        {/* To-Do's */}
-        <div style={{ marginBottom: 48 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Practice & Tools</div>
-          <div style={{ display: "grid", gap: 12 }}>
-            {TODOS.map((todo) => (
-              <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{todo.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                    <span style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{todo.label}</span>
-                    <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>{todo.time}</span>
+        <StreakBanner />
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 28, alignItems: "start" }}>
+          <div>
+            {/* To-Do's */}
+            <div style={{ marginBottom: 48 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Practice & Tools</div>
+              <div style={{ display: "grid", gap: 12 }}>
+                {TODOS.map((todo) => (
+                  <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{todo.icon}</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                        <span style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{todo.label}</span>
+                        <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>{todo.time}</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{todo.desc}</p>
+                    </div>
+                    <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: 10, background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
                   </div>
-                  <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{todo.desc}</p>
-                </div>
-                <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: 10, background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Checklist */}
-        <div style={{ marginBottom: 48 }}>
-          <ChecklistSection stage="post_college" items={CHECKLIST} accentColor="#8B5CF6" />
-        </div>
+            {/* Checklist */}
+            <div style={{ marginBottom: 48 }}>
+              <ChecklistSection stage="post_college" items={CHECKLIST} accentColor="#8B5CF6" onProgressChange={setProgress} />
+            </div>
 
-        {/* Resources */}
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
-            {RESOURCES.map((r) => (
-              <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
-                <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
-                  <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
-                    <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: TAG_COLORS[r.tag] ?? "var(--accent)", background: (TAG_COLORS[r.tag] ?? "var(--accent)") + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
-                  </div>
-                  <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>→</span>
-                </div>
-              </Link>
-            ))}
+            {/* Resources */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
+                {RESOURCES.map((r) => (
+                  <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
+                    <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
+                        <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: TAG_COLORS[r.tag] ?? "var(--accent)", background: (TAG_COLORS[r.tag] ?? "var(--accent)") + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
+                      </div>
+                      <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>→</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
           </div>
+
+          <MiniCalendar items={scheduledItems} accentColor="#8B5CF6" stage="post_college" onSchedule={handleSchedule} />
         </div>
 
       </div>
