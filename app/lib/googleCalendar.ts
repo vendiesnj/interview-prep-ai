@@ -136,7 +136,8 @@ export async function deleteCalendarEvent(userId: string, eventId: string): Prom
 export async function hasGoogleCalendarAccess(userId: string): Promise<boolean> {
   const account = await prisma.account.findFirst({
     where: { userId, provider: "google" },
-    select: { access_token: true, scope: true },
+    select: { access_token: true, refresh_token: true },
   });
-  return !!(account?.access_token && account.scope?.includes("calendar"));
+  // scope field isn't reliably updated on re-auth, so just check token exists
+  return !!(account?.access_token || account?.refresh_token);
 }
