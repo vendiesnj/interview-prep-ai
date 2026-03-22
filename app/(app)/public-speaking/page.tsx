@@ -166,6 +166,20 @@ export default function PublicSpeakingPage() {
   const activePrompt = useCustom ? customPrompt : prompt;
   const activeCategoryColor = PROMPT_CATEGORIES.find((c) => c.id === selectedCategory)?.color ?? "var(--accent)";
 
+  // Stop all streams when navigating away
+  useEffect(() => {
+    return () => {
+      webcamRef.current?.stop();
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close().catch(() => {});
+      }
+    };
+  }, []);
+
   // Timer
   useEffect(() => {
     if (recording) {

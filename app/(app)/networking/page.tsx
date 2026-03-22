@@ -152,6 +152,16 @@ export default function NetworkingPage() {
   const activePrompt = useCustom ? customPrompt : prompt;
   const activeCategoryColor = SCENARIO_CATEGORIES.find((c) => c.id === selectedCategory)?.color ?? "#0EA5E9";
 
+  // Stop audio stream when navigating away
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (recording) {
       timerRef.current = setInterval(() => setElapsed(Math.floor((Date.now() - startTimeRef.current) / 1000)), 200);

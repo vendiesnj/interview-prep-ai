@@ -544,6 +544,14 @@ React.useEffect(() => {
 useEffect(() => {
   setMounted(true);
   void refreshActiveJobProfile();
+  // Stop webcam and audio stream when navigating away
+  return () => {
+    webcamRef.current?.stop();
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+  };
 }, []);
 
 useEffect(() => {

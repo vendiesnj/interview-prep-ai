@@ -29,12 +29,12 @@ const CHECKLIST = [
 ];
 
 const RESOURCES = [
-  { icon: "🏦", label: "401k & Retirement Basics",          href: "/career-guide/retirement?from=post-college", tag: "Finance" },
-  { icon: "💰", label: "Understanding Your Paycheck",        href: "/career-guide/finances?from=post-college",   tag: "Finance" },
-  { icon: "📋", label: "Student Loan Repayment Options",     href: "/career-guide/finances?from=post-college",   tag: "Finance" },
-  { icon: "📈", label: "Salary Negotiation Guide",           href: "/career-guide/career-paths?from=post-college", tag: "Career" },
-  { icon: "🏠", label: "Renting vs. Buying Your First Home", href: "/career-guide/housing?from=post-college",    tag: "Life" },
-  { icon: "🗺️", label: "Career Progression & Paths",         href: "/career-guide/career-paths?from=post-college", tag: "Career" },
+  { icon: "💳", label: "Monthly Budget Builder",            href: "/career-guide/budget",                         tag: "Finance" },
+  { icon: "📈", label: "Retirement Projection",             href: "/career-guide/retirement?from=post-college",   tag: "Finance" },
+  { icon: "💰", label: "Money & Benefits 101",              href: "/career-guide/finances?from=post-college",     tag: "Finance" },
+  { icon: "🏠", label: "Renting Your First Apartment",      href: "/career-guide/housing?from=post-college",      tag: "Life" },
+  { icon: "🗺️", label: "Career Progression & Paths",        href: "/career-guide/career-paths?from=post-college", tag: "Career" },
+  { icon: "📊", label: "Peer Salary & Career Benchmarks",   href: "/career-guide/benchmarks?from=post-college",   tag: "Career" },
 ];
 
 const TAG_COLORS: Record<string, string> = { Finance: "#10B981", Career: "#8B5CF6", Life: "#0EA5E9" };

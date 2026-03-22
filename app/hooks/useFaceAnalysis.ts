@@ -143,7 +143,14 @@ export function useFaceAnalysis() {
   useEffect(() => {
     getFaceLandmarker().then((lm) => { landmarkerRef.current = lm; }).catch(() => {});
     return () => {
-      stopAnalysis();
+      // Directly stop stream on unmount — don't rely on stopAnalysis callback
+      // to avoid any stale closure issues during page navigation
+      isRunningRef.current = false;
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+      }
     };
   }, []);
 

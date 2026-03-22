@@ -70,6 +70,16 @@ const WebcamOverlay = forwardRef<WebcamOverlayHandle, Props>(
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isRecording]);
 
+    // Force stop stream when component unmounts (e.g., user navigates away mid-recording)
+    useEffect(() => {
+      return () => {
+        stopAnalysis();
+        if (metricIntervalRef.current) clearInterval(metricIntervalRef.current);
+        setStatus("idle");
+      };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     if (status === "idle" || status === "unsupported") return null;
 
     return (

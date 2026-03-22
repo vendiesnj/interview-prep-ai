@@ -43,6 +43,14 @@ const GUIDES = [
     color: "#8B5CF6",
   },
   {
+    href: "/career-guide/budget",
+    eyebrow: "Financial planning",
+    title: "Monthly budget builder",
+    desc: "Enter your income and expenses to see your 50/30/20 breakdown in real time. Saves automatically — know exactly where your money goes.",
+    icon: "💳",
+    color: "#10B981",
+  },
+  {
     href: "/career-guide/retirement",
     eyebrow: "Financial planning",
     title: "Retirement projection",
