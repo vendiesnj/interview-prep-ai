@@ -280,9 +280,25 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
           <button onClick={navNext} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 18, padding: "0 6px", lineHeight: 1 }}>›</button>
         </div>
 
-        {/* Drop hint */}
-        <div style={{ fontSize: 10, textAlign: "center" as const, color: "var(--text-muted)", opacity: 0.6, marginBottom: 10 }}>
-          Drop checklist tasks onto a day to schedule
+        {/* Drop hint + export */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.6 }}>
+            Drop tasks onto a day to schedule
+          </div>
+          {items.some(i => i.scheduledDate) && (
+            <a
+              href={`/api/checklist/ics?stage=${items[0]?.stage ?? ""}`}
+              download="career-checklist.ics"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                fontSize: 10, fontWeight: 700, padding: "4px 10px", borderRadius: 99,
+                border: `1px solid ${accentColor}50`, color: accentColor,
+                background: accentColor + "10", textDecoration: "none",
+              }}
+            >
+              ↓ Export to Calendar
+            </a>
+          )}
         </div>
 
         {view === "week" && <WeekView />}
@@ -304,11 +320,26 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
                   <span style={{ fontSize: 12, flex: 1, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.4 }}>
                     {item.label}
                   </span>
-                  <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                  <div style={{ display: "flex", gap: 5, flexShrink: 0, alignItems: "center" }}>
                     {!item.done && (
-                      <a href={googleCalendarUrl(item.label, selectedDay)} target="_blank" rel="noopener noreferrer" title="Export to Google Calendar" style={{ fontSize: 14, textDecoration: "none", opacity: 0.65 }}>📅</a>
+                      <a
+                        href={googleCalendarUrl(item.label, selectedDay)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Add to Google Calendar"
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 4,
+                          fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 99,
+                          border: "1px solid rgba(66,133,244,0.4)", color: "#4285F4",
+                          background: "rgba(66,133,244,0.08)", textDecoration: "none",
+                          whiteSpace: "nowrap" as const,
+                        }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="#4285F4"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z"/></svg>
+                        Google Cal
+                      </a>
                     )}
-                    <button onClick={() => removeSchedule(item.itemId)} title="Remove" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 14, padding: "0 2px", lineHeight: 1 }}>×</button>
+                    <button onClick={() => removeSchedule(item.itemId)} title="Remove" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 16, padding: "0 2px", lineHeight: 1 }}>×</button>
                   </div>
                 </div>
               ))}
