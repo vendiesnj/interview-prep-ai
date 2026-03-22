@@ -122,7 +122,7 @@ export default function PreCollegePage() {
         <StreakBanner />
 
         {/* ── Two-column layout ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 28, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "start" }}>
 
           {/* ── LEFT: main content ── */}
           <div>

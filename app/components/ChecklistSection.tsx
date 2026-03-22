@@ -215,6 +215,21 @@ export default function ChecklistSection({
               onDragStart={(e) => {
                 e.dataTransfer.setData("text/plain", item.id);
                 e.dataTransfer.effectAllowed = "link";
+                // Small pill ghost so calendar days stay visible while dragging
+                const ghost = document.createElement("div");
+                ghost.textContent = "📅 " + item.label;
+                Object.assign(ghost.style, {
+                  position: "fixed", top: "-120px", left: "-120px",
+                  padding: "6px 14px", borderRadius: "99px",
+                  background: accentColor, color: "#fff",
+                  fontSize: "12px", fontWeight: "700",
+                  whiteSpace: "nowrap", maxWidth: "220px",
+                  overflow: "hidden", textOverflow: "ellipsis",
+                  pointerEvents: "none",
+                });
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 14, 14);
+                setTimeout(() => document.body.removeChild(ghost), 0);
               }}
               style={{
                 borderRadius: 14,

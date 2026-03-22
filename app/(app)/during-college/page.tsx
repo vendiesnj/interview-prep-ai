@@ -74,7 +74,7 @@ export default function DuringCollegePage() {
 
         <StreakBanner />
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 28, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "start" }}>
           <div>
             {/* To-Do's */}
             <div style={{ marginBottom: 48 }}>
