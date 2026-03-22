@@ -480,6 +480,7 @@ const waveformCanvasRef = useRef<HTMLCanvasElement | null>(null);
 const animationRef = useRef<number | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const webcamRef = useRef<WebcamOverlayHandle>(null);
+  const [webcamEnabled, setWebcamEnabled] = useState(false);
   const faceMetricsRef = useRef<FaceMetrics | null>(null);
   const attemptIdRef = useRef<string | null>(null);
   const audioPathRef = useRef<string | null>(null); // ✅ Supabase Storage path for replay across devices
@@ -1711,9 +1712,11 @@ audioPathRef.current = null; // reset each attempt
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     streamRef.current = stream;
 
-    // Start webcam face analysis (non-blocking — silently skips if camera denied)
+    // Start webcam face analysis only if user opted in
     faceMetricsRef.current = null;
-    webcamRef.current?.start().catch(() => {});
+    if (webcamEnabled) {
+      webcamRef.current?.start().catch(() => {});
+    }
 
     startWaveform(stream);
 
@@ -3534,6 +3537,48 @@ e.currentTarget.style.borderColor = "var(--card-border)";
   );
 })()}
 
+{/* Webcam opt-in toggle */}
+{!recording && (
+  <div style={{ marginTop: 12, display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: "var(--radius-sm)", border: `1px solid ${webcamEnabled ? "rgba(16,185,129,0.4)" : "var(--card-border-soft)"}`, background: webcamEnabled ? "rgba(16,185,129,0.06)" : "var(--card-bg)" }}>
+    <button
+      type="button"
+      onClick={() => setWebcamEnabled((v) => !v)}
+      style={{
+        width: 36,
+        height: 20,
+        borderRadius: 10,
+        border: "none",
+        background: webcamEnabled ? "#10B981" : "var(--card-border)",
+        position: "relative",
+        cursor: "pointer",
+        flexShrink: 0,
+        transition: "background 150ms",
+      }}
+    >
+      <span style={{
+        position: "absolute",
+        top: 2,
+        left: webcamEnabled ? 18 : 2,
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        background: "#fff",
+        transition: "left 150ms",
+      }} />
+    </button>
+    <div style={{ flex: 1 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: webcamEnabled ? "#10B981" : "var(--text-muted)" }}>
+        {webcamEnabled ? "📷 Webcam Analysis On" : "📷 Enable Webcam Analysis"}
+      </div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+        {webcamEnabled
+          ? "Eye contact, expressiveness & head stability will be added to your results."
+          : "Adds visual delivery metrics — eye contact, expressiveness, head stability — to your results."}
+      </div>
+    </div>
+  </div>
+)}
+
 {/* Controls */}
 <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
     <button
@@ -3655,7 +3700,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
 
 {/* Live waveform + webcam */}
   <div style={{ marginTop: 12, position: "relative" }}>
-    <WebcamOverlay ref={webcamRef} isRecording={recording} position="bottom-right" />
+    {webcamEnabled && <WebcamOverlay ref={webcamRef} isRecording={recording} position="bottom-right" />}
     <canvas
   ref={waveformCanvasRef}
   style={{

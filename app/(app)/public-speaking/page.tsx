@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import PremiumShell from "@/app/components/PremiumShell";
+import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
+import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
 
 // ── Speech prompts ────────────────────────────────────────────────────────────
 const PROMPT_CATEGORIES = [
@@ -157,6 +159,9 @@ export default function PublicSpeakingPage() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef<number>(0);
+  const webcamRef = useRef<WebcamOverlayHandle>(null);
+  const faceMetricsRef = useRef<FaceMetrics | null>(null);
+  const [webcamEnabled, setWebcamEnabled] = useState(false);
 
   const activePrompt = useCustom ? customPrompt : prompt;
   const activeCategoryColor = PROMPT_CATEGORIES.find((c) => c.id === selectedCategory)?.color ?? "var(--accent)";
@@ -195,14 +200,23 @@ export default function PublicSpeakingPage() {
       setElapsed(0);
       setRecording(true);
       setStage("recording");
+
+      // Start webcam if opted in
+      faceMetricsRef.current = null;
+      if (webcamEnabled) {
+        webcamRef.current?.start().catch(() => {});
+      }
     } catch {
       setError("Microphone access is required. Please allow access and try again.");
     }
-  }, []);
+  }, [webcamEnabled]);
 
   const stopAndProcess = useCallback(async () => {
     if (!mediaRecorderRef.current || !recording) return;
     setRecording(false);
+
+    // Stop webcam and capture face metrics
+    faceMetricsRef.current = webcamRef.current?.stop() ?? null;
 
     const mr = mediaRecorderRef.current;
     await new Promise<void>((res) => { mr.onstop = () => res(); mr.stop(); });
@@ -245,7 +259,7 @@ export default function PublicSpeakingPage() {
           question: activePrompt,
           transcript: text,
           evaluationFramework: "public_speaking",
-          deliveryMetrics: null,
+          deliveryMetrics: faceMetricsRef.current ? { face: faceMetricsRef.current } : null,
         }),
       });
 
@@ -376,12 +390,33 @@ export default function PublicSpeakingPage() {
             )}
 
             {stage === "ready" && activePrompt && (
-              <button
-                onClick={startRecording}
-                style={{ width: "100%", padding: "18px", borderRadius: "var(--radius-xl)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 950, fontSize: 16, cursor: "pointer", boxShadow: "var(--shadow-glow)" }}
-              >
-                🎙 Start Recording
-              </button>
+              <>
+                {/* Webcam opt-in */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, border: `1px solid ${webcamEnabled ? "rgba(16,185,129,0.4)" : "var(--card-border-soft)"}`, background: webcamEnabled ? "rgba(16,185,129,0.06)" : "var(--card-bg)", marginBottom: 12 }}>
+                  <button
+                    type="button"
+                    onClick={() => setWebcamEnabled((v) => !v)}
+                    style={{ width: 36, height: 20, borderRadius: 10, border: "none", background: webcamEnabled ? "#10B981" : "var(--card-border)", position: "relative", cursor: "pointer", flexShrink: 0, transition: "background 150ms" }}
+                  >
+                    <span style={{ position: "absolute", top: 2, left: webcamEnabled ? 18 : 2, width: 16, height: 16, borderRadius: 8, background: "#fff", transition: "left 150ms" }} />
+                  </button>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: webcamEnabled ? "#10B981" : "var(--text-muted)" }}>
+                      {webcamEnabled ? "📷 Webcam Analysis On" : "📷 Enable Webcam Analysis"}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                      {webcamEnabled ? "Eye contact, expressiveness & head stability will be added to your results." : "Adds visual delivery metrics to your results."}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={startRecording}
+                  style={{ width: "100%", padding: "18px", borderRadius: "var(--radius-xl)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 950, fontSize: 16, cursor: "pointer", boxShadow: "var(--shadow-glow)" }}
+                >
+                  🎙 Start Recording
+                </button>
+              </>
             )}
 
             {!isPro && (
@@ -396,9 +431,10 @@ export default function PublicSpeakingPage() {
         {/* ── RECORDING ── */}
         {stage === "recording" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
-            <div style={{ padding: "28px 36px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", width: "100%", boxSizing: "border-box" }}>
+            <div style={{ padding: "28px 36px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", width: "100%", boxSizing: "border-box", position: "relative" }}>
               <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Now speaking</div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.65 }}>{activePrompt}</div>
+              {webcamEnabled && <WebcamOverlay ref={webcamRef} isRecording={recording} position="bottom-right" />}
             </div>
 
             <WaveformCanvas analyserRef={analyserRef} />
@@ -489,6 +525,34 @@ export default function PublicSpeakingPage() {
               <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
                 <div style={{ fontSize: 13, fontWeight: 950, color: "var(--accent)", marginBottom: 10 }}>A stronger version would sound like this</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
+              </div>
+            )}
+
+            {/* Visual Delivery (webcam) */}
+            {faceMetricsRef.current && (
+              <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
+                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 4 }}>Visual Delivery · Webcam Analysis</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 16 }}>{faceMetricsRef.current.framesAnalyzed} frames · {faceMetricsRef.current.durationSeconds}s</div>
+                {[
+                  { label: "Eye Contact", value: faceMetricsRef.current.eyeContact, desc: "Fraction of frames looking toward the camera" },
+                  { label: "Expressiveness", value: faceMetricsRef.current.expressiveness, desc: "Facial movement and engagement signals" },
+                  { label: "Head Stability", value: faceMetricsRef.current.headStability, desc: "Consistent framing, minimal distracting movement" },
+                ].map(({ label, value, desc }) => {
+                  const pct = Math.round(value * 100);
+                  const color = pct >= 70 ? "#10B981" : pct >= 45 ? "#F59E0B" : "#EF4444";
+                  return (
+                    <div key={label} style={{ marginBottom: 14 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 900, color }}>{pct}%</span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${pct}%`, borderRadius: 99, background: color, transition: "width 600ms ease" }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{desc}</div>
+                    </div>
+                  );
+                })}
               </div>
             )}
 
