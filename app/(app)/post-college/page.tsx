@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
+import { CheckSquare, TrendingUp, Mic, Users, BarChart, CreditCard, Rocket, DollarSign, Home, Map, FileText } from "lucide-react";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import StreakBanner from "@/app/components/StreakBanner";
 
 const TODOS = [
-  { id: "career_checkin",   icon: "✅", label: "Career Check-In",           desc: "Log your current role, salary, savings, and loan balance for a full financial snapshot.",         href: "/career-checkin",         color: "#10B981", time: "~5 min" },
-  { id: "retirement_proj",  icon: "📈", label: "Retirement Projection",      desc: "See when you could retire based on your salary, savings rate, and loan payoff timeline.",         href: "/career-guide/retirement", color: "#8B5CF6", time: "~3 min" },
-  { id: "interview_prep",   icon: "🎙️", label: "Interview Prep Session",     desc: "Practice for your next role, promotion conversation, or internal opportunity.",                   href: "/practice",               color: "#2563EB", time: "~15 min" },
-  { id: "networking",       icon: "🤝", label: "Networking Pitch Practice",  desc: "Industry events, LinkedIn cold outreach, and informational interviews with senior leaders.",       href: "/networking",             color: "#0EA5E9", time: "~10 min" },
-  { id: "salary_bench",     icon: "📊", label: "Peer Salary Benchmarks",     desc: "See where your compensation sits relative to peers with similar experience and background.",       href: "/career-guide/benchmarks", color: "#F59E0B", time: "~3 min" },
-  { id: "budget_tool", icon: "💳", label: "Monthly Budget Builder", desc: "Enter your take-home pay and expenses to see your 50/30/20 breakdown and monthly surplus in real time.", href: "/career-guide/budget", color: "#10B981", time: "~5 min" },
+  { id: "career_checkin",  Icon: CheckSquare, label: "Career Check-In",           desc: "Log your current role, salary, savings, and loan balance for a full financial snapshot.",         href: "/career-checkin",          color: "#10B981", time: "~5 min" },
+  { id: "retirement_proj", Icon: TrendingUp,  label: "Retirement Projection",      desc: "See when you could retire based on your salary, savings rate, and loan payoff timeline.",         href: "/career-guide/retirement",  color: "#8B5CF6", time: "~3 min" },
+  { id: "interview_prep",  Icon: Mic,         label: "Interview Prep Session",     desc: "Practice for your next role, promotion conversation, or internal opportunity.",                   href: "/practice",                color: "#2563EB", time: "~15 min" },
+  { id: "networking",      Icon: Users,       label: "Networking Pitch Practice",  desc: "Industry events, LinkedIn cold outreach, and informational interviews with senior leaders.",       href: "/networking",              color: "#0EA5E9", time: "~10 min" },
+  { id: "salary_bench",    Icon: BarChart,    label: "Peer Salary Benchmarks",     desc: "See where your compensation sits relative to peers with similar experience and background.",       href: "/career-guide/benchmarks",  color: "#F59E0B", time: "~3 min" },
+  { id: "budget_tool",     Icon: CreditCard,  label: "Monthly Budget Builder",     desc: "Enter your take-home pay and expenses to see your 50/30/20 breakdown and monthly surplus in real time.", href: "/career-guide/budget", color: "#10B981", time: "~5 min" },
 ];
 
 const CHECKLIST = [
@@ -31,56 +32,56 @@ const CHECKLIST = [
 
 const RESOURCES = [
   {
-    icon: "🚀",
+    Icon: Rocket,
     label: "Your First 90 Days",
     desc: "Week 1, Month 1, and Month 3 checklist for your first job — benefits enrollment, 401k, building relationships.",
     href: "/career-guide/first-year?from=post-college",
     tag: "Life",
   },
   {
-    icon: "💰",
+    Icon: DollarSign,
     label: "Money & Benefits 101",
     desc: "401k enrollment, PPO vs HDHP health plans, HSA vs FSA, W-4 setup, and first-paycheck reality check.",
     href: "/career-guide/finances?from=post-college",
     tag: "Finance",
   },
   {
-    icon: "💳",
+    Icon: CreditCard,
     label: "Monthly Budget Builder",
     desc: "Interactive 50/30/20 budget tool — see your surplus or deficit in real time and adjust instantly.",
     href: "/career-guide/budget",
     tag: "Finance",
   },
   {
-    icon: "📈",
+    Icon: TrendingUp,
     label: "Retirement Projection",
     desc: "See when you could retire based on your salary, 401k rate, and savings. Conservative vs. aggressive scenarios.",
     href: "/career-guide/retirement?from=post-college",
     tag: "Finance",
   },
   {
-    icon: "🏠",
+    Icon: Home,
     label: "Renting Your First Apartment",
     desc: "Budget before you browse, reading every line of the lease, renter's insurance, and landlord red flags.",
     href: "/career-guide/housing?from=post-college",
     tag: "Life",
   },
   {
-    icon: "🗺️",
+    Icon: Map,
     label: "Career Progression Paths",
     desc: "Where do people go from entry-level? Tech, finance, consulting, trades, healthcare — with salary ranges.",
     href: "/career-guide/career-paths?from=post-college",
     tag: "Career",
   },
   {
-    icon: "📊",
+    Icon: BarChart,
     label: "Peer Salary & Career Benchmarks",
     desc: "Anonymous, aggregated outcomes from your cohort — employment rate, salary distribution, satisfaction scores.",
     href: "/career-guide/benchmarks?from=post-college",
     tag: "Career",
   },
   {
-    icon: "📄",
+    Icon: FileText,
     label: "Resume Gap Analyzer",
     desc: "Paste a job description and your resume to instantly identify missing keywords, skill gaps, and how to close them.",
     href: "/resume-gap",
@@ -129,7 +130,9 @@ export default function PostCollegePage() {
               <div style={{ display: "grid", gap: 12 }}>
                 {TODOS.map((todo) => (
                   <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{todo.icon}</div>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <todo.Icon size={22} color={todo.color} />
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                         <span style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{todo.label}</span>
@@ -155,7 +158,7 @@ export default function PostCollegePage() {
                 {RESOURCES.map((r) => (
                   <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
+                      <r.Icon size={22} color={TAG_COLORS[r.tag] ?? "var(--accent)"} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
                         {r.desc && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>{r.desc}</div>}

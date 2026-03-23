@@ -27,6 +27,10 @@ export async function POST(req: NextRequest) {
     currentSavingsRange, currentSavingsExact,
     studentLoanRange, studentLoanExact,
     retirementGoalAge,
+    // retirement & savings fields
+    hasRothIRA, rothIRAMonthly,
+    hasHSA, hsaMonthly,
+    emergencyFundMonths, additionalSavingsMonthly,
     // university fields
     universitySatisfaction, wouldChooseSameUniversity, universityName,
   } = body;
@@ -66,6 +70,12 @@ export async function POST(req: NextRequest) {
       studentLoanRange: studentLoanRange || null,
       studentLoanExact: studentLoanExact ? parseInt(studentLoanExact) : null,
       retirementGoalAge: retirementGoalAge ? parseInt(retirementGoalAge) : null,
+      hasRothIRA: hasRothIRA != null ? (hasRothIRA === "yes" || hasRothIRA === true) : null,
+      rothIRAMonthly: rothIRAMonthly ? parseInt(rothIRAMonthly) : null,
+      hasHSA: hasHSA != null ? (hasHSA === "yes" || hasHSA === true) : null,
+      hsaMonthly: hsaMonthly ? parseInt(hsaMonthly) : null,
+      emergencyFundMonths: emergencyFundMonths || null,
+      additionalSavingsMonthly: additionalSavingsMonthly ? parseInt(additionalSavingsMonthly) : null,
       universitySatisfaction: universitySatisfaction ? parseInt(universitySatisfaction) : null,
       wouldChooseSameUniversity: wouldChooseSameUniversity != null ? Boolean(wouldChooseSameUniversity) : null,
       universityName: universityName || null,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
+import { Radio, Mic, Users, Target, CreditCard, FileText, GraduationCap, Map, Home, TrendingUp, Receipt, DollarSign } from "lucide-react";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import StreakBanner from "@/app/components/StreakBanner";
@@ -11,7 +12,7 @@ import StreakBanner from "@/app/components/StreakBanner";
 const TODOS = [
   {
     id: "ps_elevator",
-    icon: "🎤",
+    Icon: Radio,
     label: "Elevator Pitch",
     desc: "60-second intro you'll use at orientation, club fairs, and first-day meetings.",
     href: "/public-speaking",
@@ -20,7 +21,7 @@ const TODOS = [
   },
   {
     id: "interview_basics",
-    icon: "🎙️",
+    Icon: Mic,
     label: "Practice Interview Questions",
     desc: "Get comfortable answering questions before college interviews or scholarship panels.",
     href: "/practice",
@@ -29,7 +30,7 @@ const TODOS = [
   },
   {
     id: "networking_intro",
-    icon: "🤝",
+    Icon: Users,
     label: "Networking Pitch",
     desc: "How to introduce yourself to professors, advisors, and peers from day one.",
     href: "/networking",
@@ -38,7 +39,7 @@ const TODOS = [
   },
   {
     id: "college_aptitude",
-    icon: "🧭",
+    Icon: Target,
     label: "Career Assessment",
     desc: "Not sure what to study? Answer a few questions to find directions that fit you.",
     href: "/aptitude?from=pre-college",
@@ -47,7 +48,7 @@ const TODOS = [
   },
   {
     id: "budget_tool",
-    icon: "💳",
+    Icon: CreditCard,
     label: "Monthly Budget Builder",
     desc: "Map out your college costs — tuition gap, meal plan, books, and personal spending — before the semester starts.",
     href: "/career-guide/budget",
@@ -73,56 +74,56 @@ const CHECKLIST = [
 // ── Resource links ────────────────────────────────────────────────────────────
 const RESOURCES = [
   {
-    icon: "📋",
+    Icon: FileText,
     label: "FAFSA & Financial Aid",
     desc: "Understand your award letter: what's free money vs. what you repay. Filing tips and deadlines.",
     href: "/career-guide/finances?from=pre-college",
     tag: "Finance",
   },
   {
-    icon: "🎓",
+    Icon: GraduationCap,
     label: "Grants, Scholarships & Loans",
     desc: "How to find scholarships, what work-study actually means, and how much to borrow.",
     href: "/career-guide/finances?from=pre-college",
     tag: "Finance",
   },
   {
-    icon: "💳",
+    Icon: CreditCard,
     label: "Building Credit as a Student",
     desc: "Why starting at 18–19 matters. Best student cards, what moves your score, what to avoid.",
     href: "/career-guide/finances?from=pre-college",
     tag: "Finance",
   },
   {
-    icon: "🗺️",
+    Icon: Map,
     label: "How to Choose a Major",
     desc: "Majors don't lock you in. High-ROI paths, trades vs. degrees, and how to explore before committing.",
     href: "/career-guide/career-paths?from=pre-college",
     tag: "Career",
   },
   {
-    icon: "🏠",
+    Icon: Home,
     label: "On-Campus vs. Off-Campus Housing",
     desc: "Why freshmen should live on campus, real cost comparison, and what to expect in a dorm.",
     href: "/career-guide/housing?from=pre-college",
     tag: "Life",
   },
   {
-    icon: "📈",
+    Icon: TrendingUp,
     label: "First-Gen College Student Guide",
     desc: "The unwritten rules, imposter syndrome, how to use professors and campus resources effectively.",
     href: "/career-guide/first-year?from=pre-college",
     tag: "Life",
   },
   {
-    icon: "🧾",
+    Icon: Receipt,
     label: "Student Taxes: The Basics",
     desc: "Do you need to file? Education tax credits, free filing options, and forms you'll receive.",
     href: "/career-guide/finances?from=pre-college",
     tag: "Finance",
   },
   {
-    icon: "💰",
+    Icon: DollarSign,
     label: "Financial Literacy Modules",
     desc: "Interactive modules on budgeting, emergency funds, credit cards, investing, and retirement.",
     href: "/financial-literacy",
@@ -187,8 +188,8 @@ export default function PreCollegePage() {
               <div style={{ display: "grid", gap: 12 }}>
                 {TODOS.map((todo) => (
                   <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>
-                      {todo.icon}
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <todo.Icon size={22} color={todo.color} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
@@ -222,7 +223,7 @@ export default function PreCollegePage() {
                 {RESOURCES.map((r) => (
                   <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start", transition: "border-color 150ms" }}>
-                      <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
+                      <r.Icon size={22} color={TAG_COLORS[r.tag] ?? "var(--accent)"} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
                         {r.desc && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>{r.desc}</div>}

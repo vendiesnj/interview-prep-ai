@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
+import { Briefcase, FileText, Search, GraduationCap, Rocket, Circle, CheckCircle2 } from "lucide-react";
 
 const INDUSTRIES = [
   "Technology", "Finance & Banking", "Consulting", "Healthcare & Life Sciences",
@@ -75,6 +76,12 @@ export default function CareerCheckInPage() {
     monthlyRent: "",
     has401k: "" as "" | "yes" | "no",
     contribution401kPct: "",
+    hasRothIRA: "" as "" | "yes" | "no",
+    rothIRAMonthly: "",
+    hasHSA: "" as "" | "yes" | "no",
+    hsaMonthly: "",
+    emergencyFundMonths: "",
+    additionalSavingsMonthly: "",
     currentSavingsRange: "",
     currentSavingsExact: "",
     studentLoanRange: "",
@@ -147,15 +154,15 @@ export default function CareerCheckInPage() {
                   <StepHeader title="Where are you right now?" sub="Select the option that best describes your current situation." />
                   <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
                     {[
-                      { value: "employed", label: "Employed full-time", icon: "💼" },
-                      { value: "employed_part", label: "Employed part-time or contract", icon: "📋" },
-                      { value: "job_searching", label: "Actively job searching", icon: "🔍" },
-                      { value: "graduate_school", label: "In graduate school", icon: "🎓" },
-                      { value: "freelance", label: "Freelance / self-employed", icon: "🚀" },
-                      { value: "other", label: "Other", icon: "•" },
-                    ].map(({ value, label, icon }) => (
+                      { value: "employed",       label: "Employed full-time",               Icon: Briefcase },
+                      { value: "employed_part",  label: "Employed part-time or contract",   Icon: FileText },
+                      { value: "job_searching",  label: "Actively job searching",           Icon: Search },
+                      { value: "graduate_school",label: "In graduate school",               Icon: GraduationCap },
+                      { value: "freelance",      label: "Freelance / self-employed",        Icon: Rocket },
+                      { value: "other",          label: "Other",                            Icon: Circle },
+                    ].map(({ value, label, Icon }) => (
                       <OptionCard key={value} selected={form.employmentStatus === value} onClick={() => set("employmentStatus", value)}>
-                        <span style={{ fontSize: 18 }}>{icon}</span>
+                        <Icon size={18} />
                         <span style={{ fontSize: 14, fontWeight: form.employmentStatus === value ? 900 : 700 }}>{label}</span>
                       </OptionCard>
                     ))}
@@ -243,6 +250,58 @@ export default function CareerCheckInPage() {
                     </>
                   )}
 
+                  {/* ── Other retirement savings ── */}
+                  <div style={{ margin: "4px 0 20px", padding: "18px 20px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg-strong)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", marginBottom: 14 }}>Other retirement & savings accounts</div>
+
+                    <SectionLabel>Roth IRA</SectionLabel>
+                    <div style={{ display: "flex", gap: 10, marginBottom: form.hasRothIRA === "yes" ? 10 : 20 }}>
+                      {[{ value: "yes", label: "Yes, I contribute" }, { value: "no", label: "No / Not yet" }].map(({ value, label }) => (
+                        <OptionCard key={value} selected={form.hasRothIRA === value} onClick={() => set("hasRothIRA", value)} compact style={{ flex: 1 }}>
+                          {label}
+                        </OptionCard>
+                      ))}
+                    </div>
+                    {form.hasRothIRA === "yes" && (
+                      <div style={{ marginBottom: 20 }}>
+                        <Field label="Monthly Roth IRA contribution" placeholder="e.g. 500" value={form.rothIRAMonthly} onChange={(v) => set("rothIRAMonthly", v.replace(/\D/g, ""))} prefix="$" />
+                        <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>2024 limit: $7,000/year ($583/mo). If under 50, max is $583/mo.</p>
+                      </div>
+                    )}
+
+                    <SectionLabel>HSA (Health Savings Account)</SectionLabel>
+                    <div style={{ display: "flex", gap: 10, marginBottom: form.hasHSA === "yes" ? 10 : 20 }}>
+                      {[{ value: "yes", label: "Yes, I have one" }, { value: "no", label: "No / Not eligible" }].map(({ value, label }) => (
+                        <OptionCard key={value} selected={form.hasHSA === value} onClick={() => set("hasHSA", value)} compact style={{ flex: 1 }}>
+                          {label}
+                        </OptionCard>
+                      ))}
+                    </div>
+                    {form.hasHSA === "yes" && (
+                      <div style={{ marginBottom: 20 }}>
+                        <Field label="Monthly HSA contribution" placeholder="e.g. 150" value={form.hsaMonthly} onChange={(v) => set("hsaMonthly", v.replace(/\D/g, ""))} prefix="$" />
+                        <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>Triple tax advantage — pre-tax in, tax-free growth, tax-free for medical. Rolls over every year.</p>
+                      </div>
+                    )}
+
+                    <SectionLabel>Emergency fund — how many months of expenses do you have saved?</SectionLabel>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 20 }}>
+                      {[
+                        { value: "none", label: "None yet" },
+                        { value: "1_2mo", label: "1–2 mo" },
+                        { value: "3_6mo", label: "3–6 mo" },
+                        { value: "6plus", label: "6+ mo" },
+                      ].map(({ value, label }) => (
+                        <OptionCard key={value} selected={form.emergencyFundMonths === value} onClick={() => set("emergencyFundMonths", value)} compact>
+                          {label}
+                        </OptionCard>
+                      ))}
+                    </div>
+
+                    <Field label="Additional monthly savings (brokerage, HYSA, other)" placeholder="e.g. 300" value={form.additionalSavingsMonthly} onChange={(v) => set("additionalSavingsMonthly", v.replace(/\D/g, ""))} prefix="$" />
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>Any savings outside your 401k, Roth IRA, or HSA — index funds, high-yield savings, etc.</p>
+                  </div>
+
                   <SectionLabel>Current total savings / investments (excluding home equity)</SectionLabel>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
                     {SAVINGS_RANGES.map(({ value, label }) => (
@@ -294,7 +353,7 @@ export default function CareerCheckInPage() {
                         onClick={() => set("satisfactionScore", String(n))}
                         style={{ flex: 1, padding: "14px 0", borderRadius: "var(--radius-lg)", border: `2px solid ${form.satisfactionScore === String(n) ? "var(--accent)" : "var(--card-border)"}`, background: form.satisfactionScore === String(n) ? "var(--accent-soft)" : "var(--card-bg)", cursor: "pointer", textAlign: "center" as const, transition: "all 150ms" }}
                       >
-                        <div style={{ fontSize: 20 }}>{["😔", "😐", "🙂", "😊", "🤩"][n - 1]}</div>
+                        <div style={{ fontSize: 16, fontWeight: 900, color: form.satisfactionScore === String(n) ? "var(--accent)" : "var(--text-primary)" }}>{n}</div>
                         <div style={{ fontSize: 11, marginTop: 4, color: "var(--text-muted)", fontWeight: 700 }}>{["Low", "Okay", "Good", "Great", "Love it"][n - 1]}</div>
                       </div>
                     ))}
@@ -329,7 +388,7 @@ export default function CareerCheckInPage() {
                           onClick={() => set("universitySatisfaction", String(n))}
                           style={{ flex: 1, padding: "14px 0", borderRadius: "var(--radius-lg)", border: `2px solid ${form.universitySatisfaction === String(n) ? "var(--accent)" : "var(--card-border)"}`, background: form.universitySatisfaction === String(n) ? "var(--accent-soft)" : "var(--card-bg)", cursor: "pointer", textAlign: "center" as const, transition: "all 150ms" }}
                         >
-                          <div style={{ fontSize: 20 }}>{["😔", "😐", "🙂", "😊", "🤩"][n - 1]}</div>
+                          <div style={{ fontSize: 16, fontWeight: 900, color: form.universitySatisfaction === String(n) ? "var(--accent)" : "var(--text-primary)" }}>{n}</div>
                           <div style={{ fontSize: 11, marginTop: 4, color: "var(--text-muted)", fontWeight: 700 }}>{["Very poor", "Below avg", "Average", "Good", "Excellent"][n - 1]}</div>
                         </div>
                       ))}
@@ -359,7 +418,9 @@ export default function CareerCheckInPage() {
 
         {step === "done" && (
           <div style={{ padding: 36, borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <CheckCircle2 size={48} color="#10B981" />
+          </div>
             <h2 style={{ margin: "0 0 10px", fontSize: 24, fontWeight: 950, color: "var(--text-primary)" }}>Check-in complete</h2>
             <p style={{ margin: "0 0 24px", fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7 }}>
               Your data has been saved. Check your retirement projection and see how you compare to peers.

@@ -6,6 +6,21 @@ import NaceScoreCard from "@/app/components/NaceScoreCard";
 import InterviewActivityTracker from "@/app/components/InterviewActivityTracker";
 import { downloadNacePdf } from "@/app/lib/nace-pdf";
 import type { NaceScore } from "@/app/lib/nace";
+import {
+  Mic,
+  Radio,
+  Users,
+  TrendingUp,
+  BookOpen,
+  Shield,
+  Award,
+  BarChart2,
+  FileText,
+  Zap,
+  ChevronRight,
+  ChevronDown,
+  ArrowRight,
+} from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -230,51 +245,76 @@ function archetypeColor(archetype: string): string {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function TabButton({
-  label,
-  active,
-  onClick,
+function SegmentedTabBar({
+  tabs,
+  activeTab,
+  onSelect,
 }: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
+  tabs: { id: TabId; label: string }[];
+  activeTab: TabId;
+  onSelect: (id: TabId) => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
       style={{
-        padding: "9px 14px",
-        borderRadius: 10,
-        border: "none",
-        background: active ? "var(--accent-soft)" : "transparent",
-        color: active ? "var(--text-primary)" : "var(--text-muted)",
-        fontWeight: 600,
-        fontSize: 13,
-        cursor: "pointer",
-        transition: "all 140ms ease",
-        whiteSpace: "nowrap",
+        display: "flex",
+        gap: 2,
+        flexWrap: "wrap",
+        marginBottom: 20,
+        padding: "4px",
+        borderRadius: 12,
+        background: "var(--card-bg-strong)",
+        border: "1px solid var(--card-border-soft)",
+        width: "fit-content",
+        maxWidth: "100%",
       }}
     >
-      {label}
-    </button>
+      {tabs.map((t) => {
+        const active = activeTab === t.id;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onSelect(t.id)}
+            style={{
+              padding: "7px 14px",
+              borderRadius: 9,
+              border: "none",
+              background: active ? "var(--card-bg)" : "transparent",
+              color: active ? "var(--text-primary)" : "var(--text-muted)",
+              fontWeight: active ? 700 : 500,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 120ms ease",
+              whiteSpace: "nowrap",
+              boxShadow: active ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+            }}
+          >
+            {t.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
 function Card({
   children,
   style,
+  accentColor,
 }: {
   children: React.ReactNode;
   style?: React.CSSProperties;
+  accentColor?: string;
 }) {
   return (
     <div
       style={{
-        padding: "20px 24px",
-        borderRadius: 16,
+        padding: "18px 22px",
+        borderRadius: 14,
         border: "1px solid var(--card-border-soft)",
         background: "var(--card-bg)",
+        borderLeft: accentColor ? `3px solid ${accentColor}` : undefined,
         ...style,
       }}
     >
@@ -283,48 +323,38 @@ function Card({
   );
 }
 
-function StatCard({
-  label,
-  value,
-  sub,
+function MiniBar({
+  pct,
   color,
+  height = 5,
 }: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  color?: string;
+  pct: number;
+  color: string;
+  height?: number;
 }) {
   return (
     <div
       style={{
-        padding: "18px 20px",
-        borderRadius: 14,
-        border: "1px solid var(--card-border-soft)",
-        background: "var(--card-bg)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 4,
+        height,
+        borderRadius: 99,
+        background: "var(--card-border-soft)",
+        overflow: "hidden",
       }}
     >
       <div
         style={{
-          fontSize: 28,
-          fontWeight: 900,
-          color: color ?? "var(--text-primary)",
-          lineHeight: 1.1,
+          height: "100%",
+          width: `${Math.max(0, Math.min(100, pct))}%`,
+          background: color,
+          borderRadius: 99,
+          transition: "width 0.6s ease",
         }}
-      >
-        {value}
-      </div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{label}</div>
-      {sub ? (
-        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{sub}</div>
-      ) : null}
+      />
     </div>
   );
 }
 
-function ProgressBar({
+function ProgressMiniRow({
   label,
   done,
   total,
@@ -333,46 +363,18 @@ function ProgressBar({
   label: string;
   done: number;
   total: number;
-  color?: string;
+  color: string;
 }) {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  const c = color ?? "#2563EB";
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 6,
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-          {label}
-        </span>
-        <span style={{ fontSize: 12, fontWeight: 700, color: c }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{label}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color }}>
           {done}/{total}
         </span>
       </div>
-      <div
-        style={{
-          height: 7,
-          borderRadius: 99,
-          background: "var(--card-border-soft)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            height: "100%",
-            width: `${pct}%`,
-            background: c,
-            borderRadius: 99,
-            transition: "width 0.6s ease",
-          }}
-        />
-      </div>
-      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{pct}% complete</div>
+      <MiniBar pct={pct} color={color} height={5} />
     </div>
   );
 }
@@ -469,10 +471,10 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontSize: 11,
+        fontSize: 10,
         fontWeight: 800,
         textTransform: "uppercase",
-        letterSpacing: 0.8,
+        letterSpacing: 0.9,
         color: "var(--text-muted)",
         marginBottom: 10,
       }}
@@ -496,30 +498,150 @@ function SkeletonBlock({ width = "100%", height = 18 }: { width?: string | numbe
   );
 }
 
-function SpeakingSection({
+function EmptyState({
+  icon,
   title,
+  body,
+  ctaLabel,
+  ctaHref,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        padding: "40px 24px",
+        gap: 10,
+      }}
+    >
+      <div
+        style={{
+          width: 48,
+          height: 48,
+          borderRadius: 14,
+          background: "var(--card-bg-strong)",
+          border: "1px solid var(--card-border-soft)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "var(--text-muted)",
+          marginBottom: 4,
+        }}
+      >
+        {icon}
+      </div>
+      <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{title}</div>
+      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 340 }}>{body}</div>
+      {ctaLabel && ctaHref && (
+        <a
+          href={ctaHref}
+          style={{
+            marginTop: 8,
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "10px 20px",
+            borderRadius: 10,
+            background: "var(--accent)",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 13,
+            textDecoration: "none",
+          }}
+        >
+          {ctaLabel}
+          <ArrowRight size={14} />
+        </a>
+      )}
+    </div>
+  );
+}
+
+// ── Speaking section card ─────────────────────────────────────────────────────
+
+function SpeakingCard({
+  title,
+  icon,
+  accentColor,
   segment,
   extra,
+  emptyHref,
 }: {
   title: string;
+  icon: React.ReactNode;
+  accentColor: string;
   segment: SpeakingSegmentBase;
   extra?: React.ReactNode;
+  emptyHref?: string;
 }) {
   const col = scoreColor(segment.avgScore);
 
   return (
-    <Card style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{title}</div>
+    <div
+      style={{
+        borderRadius: 14,
+        border: "1px solid var(--card-border-soft)",
+        borderLeft: `3px solid ${accentColor}`,
+        background: "var(--card-bg)",
+        overflow: "hidden",
+        marginBottom: 14,
+      }}
+    >
+      {/* Header row */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "16px 20px 14px",
+          borderBottom: segment.count > 0 ? "1px solid var(--card-border-soft)" : undefined,
+        }}
+      >
         <div
           style={{
-            fontSize: 11,
-            fontWeight: 700,
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            background: accentColor + "18",
+            border: `1px solid ${accentColor}35`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: accentColor,
+            flexShrink: 0,
+          }}
+        >
+          {icon}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{title}</div>
+          {segment.count > 0 && segment.avgScore !== null && (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>
+              Avg score:{" "}
+              <span style={{ fontWeight: 800, color: col }}>{segment.avgScore}</span>
+              {" · "}
+              <span style={{ color: col }}>{scoreLabel(segment.avgScore)}</span>
+            </div>
+          )}
+        </div>
+        <div
+          style={{
             padding: "3px 10px",
             borderRadius: 99,
-            background: col + "18",
-            border: `1px solid ${col}40`,
-            color: col,
+            fontSize: 11,
+            fontWeight: 700,
+            background: accentColor + "15",
+            border: `1px solid ${accentColor}30`,
+            color: accentColor,
+            flexShrink: 0,
           }}
         >
           {segment.count} session{segment.count !== 1 ? "s" : ""}
@@ -527,60 +649,36 @@ function SpeakingSection({
       </div>
 
       {segment.count === 0 ? (
-        <div
-          style={{
-            padding: "20px 0",
-            textAlign: "center",
-            color: "var(--text-muted)",
-            fontSize: 13,
-          }}
-        >
-          No {title.toLowerCase()} sessions yet.
-        </div>
+        <EmptyState
+          icon={icon}
+          title={`No ${title} sessions yet`}
+          body={`Complete your first ${title.toLowerCase()} session to start tracking your progress and building your profile.`}
+          ctaLabel={`Start ${title}`}
+          ctaHref={emptyHref ?? "#"}
+        />
       ) : (
-        <>
-          {/* Avg score bar */}
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>
-                Avg score
-              </span>
-              <span style={{ fontSize: 12, fontWeight: 900, color: col }}>
-                {segment.avgScore !== null ? segment.avgScore : "—"}
-                {segment.avgScore !== null ? " · " + scoreLabel(segment.avgScore) : ""}
-              </span>
+        <div style={{ padding: "14px 20px 18px" }}>
+          {/* Mini score bar */}
+          {segment.avgScore !== null && (
+            <div style={{ marginBottom: 14 }}>
+              <MiniBar pct={segment.avgScore} color={col} height={6} />
             </div>
-            <div
-              style={{
-                height: 6,
-                borderRadius: 99,
-                background: "var(--card-border-soft)",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${segment.avgScore ?? 0}%`,
-                  background: col,
-                  borderRadius: 99,
-                  transition: "width 0.6s ease",
-                }}
-              />
-            </div>
-          </div>
+          )}
 
           {extra}
 
-          {/* Mini timeline */}
+          {/* Recent attempts */}
           {segment.recentAttempts.length > 0 && (
             <div>
               <SectionLabel>Last {segment.recentAttempts.length} sessions</SectionLabel>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 {segment.recentAttempts.map((a) => {
-                  const sc = a.score !== null
-                    ? (a.score < 15 ? Math.round(a.score * 10) : Math.round(a.score))
-                    : null;
+                  const sc =
+                    a.score !== null
+                      ? a.score < 15
+                        ? Math.round(a.score * 10)
+                        : Math.round(a.score)
+                      : null;
                   const c = scoreColor(sc);
                   return (
                     <div
@@ -590,7 +688,7 @@ function SpeakingSection({
                         alignItems: "center",
                         gap: 10,
                         padding: "8px 10px",
-                        borderRadius: 10,
+                        borderRadius: 9,
                         background: "var(--card-bg-strong)",
                         border: "1px solid var(--card-border-soft)",
                       }}
@@ -626,7 +724,7 @@ function SpeakingSection({
                         >
                           {truncate(a.question ?? "Untitled session", 60)}
                         </div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>
                           {formatDate(a.ts)}
                         </div>
                       </div>
@@ -636,9 +734,9 @@ function SpeakingSection({
               </div>
             </div>
           )}
-        </>
+        </div>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -647,9 +745,9 @@ function SpeakingSection({
 function PageSkeleton() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
-        {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-          <SkeletonBlock key={i} width={80} height={36} />
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <SkeletonBlock key={i} width={72} height={32} />
         ))}
       </div>
       <div
@@ -680,7 +778,7 @@ function PageSkeleton() {
       <div
         style={{
           padding: 24,
-          borderRadius: 16,
+          borderRadius: 14,
           border: "1px solid var(--card-border-soft)",
           background: "var(--card-bg)",
           display: "flex",
@@ -697,11 +795,10 @@ function PageSkeleton() {
   );
 }
 
-// ── Tab panels ────────────────────────────────────────────────────────────────
-
 // ── NACE Radar Chart ──────────────────────────────────────────────────────────
+
 function NaceRadarChart({ scores }: { scores: NaceScore[] }) {
-  const scoreable = scores.filter(s => s.key !== "equity_inclusion" && s.score !== null);
+  const scoreable = scores.filter((s) => s.key !== "equity_inclusion" && s.score !== null);
   const n = scoreable.length;
   if (n < 3) return null;
 
@@ -710,10 +807,8 @@ function NaceRadarChart({ scores }: { scores: NaceScore[] }) {
   const maxR = 110;
   const rings = [20, 40, 60, 80, 100];
 
-  // Angle for each axis (start from top, go clockwise)
   const angle = (i: number) => (Math.PI * 2 * i) / n - Math.PI / 2;
 
-  // Point on axis for a given score (0-100) and index
   const axisPoint = (i: number, score: number) => {
     const r = (score / 100) * maxR;
     return {
@@ -722,7 +817,6 @@ function NaceRadarChart({ scores }: { scores: NaceScore[] }) {
     };
   };
 
-  // Label position (slightly outside maxR)
   const labelPoint = (i: number) => {
     const r = maxR + 24;
     return {
@@ -731,50 +825,43 @@ function NaceRadarChart({ scores }: { scores: NaceScore[] }) {
     };
   };
 
-  // Build score polygon path
   const polyPoints = scoreable.map((s, i) => axisPoint(i, s.score!));
-  const polyPath = polyPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
+  const polyPath =
+    polyPoints.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ") + " Z";
 
-  // Ring paths
   const ringPath = (pct: number) => {
     const r = (pct / 100) * maxR;
-    return Array.from({ length: n }, (_, i) => {
-      const x = (cx + r * Math.cos(angle(i))).toFixed(1);
-      const y = (cy + r * Math.sin(angle(i))).toFixed(1);
-      return `${i === 0 ? "M" : "L"}${x},${y}`;
-    }).join(" ") + " Z";
+    return (
+      Array.from({ length: n }, (_, i) => {
+        const x = (cx + r * Math.cos(angle(i))).toFixed(1);
+        const y = (cy + r * Math.sin(angle(i))).toFixed(1);
+        return `${i === 0 ? "M" : "L"}${x},${y}`;
+      }).join(" ") + " Z"
+    );
   };
 
   return (
     <svg width={320} height={320} viewBox="0 0 320 320" style={{ overflow: "visible" }}>
-      {/* Background rings */}
-      {rings.map(pct => (
+      {rings.map((pct) => (
         <path key={pct} d={ringPath(pct)} fill="none" stroke="var(--card-border)" strokeWidth={1} opacity={0.6} />
       ))}
-
-      {/* Axis lines */}
       {scoreable.map((_, i) => {
         const ep = axisPoint(i, 100);
-        return <line key={i} x1={cx} y1={cy} x2={ep.x} y2={ep.y} stroke="var(--card-border)" strokeWidth={1} opacity={0.5} />;
+        return (
+          <line key={i} x1={cx} y1={cy} x2={ep.x} y2={ep.y} stroke="var(--card-border)" strokeWidth={1} opacity={0.5} />
+        );
       })}
-
-      {/* Score polygon — filled */}
       <path d={polyPath} fill="var(--accent)" fillOpacity={0.15} stroke="var(--accent)" strokeWidth={2} strokeLinejoin="round" />
-
-      {/* Score dots */}
       {scoreable.map((s, i) => {
         const p = axisPoint(i, s.score!);
         return <circle key={i} cx={p.x} cy={p.y} r={4} fill="var(--accent)" />;
       })}
-
-      {/* Labels */}
       {scoreable.map((s, i) => {
         const lp = labelPoint(i);
         const ang = angle(i);
         const isLeft = Math.cos(ang) < -0.1;
         const isRight = Math.cos(ang) > 0.1;
         const textAnchor = isLeft ? "end" : isRight ? "start" : "middle";
-        // Shorten labels for the chart
         const shortLabels: Record<string, string> = {
           communication: "Communication",
           critical_thinking: "Critical\nThinking",
@@ -789,33 +876,57 @@ function NaceRadarChart({ scores }: { scores: NaceScore[] }) {
         return (
           <text key={i} x={lp.x} y={lp.y} textAnchor={textAnchor} dominantBaseline="middle" fontSize={10} fontWeight={700} fill="var(--text-muted)">
             {lines.map((line, li) => (
-              <tspan key={li} x={lp.x} dy={li === 0 ? 0 : 12}>{line}</tspan>
+              <tspan key={li} x={lp.x} dy={li === 0 ? 0 : 12}>
+                {line}
+              </tspan>
             ))}
           </text>
         );
       })}
-
-      {/* Ring labels (20, 40, 60, 80) */}
-      {[20, 40, 60, 80].map(pct => (
-        <text key={pct} x={cx + 3} y={cy - (pct / 100) * maxR - 3} fontSize={8} fill="var(--text-muted)" opacity={0.7}>{pct}</text>
+      {[20, 40, 60, 80].map((pct) => (
+        <text key={pct} x={cx + 3} y={cy - (pct / 100) * maxR - 3} fontSize={8} fill="var(--text-muted)" opacity={0.7}>
+          {pct}
+        </text>
       ))}
     </svg>
   );
 }
 
+// ── Overview Tab ──────────────────────────────────────────────────────────────
+
 function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (tab: TabId) => void }) {
-  const { profile, speaking, aptitude, completeness, skills, resumeHistory, signalScore, nextAction, naceScores } = data;
+  const { profile, speaking, aptitude, completeness, skills, resumeHistory, signalScore, nextAction, naceScores, checklist, careerCheckIn } = data;
   const [expandedNace, setExpandedNace] = useState<string | null>(null);
 
   const totalSessions = speaking.interview.count + speaking.networking.count + speaking.publicSpeaking.count;
 
-  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 60 ? "#10B981" : signalScore >= 35 ? "#F59E0B" : "#EF4444";
-  const signalLabel = signalScore === null ? "—" : signalScore >= 60 ? "Building strong" : signalScore >= 35 ? "In progress" : "Just starting";
+  const signalColor =
+    signalScore === null
+      ? "var(--text-muted)"
+      : signalScore >= 60
+      ? "#10B981"
+      : signalScore >= 35
+      ? "#F59E0B"
+      : "#EF4444";
+  const signalLabel =
+    signalScore === null
+      ? "No score yet"
+      : signalScore >= 60
+      ? "Building strong"
+      : signalScore >= 35
+      ? "In progress"
+      : "Just starting";
 
-  // Section tiles definition
+  const checklistTotal =
+    checklist.preCollege.total +
+    checklist.duringCollege.total +
+    checklist.postCollege.total;
+  const checklistDone =
+    checklist.preCollege.done + checklist.duringCollege.done + checklist.postCollege.done;
+
   const tiles: Array<{
     id: TabId;
-    icon: string;
+    icon: React.ReactNode;
     title: string;
     stat: string;
     sub: string;
@@ -823,7 +934,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
   }> = [
     {
       id: "speaking",
-      icon: "🎙️",
+      icon: <Mic size={16} />,
       title: "Speaking",
       stat: `${totalSessions} session${totalSessions !== 1 ? "s" : ""}`,
       sub: speaking.interview.avgScore !== null ? `Avg score: ${speaking.interview.avgScore}` : "No sessions yet",
@@ -831,7 +942,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     {
       id: "nace",
-      icon: "📊",
+      icon: <BarChart2 size={16} />,
       title: "NACE Scores",
       stat: signalScore !== null ? `Signal: ${signalScore}` : "Building…",
       sub: "Career readiness framework",
@@ -839,7 +950,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     {
       id: "resume",
-      icon: "📄",
+      icon: <FileText size={16} />,
       title: "Resume",
       stat: `${resumeHistory.length} analys${resumeHistory.length !== 1 ? "es" : "is"}`,
       sub: resumeHistory.length > 0 ? `Last score: ${resumeHistory[0].overallScore}` : "No analysis yet",
@@ -847,7 +958,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     {
       id: "instincts",
-      icon: "🧠",
+      icon: <Zap size={16} />,
       title: "Career Instincts",
       stat: `${data.instincts?.sessions?.length ?? 0} session${(data.instincts?.sessions?.length ?? 0) !== 1 ? "s" : ""}`,
       sub: data.instincts?.totalXp ? `${data.instincts.totalXp} XP earned` : "Explore your instincts",
@@ -855,7 +966,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     {
       id: "skills",
-      icon: "⚡",
+      icon: <BookOpen size={16} />,
       title: "Skills",
       stat: `${skills.total} skill${skills.total !== 1 ? "s" : ""}`,
       sub: skills.total > 0 ? `${Object.keys(skills.byCategory).length} categories` : "Extract from resume",
@@ -863,7 +974,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     {
       id: "financial",
-      icon: "💰",
+      icon: <TrendingUp size={16} />,
       title: "Financial",
       stat: data.careerCheckIn ? "Check-in done" : "No check-in yet",
       sub: data.careerCheckIn?.salaryRange ? salaryRangeLabel(data.careerCheckIn.salaryRange) : "Log your financial snapshot",
@@ -871,7 +982,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     {
       id: "pipeline",
-      icon: "🗂️",
+      icon: <Shield size={16} />,
       title: "Pipeline",
       stat: `${data.interviewPipeline?.total ?? 0} tracked`,
       sub: data.interviewPipeline?.offers ? `${data.interviewPipeline.offers} offer${data.interviewPipeline.offers !== 1 ? "s" : ""}` : "Track interview activity",
@@ -879,7 +990,6 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
   ];
 
-  // NACE footnotes per competency
   const naceFootnotes: Record<string, { short: string; detail: string }> = {
     communication: {
       short: "From oral clarity, WPM, filler rate, and vocal monotone",
@@ -911,137 +1021,343 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
   };
 
-  const scoreableNace = naceScores.filter(s => s.key !== "equity_inclusion");
+  const scoreableNace = naceScores.filter((s) => s.key !== "equity_inclusion");
 
   return (
     <div>
-      {/* Signal Score hero */}
-      <div style={{
-        padding: "24px 28px",
-        borderRadius: 16,
-        border: "1px solid var(--card-border-soft)",
-        background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))",
-        marginBottom: 20,
-        display: "flex",
-        alignItems: "center",
-        gap: 24,
-        flexWrap: "wrap",
-      }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, minWidth: 90 }}>
-          <div style={{ fontSize: 56, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
+      {/* ── Hero row: Signal Score + stat tiles ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto 1fr 1fr 1fr",
+          gap: 12,
+          marginBottom: 16,
+          alignItems: "stretch",
+        }}
+      >
+        {/* Signal Score hero tile */}
+        <div
+          style={{
+            padding: "20px 24px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            borderLeft: `3px solid ${signalColor}`,
+            background: "var(--card-bg)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+            minWidth: 120,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+            <Award size={14} color="var(--text-muted)" />
+            <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--text-muted)" }}>
+              Signal Score
+            </span>
+          </div>
+          <div style={{ fontSize: 52, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
             {signalScore ?? "—"}
           </div>
-          <div style={{ fontSize: 12, fontWeight: 900, color: signalColor }}>{signalLabel}</div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textAlign: "center" }}>Signal Score</div>
-        </div>
-        <div style={{ width: 1, height: 60, background: "var(--card-border-soft)", flexShrink: 0 }} />
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
-            {profile.name ? `Hi ${profile.name.split(" ")[0]} —` : "Your career readiness profile"}
-          </div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 520 }}>
-            Your Signal Score builds as you practice, complete modules, and log real-world data over time.
-            Scores start near zero and grow through sustained engagement — this is a 4–6 year journey.
-          </div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ width: 8, height: 8, borderRadius: "50%", background: completeness >= 75 ? "#10B981" : "#F59E0B" }} />
-            <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>Profile {completeness}% complete</span>
-          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: signalColor }}>{signalLabel}</div>
           {aptitude && (
-            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
-              Aptitude: <span style={{ color: "var(--text-primary)" }}>{aptitude.primary}</span>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+              Aptitude:{" "}
+              <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{aptitude.primary}</span>
             </div>
           )}
         </div>
+
+        {/* Stat tile: Sessions */}
+        <div
+          style={{
+            padding: "18px 20px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          <SectionLabel>Total Sessions</SectionLabel>
+          <div style={{ fontSize: 32, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
+            {totalSessions}
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+            {speaking.interview.count} interview · {speaking.networking.count} networking · {speaking.publicSpeaking.count} speaking
+          </div>
+        </div>
+
+        {/* Stat tile: Profile completeness */}
+        <div
+          style={{
+            padding: "18px 20px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          <SectionLabel>Profile Complete</SectionLabel>
+          <div style={{ fontSize: 32, fontWeight: 900, color: completeness >= 75 ? "#10B981" : "#F59E0B", lineHeight: 1 }}>
+            {completeness}%
+          </div>
+          <MiniBar pct={completeness} color={completeness >= 75 ? "#10B981" : "#F59E0B"} />
+        </div>
+
+        {/* Stat tile: Checklist */}
+        <div
+          style={{
+            padding: "18px 20px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          <SectionLabel>Checklist</SectionLabel>
+          <div style={{ fontSize: 32, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
+            {checklistDone}
+            <span style={{ fontSize: 16, fontWeight: 700, color: "var(--text-muted)" }}>/{checklistTotal}</span>
+          </div>
+          <MiniBar pct={checklistTotal > 0 ? (checklistDone / checklistTotal) * 100 : 0} color="#8B5CF6" />
+        </div>
       </div>
 
-      {/* Section tiles */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 24 }}>
-        {tiles.map(tile => (
+      {/* ── Next action card ── */}
+      {nextAction && (
+        <a href={nextAction.href} style={{ textDecoration: "none", display: "block", marginBottom: 16 }}>
+          <div
+            style={{
+              padding: "14px 18px",
+              borderRadius: 14,
+              border: "1px solid var(--card-border-soft)",
+              borderLeft: "3px solid var(--accent)",
+              background: "var(--card-bg)",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              cursor: "pointer",
+              transition: "background 120ms",
+            }}
+          >
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 10,
+                background: "var(--accent-soft)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+                color: "var(--accent)",
+              }}
+            >
+              <Zap size={18} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 2 }}>
+                Recommended next step
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{nextAction.title}</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{nextAction.description}</div>
+            </div>
+            <ArrowRight size={18} color="var(--accent)" style={{ flexShrink: 0 }} />
+          </div>
+        </a>
+      )}
+
+      {/* ── Section tiles ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(170px, 1fr))", gap: 10, marginBottom: 20 }}>
+        {tiles.map((tile) => (
           <div
             key={tile.id}
             onClick={() => onNavigate(tile.id)}
             className="ipc-card-lift"
             style={{
-              padding: "18px 20px",
+              padding: "14px 16px",
               borderRadius: 14,
               border: "1px solid var(--card-border-soft)",
+              borderLeft: `3px solid ${tile.color}`,
               background: "var(--card-bg)",
               cursor: "pointer",
               display: "flex",
               flexDirection: "column",
-              gap: 6,
+              gap: 5,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 22 }}>{tile.icon}</span>
-              <span style={{ fontSize: 14, color: "var(--text-muted)" }}>→</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 7,
+                  background: tile.color + "18",
+                  border: `1px solid ${tile.color}35`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: tile.color,
+                }}
+              >
+                {tile.icon}
+              </div>
+              <ChevronRight size={13} color="var(--text-muted)" />
             </div>
-            <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{tile.title}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{tile.title}</div>
             <div style={{ fontSize: 15, fontWeight: 900, color: tile.color }}>{tile.stat}</div>
             <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{tile.sub}</div>
           </div>
         ))}
       </div>
 
-      {/* NACE section: radar + scores side by side */}
-      <div style={{
-        display: "grid",
-        gridTemplateColumns: "auto 1fr",
-        gap: 24,
-        marginBottom: 20,
-        alignItems: "start",
-      }}>
-        {/* Radar chart */}
-        <div style={{
-          padding: "20px 24px",
-          borderRadius: 16,
+      {/* ── Career check-in summary ── */}
+      {careerCheckIn && (
+        <div
+          style={{
+            padding: "16px 20px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            borderLeft: "3px solid #F59E0B",
+            background: "var(--card-bg)",
+            marginBottom: 16,
+          }}
+        >
+          <SectionLabel>Career Check-In</SectionLabel>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 14 }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Status</div>
+              <span
+                style={{
+                  padding: "3px 10px",
+                  borderRadius: 99,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  background: employmentStatusColor(careerCheckIn.employmentStatus) + "18",
+                  border: `1px solid ${employmentStatusColor(careerCheckIn.employmentStatus)}40`,
+                  color: employmentStatusColor(careerCheckIn.employmentStatus),
+                }}
+              >
+                {employmentStatusLabel(careerCheckIn.employmentStatus)}
+              </span>
+            </div>
+            {careerCheckIn.salaryRange && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Salary Range</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{salaryRangeLabel(careerCheckIn.salaryRange)}</div>
+              </div>
+            )}
+            {careerCheckIn.satisfactionScore !== null && careerCheckIn.satisfactionScore !== undefined && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Satisfaction</div>
+                <div style={{ fontSize: 14, fontWeight: 900, color: careerCheckIn.satisfactionScore >= 4 ? "#10B981" : careerCheckIn.satisfactionScore >= 3 ? "#F59E0B" : "#EF4444" }}>
+                  {careerCheckIn.satisfactionScore}/5
+                </div>
+              </div>
+            )}
+            {(careerCheckIn.jobTitle || careerCheckIn.company) && (
+              <div>
+                <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Role</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                  {[careerCheckIn.jobTitle, careerCheckIn.company].filter(Boolean).join(" at ")}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Checklist progress card ── */}
+      <div
+        style={{
+          padding: "16px 20px",
+          borderRadius: 14,
           border: "1px solid var(--card-border-soft)",
+          borderLeft: "3px solid #8B5CF6",
           background: "var(--card-bg)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 12,
-        }}>
-          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.7, textTransform: "uppercase" }}>
+          marginBottom: 16,
+        }}
+      >
+        <SectionLabel>Checklist Progress</SectionLabel>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <ProgressMiniRow label="Pre-College" done={checklist.preCollege.done} total={checklist.preCollege.total} color="#10B981" />
+          <ProgressMiniRow label="During College" done={checklist.duringCollege.done} total={checklist.duringCollege.total} color="#2563EB" />
+          <ProgressMiniRow label="Post-College" done={checklist.postCollege.done} total={checklist.postCollege.total} color="#8B5CF6" />
+        </div>
+      </div>
+
+      {/* ── NACE section: radar + scores ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto 1fr",
+          gap: 16,
+          marginBottom: 20,
+          alignItems: "start",
+        }}
+      >
+        {/* Radar chart */}
+        <div
+          style={{
+            padding: "18px 22px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", letterSpacing: 0.9, textTransform: "uppercase" }}>
             NACE Career Readiness
           </div>
           <NaceRadarChart scores={naceScores} />
           <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", maxWidth: 240, lineHeight: 1.5 }}>
-            Polygon expands as you build evidence in each competency. Starts small — grows over time.
+            Polygon expands as you build evidence in each competency.
           </div>
         </div>
 
-        {/* NACE score list with footnotes */}
-        <div style={{
-          padding: "20px 24px",
-          borderRadius: 16,
-          border: "1px solid var(--card-border-soft)",
-          background: "var(--card-bg)",
-        }}>
-          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.7, textTransform: "uppercase", marginBottom: 16 }}>
+        {/* NACE score list */}
+        <div
+          style={{
+            padding: "18px 22px",
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+          }}
+        >
+          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 14 }}>
             Dimension Scores
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {scoreableNace.map(ns => {
+            {scoreableNace.map((ns) => {
               const isOpen = expandedNace === ns.key;
               const note = naceFootnotes[ns.key];
               const scoreNum = ns.score ?? 0;
               const barColor = scoreNum >= 60 ? "#10B981" : scoreNum >= 35 ? "#F59E0B" : "var(--accent)";
               return (
-                <div key={ns.key} style={{ borderRadius: 10, overflow: "hidden" }}>
+                <div key={ns.key} style={{ borderRadius: 9, overflow: "hidden" }}>
                   <div
                     onClick={() => setExpandedNace(isOpen ? null : ns.key)}
                     style={{
-                      padding: "10px 12px",
+                      padding: "9px 11px",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: 12,
+                      gap: 10,
                       background: isOpen ? "var(--accent-soft)" : "transparent",
-                      borderRadius: 10,
+                      borderRadius: 9,
                       transition: "background 150ms",
                     }}
                   >
@@ -1052,24 +1368,28 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
                           {ns.score !== null ? ns.score : "—"}
                         </span>
                       </div>
-                      <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${scoreNum}%`, background: barColor, borderRadius: 99, transition: "width 0.6s ease" }} />
-                      </div>
+                      <MiniBar pct={scoreNum} color={barColor} height={4} />
                       {note && !isOpen && (
                         <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, lineHeight: 1.4 }}>{note.short}</div>
                       )}
                     </div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", flexShrink: 0, transition: "transform 150ms", transform: isOpen ? "rotate(90deg)" : "none" }}>›</div>
+                    <ChevronDown
+                      size={12}
+                      color="var(--text-muted)"
+                      style={{ flexShrink: 0, transition: "transform 150ms", transform: isOpen ? "rotate(180deg)" : "none" }}
+                    />
                   </div>
                   {isOpen && note && (
-                    <div style={{
-                      padding: "10px 14px 14px 14px",
-                      fontSize: 12,
-                      color: "var(--text-muted)",
-                      lineHeight: 1.7,
-                      background: "var(--accent-soft)",
-                      borderTop: "1px solid var(--accent-strong)",
-                    }}>
+                    <div
+                      style={{
+                        padding: "10px 14px 14px 14px",
+                        fontSize: 12,
+                        color: "var(--text-muted)",
+                        lineHeight: 1.7,
+                        background: "var(--accent-soft)",
+                        borderTop: "1px solid var(--accent-strong)",
+                      }}
+                    >
                       {note.detail}
                     </div>
                   )}
@@ -1077,7 +1397,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               );
             })}
           </div>
-          <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--card-border-soft)" }}>
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--card-border-soft)" }}>
             <button
               type="button"
               onClick={() => onNavigate("nace")}
@@ -1089,70 +1409,54 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
                 fontWeight: 800,
                 cursor: "pointer",
                 padding: 0,
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
               }}
             >
-              View full NACE breakdown →
+              View full NACE breakdown
+              <ArrowRight size={13} />
             </button>
           </div>
         </div>
       </div>
-
-      {/* Next Action */}
-      {nextAction && (
-        <a href={nextAction.href} style={{ textDecoration: "none", display: "block", marginBottom: 16 }}>
-          <div style={{
-            padding: "14px 18px",
-            borderRadius: 14,
-            border: "1px solid var(--card-border-soft)",
-            borderLeft: "3px solid var(--accent)",
-            background: "var(--card-bg)",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            cursor: "pointer",
-          }}>
-            <div style={{ fontSize: 24, flexShrink: 0 }}>🎯</div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 2 }}>Recommended next step</div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{nextAction.title}</div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{nextAction.description}</div>
-            </div>
-            <div style={{ color: "var(--accent)", fontSize: 18, flexShrink: 0 }}>→</div>
-          </div>
-        </a>
-      )}
     </div>
   );
 }
+
+// ── Speaking Tab ──────────────────────────────────────────────────────────────
 
 function SpeakingTab({ data }: { data: ProfilePayload }) {
   const { speaking } = data;
 
   return (
     <div>
-      <SpeakingSection
+      <SpeakingCard
         title="Interview Prep"
+        icon={<Mic size={16} />}
+        accentColor="#2563EB"
         segment={speaking.interview}
+        emptyHref="/practice"
         extra={
           speaking.interview.count > 0 ? (
-            <div style={{ display: "flex", gap: 16, marginBottom: 14, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: 20, marginBottom: 14, flexWrap: "wrap" }}>
               {(["avgComm", "avgConf", "avgWpm"] as const).map((key) => {
                 const seg = speaking.interview as InterviewSegment;
                 const val = seg[key];
                 const labels: Record<string, string> = {
-                  avgComm: "Avg comm",
-                  avgConf: "Avg confidence",
+                  avgComm: "Avg Comm",
+                  avgConf: "Avg Confidence",
                   avgWpm: "Avg WPM",
                 };
                 return (
                   <div key={key}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 2 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 2 }}>
                       {labels[key]}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>
+                    <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
                       {val !== null && val !== undefined ? val : "—"}
-                      {key === "avgWpm" && val !== null ? " wpm" : ""}
-                      {(key === "avgComm" || key === "avgConf") && val !== null ? "/10" : ""}
+                      {key === "avgWpm" && val !== null ? <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}> wpm</span> : null}
+                      {(key === "avgComm" || key === "avgConf") && val !== null ? <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>/10</span> : null}
                     </div>
                   </div>
                 );
@@ -1162,20 +1466,23 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
         }
       />
 
-      <SpeakingSection
+      <SpeakingCard
         title="Networking"
+        icon={<Users size={16} />}
+        accentColor="#10B981"
         segment={speaking.networking}
+        emptyHref="/networking"
         extra={
           speaking.networking.count > 0 && (speaking.networking as NetworkingSegment).topPitchStyle ? (
             <div style={{ marginBottom: 14 }}>
-              <SectionLabel>Top pitch style</SectionLabel>
+              <SectionLabel>Top Pitch Style</SectionLabel>
               {(() => {
                 const style = (speaking.networking as NetworkingSegment).topPitchStyle!;
                 const c = pitchStyleColor(style);
                 return (
                   <span
                     style={{
-                      padding: "4px 14px",
+                      padding: "4px 12px",
                       borderRadius: 99,
                       fontSize: 12,
                       fontWeight: 800,
@@ -1193,20 +1500,23 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
         }
       />
 
-      <SpeakingSection
+      <SpeakingCard
         title="Public Speaking"
+        icon={<Radio size={16} />}
+        accentColor="#8B5CF6"
         segment={speaking.publicSpeaking}
+        emptyHref="/public-speaking"
         extra={
           speaking.publicSpeaking.count > 0 && (speaking.publicSpeaking as PublicSpeakingSegment).topArchetype ? (
             <div style={{ marginBottom: 14 }}>
-              <SectionLabel>Top archetype</SectionLabel>
+              <SectionLabel>Top Archetype</SectionLabel>
               {(() => {
                 const arch = (speaking.publicSpeaking as PublicSpeakingSegment).topArchetype!;
                 const c = archetypeColor(arch);
                 return (
                   <span
                     style={{
-                      padding: "4px 14px",
+                      padding: "4px 12px",
                       borderRadius: 99,
                       fontSize: 12,
                       fontWeight: 800,
@@ -1227,15 +1537,21 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
   );
 }
 
+// ── Resume Tab ────────────────────────────────────────────────────────────────
+
 function ResumeTab({ data }: { data: ProfilePayload }) {
   const { resumeHistory } = data;
 
   if (resumeHistory.length === 0) {
     return (
-      <Card>
-        <div style={{ textAlign: "center", padding: "24px 0", color: "var(--text-muted)", fontSize: 13 }}>
-          No analyses yet. Head to the Resume tab to analyze your resume.
-        </div>
+      <Card accentColor="#8B5CF6">
+        <EmptyState
+          icon={<FileText size={20} />}
+          title="No resume analyses yet"
+          body="Upload your resume to get an ATS score, strength breakdown, and personalized action items."
+          ctaLabel="Analyze Resume"
+          ctaHref="/resume"
+        />
       </Card>
     );
   }
@@ -1244,16 +1560,15 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
-  // Score trend
   let trendNote: string | null = null;
   if (sorted.length > 1) {
     const oldest = sorted[sorted.length - 1].overallScore;
     const newest = sorted[0].overallScore;
     const delta = newest - oldest;
     if (delta > 0) {
-      trendNote = `Score improved from ${oldest} → ${newest} over ${sorted.length} analyses`;
+      trendNote = `Score improved from ${oldest} to ${newest} over ${sorted.length} analyses`;
     } else if (delta < 0) {
-      trendNote = `Score changed from ${oldest} → ${newest} over ${sorted.length} analyses`;
+      trendNote = `Score changed from ${oldest} to ${newest} over ${sorted.length} analyses`;
     } else {
       trendNote = `Score held steady at ${newest} over ${sorted.length} analyses`;
     }
@@ -1265,9 +1580,10 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
         <div
           style={{
             padding: "10px 14px",
-            borderRadius: 10,
+            borderRadius: 9,
             background: "var(--card-bg-strong)",
             border: "1px solid var(--card-border-soft)",
+            borderLeft: "3px solid #8B5CF6",
             fontSize: 12,
             fontWeight: 700,
             color: "var(--text-muted)",
@@ -1278,11 +1594,20 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {sorted.map((r) => {
           const labelColor = scoreColor(r.overallScore);
           return (
-            <Card key={r.id}>
+            <div
+              key={r.id}
+              style={{
+                padding: "16px 20px",
+                borderRadius: 14,
+                border: "1px solid var(--card-border-soft)",
+                borderLeft: `3px solid ${labelColor}`,
+                background: "var(--card-bg)",
+              }}
+            >
               <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
                 <SmallScoreCircle score={r.overallScore} size={48} />
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -1292,7 +1617,7 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
                       alignItems: "center",
                       gap: 8,
                       flexWrap: "wrap",
-                      marginBottom: 4,
+                      marginBottom: 5,
                     }}
                   >
                     <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>
@@ -1313,24 +1638,11 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
                     >
                       {r.overallLabel}
                     </span>
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        color: "var(--text-muted)",
-                      }}
-                    >
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>
                       ATS {r.atsScore}
                     </span>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: "var(--text-muted)",
-                      lineHeight: 1.55,
-                      marginBottom: 6,
-                    }}
-                  >
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 6 }}>
                     {truncate(r.summary, 180)}
                   </div>
                   {r.topAction && (
@@ -1350,7 +1662,7 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
                   )}
                 </div>
               </div>
-            </Card>
+            </div>
           );
         })}
       </div>
@@ -1358,67 +1670,50 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
   );
 }
 
+// ── Financial Tab ─────────────────────────────────────────────────────────────
+
 function FinancialTab({ data }: { data: ProfilePayload }) {
   const { checklist, careerCheckIn } = data;
 
   return (
-    <div>
-      <Card style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      {/* Checklist card */}
+      <Card accentColor="#F59E0B">
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>
           Checklist Progress
         </div>
-        <ProgressBar
-          label="Pre-College"
-          done={checklist.preCollege.done}
-          total={checklist.preCollege.total}
-          color="#10B981"
-        />
-        <ProgressBar
-          label="During College"
-          done={checklist.duringCollege.done}
-          total={checklist.duringCollege.total}
-          color="#2563EB"
-        />
-        <ProgressBar
-          label="Post-College"
-          done={checklist.postCollege.done}
-          total={checklist.postCollege.total}
-          color="#8B5CF6"
-        />
-        <ProgressBar
-          label="Financial Literacy Modules"
-          done={checklist.financialLiteracy.done}
-          total={checklist.financialLiteracy.total}
-          color="#F59E0B"
-        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ProgressMiniRow label="Pre-College" done={checklist.preCollege.done} total={checklist.preCollege.total} color="#10B981" />
+          <ProgressMiniRow label="During College" done={checklist.duringCollege.done} total={checklist.duringCollege.total} color="#2563EB" />
+          <ProgressMiniRow label="Post-College" done={checklist.postCollege.done} total={checklist.postCollege.total} color="#8B5CF6" />
+          <ProgressMiniRow label="Financial Literacy Modules" done={checklist.financialLiteracy.done} total={checklist.financialLiteracy.total} color="#F59E0B" />
+        </div>
       </Card>
 
-      <Card>
-        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 14 }}>
+      {/* Career check-in card */}
+      <Card accentColor="#10B981">
+        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 14 }}>
           Career Check-In
         </div>
         {!careerCheckIn ? (
-          <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-            Complete a Career Check-In to see your financial profile.{" "}
-            <a
-              href="/career-checkin"
-              style={{ color: "var(--accent)", fontWeight: 700, textDecoration: "none" }}
-            >
-              Go to Career Check-In →
-            </a>
-          </div>
+          <EmptyState
+            icon={<TrendingUp size={20} />}
+            title="No check-in yet"
+            body="Log your employment status, salary range, and satisfaction to track your financial health over time."
+            ctaLabel="Complete Check-In"
+            ctaHref="/career-checkin"
+          />
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Employment status */}
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span
                 style={{
-                  padding: "4px 14px",
+                  padding: "4px 12px",
                   borderRadius: 99,
                   fontSize: 12,
                   fontWeight: 800,
-                  background:
-                    employmentStatusColor(careerCheckIn.employmentStatus) + "18",
+                  background: employmentStatusColor(careerCheckIn.employmentStatus) + "18",
                   border: `1px solid ${employmentStatusColor(careerCheckIn.employmentStatus)}40`,
                   color: employmentStatusColor(careerCheckIn.employmentStatus),
                 }}
@@ -1430,89 +1725,61 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
               </span>
             </div>
 
-            {/* Company / role */}
             {(careerCheckIn.company || careerCheckIn.jobTitle) && (
               <div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 800,
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  {[careerCheckIn.jobTitle, careerCheckIn.company]
-                    .filter(Boolean)
-                    .join(" at ")}
+                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>
+                  {[careerCheckIn.jobTitle, careerCheckIn.company].filter(Boolean).join(" at ")}
                 </div>
                 {careerCheckIn.industry && (
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-                    {careerCheckIn.industry}
-                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{careerCheckIn.industry}</div>
                 )}
               </div>
             )}
 
-            {/* Salary */}
-            {careerCheckIn.salaryRange && (
-              <div>
-                <div
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 800,
-                    textTransform: "uppercase",
-                    letterSpacing: 0.7,
-                    color: "var(--text-muted)",
-                    marginBottom: 3,
-                  }}
-                >
-                  Salary range
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-                  {salaryRangeLabel(careerCheckIn.salaryRange)}
-                </div>
-              </div>
-            )}
-
-            {/* Satisfaction */}
-            {careerCheckIn.satisfactionScore !== null &&
-              careerCheckIn.satisfactionScore !== undefined && (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {careerCheckIn.salaryRange && (
                 <div>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 800,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.7,
-                      color: "var(--text-muted)",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Satisfaction
+                  <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>
+                    Salary Range
                   </div>
-                  <div style={{ display: "flex", gap: 3 }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <span
-                        key={star}
-                        style={{
-                          fontSize: 16,
-                          color:
-                            star <= (careerCheckIn.satisfactionScore ?? 0)
-                              ? "#F59E0B"
-                              : "var(--card-border-soft)",
-                        }}
-                      >
-                        ★
-                      </span>
-                    ))}
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
+                    {salaryRangeLabel(careerCheckIn.salaryRange)}
                   </div>
                 </div>
               )}
+
+              {careerCheckIn.satisfactionScore !== null && careerCheckIn.satisfactionScore !== undefined && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>
+                    Satisfaction
+                  </div>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    {[1, 2, 3, 4, 5].map((n) => (
+                      <div
+                        key={n}
+                        style={{
+                          width: 16,
+                          height: 16,
+                          borderRadius: 4,
+                          background: n <= (careerCheckIn.satisfactionScore ?? 0) ? "#F59E0B" : "var(--card-border-soft)",
+                        }}
+                      />
+                    ))}
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginLeft: 4 }}>
+                      {careerCheckIn.satisfactionScore}/5
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </Card>
     </div>
   );
 }
+
+// ── Skills Tab ────────────────────────────────────────────────────────────────
 
 function SkillsTab({
   data,
@@ -1525,14 +1792,7 @@ function SkillsTab({
 }) {
   const { skills } = data;
 
-  const categoryOrder = [
-    "technical",
-    "analytical",
-    "communication",
-    "leadership",
-    "interpersonal",
-    "domain",
-  ];
+  const categoryOrder = ["technical", "analytical", "communication", "leadership", "interpersonal", "domain"];
 
   const categoryLabels: Record<string, string> = {
     technical: "Technical",
@@ -1543,19 +1803,34 @@ function SkillsTab({
     domain: "Domain / Industry",
   };
 
+  const categoryColors: Record<string, string> = {
+    technical: "#2563EB",
+    analytical: "#8B5CF6",
+    communication: "#10B981",
+    leadership: "#F59E0B",
+    interpersonal: "#0EA5E9",
+    domain: "#EC4899",
+  };
+
   const sortedCategories = [
     ...categoryOrder.filter((c) => skills.byCategory[c]?.length > 0),
-    ...Object.keys(skills.byCategory).filter(
-      (c) => !categoryOrder.includes(c) && skills.byCategory[c]?.length > 0
-    ),
+    ...Object.keys(skills.byCategory).filter((c) => !categoryOrder.includes(c) && skills.byCategory[c]?.length > 0),
   ];
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 16,
+          flexWrap: "wrap",
+          gap: 10,
+        }}
+      >
         <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          {skills.total} skill{skills.total !== 1 ? "s" : ""} extracted across{" "}
-          {sortedCategories.length} categories
+          {skills.total} skill{skills.total !== 1 ? "s" : ""} across {sortedCategories.length} categories
         </div>
         <button
           type="button"
@@ -1579,39 +1854,33 @@ function SkillsTab({
       </div>
 
       {sortedCategories.length === 0 ? (
-        <Card>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "24px 0",
-              color: "var(--text-muted)",
-              fontSize: 13,
-            }}
-          >
-            Run skill extraction to auto-detect skills from your interview transcripts.
-          </div>
+        <Card accentColor="#10B981">
+          <EmptyState
+            icon={<BookOpen size={20} />}
+            title="No skills extracted yet"
+            body="Run skill extraction to automatically detect skills from your interview transcripts and resume."
+            ctaLabel="Extract Skills"
+            ctaHref="#"
+          />
         </Card>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {sortedCategories.map((cat) => {
             const catSkills = skills.byCategory[cat] ?? [];
+            const catColor = categoryColors[cat] ?? "var(--accent)";
             return (
-              <Card key={cat}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 800,
-                      color: "var(--text-primary)",
-                    }}
-                  >
+              <div
+                key={cat}
+                style={{
+                  padding: "16px 20px",
+                  borderRadius: 14,
+                  border: "1px solid var(--card-border-soft)",
+                  borderLeft: `3px solid ${catColor}`,
+                  background: "var(--card-bg)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
                     {categoryLabels[cat] ?? cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </span>
                   <span
@@ -1620,15 +1889,15 @@ function SkillsTab({
                       fontWeight: 700,
                       padding: "2px 8px",
                       borderRadius: 99,
-                      background: "var(--card-bg-strong)",
-                      color: "var(--text-muted)",
-                      border: "1px solid var(--card-border-soft)",
+                      background: catColor + "15",
+                      color: catColor,
+                      border: `1px solid ${catColor}30`,
                     }}
                   >
                     {catSkills.length}
                   </span>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {catSkills.map((skill) => {
                     const dots = skill.confidence >= 0.8 ? 3 : skill.confidence >= 0.6 ? 2 : 1;
                     return (
@@ -1638,7 +1907,7 @@ function SkillsTab({
                           display: "flex",
                           alignItems: "center",
                           gap: 5,
-                          padding: "5px 12px",
+                          padding: "4px 10px",
                           borderRadius: 99,
                           fontSize: 12,
                           fontWeight: 600,
@@ -1656,7 +1925,7 @@ function SkillsTab({
                                 width: 5,
                                 height: 5,
                                 borderRadius: "50%",
-                                background: d <= dots ? "var(--accent)" : "var(--card-border-soft)",
+                                background: d <= dots ? catColor : "var(--card-border-soft)",
                                 display: "inline-block",
                               }}
                             />
@@ -1666,7 +1935,7 @@ function SkillsTab({
                     );
                   })}
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -1687,16 +1956,6 @@ const INSTINCT_COLORS: Record<string, string> = {
   equityInclusion: "#14B8A6",
 };
 
-const INSTINCT_ICONS: Record<string, string> = {
-  teamwork: "🤝",
-  leadership: "⚡",
-  communication: "💬",
-  criticalThinking: "🧠",
-  professionalism: "🏛️",
-  adaptability: "🌊",
-  equityInclusion: "⚖️",
-};
-
 const INSTINCT_LABELS: Record<string, string> = {
   teamwork: "Teamwork",
   leadership: "Leadership",
@@ -1713,25 +1972,15 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
 
   if (!instincts || instincts.sessions.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: "60px 20px" }}>
-        <div style={{ fontSize: 40, marginBottom: 12 }}>🎯</div>
-        <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>
-          No instinct data yet
-        </div>
-        <p style={{ color: "var(--text-muted)", marginBottom: 20 }}>
-          Play Career Instincts to discover how you naturally navigate workplace situations.
-        </p>
-        <a
-          href="/career-instincts"
-          style={{
-            display: "inline-block", padding: "12px 28px", borderRadius: 12,
-            background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 14,
-            textDecoration: "none",
-          }}
-        >
-          Play Now →
-        </a>
-      </div>
+      <Card accentColor="#0EA5E9">
+        <EmptyState
+          icon={<Zap size={20} />}
+          title="No instinct data yet"
+          body="Play Career Instincts to discover how you naturally navigate workplace situations. Each session reveals your behavioral tendencies."
+          ctaLabel="Play Career Instincts"
+          ctaHref="/career-instincts"
+        />
+      </Card>
     );
   }
 
@@ -1741,41 +1990,70 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
   const growth = sortedDims[sortedDims.length - 1];
 
   return (
-    <div style={{ display: "grid", gap: 20 }}>
+    <div style={{ display: "grid", gap: 16 }}>
       {/* XP + sessions header */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", textAlign: "center" }}>
-          <div style={{ fontSize: 22, fontWeight: 950, color: "var(--accent)" }}>{instincts.totalXp}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 2 }}>Total XP</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+        <div
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border-soft)",
+            borderLeft: "3px solid var(--accent)",
+            borderRadius: 14,
+            padding: "14px 18px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 24, fontWeight: 950, color: "var(--accent)" }}>{instincts.totalXp}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Total XP</div>
         </div>
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", textAlign: "center" }}>
-          <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 2 }}>Sessions</div>
+        <div
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border-soft)",
+            borderRadius: 14,
+            padding: "14px 18px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Sessions</div>
         </div>
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", textAlign: "center" }}>
-          <div style={{ fontSize: 22, fontWeight: 950, color: INSTINCT_COLORS[top2[0]] }}>{INSTINCT_ICONS[top2[0]]}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700, marginTop: 2 }}>Top Trait</div>
+        <div
+          style={{
+            background: INSTINCT_COLORS[top2[0]] + "12",
+            border: `1px solid ${INSTINCT_COLORS[top2[0]]}30`,
+            borderRadius: 14,
+            padding: "14px 18px",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 800, color: INSTINCT_COLORS[top2[0]] }}>{INSTINCT_LABELS[top2[0]]}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Top Trait</div>
         </div>
       </div>
 
       {/* Top strengths */}
       <div>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 12 }}>Your Standout Traits</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <SectionLabel>Standout Traits</SectionLabel>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {top2.map((d, i) => (
-            <div key={d} style={{
-              background: INSTINCT_COLORS[d] + "12",
-              border: `1px solid ${INSTINCT_COLORS[d]}35`,
-              borderRadius: 14, padding: "16px 16px",
-            }}>
-              <div style={{ fontSize: 24, marginBottom: 6 }}>{INSTINCT_ICONS[d]}</div>
-              <div style={{ fontSize: 10, fontWeight: 900, color: INSTINCT_COLORS[d], letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 3 }}>
+            <div
+              key={d}
+              style={{
+                background: INSTINCT_COLORS[d] + "12",
+                border: `1px solid ${INSTINCT_COLORS[d]}35`,
+                borderLeft: `3px solid ${INSTINCT_COLORS[d]}`,
+                borderRadius: 14,
+                padding: "16px 18px",
+              }}
+            >
+              <div style={{ fontSize: 10, fontWeight: 900, color: INSTINCT_COLORS[d], letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 4 }}>
                 {i === 0 ? "Strongest" : "Also Strong"}
               </div>
               <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
                 {INSTINCT_LABELS[d]}
               </div>
-              <div style={{ fontSize: 18, fontWeight: 950, color: INSTINCT_COLORS[d], marginTop: 4 }}>
+              <div style={{ fontSize: 20, fontWeight: 950, color: INSTINCT_COLORS[d], marginTop: 4 }}>
                 {Math.round(dims[d] * 100)}
               </div>
             </div>
@@ -1784,79 +2062,145 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
       </div>
 
       {/* All dimensions */}
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: "20px 22px" }}>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>All Dimensions</div>
-        {sortedDims.map((d) => (
-          <div key={d} style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-                {INSTINCT_ICONS[d]} {INSTINCT_LABELS[d]}
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: INSTINCT_COLORS[d] }}>{Math.round(dims[d] * 100)}</span>
+      <div
+        style={{
+          background: "var(--card-bg)",
+          border: "1px solid var(--card-border-soft)",
+          borderRadius: 14,
+          padding: "18px 20px",
+        }}
+      >
+        <SectionLabel>All Dimensions</SectionLabel>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {sortedDims.map((d) => (
+            <div key={d}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                  {INSTINCT_LABELS[d]}
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 800, color: INSTINCT_COLORS[d] }}>{Math.round(dims[d] * 100)}</span>
+              </div>
+              <MiniBar pct={dims[d] * 100} color={INSTINCT_COLORS[d]} height={6} />
             </div>
-            <div style={{ height: 7, borderRadius: 99, background: "var(--card-bg-strong)", overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 99, background: INSTINCT_COLORS[d], width: `${dims[d] * 100}%` }} />
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Growth area */}
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "16px 18px", display: "flex", alignItems: "center", gap: 14 }}>
-        <div style={{ fontSize: 28 }}>🌱</div>
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 }}>Growth Opportunity</div>
+      <div
+        style={{
+          background: "var(--card-bg)",
+          border: "1px solid var(--card-border-soft)",
+          borderLeft: "3px solid #10B981",
+          borderRadius: 14,
+          padding: "14px 18px",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <div
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 10,
+            background: "#10B98118",
+            border: "1px solid #10B98135",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#10B981",
+            flexShrink: 0,
+          }}
+        >
+          <TrendingUp size={17} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 2 }}>
+            Growth Opportunity
+          </div>
           <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{INSTINCT_LABELS[growth]}</div>
         </div>
-        <a href="/career-instincts" style={{ marginLeft: "auto", padding: "8px 16px", borderRadius: 10, background: "var(--accent-soft)", color: "var(--accent)", fontWeight: 800, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap" }}>
+        <a
+          href="/career-instincts"
+          style={{
+            padding: "8px 14px",
+            borderRadius: 9,
+            background: "var(--accent-soft)",
+            color: "var(--accent)",
+            fontWeight: 800,
+            fontSize: 13,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            flexShrink: 0,
+          }}
+        >
           Play Again
         </a>
       </div>
 
       {/* Visual Delivery (face metrics) */}
       {face && (
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: "20px 22px" }}>
-          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>
+        <div
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border-soft)",
+            borderLeft: "3px solid #3B82F6",
+            borderRadius: 14,
+            padding: "18px 20px",
+          }}
+        >
+          <SectionLabel>
             Visual Delivery · {face.sessionsAnalyzed} session{face.sessionsAnalyzed !== 1 ? "s" : ""} analyzed
-          </div>
-          {[
-            { label: "Eye Contact", value: face.eyeContact, icon: "👁️", description: "Gaze directed toward camera" },
-            { label: "Expressiveness", value: face.expressiveness, icon: "😊", description: "Facial movement and engagement" },
-            { label: "Head Stability", value: face.headStability, icon: "🎯", description: "Consistent positioning, minimal drift" },
-          ].map(({ label, value, icon, description }) => (
-            <div key={label} style={{ marginBottom: 14 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 16 }}>{icon}</span>
+          </SectionLabel>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[
+              { label: "Eye Contact", value: face.eyeContact, description: "Gaze directed toward camera" },
+              { label: "Expressiveness", value: face.expressiveness, description: "Facial movement and engagement" },
+              { label: "Head Stability", value: face.headStability, description: "Consistent positioning, minimal drift" },
+            ].map(({ label, value, description }) => (
+              <div key={label}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                   <div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{label}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{description}</div>
                   </div>
+                  <span style={{ fontSize: 14, fontWeight: 900, color: scoreColor(value * 100) }}>
+                    {Math.round(value * 100)}%
+                  </span>
                 </div>
-                <span style={{ fontSize: 14, fontWeight: 900, color: scoreColor(value * 100) }}>
-                  {Math.round(value * 100)}%
-                </span>
+                <MiniBar pct={value * 100} color={scoreColor(value * 100)} height={6} />
               </div>
-              <div style={{ height: 7, borderRadius: 99, background: "var(--card-bg-strong)", overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 99, background: scoreColor(value * 100), width: `${value * 100}%` }} />
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
       {/* Recent sessions */}
       {instincts.sessions.length > 1 && (
         <div>
-          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 12 }}>Session History</div>
-          <div style={{ display: "grid", gap: 10 }}>
+          <SectionLabel>Session History</SectionLabel>
+          <div style={{ display: "grid", gap: 8 }}>
             {instincts.sessions.slice(0, 5).map((s, i) => {
               const sd = s.dimensions as Record<string, number>;
               const topDim = Object.keys(sd).sort((a, b) => sd[b] - sd[a])[0];
               return (
-                <div key={s.id} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 12, padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div
+                  key={s.id}
+                  style={{
+                    background: "var(--card-bg)",
+                    border: "1px solid var(--card-border-soft)",
+                    borderRadius: 11,
+                    padding: "12px 16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
                   <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Session {instincts.sessions.length - i}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                      Session {instincts.sessions.length - i}
+                    </div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
                       {new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       {" · "}
@@ -1865,9 +2209,18 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
                   </div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <div style={{ fontSize: 12, fontWeight: 800, color: INSTINCT_COLORS[topDim] }}>
-                      {INSTINCT_ICONS[topDim]} {INSTINCT_LABELS[topDim]}
+                      {INSTINCT_LABELS[topDim]}
                     </div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", background: "var(--accent-soft)", borderRadius: 99, padding: "3px 10px" }}>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        fontWeight: 800,
+                        color: "var(--accent)",
+                        background: "var(--accent-soft)",
+                        borderRadius: 99,
+                        padding: "3px 10px",
+                      }}
+                    >
                       +{s.xpEarned} XP
                     </div>
                   </div>
@@ -1880,6 +2233,8 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
     </div>
   );
 }
+
+// ── NACE Tab ──────────────────────────────────────────────────────────────────
 
 function NaceTab({ data }: { data: ProfilePayload }) {
   const [exporting, setExporting] = useState(false);
@@ -1897,15 +2252,58 @@ function NaceTab({ data }: { data: ProfilePayload }) {
   }
 
   const hasScores = data.naceScores.some((s) => s.score !== null);
+  const signalColor =
+    data.signalScore === null
+      ? "var(--text-muted)"
+      : data.signalScore >= 60
+      ? "#10B981"
+      : data.signalScore >= 35
+      ? "#F59E0B"
+      : "#EF4444";
 
   return (
     <div>
+      {/* NACE explanation header */}
+      <div
+        style={{
+          padding: "16px 20px",
+          borderRadius: 14,
+          border: "1px solid var(--card-border-soft)",
+          borderLeft: "3px solid var(--accent)",
+          background: "var(--card-bg)",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 14,
+          flexWrap: "wrap",
+        }}
+      >
+        <div style={{ flex: 1, minWidth: 240 }}>
+          <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--accent)", marginBottom: 6 }}>
+            About NACE Career Competencies
+          </div>
+          <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
+            The National Association of Colleges and Employers (NACE) defines 8 career readiness competencies that employers consistently rank as most critical for new graduates. Your scores are calculated from your speaking sessions, resume data, and profile activity — they build up over time as you practice.
+          </p>
+        </div>
+        {data.signalScore !== null && (
+          <div style={{ flexShrink: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--text-muted)", marginBottom: 6 }}>
+              Signal Score
+            </div>
+            <div style={{ fontSize: 40, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
+              {data.signalScore}
+            </div>
+          </div>
+        )}
+      </div>
+
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginBottom: 16,
+          marginBottom: 14,
           flexWrap: "wrap",
           gap: 10,
         }}
@@ -1919,7 +2317,7 @@ function NaceTab({ data }: { data: ProfilePayload }) {
             onClick={handleExport}
             disabled={exporting}
             style={{
-              padding: "9px 16px",
+              padding: "8px 16px",
               borderRadius: 10,
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
@@ -1936,17 +2334,14 @@ function NaceTab({ data }: { data: ProfilePayload }) {
       </div>
 
       {!hasScores ? (
-        <Card>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "24px 0",
-              color: "var(--text-muted)",
-              fontSize: 13,
-            }}
-          >
-            Complete practice sessions to generate your NACE competency profile.
-          </div>
+        <Card accentColor="var(--accent)">
+          <EmptyState
+            icon={<BarChart2 size={20} />}
+            title="No NACE scores yet"
+            body="Complete practice sessions to generate your NACE career competency profile. Scores build up over multiple sessions."
+            ctaLabel="Start Practicing"
+            ctaHref="/practice"
+          />
         </Card>
       ) : (
         <NaceScoreCard scores={data.naceScores} />
@@ -2012,34 +2407,10 @@ export default function MyJourneyPage() {
       subtitle="Your complete career readiness profile — speaking, financial health, skills, and real-world pipeline."
     >
       {/* Tab bar */}
-      <div
-        style={{
-          display: "flex",
-          gap: 4,
-          flexWrap: "wrap",
-          marginBottom: 20,
-          padding: "6px 6px",
-          borderRadius: 14,
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border-soft)",
-          width: "fit-content",
-          maxWidth: "100%",
-        }}
-      >
-        {tabs.map((t) => (
-          <TabButton
-            key={t.id}
-            label={t.label}
-            active={activeTab === t.id}
-            onClick={() => setActiveTab(t.id)}
-          />
-        ))}
-      </div>
+      <SegmentedTabBar tabs={tabs} activeTab={activeTab} onSelect={setActiveTab} />
 
       {/* Pipeline tab renders InterviewActivityTracker directly, not data-dependent */}
-      {activeTab === "pipeline" && (
-        <InterviewActivityTracker />
-      )}
+      {activeTab === "pipeline" && <InterviewActivityTracker />}
 
       {/* All other tabs need data */}
       {activeTab !== "pipeline" && (
@@ -2049,7 +2420,7 @@ export default function MyJourneyPage() {
           {!loading && error && (
             <div
               style={{
-                padding: "16px 20px",
+                padding: "14px 18px",
                 borderRadius: 12,
                 background: "rgba(239,68,68,0.08)",
                 border: "1px solid rgba(239,68,68,0.3)",
@@ -2084,11 +2455,7 @@ export default function MyJourneyPage() {
               {activeTab === "resume" && <ResumeTab data={data} />}
               {activeTab === "financial" && <FinancialTab data={data} />}
               {activeTab === "skills" && (
-                <SkillsTab
-                  data={data}
-                  onExtract={handleExtractSkills}
-                  extracting={extracting}
-                />
+                <SkillsTab data={data} onExtract={handleExtractSkills} extracting={extracting} />
               )}
               {activeTab === "instincts" && <InstinctsTab data={data} />}
               {activeTab === "nace" && <NaceTab data={data} />}

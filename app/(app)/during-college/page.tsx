@@ -3,17 +3,18 @@
 import Link from "next/link";
 import { useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
+import { Mic, Users, Radio, CheckSquare, Target, CreditCard, Briefcase, Receipt, DollarSign, Map, Home, BarChart, FileText } from "lucide-react";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import StreakBanner from "@/app/components/StreakBanner";
 
 const TODOS = [
-  { id: "interview_prep",  icon: "🎙️", label: "Interview Prep Session",    desc: "Practice behavioral and situational questions for internships and full-time roles.", href: "/practice",       color: "#2563EB", time: "~15 min" },
-  { id: "networking",      icon: "🤝", label: "Networking Pitch Practice",  desc: "Career fair cold approaches, LinkedIn outreach, and alumni coffee chats.",             href: "/networking",     color: "#0EA5E9", time: "~10 min" },
-  { id: "public_speaking", icon: "🎤", label: "Public Speaking Session",    desc: "Class presentations, club pitches, and leadership panel prep.",                        href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
-  { id: "career_checkin",  icon: "✅", label: "Career Check-In",            desc: "Log your GPA, internship status, salary goals, and financial snapshot.",               href: "/career-checkin",  color: "#10B981", time: "~5 min" },
-  { id: "aptitude",        icon: "🧭", label: "Career Assessment",           desc: "Answer questions about your strengths and interests to surface career directions.",     href: "/aptitude?from=during-college", color: "#F59E0B", time: "~5 min" },
-  { id: "budget_tool", icon: "💳", label: "Monthly Budget Builder", desc: "Track internship income, rent, groceries, and subscriptions to see where your money goes in real time.", href: "/career-guide/budget", color: "#10B981", time: "~5 min" },
+  { id: "interview_prep",  Icon: Mic,         label: "Interview Prep Session",    desc: "Practice behavioral and situational questions for internships and full-time roles.", href: "/practice",       color: "#2563EB", time: "~15 min" },
+  { id: "networking",      Icon: Users,       label: "Networking Pitch Practice",  desc: "Career fair cold approaches, LinkedIn outreach, and alumni coffee chats.",             href: "/networking",     color: "#0EA5E9", time: "~10 min" },
+  { id: "public_speaking", Icon: Radio,       label: "Public Speaking Session",    desc: "Class presentations, club pitches, and leadership panel prep.",                        href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
+  { id: "career_checkin",  Icon: CheckSquare, label: "Career Check-In",            desc: "Log your GPA, internship status, salary goals, and financial snapshot.",               href: "/career-checkin",  color: "#10B981", time: "~5 min" },
+  { id: "aptitude",        Icon: Target,      label: "Career Assessment",           desc: "Answer questions about your strengths and interests to surface career directions.",     href: "/aptitude?from=during-college", color: "#F59E0B", time: "~5 min" },
+  { id: "budget_tool",     Icon: CreditCard,  label: "Monthly Budget Builder", desc: "Track internship income, rent, groceries, and subscriptions to see where your money goes in real time.", href: "/career-guide/budget", color: "#10B981", time: "~5 min" },
 ];
 
 const CHECKLIST = [
@@ -31,56 +32,56 @@ const CHECKLIST = [
 
 const RESOURCES = [
   {
-    icon: "💼",
+    Icon: Briefcase,
     label: "Landing Your First Internship",
     desc: "Before you start, first two weeks, mid-internship, and how to get a return offer — full checklist.",
     href: "/career-guide/first-year?from=during-college",
     tag: "Career",
   },
   {
-    icon: "🧾",
+    Icon: Receipt,
     label: "Filing Taxes for the First Time",
     desc: "Do you need to file? W-2 vs. 1099 internships, education credits, and free filing options.",
     href: "/career-guide/finances?from=during-college",
     tag: "Finance",
   },
   {
-    icon: "💰",
+    Icon: DollarSign,
     label: "Managing Money on a Student Income",
     desc: "50/30/20 adapted for students, grocery strategy, student discounts, and starting a Roth IRA early.",
     href: "/career-guide/finances?from=during-college",
     tag: "Finance",
   },
   {
-    icon: "💳",
+    Icon: CreditCard,
     label: "Building Credit During College",
     desc: "Best student cards, what actually moves your score, and monitoring your credit for free.",
     href: "/career-guide/finances?from=during-college",
     tag: "Finance",
   },
   {
-    icon: "🗺️",
+    Icon: Map,
     label: "Career Paths & Specialization",
     desc: "How to specialize within your major, grad school vs. work, and the internship-to-offer pipeline.",
     href: "/career-guide/career-paths?from=during-college",
     tag: "Career",
   },
   {
-    icon: "🏠",
+    Icon: Home,
     label: "Off-Campus Housing Guide",
     desc: "Finding listings, understanding your first lease, splitting costs with roommates, and getting your deposit back.",
     href: "/career-guide/housing?from=during-college",
     tag: "Life",
   },
   {
-    icon: "📊",
+    Icon: BarChart,
     label: "Peer Salary & Career Benchmarks",
     desc: "See how your cohort is doing — employment rate, salary distribution, industry breakdown.",
     href: "/career-guide/benchmarks?from=during-college",
     tag: "Career",
   },
   {
-    icon: "📄",
+    Icon: FileText,
     label: "Resume Gap Analyzer",
     desc: "Paste a job description and your resume to instantly identify missing keywords and skill gaps.",
     href: "/resume-gap",
@@ -129,7 +130,9 @@ export default function DuringCollegePage() {
               <div style={{ display: "grid", gap: 12 }}>
                 {TODOS.map((todo) => (
                   <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>{todo.icon}</div>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <todo.Icon size={22} color={todo.color} />
+                    </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                         <span style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{todo.label}</span>
@@ -155,7 +158,7 @@ export default function DuringCollegePage() {
                 {RESOURCES.map((r) => (
                   <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      <span style={{ fontSize: 22, flexShrink: 0 }}>{r.icon}</span>
+                      <r.Icon size={22} color={TAG_COLORS[r.tag] ?? "var(--accent)"} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
                         {r.desc && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>{r.desc}</div>}

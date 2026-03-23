@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import type { NaceScore } from "@/app/lib/nace";
 import { naceScoreColor, naceScoreLabel } from "@/app/lib/nace";
+import { ChevronDown } from "lucide-react";
 
 export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -10,7 +11,10 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
   return (
     <div style={{ display: "grid", gap: 8 }}>
       {scores.map((s) => {
-        const color = naceScoreColor(s.score);
+        // Quality color is used ONLY for the score number and label text
+        const qualityColor = naceScoreColor(s.score);
+        // Bar always uses accent (not quality-based red)
+        const barColor = "var(--accent)";
         const pct = s.score ?? 0;
         const isOpen = expanded === s.key;
 
@@ -20,6 +24,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
             style={{
               borderRadius: 12,
               border: "1px solid var(--card-border-soft)",
+              borderLeft: "3px solid var(--accent)",
               background: "var(--card-bg)",
               overflow: "hidden",
             }}
@@ -36,21 +41,22 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                 userSelect: "none",
               }}
             >
-              {/* Score circle */}
+              {/* Score badge */}
               <div
                 style={{
                   width: 40,
                   height: 40,
                   borderRadius: 10,
-                  background: s.score !== null ? color + "18" : "var(--card-bg-strong)",
-                  border: `1px solid ${s.score !== null ? color + "40" : "var(--card-border)"}`,
+                  background: s.score !== null ? qualityColor + "18" : "var(--card-bg-strong)",
+                  border: `1px solid ${s.score !== null ? qualityColor + "40" : "var(--card-border)"}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
                   fontSize: 13,
                   fontWeight: 900,
-                  color: s.score !== null ? color : "var(--text-muted)",
+                  // Score number uses quality color
+                  color: s.score !== null ? qualityColor : "var(--text-muted)",
                 }}
               >
                 {s.score !== null ? s.score : "—"}
@@ -75,17 +81,19 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                   >
                     {s.label}
                   </span>
+                  {/* Label text also uses quality color */}
                   <span
                     style={{
                       fontSize: 11,
                       fontWeight: 700,
-                      color,
+                      color: qualityColor,
                       marginLeft: 8,
                     }}
                   >
                     {naceScoreLabel(s.score)}
                   </span>
                 </div>
+                {/* Bar always uses accent color */}
                 <div
                   style={{
                     height: 5,
@@ -98,7 +106,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                     style={{
                       height: "100%",
                       width: `${pct}%`,
-                      background: s.score !== null ? color : "transparent",
+                      background: s.score !== null ? barColor : "transparent",
                       borderRadius: 99,
                       transition: "width 0.5s ease",
                     }}
@@ -107,17 +115,15 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
               </div>
 
               {/* Chevron */}
-              <div
+              <ChevronDown
+                size={14}
+                color="var(--text-muted)"
                 style={{
-                  fontSize: 11,
-                  color: "var(--text-muted)",
                   transform: isOpen ? "rotate(180deg)" : "none",
                   transition: "transform 200ms",
                   flexShrink: 0,
                 }}
-              >
-                ▾
-              </div>
+              />
             </div>
 
             {/* Expanded detail */}
@@ -172,8 +178,29 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
 
                 {/* Signal quality note */}
                 <div style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 3, color: s.assessability === "not_assessable" ? "#EF4444" : s.assessability === "high" ? "#10B981" : s.assessability === "moderate" ? "#F59E0B" : "var(--text-muted)" }}>
-                    {s.assessability === "not_assessable" ? "Not Assessable" : s.assessability === "high" ? "High Confidence" : s.assessability === "moderate" ? "Moderate Confidence" : "Low Confidence"} · Signal Quality
+                  <div style={{
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 0.6,
+                    textTransform: "uppercase",
+                    marginBottom: 3,
+                    color:
+                      s.assessability === "not_assessable"
+                        ? "#EF4444"
+                        : s.assessability === "high"
+                        ? "#10B981"
+                        : s.assessability === "moderate"
+                        ? "#F59E0B"
+                        : "var(--text-muted)",
+                  }}>
+                    {s.assessability === "not_assessable"
+                      ? "Not Assessable"
+                      : s.assessability === "high"
+                      ? "High Confidence"
+                      : s.assessability === "moderate"
+                      ? "Moderate Confidence"
+                      : "Low Confidence"}{" "}
+                    · Signal Quality
                   </div>
                   <p style={{ margin: 0, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.55 }}>
                     {s.assessabilityNote}
@@ -182,7 +209,14 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
 
                 {s.score === null && s.assessability !== "not_assessable" && (
                   <p style={{ margin: "8px 0 0", fontSize: 11, color: "var(--text-muted)", fontStyle: "italic" }}>
-                    {s.key === "teamwork" ? "Answer teamwork/collaboration questions" : s.key === "technology" ? "Answer technical questions or extract resume skills" : s.key === "leadership" ? "Answer leadership questions or complete Career Instincts sessions" : "Complete more practice sessions"} to generate a score.
+                    {s.key === "teamwork"
+                      ? "Answer teamwork/collaboration questions"
+                      : s.key === "technology"
+                      ? "Answer technical questions or extract resume skills"
+                      : s.key === "leadership"
+                      ? "Answer leadership questions or complete Career Instincts sessions"
+                      : "Complete more practice sessions"}{" "}
+                    to generate a score.
                   </p>
                 )}
               </div>

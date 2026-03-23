@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { Mic, DollarSign, Shield, GraduationCap, BookOpen, Rocket, Calendar, BarChart2, CheckSquare, FileText, Home, BarChart, Zap, RefreshCw } from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
 import StreakBanner from "@/app/components/StreakBanner";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
@@ -98,7 +99,7 @@ function riasecDescription(code: string): string {
 
 const PILLARS = [
   {
-    id: "career", icon: "🎙️", title: "Career Readiness", color: "#2563EB", bg: "rgba(37,99,235,0.07)",
+    id: "career", Icon: Mic, title: "Career Readiness", color: "#2563EB", bg: "rgba(37,99,235,0.07)",
     actions: [
       { label: "Interview Prep", href: "/practice", time: "~15 min" },
       { label: "Networking Pitch", href: "/networking", time: "~10 min" },
@@ -107,7 +108,7 @@ const PILLARS = [
     guideHref: "/career-guide", guideLabel: "Career Guide",
   },
   {
-    id: "financial", icon: "💰", title: "Financial Literacy", color: "#10B981", bg: "rgba(16,185,129,0.07)",
+    id: "financial", Icon: DollarSign, title: "Financial Literacy", color: "#10B981", bg: "rgba(16,185,129,0.07)",
     actions: [
       { label: "Budget Builder", href: "/career-guide/budget", time: "~5 min" },
       { label: "Retirement Projection", href: "/career-guide/retirement", time: "~3 min" },
@@ -116,7 +117,7 @@ const PILLARS = [
     guideHref: "/career-guide", guideLabel: "Financial Guide",
   },
   {
-    id: "futureproof", icon: "🛡️", title: "AI Resilience", color: "#EF4444", bg: "rgba(239,68,68,0.07)",
+    id: "futureproof", Icon: Shield, title: "AI Resilience", color: "#EF4444", bg: "rgba(239,68,68,0.07)",
     actions: [
       { label: "Future-Proof Guide", href: "/future-proof", time: "~10 min" },
       { label: "Career Assessment", href: "/aptitude", time: "~15 min" },
@@ -257,7 +258,7 @@ export default function DashboardPage() {
             marginTop: 16, marginBottom: 0, flexWrap: "wrap",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 18 }}>🔄</span>
+              <RefreshCw size={18} color="#92400E" />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 900, color: "#92400E" }}>Time to retake your Career Assessment</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interests shift over time — see if your profile has evolved and get updated career matches.</div>
@@ -333,7 +334,9 @@ export default function DashboardPage() {
             background: "var(--card-bg)",
             textAlign: "center",
           }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>🧭</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+              <BarChart2 size={36} color="var(--text-muted)" />
+            </div>
             <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>Start with your Career Assessment</div>
             <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 440, margin: "0 auto 18px" }}>
               Answer 60 questions to discover your RIASEC profile and get personalized career matches, side hustle ideas, and your path forward.
@@ -384,13 +387,15 @@ export default function DashboardPage() {
           !loading && (
             <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
               {[
-                { label: "Starting Your Journey", sub: "Pre-College", href: "/pre-college", icon: "🎓", color: "#10B981" },
-                { label: "Building Your Future", sub: "During College", href: "/during-college", icon: "📚", color: "#2563EB" },
-                { label: "Developing Your Career", sub: "Post-College", href: "/post-college", icon: "🚀", color: "#8B5CF6" },
+                { label: "Starting Your Journey", sub: "Pre-College",    href: "/pre-college",    Icon: GraduationCap, color: "#10B981" },
+                { label: "Building Your Future",  sub: "During College", href: "/during-college", Icon: BookOpen,      color: "#2563EB" },
+                { label: "Developing Your Career",sub: "Post-College",   href: "/post-college",   Icon: Rocket,        color: "#8B5CF6" },
               ].map(s => (
                 <Link key={s.href} href={s.href} style={{ textDecoration: "none" }}>
                   <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 22 }}>{s.icon}</span>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: s.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <s.Icon size={20} color={s.color} />
+                    </div>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{s.label}</div>
                       <div style={{ fontSize: 11, color: s.color, fontWeight: 700 }}>{s.sub}</div>
@@ -411,7 +416,7 @@ export default function DashboardPage() {
             {PILLARS.map(pillar => (
               <div key={pillar.id} style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: pillar.bg }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 20 }}>{pillar.icon}</span>
+                  <pillar.Icon size={20} color={pillar.color} />
                   <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{pillar.title}</div>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
@@ -483,13 +488,13 @@ export default function DashboardPage() {
           <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>Quick Access</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
-              { icon: "🗂️", label: "Planner",           href: "/planner",                  color: "#8B5CF6" },
-              { icon: "📊", label: "My Journey",         href: "/my-journey",               color: "#2563EB" },
-              { icon: "✅", label: "Career Check-In",    href: "/career-checkin",           color: "#10B981" },
-              { icon: "📄", label: "Resume Analyzer",    href: "/resume-gap",               color: "#F59E0B" },
-              { icon: "🏠", label: "Housing Guide",      href: "/career-guide/housing",     color: "#0EA5E9" },
-              { icon: "📈", label: "Salary Benchmarks",  href: "/career-guide/benchmarks",  color: "#EC4899" },
-              { icon: "🎮", label: "Career Instincts",   href: "/career-instincts",         color: "#EF4444" },
+              { Icon: Calendar,    label: "Planner",           href: "/planner",                  color: "#8B5CF6" },
+              { Icon: BarChart2,   label: "My Journey",         href: "/my-journey",               color: "#2563EB" },
+              { Icon: CheckSquare, label: "Career Check-In",    href: "/career-checkin",           color: "#10B981" },
+              { Icon: FileText,    label: "Resume Analyzer",    href: "/resume-gap",               color: "#F59E0B" },
+              { Icon: Home,        label: "Housing Guide",      href: "/career-guide/housing",     color: "#0EA5E9" },
+              { Icon: BarChart,    label: "Salary Benchmarks",  href: "/career-guide/benchmarks",  color: "#EC4899" },
+              { Icon: Zap,         label: "Career Instincts",   href: "/career-instincts",         color: "#EF4444" },
             ].map(tool => (
               <Link key={tool.href} href={tool.href} style={{ textDecoration: "none" }}>
                 <div style={{
@@ -497,7 +502,7 @@ export default function DashboardPage() {
                   padding: "8px 14px", borderRadius: 10,
                   border: "1px solid var(--card-border)", background: "var(--card-bg)",
                 }}>
-                  <span style={{ fontSize: 14 }}>{tool.icon}</span>
+                  <tool.Icon size={14} color={tool.color} />
                   <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{tool.label}</span>
                 </div>
               </Link>

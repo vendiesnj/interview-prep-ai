@@ -296,6 +296,14 @@ model CareerCheckIn {
   studentLoanExact    Int?     // exact loan balance in dollars (optional)
   retirementGoalAge   Int?     // e.g. 55, 60, 65
 
+  // Other retirement & savings
+  hasRothIRA              Boolean?
+  rothIRAMonthly          Int?     // monthly Roth IRA contribution in dollars
+  hasHSA                  Boolean?
+  hsaMonthly              Int?     // monthly HSA contribution in dollars
+  emergencyFundMonths     String?  // "none", "1_2", "3_6", "6_plus"
+  additionalSavingsMonthly Int?    // other monthly savings (brokerage, HYSA, etc.)
+
   // University feedback
   universitySatisfaction     Int?     // 1–5
   wouldChooseSameUniversity  Boolean?

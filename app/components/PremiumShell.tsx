@@ -3,13 +3,14 @@
 import React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { GraduationCap, BookOpen, Rocket } from "lucide-react";
 
 // ── Stage banner config ───────────────────────────────────────────────────────
 
-const STAGE_CONFIG: Record<string, { label: string; icon: string; color: string; href: string }> = {
-  pre_college:     { label: "Starting Your Journey",   icon: "🎓", color: "#10B981", href: "/pre-college" },
-  during_college:  { label: "Building Your Future",    icon: "📚", color: "#2563EB", href: "/during-college" },
-  post_college:    { label: "Developing Your Career",  icon: "🚀", color: "#8B5CF6", href: "/post-college" },
+const STAGE_CONFIG: Record<string, { label: string; Icon: React.ElementType; color: string; href: string }> = {
+  pre_college:     { label: "Starting Your Journey",   Icon: GraduationCap, color: "#10B981", href: "/pre-college" },
+  during_college:  { label: "Building Your Future",    Icon: BookOpen,      color: "#2563EB", href: "/during-college" },
+  post_college:    { label: "Developing Your Career",  Icon: Rocket,        color: "#8B5CF6", href: "/post-college" },
 };
 
 export default function PremiumShell({
@@ -56,7 +57,7 @@ export default function PremiumShell({
             marginBottom: 18,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14 }}>{stageInfo.icon}</span>
+              <stageInfo.Icon size={14} color={stageInfo.color} />
               <span style={{ fontSize: 12, fontWeight: 900, color: stageInfo.color, letterSpacing: 0.3 }}>
                 {stageInfo.label}
               </span>

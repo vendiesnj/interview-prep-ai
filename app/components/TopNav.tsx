@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { X, MoreHorizontal, ChevronLeft } from "lucide-react";
+import { X, MoreHorizontal, ChevronLeft, MessageSquare, Home, Mic, BarChart2, Map } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
@@ -74,10 +74,10 @@ function getPageLabel(pathname: string): string {
 // ── Mobile nav items ──────────────────────────────────────────────────────────
 
 const MOBILE_NAV = [
-  { label: "Home",      href: "/dashboard",      icon: "🏠" },
-  { label: "Practice",  href: "/practice",        icon: "🎙️" },
-  { label: "Journey",   href: "/my-journey",      icon: "📊" },
-  { label: "Explore",   href: "/career-guide",    icon: "🗺️" },
+  { label: "Home",      href: "/dashboard",      Icon: Home },
+  { label: "Practice",  href: "/practice",        Icon: Mic },
+  { label: "Journey",   href: "/my-journey",      Icon: BarChart2 },
+  { label: "Explore",   href: "/career-guide",    Icon: Map },
 ];
 
 const MOBILE_DRAWER_LINKS = [
@@ -131,7 +131,9 @@ export default function TopNav() {
           ) : null}
 
           <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>💬</div>
+            <div style={{ width: 26, height: 26, borderRadius: 7, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MessageSquare size={14} color="white" />
+            </div>
             <span style={{ fontSize: 15, fontWeight: 950, color: "var(--accent)", letterSpacing: -0.3 }}>Signal</span>
           </Link>
 
@@ -163,7 +165,7 @@ export default function TopNav() {
                 fontSize: 10, fontWeight: active ? 900 : 700,
                 borderTop: active ? "2px solid var(--accent)" : "2px solid transparent",
               }}>
-                <span style={{ fontSize: 18 }}>{item.icon}</span>
+                <item.Icon size={18} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -217,7 +219,9 @@ export default function TopNav() {
     }}>
       {/* Logo — always links to dashboard */}
       <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, marginRight: 20, flexShrink: 0 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>💬</div>
+        <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <MessageSquare size={14} color="white" />
+        </div>
         <span style={{ fontSize: 15, fontWeight: 950, color: "var(--accent)", letterSpacing: -0.3 }}>Signal</span>
       </Link>
 

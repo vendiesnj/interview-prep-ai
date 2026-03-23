@@ -4,47 +4,48 @@ import Link from "next/link";
 import { useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
 import OCCUPATIONS, { aiRiskLabel, matchOccupations } from "@/app/lib/onet-occupations";
+import { MessageSquare, Brain, Users, Wrench, Lightbulb, Repeat, BookOpen, Handshake, Briefcase, Rocket, DollarSign, Shield } from "lucide-react";
 
 // ── Static content ─────────────────────────────────────────────────────────────
 
 const AI_RESISTANT_SKILLS = [
   {
-    icon: "🗣️",
+    Icon: MessageSquare,
     title: "Human Communication",
     score_key: "communication",
     desc: "Empathy, nuance, persuasion, reading a room. AI can generate words but cannot build authentic trust.",
     why: "Language models produce text. They don't negotiate, inspire, de-escalate, or make someone feel heard.",
   },
   {
-    icon: "🧠",
+    Icon: Brain,
     title: "Critical Judgment",
     score_key: "critical_thinking",
     desc: "Knowing when the data is wrong, when the plan doesn't account for human behavior, when the \"correct\" answer is actually a mistake.",
     why: "AI optimizes within given parameters. Setting the right parameters — and knowing when to override them — requires human judgment.",
   },
   {
-    icon: "🤝",
+    Icon: Users,
     title: "Leadership & Influence",
     score_key: "leadership",
     desc: "Motivating people through uncertainty, building trust over time, making decisions that affect real lives.",
     why: "Leadership is fundamentally relational. No model can be accountable for a team, a culture, or a difficult call.",
   },
   {
-    icon: "⚙️",
+    Icon: Wrench,
     title: "Physical Craft & Trades",
     score_key: null,
     desc: "Wiring buildings, diagnosing engines, welding structural steel — work that requires dexterous hands in unpredictable environments.",
     why: "Robots exist in highly controlled environments. A master electrician diagnosing a 100-year-old building is not a robot job.",
   },
   {
-    icon: "💡",
+    Icon: Lightbulb,
     title: "Original Creativity",
     score_key: null,
     desc: "Generating ideas that haven't existed before — cultural relevance, emotional resonance, aesthetic taste.",
     why: "AI remixes the past. True originality — work that changes culture — requires a human perspective and a stake in the outcome.",
   },
   {
-    icon: "🌱",
+    Icon: Repeat,
     title: "Adaptability",
     score_key: null,
     desc: "The ability to learn new domains, pivot careers, and build skills across multiple fields as industries evolve.",
@@ -74,12 +75,12 @@ const AI_RISK_TIERS = [
 ];
 
 const ADAPTABILITY_ACTIONS = [
-  { icon: "📚", action: "Build a skill in an adjacent field", detail: "If you're in finance, learn data analysis. If you're in healthcare, learn health tech. Adjacent skills create career pivots, not dead ends." },
-  { icon: "🤝", action: "Invest in human relationships", detail: "Your professional network is your most AI-proof asset. People hire people they trust — and AI can't build that trust for you." },
-  { icon: "💼", action: "Develop a consulting or freelance skill", detail: "The ability to sell a skill independently gives you income resilience that no employer restructuring can take away." },
-  { icon: "🚀", action: "Practice leadership at every level", detail: "Volunteer to lead projects, mentor peers, or run initiatives. Leadership experience is hard to fake and impossible to automate." },
-  { icon: "🔧", action: "Consider a skilled trade or technical cert", detail: "Trades have some of the lowest AI automation risk in the economy. A side certification could be your most recession-proof move." },
-  { icon: "💰", action: "Build multiple income streams", detail: "A single employer means a single point of failure. Side income — even small — makes you financially resilient when industries shift." },
+  { Icon: BookOpen,   action: "Build a skill in an adjacent field", detail: "If you're in finance, learn data analysis. If you're in healthcare, learn health tech. Adjacent skills create career pivots, not dead ends." },
+  { Icon: Handshake,  action: "Invest in human relationships", detail: "Your professional network is your most AI-proof asset. People hire people they trust — and AI can't build that trust for you." },
+  { Icon: Briefcase,  action: "Develop a consulting or freelance skill", detail: "The ability to sell a skill independently gives you income resilience that no employer restructuring can take away." },
+  { Icon: Rocket,     action: "Practice leadership at every level", detail: "Volunteer to lead projects, mentor peers, or run initiatives. Leadership experience is hard to fake and impossible to automate." },
+  { Icon: Wrench,     action: "Consider a skilled trade or technical cert", detail: "Trades have some of the lowest AI automation risk in the economy. A side certification could be your most recession-proof move." },
+  { Icon: DollarSign, action: "Build multiple income streams", detail: "A single employer means a single point of failure. Side income — even small — makes you financially resilient when industries shift." },
 ];
 
 const SCENARIO_PLANNING = [
@@ -116,7 +117,7 @@ export default function FutureProofPage() {
         {/* ── Hero ── */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", marginBottom: 16 }}>
-            <span style={{ fontSize: 16 }}>🤖</span>
+            <Shield size={16} color="#EF4444" />
             <span style={{ fontSize: 12, fontWeight: 900, color: "#EF4444", letterSpacing: 0.5 }}>AI & FUTURE OF WORK</span>
           </div>
           <h1 style={{ margin: "0 0 14px", fontSize: 36, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.8, lineHeight: 1.15 }}>
@@ -172,7 +173,7 @@ export default function FutureProofPage() {
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <span style={{ fontSize: 22 }}>{skill.icon}</span>
+                      <skill.Icon size={22} color="var(--accent)" />
                       <span style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{skill.title}</span>
                     </div>
                     <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{isOpen ? "▲" : "▼"}</span>
@@ -227,8 +228,8 @@ export default function FutureProofPage() {
           <div style={{ display: "grid", gap: 10 }}>
             {ADAPTABILITY_ACTIONS.map((item, i) => (
               <div key={i} style={{ padding: "16px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
-                  {item.icon}
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <item.Icon size={18} color="var(--accent)" />
                 </div>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>{item.action}</div>
@@ -275,7 +276,7 @@ export default function FutureProofPage() {
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={{ padding: "22px 24px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-              <div style={{ fontSize: 22, marginBottom: 10 }}>💼</div>
+              <div style={{ marginBottom: 10 }}><Briefcase size={22} color="var(--accent)" /></div>
               <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 8 }}>Find your side hustle</div>
               <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
                 Based on your career aptitude profile, we can match side income opportunities that align with your skills and interests — from freelancing to product businesses to trade work.
@@ -285,7 +286,7 @@ export default function FutureProofPage() {
               </Link>
             </div>
             <div style={{ padding: "22px 24px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-              <div style={{ fontSize: 22, marginBottom: 10 }}>🚀</div>
+              <div style={{ marginBottom: 10 }}><Rocket size={22} color="var(--accent)" /></div>
               <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 8 }}>Entrepreneurship track</div>
               <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
                 For students and graduates with high autonomy drive and risk tolerance, the entrepreneurship track maps business models, funding paths, and early-stage skills to your profile.
