@@ -478,6 +478,33 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* ── Quick links ── */}
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>Quick Access</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { icon: "🗂️", label: "Planner",           href: "/planner",                  color: "#8B5CF6" },
+              { icon: "📊", label: "My Journey",         href: "/my-journey",               color: "#2563EB" },
+              { icon: "✅", label: "Career Check-In",    href: "/career-checkin",           color: "#10B981" },
+              { icon: "📄", label: "Resume Analyzer",    href: "/resume-gap",               color: "#F59E0B" },
+              { icon: "🏠", label: "Housing Guide",      href: "/career-guide/housing",     color: "#0EA5E9" },
+              { icon: "📈", label: "Salary Benchmarks",  href: "/career-guide/benchmarks",  color: "#EC4899" },
+              { icon: "🎮", label: "Career Instincts",   href: "/career-instincts",         color: "#EF4444" },
+            ].map(tool => (
+              <Link key={tool.href} href={tool.href} style={{ textDecoration: "none" }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 7,
+                  padding: "8px 14px", borderRadius: 10,
+                  border: "1px solid var(--card-border)", background: "var(--card-bg)",
+                }}>
+                  <span style={{ fontSize: 14 }}>{tool.icon}</span>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{tool.label}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
       </div>
     </PremiumShell>
   );
