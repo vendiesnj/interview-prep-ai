@@ -21,6 +21,9 @@ import {
   CheckSquare,
   TrendingUp,
   Radio,
+  ShieldCheck,
+  Zap,
+  Calendar,
 } from "lucide-react";
 import LogoutButton from "../components/LogoutButton";
 import BillingSidebarButton from "@/app/components/BillingSidebarButton";
@@ -44,6 +47,7 @@ const STUDENT_GROUPS: NavGroup[] = [
     items: [
       { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
       { label: "My Journey", href: "/my-journey", icon: <User size={18} /> },
+      { label: "Planner", href: "/planner", icon: <Calendar size={18} /> },
     ],
   },
   {
@@ -57,6 +61,8 @@ const STUDENT_GROUPS: NavGroup[] = [
   {
     heading: "Resources",
     items: [
+      { label: "Future-Proof Career", href: "/future-proof", icon: <ShieldCheck size={18} /> },
+      { label: "Career Aptitude", href: "/aptitude", icon: <Zap size={18} /> },
       { label: "Career Guide", href: "/career-guide", icon: <BookOpen size={18} /> },
       { label: "Budget Builder", href: "/career-guide/budget", icon: <LineChart size={18} /> },
       { label: "Financial Literacy", href: "/financial-literacy", icon: <BarChart2 size={18} /> },

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
+import OCCUPATIONS, { aiRiskLabel } from "@/app/lib/onet-occupations";
 
 function backNav(from?: string) {
   if (from === "pre-college") return { href: "/pre-college", label: "← Pre-College" };
@@ -405,6 +406,30 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
           <Link href="/career-checkin" style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 950, fontSize: 13, whiteSpace: "nowrap" }}>
             Career check-in →
           </Link>
+        </div>
+
+        {/* Occupation browser */}
+        <div style={{ marginTop: 40 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>BROWSE ALL OCCUPATIONS</div>
+            <Link href="/aptitude" style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>
+              Take aptitude quiz to find your match →
+            </Link>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+            {OCCUPATIONS.map(occ => {
+              const risk = aiRiskLabel(occ.aiRisk);
+              return (
+                <Link key={occ.id} href={`/career-guide/career-paths/${occ.id}`} style={{ textDecoration: "none" }}>
+                  <div style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", transition: "border-color 150ms" }}>
+                    <div style={{ fontSize: 11, fontWeight: 900, color: risk.color, marginBottom: 3 }}>{occ.aiRisk}% AI risk</div>
+                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", marginBottom: 2, lineHeight: 1.3 }}>{occ.title}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </PremiumShell>

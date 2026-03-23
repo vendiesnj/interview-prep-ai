@@ -11,6 +11,22 @@ export const metadata: Metadata = {
 
 const GUIDES = [
   {
+    href: "/future-proof",
+    eyebrow: "AI & Future of Work",
+    title: "Future-proof your career",
+    desc: "Understand AI automation risk by occupation, the 6 skills AI can't replace, scenario planning, and how to build financial resilience through side income and entrepreneurship.",
+    icon: "🛡️",
+    color: "#EF4444",
+  },
+  {
+    href: "/aptitude",
+    eyebrow: "Career Fit",
+    title: "Career aptitude assessment",
+    desc: "A research-grade 60-question RIASEC assessment that maps your interests, values, and entrepreneurship fit to 300+ careers — including side hustle and entrepreneur tracks.",
+    icon: "⚡",
+    color: "#F59E0B",
+  },
+  {
     href: "/career-guide/first-year",
     eyebrow: "Onboarding",
     title: "Your first 90 days",
