@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 import {
@@ -15,22 +15,32 @@ import {
   Flame,
   Calendar,
   ChevronRight,
+  ChevronLeft,
   Plus,
   X,
+  BarChart2,
+  Clock,
+  Trash2,
+  Flag,
 } from "lucide-react";
 
-// ── Types ──────────────────────────────────────────────────────────────────
+// ── Types ───────────────────────────────────────────────────────────────────
 
 type ScheduleItem = {
   itemId: string;
   label: string;
-  date: string; // ISO date string YYYY-MM-DD
+  date: string; // YYYY-MM-DD
   done: boolean;
+  category?: string;
+  timeEstimate?: string;
+  notes?: string;
+  custom?: boolean;
+  stage?: string;
 };
 
 type HabitRecord = {
   habitId: string;
-  dates: string[]; // ISO date strings when completed
+  dates: string[];
 };
 
 type GoalItem = {
@@ -47,7 +57,6 @@ type GoalCategory = {
   goals: GoalItem[];
 };
 
-// icon field removed — derived from category at render time
 type HabitDef = {
   id: string;
   label: string;
@@ -56,7 +65,24 @@ type HabitDef = {
   custom?: boolean;
 };
 
-// ── Constants ──────────────────────────────────────────────────────────────
+type FocusTask = {
+  title: string;
+  desc: string;
+  time: string;
+  href: string;
+  color: string;
+  label: string;
+  priority: 1 | 2 | 3;
+};
+
+// ── Storage Keys ────────────────────────────────────────────────────────────
+
+const SCHED_KEY = "ipc_schedule_v1";
+const HABITS_KEY = "ipc_habits_v1";
+const HABITS_CUSTOM_KEY = "ipc_habits_custom_v1";
+const GOALS_KEY = "ipc_goals_v1";
+
+// ── Constants ────────────────────────────────────────────────────────────────
 
 const ACCENT_CAREER = "#2563EB";
 const ACCENT_FINANCE = "#10B981";
@@ -69,6 +95,13 @@ const CATEGORY_COLORS: Record<string, string> = {
   Learning: ACCENT_LEARNING,
   Mindset: ACCENT_MINDSET,
 };
+
+const CATEGORIES = ["Career", "Finance", "Learning", "Mindset"] as const;
+type CategoryName = typeof CATEGORIES[number];
+
+const TIME_OPTIONS = ["5min", "15min", "30min", "60min"];
+
+const DAY_LABELS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 function CategoryIcon({ category, size = 14 }: { category: string; size?: number }) {
   const color = CATEGORY_COLORS[category] ?? ACCENT_CAREER;
@@ -132,15 +165,95 @@ const DEFAULT_GOAL_CATEGORIES: GoalCategory[] = [
   },
 ];
 
-type FocusTask = {
-  title: string;
-  desc: string;
-  time: string;
-  href: string;
-  color: string;
-  label: string;
-  priority: 1 | 2 | 3;
-};
+const PRIORITY_LABELS: Record<number, string> = { 1: "P1", 2: "P2", 3: "P3" };
+const PRIORITY_COLORS: Record<number, string> = { 1: "#EF4444", 2: "#F59E0B", 3: "#6B7280" };
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+
+function toDateStr(d: Date): string {
+  return d.toISOString().split("T")[0];
+}
+
+function todayStr(): string {
+  return toDateStr(new Date());
+}
+
+function startOfWeekDate(d: Date): Date {
+  const result = new Date(d);
+  result.setDate(d.getDate() - d.getDay());
+  return result;
+}
+
+function formatDateDisplay(dateStr: string): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
+function getTodayLong(): string {
+  return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
+}
+
+function computeStreak(dates: string[]): number {
+  if (!dates.length) return 0;
+  const sorted = [...new Set(dates)].sort().reverse();
+  const today = todayStr();
+  let streak = 0;
+  const cursor = new Date(today);
+  for (const d of sorted) {
+    const cursorStr = toDateStr(cursor);
+    if (d === cursorStr) {
+      streak++;
+      cursor.setDate(cursor.getDate() - 1);
+    } else if (d < cursorStr) {
+      break;
+    }
+  }
+  return streak;
+}
+
+function getLast28Days(): string[] {
+  const days: string[] = [];
+  const today = new Date();
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(toDateStr(d));
+  }
+  return days;
+}
+
+function getLast7Days(): string[] {
+  const days: string[] = [];
+  const today = new Date();
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(toDateStr(d));
+  }
+  return days;
+}
+
+function readSchedule(): ScheduleItem[] {
+  try {
+    const raw = localStorage.getItem(SCHED_KEY);
+    return raw ? (JSON.parse(raw) as ScheduleItem[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeSchedule(items: ScheduleItem[]) {
+  try {
+    localStorage.setItem(SCHED_KEY, JSON.stringify(items));
+  } catch {}
+}
 
 function getFocusTasks(day: number): FocusTask[] {
   if (day === 1) {
@@ -178,7 +291,6 @@ function getFocusTasks(day: number): FocusTask[] {
       { priority: 3, title: "Weekly Career Check-In", desc: "Review your weekly progress and set intentions for next week.", time: "10 min", href: "/career-checkin", color: ACCENT_LEARNING, label: "Career" },
     ];
   }
-  // Weekend
   return [
     { priority: 1, title: "Practice — Your Pick", desc: "Interview, public speaking, or networking — choose what feels right.", time: "15 min", href: "/practice", color: ACCENT_CAREER, label: "Practice" },
     { priority: 2, title: "Financial Check-In", desc: "Review your budget or savings goal at your own pace.", time: "10 min", href: "/career-guide/budget", color: ACCENT_FINANCE, label: "Finance" },
@@ -186,65 +298,7 @@ function getFocusTasks(day: number): FocusTask[] {
   ];
 }
 
-// ── Utilities ──────────────────────────────────────────────────────────────
-
-function toDateStr(d: Date): string {
-  return d.toISOString().split("T")[0];
-}
-
-function todayStr(): string {
-  return toDateStr(new Date());
-}
-
-function computeStreak(dates: string[]): number {
-  if (!dates.length) return 0;
-  const sorted = [...new Set(dates)].sort().reverse();
-  const today = todayStr();
-  let streak = 0;
-  const cursor = new Date(today);
-  for (const d of sorted) {
-    const cursorStr = toDateStr(cursor);
-    if (d === cursorStr) {
-      streak++;
-      cursor.setDate(cursor.getDate() - 1);
-    } else if (d < cursorStr) {
-      break;
-    }
-  }
-  return streak;
-}
-
-function getLast28Days(): string[] {
-  const days: string[] = [];
-  const today = new Date();
-  for (let i = 27; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    days.push(toDateStr(d));
-  }
-  return days;
-}
-
-function formatDateDisplay(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
-function getTodayLong(): string {
-  return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-}
-
-function getGreeting(): string {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
-const PRIORITY_LABELS: Record<number, string> = { 1: "P1", 2: "P2", 3: "P3" };
-const PRIORITY_COLORS: Record<number, string> = { 1: "#EF4444", 2: "#F59E0B", 3: "#6B7280" };
-
-// ── Segmented Tab Control ──────────────────────────────────────────────────
+// ── Shared UI ────────────────────────────────────────────────────────────────
 
 function SegmentedControl({
   tabs,
@@ -264,6 +318,7 @@ function SegmentedControl({
         borderRadius: 10,
         padding: 3,
         gap: 2,
+        flexWrap: "wrap",
       }}
     >
       {tabs.map((tab) => {
@@ -274,7 +329,7 @@ function SegmentedControl({
             type="button"
             onClick={() => onChange(tab.key)}
             style={{
-              padding: "6px 18px",
+              padding: "6px 16px",
               borderRadius: 8,
               border: "none",
               background: isActive ? "var(--accent, #2563EB)" : "transparent",
@@ -292,155 +347,6 @@ function SegmentedControl({
           </button>
         );
       })}
-    </div>
-  );
-}
-
-// ── Today: Focus Task Row ──────────────────────────────────────────────────
-
-function FocusTaskRow({ task }: { task: FocusTask }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 14,
-        padding: "12px 16px",
-        borderRadius: 12,
-        background: "var(--card-bg)",
-        border: "1px solid var(--card-border)",
-        transition: "border-color 120ms",
-      }}
-    >
-      {/* Priority indicator */}
-      <div
-        style={{
-          width: 3,
-          height: 36,
-          borderRadius: 2,
-          background: PRIORITY_COLORS[task.priority],
-          flexShrink: 0,
-        }}
-      />
-
-      {/* Category icon */}
-      <div
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          background: task.color + "15",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <CategoryIcon category={task.label === "Practice" ? "Career" : task.label === "Finance" ? "Finance" : "Learning"} size={15} />
-      </div>
-
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>
-            {task.title}
-          </span>
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: PRIORITY_COLORS[task.priority],
-              background: PRIORITY_COLORS[task.priority] + "15",
-              padding: "1px 6px",
-              borderRadius: 4,
-              letterSpacing: 0.4,
-            }}
-          >
-            {PRIORITY_LABELS[task.priority]}
-          </span>
-        </div>
-        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {task.desc}
-        </div>
-      </div>
-
-      {/* Time badge + link */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        <span
-          style={{
-            fontSize: 11,
-            fontWeight: 600,
-            color: "var(--text-muted)",
-            background: "var(--app-bg, #F9FAFB)",
-            border: "1px solid var(--card-border)",
-            padding: "3px 8px",
-            borderRadius: 6,
-          }}
-        >
-          {task.time}
-        </span>
-        <Link
-          href={task.href}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            fontSize: 12,
-            fontWeight: 700,
-            color: task.color,
-            textDecoration: "none",
-            padding: "4px 10px",
-            borderRadius: 7,
-            background: task.color + "12",
-            border: `1px solid ${task.color}25`,
-            transition: "background 120ms",
-          }}
-        >
-          Start
-          <ChevronRight size={12} />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// ── Today: Scheduled Item Row ──────────────────────────────────────────────
-
-function ScheduledItemRow({ item }: { item: ScheduleItem }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        padding: "10px 16px",
-        borderRadius: 10,
-        background: "var(--card-bg)",
-        border: "1px solid var(--card-border)",
-        opacity: item.done ? 0.65 : 1,
-      }}
-    >
-      {item.done ? (
-        <CheckCircle2 size={16} color={ACCENT_FINANCE} strokeWidth={2.2} />
-      ) : (
-        <Circle size={16} color="var(--text-muted)" strokeWidth={2} />
-      )}
-      <span
-        style={{
-          flex: 1,
-          fontSize: 13,
-          fontWeight: 600,
-          color: item.done ? "var(--text-muted)" : "var(--text-primary)",
-          textDecoration: item.done ? "line-through" : "none",
-          lineHeight: 1.4,
-        }}
-      >
-        {item.label}
-      </span>
-      <span style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
-        <Calendar size={11} />
-        {formatDateDisplay(item.date)}
-      </span>
     </div>
   );
 }
@@ -463,119 +369,132 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-// ── Tab: Today ─────────────────────────────────────────────────────────────
+function ProgressBar({ value, total, color }: { value: number; total: number; color: string }) {
+  const pct = total === 0 ? 0 : Math.round((value / total) * 100);
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ flex: 1, height: 6, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+        <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${pct}%`, background: color, borderRadius: 3, transition: "width 300ms" }} />
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 700, color, minWidth: 28, textAlign: "right" }}>{pct}%</span>
+    </div>
+  );
+}
+
+// ── Today Tab ────────────────────────────────────────────────────────────────
+
+function FocusTaskRow({ task }: { task: FocusTask }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+      <div style={{ width: 3, height: 36, borderRadius: 2, background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
+      <div style={{ width: 32, height: 32, borderRadius: 8, background: task.color + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <CategoryIcon category={task.label === "Practice" ? "Career" : task.label === "Finance" ? "Finance" : "Learning"} size={15} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>{task.title}</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: PRIORITY_COLORS[task.priority], background: PRIORITY_COLORS[task.priority] + "15", padding: "1px 6px", borderRadius: 4, letterSpacing: 0.4 }}>
+            {PRIORITY_LABELS[task.priority]}
+          </span>
+        </div>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.desc}</div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", background: "var(--app-bg, #F9FAFB)", border: "1px solid var(--card-border)", padding: "3px 8px", borderRadius: 6 }}>{task.time}</span>
+        <Link href={task.href} style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 12, fontWeight: 700, color: task.color, textDecoration: "none", padding: "4px 10px", borderRadius: 7, background: task.color + "12", border: `1px solid ${task.color}25` }}>
+          Start <ChevronRight size={12} />
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 function TodayTab() {
   const day = new Date().getDay();
   const tasks = getFocusTasks(day);
-
   const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("ipc_schedule_v1");
-      if (raw) setScheduled(JSON.parse(raw) as ScheduleItem[]);
-    } catch {
-      // ignore
-    }
-  }, []);
+  useEffect(() => { setScheduled(readSchedule()); }, []);
 
   const today = todayStr();
   const todayItems = scheduled.filter((i) => i.date === today);
-
   const weekEnd = new Date();
   weekEnd.setDate(weekEnd.getDate() + 7);
   const weekEndStr = toDateStr(weekEnd);
   const weekItems = scheduled.filter((i) => i.date > today && i.date <= weekEndStr);
 
+  function toggleDone(itemId: string) {
+    const next = scheduled.map(i => i.itemId === itemId ? { ...i, done: !i.done } : i);
+    setScheduled(next);
+    writeSchedule(next);
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Date header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "14px 18px",
-          borderRadius: 12,
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>
-            {getGreeting()}
-          </div>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>{getGreeting()}</div>
           <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
             <Calendar size={11} />
             {getTodayLong()}
           </div>
         </div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            fontSize: 12,
-            fontWeight: 600,
-            color: ACCENT_CAREER,
-            background: ACCENT_CAREER + "12",
-            padding: "5px 12px",
-            borderRadius: 8,
-            border: `1px solid ${ACCENT_CAREER}20`,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", padding: "5px 12px", borderRadius: 8, border: `1px solid ${ACCENT_CAREER}20` }}>
           <Target size={13} color={ACCENT_CAREER} />
-          {tasks.length} tasks today
+          {tasks.length} focus tasks
         </div>
       </div>
 
-      {/* Today's Focus */}
       <div>
-        <SectionLabel>Today's Focus</SectionLabel>
+        <SectionLabel>Today&apos;s Focus</SectionLabel>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {tasks.map((task) => (
-            <FocusTaskRow key={task.title} task={task} />
-          ))}
+          {tasks.map((task) => <FocusTaskRow key={task.title} task={task} />)}
         </div>
       </div>
 
-      {/* Scheduled for today */}
       <div>
         <SectionLabel>Scheduled for Today</SectionLabel>
         {todayItems.length === 0 ? (
-          <div
-            style={{
-              padding: "12px 16px",
-              borderRadius: 10,
-              background: "var(--card-bg)",
-              border: "1px dashed var(--card-border)",
-              fontSize: 13,
-              color: "var(--text-muted)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
+          <div style={{ padding: "12px 16px", borderRadius: 10, background: "var(--card-bg)", border: "1px dashed var(--card-border)", fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
             <Calendar size={14} />
-            Nothing scheduled — add items via the checklist in Practice or Networking.
+            Nothing scheduled — add items in the Week tab or via the checklist.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {todayItems.map((item) => (
-              <ScheduledItemRow key={item.itemId + item.date} item={item} />
+              <div key={item.itemId + item.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: item.done ? 0.65 : 1 }}>
+                <button type="button" onClick={() => toggleDone(item.itemId)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
+                  {item.done ? <CheckCircle2 size={16} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={16} color="var(--text-muted)" strokeWidth={2} />}
+                </button>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.4 }}>
+                  {item.label}
+                </span>
+                {item.category && (
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: CATEGORY_COLORS[item.category] ?? ACCENT_CAREER, flexShrink: 0 }} />
+                )}
+              </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* This week */}
       {weekItems.length > 0 && (
         <div>
           <SectionLabel>Upcoming This Week</SectionLabel>
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {weekItems.map((item) => (
-              <ScheduledItemRow key={item.itemId + item.date} item={item} />
+              <div key={item.itemId + item.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: item.done ? 0.65 : 1 }}>
+                <button type="button" onClick={() => toggleDone(item.itemId)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
+                  {item.done ? <CheckCircle2 size={16} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={16} color="var(--text-muted)" strokeWidth={2} />}
+                </button>
+                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.4 }}>
+                  {item.label}
+                </span>
+                <span style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+                  <Calendar size={11} />
+                  {formatDateDisplay(item.date)}
+                </span>
+              </div>
             ))}
           </div>
         </div>
@@ -584,7 +503,312 @@ function TodayTab() {
   );
 }
 
-// ── Habits: Mini Grid ──────────────────────────────────────────────────────
+// ── Week Tab ─────────────────────────────────────────────────────────────────
+
+type AddPanelState = {
+  dateKey: string;
+  label: string;
+  category: CategoryName;
+  timeEstimate: string;
+  notes: string;
+  showNotes: boolean;
+};
+
+function WeekTab() {
+  const [weekStart, setWeekStart] = useState<Date>(() => startOfWeekDate(new Date()));
+  const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
+  const [addPanel, setAddPanel] = useState<AddPanelState | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+
+  useEffect(() => { setScheduled(readSchedule()); }, []);
+
+  const today = todayStr();
+
+  const weekDays: Date[] = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d;
+  });
+
+  const weekDayKeys = weekDays.map(d => toDateStr(d));
+  const weekItems = scheduled.filter(i => weekDayKeys.includes(i.date));
+  const weekDone = weekItems.filter(i => i.done).length;
+
+  function navWeek(dir: -1 | 1) {
+    setWeekStart(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + dir * 7);
+      return d;
+    });
+  }
+
+  function jumpToday() {
+    setWeekStart(startOfWeekDate(new Date()));
+  }
+
+  function weekLabel(): string {
+    const end = weekDays[6];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    if (weekStart.getMonth() === end.getMonth()) {
+      return `${months[weekStart.getMonth()]} ${weekStart.getDate()}–${end.getDate()}, ${weekStart.getFullYear()}`;
+    }
+    return `${months[weekStart.getMonth()]} ${weekStart.getDate()} – ${months[end.getMonth()]} ${end.getDate()}`;
+  }
+
+  function getItemsForDay(dateKey: string): ScheduleItem[] {
+    return scheduled.filter(i => i.date === dateKey);
+  }
+
+  function toggleDone(itemId: string) {
+    const next = scheduled.map(i => i.itemId === itemId ? { ...i, done: !i.done } : i);
+    setScheduled(next);
+    writeSchedule(next);
+  }
+
+  function deleteItem(itemId: string) {
+    const next = scheduled.filter(i => i.itemId !== itemId);
+    setScheduled(next);
+    writeSchedule(next);
+  }
+
+  function openAdd(dateKey: string) {
+    setAddPanel({ dateKey, label: "", category: "Career", timeEstimate: "", notes: "", showNotes: false });
+  }
+
+  function saveAdd() {
+    if (!addPanel || !addPanel.label.trim()) return;
+    const newItem: ScheduleItem = {
+      itemId: "custom_" + Date.now(),
+      label: addPanel.label.trim(),
+      category: addPanel.category,
+      timeEstimate: addPanel.timeEstimate || undefined,
+      notes: addPanel.notes || undefined,
+      date: addPanel.dateKey,
+      done: false,
+      custom: true,
+    };
+    const next = [...scheduled, newItem];
+    setScheduled(next);
+    writeSchedule(next);
+    setAddPanel(null);
+  }
+
+  function handleDragStart(e: React.DragEvent, itemId: string) {
+    e.dataTransfer.setData("text/plain", itemId);
+  }
+
+  function handleDrop(e: React.DragEvent, dateKey: string) {
+    e.preventDefault();
+    setDragOverDay(null);
+    const itemId = e.dataTransfer.getData("text/plain");
+    if (!itemId) return;
+    const next = scheduled.map(i => i.itemId === itemId ? { ...i, date: dateKey } : i);
+    setScheduled(next);
+    writeSchedule(next);
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Week nav header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
+          <ChevronLeft size={16} />
+        </button>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{weekLabel()}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+            {weekDone} / {weekItems.length} tasks done this week
+          </div>
+        </div>
+        <button type="button" onClick={jumpToday} style={{ fontSize: 11, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 10px", cursor: "pointer" }}>
+          Today
+        </button>
+        <button type="button" onClick={() => navWeek(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* Week progress bar */}
+      {weekItems.length > 0 && (
+        <div style={{ padding: "0 2px" }}>
+          <ProgressBar value={weekDone} total={weekItems.length} color={ACCENT_CAREER} />
+        </div>
+      )}
+
+      {/* Day columns grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
+        {weekDays.map(d => {
+          const dateKey = toDateStr(d);
+          const isToday = dateKey === today;
+          const dayItems = getItemsForDay(dateKey);
+          const isAddingHere = addPanel?.dateKey === dateKey;
+          const isDragOver = dragOverDay === dateKey;
+
+          return (
+            <div
+              key={dateKey}
+              onDragOver={e => { e.preventDefault(); setDragOverDay(dateKey); }}
+              onDragLeave={() => setDragOverDay(null)}
+              onDrop={e => handleDrop(e, dateKey)}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+                minHeight: 160,
+                borderRadius: 12,
+                border: isToday ? `2px solid ${ACCENT_CAREER}` : isDragOver ? `2px dashed ${ACCENT_CAREER}60` : "1px solid var(--card-border)",
+                background: isToday ? ACCENT_CAREER + "06" : isDragOver ? ACCENT_CAREER + "08" : "var(--card-bg)",
+                padding: "10px 8px 8px",
+                transition: "border-color 100ms, background 100ms",
+              }}
+            >
+              {/* Day header */}
+              <div style={{ textAlign: "center", marginBottom: 2 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: isToday ? ACCENT_CAREER : "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  {DAY_LABELS_SHORT[d.getDay()]}
+                </div>
+                <div style={{
+                  fontSize: 18, fontWeight: 900,
+                  color: isToday ? "#fff" : "var(--text-primary)",
+                  background: isToday ? ACCENT_CAREER : "transparent",
+                  borderRadius: isToday ? "50%" : 0,
+                  width: isToday ? 30 : "auto",
+                  height: isToday ? 30 : "auto",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  margin: "0 auto",
+                  lineHeight: 1,
+                }}>
+                  {d.getDate()}
+                </div>
+              </div>
+
+              {/* Items */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+                {dayItems.map(item => {
+                  const catColor = item.category ? (CATEGORY_COLORS[item.category] ?? ACCENT_CAREER) : ACCENT_CAREER;
+                  return (
+                    <div
+                      key={item.itemId}
+                      draggable
+                      onDragStart={e => handleDragStart(e, item.itemId)}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 5,
+                        padding: "5px 6px",
+                        borderRadius: 8,
+                        background: item.done ? "var(--app-bg, #F9FAFB)" : catColor + "10",
+                        border: `1px solid ${catColor}25`,
+                        cursor: "grab",
+                        opacity: item.done ? 0.6 : 1,
+                      }}
+                    >
+                      <div style={{ width: 3, borderRadius: 2, background: catColor, flexShrink: 0, alignSelf: "stretch", minHeight: 12 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {item.label}
+                        </div>
+                        {item.timeEstimate && (
+                          <div style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2, marginTop: 1 }}>
+                            <Clock size={8} />
+                            {item.timeEstimate}
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 2, flexShrink: 0 }}>
+                        <button type="button" onClick={() => toggleDone(item.itemId)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", lineHeight: 1 }}>
+                          {item.done ? <CheckCircle2 size={12} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={12} color="var(--text-muted)" strokeWidth={2} />}
+                        </button>
+                        <button type="button" onClick={() => deleteItem(item.itemId)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", lineHeight: 1, opacity: 0.5 }}>
+                          <X size={10} color="var(--text-muted)" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add panel or Add button */}
+              {isAddingHere ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px", borderRadius: 8, background: "var(--app-bg, #F9FAFB)", border: "1px solid var(--card-border)" }}>
+                  <input
+                    autoFocus
+                    type="text"
+                    value={addPanel.label}
+                    onChange={e => setAddPanel(p => p ? { ...p, label: e.target.value } : p)}
+                    onKeyDown={e => { if (e.key === "Enter") saveAdd(); if (e.key === "Escape") setAddPanel(null); }}
+                    placeholder="Activity title..."
+                    style={{ width: "100%", padding: "5px 7px", borderRadius: 6, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 11, outline: "none", boxSizing: "border-box" }}
+                  />
+                  <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                    {CATEGORIES.map(cat => {
+                      const color = CATEGORY_COLORS[cat];
+                      const isSelected = addPanel.category === cat;
+                      return (
+                        <button key={cat} type="button" onClick={() => setAddPanel(p => p ? { ...p, category: cat } : p)} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${color}${isSelected ? "99" : "40"}`, background: isSelected ? color + "25" : "transparent", color: isSelected ? color : "var(--text-muted)", cursor: "pointer" }}>
+                          {cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                    {TIME_OPTIONS.map(t => {
+                      const isSelected = addPanel.timeEstimate === t;
+                      return (
+                        <button key={t} type="button" onClick={() => setAddPanel(p => p ? { ...p, timeEstimate: isSelected ? "" : t } : p)} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${isSelected ? ACCENT_CAREER + "99" : "var(--card-border)"}`, background: isSelected ? ACCENT_CAREER + "15" : "transparent", color: isSelected ? ACCENT_CAREER : "var(--text-muted)", cursor: "pointer" }}>
+                          {t}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button type="button" onClick={() => setAddPanel(p => p ? { ...p, showNotes: !p.showNotes } : p)} style={{ fontSize: 9, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
+                    {addPanel.showNotes ? "▾ Hide notes" : "▸ Add notes"}
+                  </button>
+                  {addPanel.showNotes && (
+                    <textarea
+                      value={addPanel.notes}
+                      onChange={e => setAddPanel(p => p ? { ...p, notes: e.target.value } : p)}
+                      placeholder="Optional notes..."
+                      rows={2}
+                      style={{ width: "100%", padding: "5px 7px", borderRadius: 6, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 10, outline: "none", resize: "none", boxSizing: "border-box" }}
+                    />
+                  )}
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <button type="button" onClick={saveAdd} style={{ flex: 1, padding: "5px", borderRadius: 6, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 10, cursor: "pointer" }}>Save</button>
+                    <button type="button" onClick={() => setAddPanel(null)} style={{ padding: "5px 8px", borderRadius: 6, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontSize: 10, cursor: "pointer" }}>Cancel</button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => openAdd(dateKey)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, padding: "5px 4px", borderRadius: 7, border: "1px dashed var(--card-border)", background: "transparent", color: "var(--text-muted)", fontSize: 10, fontWeight: 700, cursor: "pointer", width: "100%", marginTop: "auto" }}
+                >
+                  <Plus size={10} />
+                  Add
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", padding: "8px 12px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, alignSelf: "center" }}>Categories:</span>
+        {CATEGORIES.map(cat => (
+          <div key={cat} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: CATEGORY_COLORS[cat] }} />
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat}</span>
+          </div>
+        ))}
+        <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: "auto", alignSelf: "center" }}>Drag items to reschedule</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Habits Tab ────────────────────────────────────────────────────────────────
 
 function MiniHabitGrid({ completedDates, color }: { completedDates: string[]; color: string }) {
   const days = getLast28Days();
@@ -593,161 +817,43 @@ function MiniHabitGrid({ completedDates, color }: { completedDates: string[]; co
     <div style={{ display: "grid", gridTemplateColumns: "repeat(28, 1fr)", gap: 2, flex: 1 }}>
       {days.map((d) => {
         const done = set.has(d);
-        return (
-          <div
-            key={d}
-            title={d}
-            style={{
-              height: 10,
-              borderRadius: 2,
-              background: done ? color : "var(--card-border)",
-              opacity: done ? 1 : 0.35,
-              transition: "background 100ms",
-            }}
-          />
-        );
+        return <div key={d} title={d} style={{ height: 10, borderRadius: 2, background: done ? color : "var(--card-border)", opacity: done ? 1 : 0.35, transition: "background 100ms" }} />;
       })}
     </div>
   );
 }
 
-// ── Habits: Compact Row ────────────────────────────────────────────────────
-
-function HabitRow({
-  habit,
-  completedDates,
-  onToggle,
-}: {
-  habit: HabitDef;
-  completedDates: string[];
-  onToggle: (id: string) => void;
-}) {
+function HabitRow({ habit, completedDates, onToggle }: { habit: HabitDef; completedDates: string[]; onToggle: (id: string) => void }) {
   const today = todayStr();
   const doneToday = completedDates.includes(today);
   const streak = computeStreak(completedDates);
   const catColor = CATEGORY_COLORS[habit.category] ?? ACCENT_CAREER;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 12,
-        height: 52,
-        padding: "0 14px 0 0",
-        borderRadius: 12,
-        background: "var(--card-bg)",
-        border: "1px solid var(--card-border)",
-        overflow: "hidden",
-        transition: "border-color 120ms",
-      }}
-    >
-      {/* Color border accent */}
+    <div style={{ display: "flex", alignItems: "center", gap: 12, height: 52, padding: "0 14px 0 0", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)", overflow: "hidden" }}>
       <div style={{ width: 3, height: "100%", background: catColor, flexShrink: 0, borderRadius: "12px 0 0 12px" }} />
-
-      {/* Category icon */}
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 7,
-          background: catColor + "15",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
+      <div style={{ width: 28, height: 28, borderRadius: 7, background: catColor + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <CategoryIcon category={habit.category} size={13} />
       </div>
-
-      {/* Label + category pill */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: "0 0 auto", maxWidth: 220 }}>
-        <span
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--text-primary)",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {habit.label}
-        </span>
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 700,
-            color: catColor,
-            background: catColor + "15",
-            padding: "1px 6px",
-            borderRadius: 4,
-            letterSpacing: 0.3,
-            textTransform: "uppercase",
-            flexShrink: 0,
-          }}
-        >
-          {habit.category}
-        </span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{habit.label}</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: catColor, background: catColor + "15", padding: "1px 6px", borderRadius: 4, letterSpacing: 0.3, textTransform: "uppercase", flexShrink: 0 }}>{habit.category}</span>
       </div>
-
-      {/* Streak badge */}
       {streak > 0 && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 3,
-            padding: "2px 7px",
-            borderRadius: 5,
-            background: "#F59E0B18",
-            border: "1px solid #F59E0B25",
-            flexShrink: 0,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: 5, background: "#F59E0B18", border: "1px solid #F59E0B25", flexShrink: 0 }}>
           <Flame size={11} color="#F59E0B" strokeWidth={2.2} />
           <span style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B" }}>{streak}</span>
         </div>
       )}
-
-      {/* 28-day mini grid */}
       <div style={{ flex: 1, minWidth: 0, padding: "0 4px" }}>
         <MiniHabitGrid completedDates={completedDates} color={catColor} />
       </div>
-
-      {/* Check button */}
-      <button
-        type="button"
-        onClick={() => onToggle(habit.id)}
-        aria-label={doneToday ? "Mark incomplete" : "Mark complete"}
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: "50%",
-          border: "none",
-          background: "transparent",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          flexShrink: 0,
-          outline: "none",
-          transition: "transform 100ms",
-          padding: 0,
-        }}
-      >
-        {doneToday ? (
-          <CheckCircle2 size={22} color={ACCENT_FINANCE} strokeWidth={2.2} />
-        ) : (
-          <Circle size={22} color="var(--text-muted)" strokeWidth={1.8} />
-        )}
+      <button type="button" onClick={() => onToggle(habit.id)} style={{ width: 30, height: 30, borderRadius: "50%", border: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, padding: 0 }}>
+        {doneToday ? <CheckCircle2 size={22} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={22} color="var(--text-muted)" strokeWidth={1.8} />}
       </button>
     </div>
   );
 }
-
-// ── Tab: Habits ────────────────────────────────────────────────────────────
 
 function HabitsTab() {
   const [habits, setHabits] = useState<HabitDef[]>(DEFAULT_HABITS);
@@ -757,273 +863,102 @@ function HabitsTab() {
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("ipc_habits_v1");
+      const raw = localStorage.getItem(HABITS_KEY);
       if (raw) setHabitData(JSON.parse(raw) as HabitRecord[]);
-    } catch {
-      // ignore
-    }
+    } catch {}
     try {
-      const rawH = localStorage.getItem("ipc_habits_custom_v1");
+      const rawH = localStorage.getItem(HABITS_CUSTOM_KEY);
       if (rawH) {
         const custom = JSON.parse(rawH) as HabitDef[];
         setHabits([...DEFAULT_HABITS, ...custom]);
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
   }, []);
 
   function saveHabitData(next: HabitRecord[]) {
     setHabitData(next);
-    try {
-      localStorage.setItem("ipc_habits_v1", JSON.stringify(next));
-    } catch {
-      // ignore
-    }
+    try { localStorage.setItem(HABITS_KEY, JSON.stringify(next)); } catch {}
   }
 
   function handleToggle(habitId: string) {
     const today = todayStr();
     const next = [...habitData];
-    const idx = next.findIndex((r) => r.habitId === habitId);
+    const idx = next.findIndex(r => r.habitId === habitId);
     if (idx === -1) {
       next.push({ habitId, dates: [today] });
     } else {
       const record = { ...next[idx] };
-      if (record.dates.includes(today)) {
-        record.dates = record.dates.filter((d) => d !== today);
-      } else {
-        record.dates = [...record.dates, today];
-      }
+      if (record.dates.includes(today)) record.dates = record.dates.filter(d => d !== today);
+      else record.dates = [...record.dates, today];
       next[idx] = record;
     }
     saveHabitData(next);
   }
 
   function getCompletedDates(habitId: string): string[] {
-    return habitData.find((r) => r.habitId === habitId)?.dates ?? [];
+    return habitData.find(r => r.habitId === habitId)?.dates ?? [];
   }
 
   function handleAddHabit() {
     const trimmed = newHabitLabel.trim();
     if (!trimmed) return;
-    const newH: HabitDef = {
-      id: "custom_" + Date.now(),
-      label: trimmed,
-      category: "Learning",
-      streak: 0,
-      custom: true,
-    };
+    const newH: HabitDef = { id: "custom_" + Date.now(), label: trimmed, category: "Learning", streak: 0, custom: true };
     const next = [...habits, newH];
     setHabits(next);
-    const customOnly = next.filter((h) => h.custom);
-    try {
-      localStorage.setItem("ipc_habits_custom_v1", JSON.stringify(customOnly));
-    } catch {
-      // ignore
-    }
+    try { localStorage.setItem(HABITS_CUSTOM_KEY, JSON.stringify(next.filter(h => h.custom))); } catch {}
     setNewHabitLabel("");
     setAddingHabit(false);
   }
 
   const today = todayStr();
-  const doneCount = habits.filter((h) => getCompletedDates(h.id).includes(today)).length;
+  const doneCount = habits.filter(h => getCompletedDates(h.id).includes(today)).length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Summary header */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "12px 16px",
-          borderRadius: 12,
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Daily Habits</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-            {doneCount} of {habits.length} completed today
-          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{doneCount} of {habits.length} completed today</div>
         </div>
-        {/* Progress bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              width: 100,
-              height: 6,
-              borderRadius: 3,
-              background: "var(--card-border)",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                height: "100%",
-                width: `${habits.length === 0 ? 0 : Math.round((doneCount / habits.length) * 100)}%`,
-                background: ACCENT_FINANCE,
-                borderRadius: 3,
-                transition: "width 300ms",
-              }}
-            />
+          <div style={{ width: 100, height: 6, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${habits.length === 0 ? 0 : Math.round((doneCount / habits.length) * 100)}%`, background: ACCENT_FINANCE, borderRadius: 3, transition: "width 300ms" }} />
           </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT_FINANCE }}>
-            {habits.length === 0 ? 0 : Math.round((doneCount / habits.length) * 100)}%
-          </span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: ACCENT_FINANCE }}>{habits.length === 0 ? 0 : Math.round((doneCount / habits.length) * 100)}%</span>
         </div>
       </div>
 
-      {/* Column labels */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "3px 28px 1fr auto 1fr 30px",
-          gap: 12,
-          padding: "0 14px 0 0",
-          alignItems: "center",
-        }}
-      >
-        <div />
-        <div />
+      <div style={{ display: "grid", gridTemplateColumns: "3px 28px 1fr auto 1fr 30px", gap: 12, padding: "0 14px 0 0", alignItems: "center" }}>
+        <div /><div />
         <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>Habit</div>
         <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>Streak</div>
         <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>28-day activity</div>
         <div />
       </div>
 
-      {/* Habit rows */}
-      {habits.map((habit) => (
-        <HabitRow
-          key={habit.id}
-          habit={habit}
-          completedDates={getCompletedDates(habit.id)}
-          onToggle={handleToggle}
-        />
-      ))}
+      {habits.map(habit => <HabitRow key={habit.id} habit={habit} completedDates={getCompletedDates(habit.id)} onToggle={handleToggle} />)}
 
-      {/* Add habit */}
       {addingHabit ? (
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "center",
-            padding: "10px 14px",
-            borderRadius: 12,
-            background: "var(--card-bg)",
-            border: "1px solid var(--card-border)",
-          }}
-        >
-          <input
-            autoFocus
-            type="text"
-            value={newHabitLabel}
-            onChange={(e) => setNewHabitLabel(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleAddHabit();
-              if (e.key === "Escape") {
-                setAddingHabit(false);
-                setNewHabitLabel("");
-              }
-            }}
-            placeholder="New habit name..."
-            style={{
-              flex: 1,
-              padding: "6px 10px",
-              borderRadius: 8,
-              border: "1px solid var(--card-border)",
-              background: "var(--app-bg)",
-              color: "var(--text-primary)",
-              fontSize: 13,
-              outline: "none",
-            }}
-          />
-          <button
-            type="button"
-            onClick={handleAddHabit}
-            style={{
-              padding: "6px 14px",
-              borderRadius: 8,
-              border: "none",
-              background: ACCENT_CAREER,
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 13,
-              cursor: "pointer",
-            }}
-          >
-            Add
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setAddingHabit(false);
-              setNewHabitLabel("");
-            }}
-            style={{
-              padding: "6px",
-              borderRadius: 8,
-              border: "1px solid var(--card-border)",
-              background: "transparent",
-              color: "var(--text-muted)",
-              fontSize: 13,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <X size={14} />
-          </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "10px 14px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+          <input autoFocus type="text" value={newHabitLabel} onChange={e => setNewHabitLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") { setAddingHabit(false); setNewHabitLabel(""); } }} placeholder="New habit name..." style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }} />
+          <button type="button" onClick={handleAddHabit} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
+          <button type="button" onClick={() => { setAddingHabit(false); setNewHabitLabel(""); }} style={{ padding: "6px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setAddingHabit(true)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            alignSelf: "flex-start",
-            background: "var(--card-bg)",
-            border: "1px dashed var(--card-border)",
-            borderRadius: 10,
-            padding: "8px 14px",
-            color: ACCENT_CAREER,
-            fontWeight: 700,
-            fontSize: 13,
-            cursor: "pointer",
-          }}
-        >
-          <Plus size={14} />
-          Add habit
+        <button type="button" onClick={() => setAddingHabit(true)} style={{ display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-start", background: "var(--card-bg)", border: "1px dashed var(--card-border)", borderRadius: 10, padding: "8px 14px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+          <Plus size={14} />Add habit
         </button>
       )}
     </div>
   );
 }
 
-// ── Goals: Category Block ──────────────────────────────────────────────────
+// ── Goals Tab ────────────────────────────────────────────────────────────────
 
-function GoalCategoryBlock({
-  category,
-  onToggleGoal,
-  onAddGoal,
-}: {
-  category: GoalCategory;
-  onToggleGoal: (catId: string, goalId: string) => void;
-  onAddGoal: (catId: string, label: string) => void;
-}) {
+function GoalCategoryBlock({ category, onToggleGoal, onAddGoal }: { category: GoalCategory; onToggleGoal: (catId: string, goalId: string) => void; onAddGoal: (catId: string, label: string) => void }) {
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
-
-  const doneCount = category.goals.filter((g) => g.done).length;
+  const doneCount = category.goals.filter(g => g.done).length;
   const total = category.goals.length;
   const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
 
@@ -1036,332 +971,335 @@ function GoalCategoryBlock({
   }
 
   return (
-    <div
-      style={{
-        background: "var(--card-bg)",
-        border: "1px solid var(--card-border)",
-        borderRadius: 12,
-        overflow: "hidden",
-      }}
-    >
-      {/* Category header with progress */}
-      <div
-        style={{
-          padding: "12px 16px",
-          borderBottom: "1px solid var(--card-border)",
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--card-border)", display: "flex", alignItems: "center", gap: 10 }}>
         <div style={{ width: 3, height: 20, borderRadius: 2, background: category.color, flexShrink: 0 }} />
         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", flex: 1 }}>{category.label}</span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>
-            {doneCount}/{total}
-          </span>
-          <div
-            style={{
-              width: 72,
-              height: 5,
-              borderRadius: 3,
-              background: "var(--card-border)",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                height: "100%",
-                width: `${pct}%`,
-                background: category.color,
-                borderRadius: 3,
-                transition: "width 300ms",
-              }}
-            />
+          <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>{doneCount}/{total}</span>
+          <div style={{ width: 72, height: 5, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${pct}%`, background: category.color, borderRadius: 3, transition: "width 300ms" }} />
           </div>
-          <span
-            style={{
-              fontSize: 11,
-              fontWeight: 700,
-              color: category.color,
-              minWidth: 28,
-              textAlign: "right",
-            }}
-          >
-            {pct}%
-          </span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: category.color, minWidth: 28, textAlign: "right" }}>{pct}%</span>
         </div>
       </div>
-
-      {/* Goal items */}
       <div style={{ padding: "6px 0" }}>
         {category.goals.map((goal, idx) => (
-          <label
-            key={goal.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "8px 16px",
-              cursor: "pointer",
-              borderBottom: idx < category.goals.length - 1 ? "1px solid var(--card-border)" : "none",
-              transition: "background 80ms",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={goal.done}
-              onChange={() => onToggleGoal(category.id, goal.id)}
-              style={{ accentColor: category.color, width: 15, height: 15, cursor: "pointer", flexShrink: 0 }}
-            />
-            <span
-              style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: goal.done ? "var(--text-muted)" : "var(--text-primary)",
-                textDecoration: goal.done ? "line-through" : "none",
-                lineHeight: 1.4,
-                flex: 1,
-              }}
-            >
-              {goal.label}
-            </span>
+          <label key={goal.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", cursor: "pointer", borderBottom: idx < category.goals.length - 1 ? "1px solid var(--card-border)" : "none" }}>
+            <input type="checkbox" checked={goal.done} onChange={() => onToggleGoal(category.id, goal.id)} style={{ accentColor: category.color, width: 15, height: 15, cursor: "pointer", flexShrink: 0 }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: goal.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: goal.done ? "line-through" : "none", lineHeight: 1.4, flex: 1 }}>{goal.label}</span>
             {goal.done && <CheckCircle2 size={14} color={ACCENT_FINANCE} strokeWidth={2} />}
           </label>
         ))}
       </div>
-
-      {/* Add goal row */}
       <div style={{ padding: "8px 16px", borderTop: "1px solid var(--card-border)" }}>
         {adding ? (
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <input
-              autoFocus
-              type="text"
-              value={newLabel}
-              onChange={(e) => setNewLabel(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleAdd();
-                if (e.key === "Escape") {
-                  setAdding(false);
-                  setNewLabel("");
-                }
-              }}
-              placeholder="New goal..."
-              style={{
-                flex: 1,
-                padding: "6px 10px",
-                borderRadius: 7,
-                border: "1px solid var(--card-border)",
-                background: "var(--app-bg)",
-                color: "var(--text-primary)",
-                fontSize: 12,
-                outline: "none",
-              }}
-            />
-            <button
-              type="button"
-              onClick={handleAdd}
-              style={{
-                padding: "6px 12px",
-                borderRadius: 7,
-                border: "none",
-                background: category.color,
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 12,
-                cursor: "pointer",
-              }}
-            >
-              Add
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAdding(false);
-                setNewLabel("");
-              }}
-              style={{
-                padding: "6px",
-                borderRadius: 7,
-                border: "1px solid var(--card-border)",
-                background: "transparent",
-                color: "var(--text-muted)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <X size={13} />
-            </button>
+            <input autoFocus type="text" value={newLabel} onChange={e => setNewLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") { setAdding(false); setNewLabel(""); } }} placeholder="New goal..." style={{ flex: 1, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 12, outline: "none" }} />
+            <button type="button" onClick={handleAdd} style={{ padding: "6px 12px", borderRadius: 7, border: "none", background: category.color, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Add</button>
+            <button type="button" onClick={() => { setAdding(false); setNewLabel(""); }} style={{ padding: "6px", borderRadius: 7, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={13} /></button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              background: "transparent",
-              border: "none",
-              color: category.color,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              padding: "2px 0",
-            }}
-          >
-            <Plus size={13} />
-            Add goal
-          </button>
+          <button type="button" onClick={() => setAdding(true)} style={{ display: "flex", alignItems: "center", gap: 5, background: "transparent", border: "none", color: category.color, fontSize: 12, fontWeight: 700, cursor: "pointer", padding: "2px 0" }}><Plus size={13} />Add goal</button>
         )}
       </div>
     </div>
   );
 }
 
-// ── Tab: Goals ─────────────────────────────────────────────────────────────
-
 function GoalsTab() {
   const [categories, setCategories] = useState<GoalCategory[]>(DEFAULT_GOAL_CATEGORIES);
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("ipc_goals_v1");
+      const raw = localStorage.getItem(GOALS_KEY);
       if (raw) setCategories(JSON.parse(raw) as GoalCategory[]);
-    } catch {
-      // ignore
-    }
+    } catch {}
   }, []);
 
   function save(next: GoalCategory[]) {
     setCategories(next);
-    try {
-      localStorage.setItem("ipc_goals_v1", JSON.stringify(next));
-    } catch {
-      // ignore
-    }
+    try { localStorage.setItem(GOALS_KEY, JSON.stringify(next)); } catch {}
   }
 
   function handleToggleGoal(catId: string, goalId: string) {
-    const next = categories.map((cat) => {
-      if (cat.id !== catId) return cat;
-      return {
-        ...cat,
-        goals: cat.goals.map((g) => (g.id === goalId ? { ...g, done: !g.done } : g)),
-      };
-    });
-    save(next);
+    save(categories.map(cat => cat.id !== catId ? cat : { ...cat, goals: cat.goals.map(g => g.id === goalId ? { ...g, done: !g.done } : g) }));
   }
 
   function handleAddGoal(catId: string, label: string) {
-    const next = categories.map((cat) => {
-      if (cat.id !== catId) return cat;
-      const newGoal: GoalItem = { id: "g_" + Date.now(), label, done: false, custom: true };
-      return { ...cat, goals: [...cat.goals, newGoal] };
-    });
-    save(next);
+    save(categories.map(cat => cat.id !== catId ? cat : { ...cat, goals: [...cat.goals, { id: "g_" + Date.now(), label, done: false, custom: true }] }));
   }
 
   const totalGoals = categories.reduce((s, c) => s + c.goals.length, 0);
-  const doneGoals = categories.reduce((s, c) => s + c.goals.filter((g) => g.done).length, 0);
+  const doneGoals = categories.reduce((s, c) => s + c.goals.filter(g => g.done).length, 0);
   const overallPct = totalGoals === 0 ? 0 : Math.round((doneGoals / totalGoals) * 100);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Overall summary */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "12px 16px",
-          borderRadius: 12,
-          background: "var(--card-bg)",
-          border: "1px solid var(--card-border)",
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Milestone Goals</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-            {doneGoals} of {totalGoals} goals complete
-          </div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{doneGoals} of {totalGoals} goals complete</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              width: 110,
-              height: 6,
-              borderRadius: 3,
-              background: "var(--card-border)",
-              overflow: "hidden",
-              position: "relative",
-            }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                height: "100%",
-                width: `${overallPct}%`,
-                background: ACCENT_FINANCE,
-                borderRadius: 3,
-                transition: "width 300ms",
-              }}
-            />
+          <div style={{ width: 110, height: 6, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${overallPct}%`, background: ACCENT_FINANCE, borderRadius: 3, transition: "width 300ms" }} />
           </div>
-          <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT_FINANCE, minWidth: 32, textAlign: "right" }}>
-            {overallPct}%
-          </span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT_FINANCE, minWidth: 32, textAlign: "right" }}>{overallPct}%</span>
         </div>
       </div>
-
-      {categories.map((cat) => (
-        <GoalCategoryBlock
-          key={cat.id}
-          category={cat}
-          onToggleGoal={handleToggleGoal}
-          onAddGoal={handleAddGoal}
-        />
-      ))}
+      {categories.map(cat => <GoalCategoryBlock key={cat.id} category={cat} onToggleGoal={handleToggleGoal} onAddGoal={handleAddGoal} />)}
     </div>
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────
+// ── Stats Tab ────────────────────────────────────────────────────────────────
+
+function StatsTab() {
+  const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
+  const [habitData, setHabitData] = useState<HabitRecord[]>([]);
+  const [habits, setHabits] = useState<HabitDef[]>(DEFAULT_HABITS);
+  const [categories, setCategories] = useState<GoalCategory[]>(DEFAULT_GOAL_CATEGORIES);
+
+  useEffect(() => {
+    setScheduled(readSchedule());
+    try {
+      const raw = localStorage.getItem(HABITS_KEY);
+      if (raw) setHabitData(JSON.parse(raw) as HabitRecord[]);
+    } catch {}
+    try {
+      const rawH = localStorage.getItem(HABITS_CUSTOM_KEY);
+      if (rawH) setHabits([...DEFAULT_HABITS, ...(JSON.parse(rawH) as HabitDef[])]);
+    } catch {}
+    try {
+      const rawG = localStorage.getItem(GOALS_KEY);
+      if (rawG) setCategories(JSON.parse(rawG) as GoalCategory[]);
+    } catch {}
+  }, []);
+
+  const today = todayStr();
+
+  // This week stats
+  const weekStartDate = startOfWeekDate(new Date());
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStartDate);
+    d.setDate(weekStartDate.getDate() + i);
+    return toDateStr(d);
+  });
+  const weekScheduled = scheduled.filter(i => weekDays.includes(i.date));
+  const weekDone = weekScheduled.filter(i => i.done).length;
+  const weekTotal = weekScheduled.length;
+
+  // All-time stats
+  const allDone = scheduled.filter(i => i.done).length;
+  const allTotal = scheduled.length;
+
+  // Top 3 habits by streak
+  const habitStreaks = habits.map(h => {
+    const dates = habitData.find(r => r.habitId === h.id)?.dates ?? [];
+    return { habit: h, streak: computeStreak(dates), dates };
+  }).sort((a, b) => b.streak - a.streak).slice(0, 3);
+
+  // Goals per category
+  const goalStats = categories.map(cat => ({
+    label: cat.label,
+    color: cat.color,
+    done: cat.goals.filter(g => g.done).length,
+    total: cat.goals.length,
+  }));
+
+  // Activity heatmap: 12 weeks
+  const heatmapDays: string[] = [];
+  for (let i = 83; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    heatmapDays.push(toDateStr(d));
+  }
+  const doneDayMap = new Map<string, number>();
+  for (const item of scheduled) {
+    if (item.done) {
+      doneDayMap.set(item.date, (doneDayMap.get(item.date) ?? 0) + 1);
+    }
+  }
+  const maxDoneInDay = Math.max(1, ...Array.from(doneDayMap.values()));
+
+  function heatColor(count: number): string {
+    if (count === 0) return "var(--card-border)";
+    const intensity = Math.min(count / maxDoneInDay, 1);
+    // Blend from light blue to dark blue
+    const alpha = Math.round(intensity * 200 + 40);
+    return `rgba(37, 99, 235, ${(alpha / 255).toFixed(2)})`;
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* This Week */}
+      <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <BarChart2 size={15} color={ACCENT_CAREER} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>This Week</span>
+          <span style={{ marginLeft: "auto", fontSize: 12, color: "var(--text-muted)" }}>{weekDone} / {weekTotal} tasks</span>
+        </div>
+        <ProgressBar value={weekDone} total={weekTotal} color={ACCENT_CAREER} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginTop: 12 }}>
+          {weekDays.map(d => {
+            const dayItems = scheduled.filter(i => i.date === d);
+            const dayDone = dayItems.filter(i => i.done).length;
+            const isToday = d === today;
+            return (
+              <div key={d} style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 9, color: isToday ? ACCENT_CAREER : "var(--text-muted)", fontWeight: isToday ? 800 : 500, marginBottom: 3 }}>
+                  {DAY_LABELS_SHORT[new Date(d + "T12:00:00").getDay()]}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 800, color: isToday ? ACCENT_CAREER : "var(--text-primary)" }}>
+                  {dayItems.length === 0 ? "—" : `${dayDone}/${dayItems.length}`}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Habit Streaks */}
+      <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <Flame size={15} color="#F59E0B" />
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>Top Habit Streaks</span>
+        </div>
+        {habitStreaks.length === 0 ? (
+          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No habits tracked yet.</div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {habitStreaks.map(({ habit, streak, dates }) => {
+              const catColor = CATEGORY_COLORS[habit.category] ?? ACCENT_CAREER;
+              const last7 = getLast7Days();
+              const doneSet = new Set(dates);
+              return (
+                <div key={habit.id} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 3, height: 32, borderRadius: 2, background: catColor, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{habit.label}</div>
+                    <div style={{ display: "flex", gap: 3, marginTop: 4 }}>
+                      {last7.map(d => (
+                        <div key={d} title={d} style={{ width: 14, height: 14, borderRadius: 3, background: doneSet.has(d) ? catColor : "var(--card-border)", opacity: doneSet.has(d) ? 1 : 0.35 }} />
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                    <Flame size={13} color="#F59E0B" />
+                    <span style={{ fontSize: 15, fontWeight: 900, color: streak > 0 ? "#F59E0B" : "var(--text-muted)" }}>{streak}</span>
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>day{streak !== 1 ? "s" : ""}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Goals Progress */}
+      <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <Flag size={15} color={ACCENT_LEARNING} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>Goals Progress</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {goalStats.map(cat => (
+            <div key={cat.label}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</span>
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat.done}/{cat.total}</span>
+              </div>
+              <ProgressBar value={cat.done} total={cat.total} color={cat.color} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* All-time */}
+      <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <Target size={15} color={ACCENT_CAREER} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>All-Time</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ padding: "12px", borderRadius: 10, background: ACCENT_CAREER + "08", border: `1px solid ${ACCENT_CAREER}20`, textAlign: "center" }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: ACCENT_CAREER }}>{allTotal}</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Sessions Scheduled</div>
+          </div>
+          <div style={{ padding: "12px", borderRadius: 10, background: ACCENT_FINANCE + "08", border: `1px solid ${ACCENT_FINANCE}20`, textAlign: "center" }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: ACCENT_FINANCE }}>{allDone}</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Sessions Completed</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Activity Heatmap */}
+      <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <Calendar size={15} color={ACCENT_CAREER} />
+          <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>Activity (12 weeks)</span>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(12, 1fr)", gap: 6 }}>
+          {Array.from({ length: 12 }, (_, weekIdx) => (
+            <div key={weekIdx} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              {Array.from({ length: 7 }, (_, dayIdx) => {
+                const heatIdx = weekIdx * 7 + dayIdx;
+                const dateKey = heatmapDays[heatIdx] ?? "";
+                const count = doneDayMap.get(dateKey) ?? 0;
+                const isTodayCell = dateKey === today;
+                return (
+                  <div
+                    key={dayIdx}
+                    title={dateKey ? `${dateKey}: ${count} done` : ""}
+                    style={{
+                      width: "100%",
+                      aspectRatio: "1",
+                      borderRadius: 2,
+                      background: heatColor(count),
+                      outline: isTodayCell ? `1.5px solid ${ACCENT_CAREER}` : "none",
+                      outlineOffset: 1,
+                      transition: "background 100ms",
+                    }}
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 8, justifyContent: "flex-end" }}>
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Less</span>
+          {[0, 0.25, 0.5, 0.75, 1].map(v => (
+            <div key={v} style={{ width: 10, height: 10, borderRadius: 2, background: v === 0 ? "var(--card-border)" : `rgba(37, 99, 235, ${(v * 0.78 + 0.16).toFixed(2)})` }} />
+          ))}
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>More</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
+type TabKey = "today" | "week" | "habits" | "goals" | "stats";
 
 const TABS = [
   { key: "today", label: "Today" },
+  { key: "week", label: "Week" },
   { key: "habits", label: "Habits" },
   { key: "goals", label: "Goals" },
+  { key: "stats", label: "Stats" },
 ];
 
 export default function PlannerPage() {
-  const [activeTab, setActiveTab] = useState<"today" | "habits" | "goals">("today");
+  const [activeTab, setActiveTab] = useState<TabKey>("today");
 
   return (
     <PremiumShell hideHeader>
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {/* Page header */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <div>
-            <div
-              style={{
-                fontSize: 20,
-                fontWeight: 900,
-                color: "var(--text-primary)",
-                letterSpacing: -0.4,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
+            <div style={{ fontSize: 20, fontWeight: 900, color: "var(--text-primary)", letterSpacing: -0.4, display: "flex", alignItems: "center", gap: 8 }}>
               <Target size={20} color={ACCENT_CAREER} strokeWidth={2.2} />
               Planner
             </div>
@@ -1369,17 +1307,14 @@ export default function PlannerPage() {
               Habits, goals, and daily focus — all in one place.
             </div>
           </div>
-          <SegmentedControl
-            tabs={TABS}
-            active={activeTab}
-            onChange={(k) => setActiveTab(k as "today" | "habits" | "goals")}
-          />
+          <SegmentedControl tabs={TABS} active={activeTab} onChange={k => setActiveTab(k as TabKey)} />
         </div>
 
-        {/* Tab content */}
         {activeTab === "today" && <TodayTab />}
+        {activeTab === "week" && <WeekTab />}
         {activeTab === "habits" && <HabitsTab />}
         {activeTab === "goals" && <GoalsTab />}
+        {activeTab === "stats" && <StatsTab />}
       </div>
     </PremiumShell>
   );

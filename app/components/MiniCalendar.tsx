@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 
+const SCHED_STORAGE_KEY = "ipc_schedule_v1";
+
 type GCalEvent = {
   id: string;
   summary: string;
@@ -63,6 +65,46 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
   const [gcalEvents, setGcalEvents] = useState<GCalEvent[]>([]);
   const [gcalConnected, setGcalConnected] = useState<boolean | null>(null);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [localItems, setLocalItems] = useState<ScheduledItem[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(SCHED_STORAGE_KEY);
+      if (raw) {
+        const stored = JSON.parse(raw) as Array<{ itemId: string; label: string; stage?: string; date: string; done: boolean }>;
+        const converted: ScheduledItem[] = stored.map(s => ({
+          itemId: s.itemId,
+          label: s.label,
+          stage: s.stage ?? "",
+          done: s.done,
+          scheduledDate: s.date,
+        }));
+        setLocalItems(converted);
+      }
+    } catch {}
+  }, []);
+
+  function persistToStorage(itemId: string, date: string | null, label: string, stage: string) {
+    try {
+      const raw = localStorage.getItem(SCHED_STORAGE_KEY);
+      const stored: Array<{ itemId: string; label: string; stage: string; date: string; done: boolean }> = raw ? JSON.parse(raw) : [];
+      if (date === null) {
+        const next = stored.filter(s => s.itemId !== itemId);
+        localStorage.setItem(SCHED_STORAGE_KEY, JSON.stringify(next));
+        setLocalItems(prev => prev.filter(s => s.itemId !== itemId));
+      } else {
+        const idx = stored.findIndex(s => s.itemId === itemId);
+        const entry = { itemId, label, stage, date, done: false };
+        if (idx >= 0) stored[idx] = entry;
+        else stored.push(entry);
+        localStorage.setItem(SCHED_STORAGE_KEY, JSON.stringify(stored));
+        setLocalItems(prev => {
+          const next = prev.filter(s => s.itemId !== itemId);
+          return [...next, { itemId, label, stage, done: false, scheduledDate: date }];
+        });
+      }
+    } catch {}
+  }
 
   useEffect(() => {
     fetch("/api/google-calendar/events")
@@ -74,13 +116,26 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
       .catch(() => setGcalConnected(false));
   }, []);
 
-  // Build schedule map: dateKey → items
+  // Build schedule map: dateKey → items (merge localStorage + prop items)
   const scheduleMap = new Map<string, ScheduledItem[]>();
+  // Start with localStorage items
+  for (const item of localItems) {
+    if (item.scheduledDate) {
+      const key = item.scheduledDate.slice(0, 10);
+      if (!scheduleMap.has(key)) scheduleMap.set(key, []);
+      const arr = scheduleMap.get(key)!;
+      if (!arr.find(a => a.itemId === item.itemId)) arr.push(item);
+    }
+  }
+  // Prop items override/supplement (from API, more authoritative when loaded)
   for (const item of items) {
     if (item.scheduledDate) {
       const key = item.scheduledDate.slice(0, 10);
       if (!scheduleMap.has(key)) scheduleMap.set(key, []);
-      scheduleMap.get(key)!.push(item);
+      const arr = scheduleMap.get(key)!;
+      const idx = arr.findIndex(a => a.itemId === item.itemId);
+      if (idx >= 0) arr[idx] = item;
+      else arr.push(item);
     }
   }
 
@@ -92,7 +147,8 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
     gcalMap.get(key)!.push(ev);
   }
 
-  const unscheduled = items.filter(i => !i.scheduledDate && !i.done);
+  const scheduledIds = new Set([...items.filter(i => i.scheduledDate).map(i => i.itemId), ...localItems.filter(i => i.scheduledDate).map(i => i.itemId)]);
+  const unscheduled = items.filter(i => !scheduledIds.has(i.itemId) && !i.done);
 
   async function handleDrop(e: React.DragEvent, key: string) {
     e.preventDefault();
@@ -101,6 +157,8 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
     if (!itemId) return;
     onSchedule(itemId, key);
     setSelectedDay(key);
+    const itemObj = items.find(i => i.itemId === itemId) ?? localItems.find(i => i.itemId === itemId);
+    if (itemObj) persistToStorage(itemId, key, itemObj.label, itemObj.stage);
 
     // Also create in Google Calendar if connected
     if (gcalConnected) {
@@ -132,7 +190,11 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
     };
   }
 
-  function removeSchedule(itemId: string) { onSchedule(itemId, null); }
+  function removeSchedule(itemId: string) {
+    onSchedule(itemId, null);
+    const itemObj = items.find(i => i.itemId === itemId) ?? localItems.find(i => i.itemId === itemId);
+    persistToStorage(itemId, null, itemObj?.label ?? "", itemObj?.stage ?? "");
+  }
 
   const selectedItems = selectedDay ? (scheduleMap.get(selectedDay) ?? []) : [];
   const selectedGcal = selectedDay ? (gcalMap.get(selectedDay) ?? []) : [];
@@ -448,7 +510,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
                 <div style={{ display: "grid", gap: 5 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>Select a task:</div>
                   {unscheduled.map(item => (
-                    <button key={item.itemId} onClick={() => { onSchedule(item.itemId, selectedDay); setSchedulingOpen(false); }} style={{ textAlign: "left" as const, fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", cursor: "pointer" }}>
+                    <button key={item.itemId} onClick={() => { onSchedule(item.itemId, selectedDay); persistToStorage(item.itemId, selectedDay!, item.label, item.stage); setSchedulingOpen(false); }} style={{ textAlign: "left" as const, fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", cursor: "pointer" }}>
                       {item.label}
                     </button>
                   ))}
