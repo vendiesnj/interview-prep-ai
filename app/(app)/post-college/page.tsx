@@ -111,10 +111,6 @@ export default function PostCollegePage() {
       <div style={{ maxWidth: 1120, margin: "0 auto", paddingBottom: 80 }}>
 
         <div style={{ marginBottom: 36 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.3)", marginBottom: 14 }}>
-            <span style={{ fontSize: 16 }}>🚀</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "#8B5CF6", letterSpacing: 0.5 }}>POST-COLLEGE</span>
-          </div>
           <h1 style={{ margin: "0 0 10px", fontSize: 32, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.7, lineHeight: 1.2 }}>
             Own your career and your finances.
           </h1>

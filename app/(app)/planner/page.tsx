@@ -83,7 +83,7 @@ const DEFAULT_GOAL_CATEGORIES: GoalCategory[] = [
     label: "Skills",
     color: ACCENT_LEARNING,
     goals: [
-      { id: "sk1", label: "Take career aptitude quiz", done: false },
+      { id: "sk1", label: "Take Career Assessment", done: false },
       { id: "sk2", label: "Complete financial literacy module", done: false },
     ],
   },
@@ -115,7 +115,7 @@ function getFocusCards(day: number): { practice: FocusCard; financial: FocusCard
     return {
       practice: { title: "Interview Prep", desc: "Run through a mock behavioral question using the STAR method.", time: "15 min", href: "/practice", color: ACCENT_CAREER, label: "Practice" },
       financial: { title: "Budget Review", desc: "Check last week's spending against your budget categories.", time: "10 min", href: "/career-guide/budget", color: ACCENT_FINANCE, label: "Finance" },
-      career: { title: "Career Aptitude", desc: "Explore your strengths and work style with the aptitude quiz.", time: "20 min", href: "/aptitude", color: ACCENT_LEARNING, label: "Career" },
+      career: { title: "Career Assessment", desc: "Explore your strengths and work style with the Career Assessment.", time: "20 min", href: "/aptitude", color: ACCENT_LEARNING, label: "Career" },
     };
   }
   if (day === 2) {

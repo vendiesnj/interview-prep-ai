@@ -902,8 +902,8 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
       detail: "Only scored when you answer questions categorized as teamwork, collaboration, or conflict. Other session types don't contribute. Requires deliberate practice with teamwork-category questions to build.",
     },
     career_dev: {
-      short: "From sustained engagement: practice volume, check-in, aptitude, checklist",
-      detail: "Combines STAR result quality (growth mindset signals), aptitude quiz completion, career check-in, resume analysis, checklist progress, and total practice sessions. This is the slowest-building score — it reflects genuine long-term investment, not one-time actions.",
+      short: "From sustained engagement: practice volume, check-in, Career Assessment, checklist",
+      detail: "Combines STAR result quality (growth mindset signals), Career Assessment completion, career check-in, resume analysis, checklist progress, and total practice sessions. This is the slowest-building score — it reflects genuine long-term investment, not one-time actions.",
     },
     technology: {
       short: "From technical question answers and skills extracted from resume",

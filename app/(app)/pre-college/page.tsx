@@ -39,7 +39,7 @@ const TODOS = [
   {
     id: "college_aptitude",
     icon: "🧭",
-    label: "Major & Career Aptitude Quiz",
+    label: "Career Assessment",
     desc: "Not sure what to study? Answer a few questions to find directions that fit you.",
     href: "/aptitude?from=pre-college",
     color: "#10B981",
@@ -166,10 +166,6 @@ export default function PreCollegePage() {
 
         {/* ── Header ── */}
         <div style={{ marginBottom: 36 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)", marginBottom: 14 }}>
-            <span style={{ fontSize: 16 }}>🎓</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "#10B981", letterSpacing: 0.5 }}>PRE-COLLEGE</span>
-          </div>
           <h1 style={{ margin: "0 0 10px", fontSize: 32, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.7, lineHeight: 1.2 }}>
             Get ready for what's next.
           </h1>

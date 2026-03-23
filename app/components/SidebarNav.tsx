@@ -9,16 +9,12 @@ import {
   Mic,
   BarChart2,
   LineChart,
-  Clock,
   User,
   Settings,
-  Briefcase,
-  LibraryBig,
   Users,
   MoreHorizontal,
   X,
   BookOpen,
-  CheckSquare,
   TrendingUp,
   Radio,
   ShieldCheck,
@@ -43,7 +39,7 @@ type NavGroup = {
 
 const STUDENT_GROUPS: NavGroup[] = [
   {
-    heading: "Platform",
+    heading: "",
     items: [
       { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
       { label: "My Journey", href: "/my-journey", icon: <User size={18} /> },
@@ -59,24 +55,13 @@ const STUDENT_GROUPS: NavGroup[] = [
     ],
   },
   {
-    heading: "Resources",
+    heading: "Explore",
     items: [
-      { label: "Future-Proof Career", href: "/future-proof", icon: <ShieldCheck size={18} /> },
-      { label: "Career Aptitude", href: "/aptitude", icon: <Zap size={18} /> },
+      { label: "Career Assessment", href: "/aptitude", icon: <Zap size={18} /> },
+      { label: "Future-Proof", href: "/future-proof", icon: <ShieldCheck size={18} /> },
       { label: "Career Guide", href: "/career-guide", icon: <BookOpen size={18} /> },
       { label: "Budget Builder", href: "/career-guide/budget", icon: <LineChart size={18} /> },
       { label: "Financial Literacy", href: "/financial-literacy", icon: <BarChart2 size={18} /> },
-      { label: "Career Check-In", href: "/career-checkin", icon: <CheckSquare size={18} /> },
-    ],
-  },
-  {
-    heading: "Interview",
-    items: [
-      { label: "Question Bank", href: "/question-bank", icon: <LibraryBig size={18} /> },
-      { label: "Job Profiles", href: "/job-profiles", icon: <Briefcase size={18} /> },
-      { label: "Results", href: "/results", icon: <BarChart2 size={18} /> },
-      { label: "Insights", href: "/progress", icon: <LineChart size={18} /> },
-      { label: "Sessions", href: "/sessions", icon: <Clock size={18} /> },
     ],
   },
 ];
@@ -87,8 +72,8 @@ const STUDENT_NAV_FLAT: NavItem[] = STUDENT_GROUPS.flatMap((g) => g.items);
 const STUDENT_BOTTOM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={22} /> },
   { label: "Practice", href: "/practice", icon: <Mic size={22} /> },
-  { label: "Resources", href: "/career-guide", icon: <BookOpen size={22} /> },
-  { label: "Results", href: "/results", icon: <BarChart2 size={22} /> },
+  { label: "Journey", href: "/my-journey", icon: <User size={22} /> },
+  { label: "Explore", href: "/career-guide", icon: <BookOpen size={22} /> },
 ];
 
 const ADMIN_NAV: NavItem[] = [
@@ -210,9 +195,9 @@ export default function SidebarNav() {
                 </button>
               </div>
 
-              {STUDENT_GROUPS.map((group) => (
-                <div key={group.heading}>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", padding: "10px 12px 4px" }}>{group.heading}</div>
+              {STUDENT_GROUPS.map((group, gi) => (
+                <div key={group.heading || gi}>
+                  {group.heading && <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", padding: "10px 12px 4px" }}>{group.heading}</div>}
                   {group.items.map((item) => {
                     const active = isActive(item.href);
                     if (item.comingSoon) return (
@@ -278,9 +263,9 @@ export default function SidebarNav() {
             ))}
           </div>
         ) : (
-          STUDENT_GROUPS.map((group) => (
-            <div key={group.heading} style={{ marginBottom: 6 }}>
-              {!collapsed && (
+          STUDENT_GROUPS.map((group, gi) => (
+            <div key={group.heading || gi} style={{ marginBottom: 6 }}>
+              {!collapsed && group.heading && (
                 <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", padding: "8px 12px 4px", opacity: 0.7 }}>
                   {group.heading}
                 </div>

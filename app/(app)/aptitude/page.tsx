@@ -645,7 +645,7 @@ export default function AptitudePage() {
             <div style={{ marginBottom: showNavButtons ? 24 : 0 }}>
               {step === "intro" && (
                 <div style={{ textAlign: "center", marginBottom: 8 }}>
-                  <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Career Aptitude Assessment</h1>
+                  <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>Career Assessment</h1>
                   <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 480, margin: "0 auto" }}>
                     4 sections · ~8 minutes · Based on the RIASEC model used by O*NET and career researchers worldwide
                   </p>

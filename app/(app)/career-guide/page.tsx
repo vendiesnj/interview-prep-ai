@@ -21,7 +21,7 @@ const GUIDES = [
   {
     href: "/aptitude",
     eyebrow: "Career Fit",
-    title: "Career aptitude assessment",
+    title: "Career Assessment",
     desc: "A research-grade 60-question RIASEC assessment that maps your interests, values, and entrepreneurship fit to 300+ careers — including side hustle and entrepreneur tracks.",
     icon: "⚡",
     color: "#F59E0B",

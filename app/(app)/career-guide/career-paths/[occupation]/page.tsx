@@ -99,7 +99,7 @@ export default function OccupationProfilePage({ params }: Props) {
               </div>
               <p style={{ margin: "12px 0 0", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
                 This occupation most strongly matches people with <strong>{riasecLetters.map(l => RIASEC_LABELS[l]).join(", ")}</strong> interests.{" "}
-                Complete the <Link href="/aptitude" style={{ color: "var(--accent)" }}>Career Aptitude Assessment</Link> to see how well your profile aligns.
+                Complete the <Link href="/aptitude" style={{ color: "var(--accent)" }}>Career Assessment</Link> to see how well your profile aligns.
               </p>
             </Card>
 

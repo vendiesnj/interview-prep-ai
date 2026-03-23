@@ -281,7 +281,7 @@ export default function FutureProofPage() {
                 Based on your career aptitude profile, we can match side income opportunities that align with your skills and interests — from freelancing to product businesses to trade work.
               </p>
               <Link href="/aptitude" style={{ display: "inline-block", padding: "9px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>
-                Take aptitude quiz →
+                Take Career Assessment →
               </Link>
             </div>
             <div style={{ padding: "22px 24px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>

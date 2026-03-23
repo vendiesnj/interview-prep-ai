@@ -56,7 +56,7 @@ const TRACKS: Record<string, TrackItem[]> = {
     { id: "networking_1", icon: "🤝", label: "Networking Pitch Practice", desc: "Learn to introduce yourself at orientation, fairs, and campus events.", href: "/networking", color: "#0EA5E9", time: "~10 min" },
     { id: "fafsa_guide", icon: "📋", label: "FAFSA & Financial Aid", desc: "Understanding your award letter, deadlines, and what to do next.", href: "/career-guide/finances?from=pre-college", color: "#F59E0B", time: "5 min read", guideOnly: true },
     { id: "credit_guide", icon: "💳", label: "Building Credit Early", desc: "Why starting now matters and how to do it safely as a student.", href: "/career-guide/finances?from=pre-college", color: "#F59E0B", time: "5 min read", guideOnly: true },
-    { id: "college_aptitude", icon: "🧭", label: "Major & Career Aptitude Quiz", desc: "Answer a few questions to find majors and career paths that fit how you think.", href: "/aptitude?from=pre-college", color: "#10B981", time: "~5 min" },
+    { id: "college_aptitude", icon: "🧭", label: "Career Assessment", desc: "Answer a few questions to find majors and career paths that fit how you think.", href: "/aptitude?from=pre-college", color: "#10B981", time: "~5 min" },
   ],
   during_college: [
     { id: "interview_prep_1", icon: "🎙️", label: "Interview Prep Session", desc: "Practice behavioral questions for internship and job interviews.", href: "/practice", color: "#2563EB", time: "~15 min" },

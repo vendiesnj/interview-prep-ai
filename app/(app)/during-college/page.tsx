@@ -12,7 +12,7 @@ const TODOS = [
   { id: "networking",      icon: "🤝", label: "Networking Pitch Practice",  desc: "Career fair cold approaches, LinkedIn outreach, and alumni coffee chats.",             href: "/networking",     color: "#0EA5E9", time: "~10 min" },
   { id: "public_speaking", icon: "🎤", label: "Public Speaking Session",    desc: "Class presentations, club pitches, and leadership panel prep.",                        href: "/public-speaking", color: "#8B5CF6", time: "~10 min" },
   { id: "career_checkin",  icon: "✅", label: "Career Check-In",            desc: "Log your GPA, internship status, salary goals, and financial snapshot.",               href: "/career-checkin",  color: "#10B981", time: "~5 min" },
-  { id: "aptitude",        icon: "🧭", label: "Job Fit & Aptitude Quiz",    desc: "Answer questions about your strengths and interests to surface career directions.",     href: "/aptitude?from=during-college", color: "#F59E0B", time: "~5 min" },
+  { id: "aptitude",        icon: "🧭", label: "Career Assessment",           desc: "Answer questions about your strengths and interests to surface career directions.",     href: "/aptitude?from=during-college", color: "#F59E0B", time: "~5 min" },
   { id: "budget_tool", icon: "💳", label: "Monthly Budget Builder", desc: "Track internship income, rent, groceries, and subscriptions to see where your money goes in real time.", href: "/career-guide/budget", color: "#10B981", time: "~5 min" },
 ];
 
@@ -111,10 +111,6 @@ export default function DuringCollegePage() {
       <div style={{ maxWidth: 1120, margin: "0 auto", paddingBottom: 80 }}>
 
         <div style={{ marginBottom: 36 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.3)", marginBottom: 14 }}>
-            <span style={{ fontSize: 16 }}>📚</span>
-            <span style={{ fontSize: 12, fontWeight: 900, color: "#2563EB", letterSpacing: 0.5 }}>DURING COLLEGE</span>
-          </div>
           <h1 style={{ margin: "0 0 10px", fontSize: 32, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.7, lineHeight: 1.2 }}>
             Build skills that land opportunities.
           </h1>

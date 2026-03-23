@@ -413,7 +413,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
             <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>BROWSE ALL OCCUPATIONS</div>
             <Link href="/aptitude" style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>
-              Take aptitude quiz to find your match →
+              Take Career Assessment to find your match →
             </Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>

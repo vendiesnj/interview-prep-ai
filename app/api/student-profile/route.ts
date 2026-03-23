@@ -492,7 +492,7 @@ export async function GET() {
     professionalism:  { title: "Build your presence",       description: "Practice public speaking to strengthen composure and reduce filler words.", href: "/public-speaking" },
     leadership:       { title: "Demonstrate initiative",    description: "Your STAR action scores suggest room to better highlight your decision-making. Practice leadership-focused questions.", href: "/practice" },
     teamwork:         { title: "Try Career Instincts",      description: "Play scenario-based situations to build your teamwork and collaboration profile.", href: "/career-instincts" },
-    career_dev:       { title: "Complete your profile",     description: "Finish the aptitude quiz and career check-in to strengthen your Career Development score.", href: "/aptitude" },
+    career_dev:       { title: "Complete your profile",     description: "Finish the Career Assessment and career check-in to strengthen your Career Development score.", href: "/aptitude" },
     technology:       { title: "Upload your resume",        description: "A resume analysis will surface technical skills and boost your Technology competency score.", href: "/resume-gap" },
     equity_inclusion: { title: "Explore Career Instincts",  description: "Play through diversity and inclusion scenarios to build your equity score.", href: "/career-instincts" },
   };
