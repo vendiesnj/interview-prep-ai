@@ -9,6 +9,7 @@ import StreakBanner from "@/app/components/StreakBanner";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import { matchOccupations } from "@/app/lib/onet-occupations";
+import DailyGamesWidget from "@/app/components/DailyGamesWidget";
 
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
@@ -248,6 +249,8 @@ export default function DashboardPage() {
         </div>
 
         <StreakBanner />
+
+        <DailyGamesWidget />
 
         {/* ── Annual reassessment nudge ── */}
         {needsReassessment && (

@@ -22,6 +22,7 @@ import {
   Clock,
   Trash2,
   Flag,
+  Heart,
 } from "lucide-react";
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -88,15 +89,17 @@ const ACCENT_CAREER = "#2563EB";
 const ACCENT_FINANCE = "#10B981";
 const ACCENT_LEARNING = "#8B5CF6";
 const ACCENT_MINDSET = "#F59E0B";
+const ACCENT_PERSONAL = "#EC4899";
 
 const CATEGORY_COLORS: Record<string, string> = {
   Career: ACCENT_CAREER,
   Finance: ACCENT_FINANCE,
   Learning: ACCENT_LEARNING,
   Mindset: ACCENT_MINDSET,
+  Personal: ACCENT_PERSONAL,
 };
 
-const CATEGORIES = ["Career", "Finance", "Learning", "Mindset"] as const;
+const CATEGORIES = ["Career", "Finance", "Learning", "Mindset", "Personal"] as const;
 type CategoryName = typeof CATEGORIES[number];
 
 const TIME_OPTIONS = ["5min", "15min", "30min", "60min"];
@@ -110,6 +113,7 @@ function CategoryIcon({ category, size = 14 }: { category: string; size?: number
   if (category === "Finance") return <DollarSign {...props} />;
   if (category === "Learning") return <BookOpen {...props} />;
   if (category === "Mindset") return <Brain {...props} />;
+  if (category === "Personal") return <Heart {...props} />;
   return <Target {...props} />;
 }
 

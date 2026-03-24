@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { X, MoreHorizontal, ChevronLeft, MessageSquare, Home, Mic, BarChart2, Map } from "lucide-react";
+import { X, MoreHorizontal, ChevronLeft, MessageSquare, Home, Mic, BarChart2, Map, Gamepad2 } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
@@ -45,6 +45,10 @@ const ROUTE_LABELS: Record<string, string> = {
   "/history":                     "History",
   "/career-instincts":            "Career Instincts",
   "/admin":                       "Admin",
+  "/games":                       "Daily Games",
+  "/games/connections":           "Career Connections",
+  "/games/hustle":                "Hustle",
+  "/games/career-of-the-day":    "Career of the Day",
 };
 
 function getPageLabel(pathname: string): string {
@@ -81,6 +85,7 @@ const MOBILE_NAV = [
 ];
 
 const MOBILE_DRAWER_LINKS = [
+  { label: "Daily Games",          href: "/games" },
   { label: "Planner",              href: "/planner" },
   { label: "Career Assessment",    href: "/aptitude" },
   { label: "Future-Proof",         href: "/future-proof" },
@@ -247,6 +252,10 @@ export default function TopNav() {
       {/* Right side */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", flexShrink: 0 }}>
         <BillingSidebarButton collapsed={true} />
+        <Link href="/games" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/games") ? "var(--accent)" : "var(--text-muted)", background: isActive("/games") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
+          <Gamepad2 size={14} />
+          Games
+        </Link>
         <Link href="/planner" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/planner") ? "var(--accent)" : "var(--text-muted)", background: isActive("/planner") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
           Planner
         </Link>

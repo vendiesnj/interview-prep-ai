@@ -6,6 +6,15 @@ import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 import CreateAssignmentForm from "@/app/components/CreateAssignmentForm";
 import { BulkEnrollForm } from "@/app/components/BulkEnrollForm";
+import {
+  LayoutDashboard,
+  Users,
+  UserCircle,
+  Mic,
+  Briefcase,
+  ClipboardList,
+  TrendingUp,
+} from "lucide-react";
 
 import {
   asOverall100,
@@ -384,7 +393,17 @@ function KpiCard({
   subtext: string;
 }) {
   return (
-    <GlowCard padding={18} radius={20}>
+    <div
+      style={{
+        borderRadius: 20,
+        padding: 18,
+        background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+        border: "1px solid var(--card-border-soft)",
+        boxShadow: "var(--shadow-card-soft)",
+        backdropFilter: "blur(8px)",
+        borderLeft: "3px solid var(--accent)",
+      }}
+    >
       <div
         style={{
           fontSize: 11,
@@ -422,7 +441,7 @@ function KpiCard({
       >
         {subtext}
       </div>
-    </GlowCard>
+    </div>
   );
 }
 
@@ -1441,6 +1460,11 @@ const stalledPct =
     ? Math.round((stalledStudents / filteredStudents.length) * 100)
     : 0;
 
+const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+const activeThisWeek = filteredAttempts.filter(
+  (a) => new Date(a.ts) >= sevenDaysAgo
+).length;
+
   const avgScoreDisplay = avgScore !== null ? avgScore.toFixed(0) : " - ";
   const avgCommunicationDisplay =
     avgCommunication !== null ? `${pctFrom10(avgCommunication)}%` : " - ";
@@ -1483,25 +1507,25 @@ const stalledPct =
       <div style={{ marginTop: 8, display: "grid", gap: 18 }}>
 
         {/* ── Tab navigation ─────────────────────────────────────────── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {/* Primary tabs */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Primary tabs with icons */}
           <div style={{
             display: "flex",
-            gap: 2,
-            padding: "4px",
-            borderRadius: 14,
+            gap: 3,
+            padding: "5px",
+            borderRadius: 16,
             border: "1px solid var(--card-border-soft)",
             background: "var(--card-bg)",
             flexWrap: "wrap",
           }}>
             {[
-              { key: "overview",    label: "Overview" },
-              { key: "students",    label: "Students" },
-              { key: "profiles",    label: "Student Profiles" },
-              { key: "practice",    label: "Speaking & Delivery" },
-              { key: "jobs",        label: "Job Profiles" },
-              { key: "assignments", label: "Assignments" },
-              { key: "outcomes",    label: "Outcomes" },
+              { key: "overview",    label: "Overview",          Icon: LayoutDashboard },
+              { key: "students",    label: "Students",          Icon: Users },
+              { key: "profiles",    label: "Student Profiles",  Icon: UserCircle },
+              { key: "practice",    label: "Speaking & Delivery", Icon: Mic },
+              { key: "jobs",        label: "Job Profiles",      Icon: Briefcase },
+              { key: "assignments", label: "Assignments",       Icon: ClipboardList },
+              { key: "outcomes",    label: "Outcomes",          Icon: TrendingUp },
             ].map((tab) => {
               const isActive = activeTab === tab.key;
               const cohortSuffix = activeCohort !== "all" ? `&cohort=${activeCohort}` : "";
@@ -1512,8 +1536,11 @@ const stalledPct =
                   style={{ textDecoration: "none", flex: "0 0 auto" }}
                 >
                   <div style={{
-                    padding: "8px 16px",
-                    borderRadius: 10,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "8px 14px",
+                    borderRadius: 11,
                     fontSize: 13,
                     fontWeight: 600,
                     cursor: "pointer",
@@ -1522,6 +1549,7 @@ const stalledPct =
                     transition: "all 0.15s ease",
                     whiteSpace: "nowrap",
                   }}>
+                    <tab.Icon size={14} />
                     {tab.label}
                   </div>
                 </Link>
@@ -1532,6 +1560,9 @@ const stalledPct =
           {/* Secondary controls: cohort filter + quick links + export */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" }}>
+                Cohort
+              </span>
               {[
                 { key: "all", label: "All" },
                 { key: "high", label: "High-performing" },
@@ -1546,7 +1577,7 @@ const stalledPct =
                     style={{ textDecoration: "none" }}
                   >
                     <div style={{
-                      padding: "6px 12px",
+                      padding: "5px 12px",
                       borderRadius: 999,
                       fontSize: 12,
                       fontWeight: 600,
@@ -1560,22 +1591,19 @@ const stalledPct =
                   </Link>
                 );
               })}
-              <span style={{ fontSize: 11, color: "var(--text-soft)", paddingLeft: 4 }}>
-                Cohort filter applies globally
-              </span>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <Link href="/admin/roster" style={{ textDecoration: "none" }}>
-                <div style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--card-border-soft)", color: "var(--text-muted)", cursor: "pointer" }}>
+                <div style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--card-border-soft)", color: "var(--text-muted)", cursor: "pointer" }}>
                   Roster
                 </div>
               </Link>
               <Link href="/admin/compliance" style={{ textDecoration: "none" }}>
-                <div style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid rgba(22,163,74,0.25)", background: "rgba(22,163,74,0.05)", color: "#16A34A", cursor: "pointer" }}>
+                <div style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid rgba(22,163,74,0.25)", background: "rgba(22,163,74,0.05)", color: "#16A34A", cursor: "pointer" }}>
                   FERPA
                 </div>
               </Link>
-              <a href="/api/admin/export" style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none" }}>
+              <a href="/api/admin/export" style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none" }}>
                 Export
               </a>
             </div>
@@ -1584,364 +1612,378 @@ const stalledPct =
 
         {/* ── OVERVIEW TAB ─────────────────────────────────────────────── */}
         {activeTab === "overview" && (
-          <div style={{ display: "grid", gap: 18 }}>
-            {/* KPI cards */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: 14,
-              }}
-            >
-              <KpiCard
-                label="Students"
-                value={String(filteredStudents.length)}
-                subtext={
-                  activeCohort === "all"
-                    ? "Users in the current tenant."
-                    : "Students in the selected cohort."
-                }
-              />
-              <KpiCard
-                label="Total Sessions"
-                value={String(totalAttempts)}
-                subtext={`Interview: ${filteredInterviewAttempts.length} · Networking: ${filteredNetworkingAttempts.length} · Public Speaking: ${filteredPsAttempts.length}`}
-              />
-              <KpiCard
-                label="At-Risk Students"
-                value={`${atRiskPct}%`}
-                subtext="Students currently needing coaching support."
-              />
-              <KpiCard
-                label="Student Readiness"
-                value={avgScoreDisplay}
-                subtext="Average speaking score across all practice modules."
-              />
-              <KpiCard
-                label="Avg Attempts / Student"
-                value={attemptsPerStudent}
-                subtext="practice volume"
-              />
-              <KpiCard
-                label="Stalled Students"
-                value={`${stalledStudents} (${stalledPct}%)`}
-                subtext="no practice in 14+ days"
-              />
+          <div style={{ display: "grid", gap: 28 }}>
+
+            {/* ── Section 1: AT A GLANCE ──────────────────────────────── */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
+                At a Glance
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(4, 1fr)",
+                  gap: 20,
+                }}
+              >
+                <KpiCard
+                  label="Students Enrolled"
+                  value={String(filteredStudents.length)}
+                  subtext={
+                    activeCohort === "all"
+                      ? "Total students in this tenant."
+                      : "Students in the selected cohort."
+                  }
+                />
+                <KpiCard
+                  label="Total Sessions"
+                  value={String(totalAttempts)}
+                  subtext={`Interview: ${filteredInterviewAttempts.length} · Networking: ${filteredNetworkingAttempts.length} · Speaking: ${filteredPsAttempts.length}`}
+                />
+                <KpiCard
+                  label="Avg Score"
+                  value={avgScoreDisplay}
+                  subtext="Average speaking score across all practice modules."
+                />
+                <KpiCard
+                  label="Active This Week"
+                  value={String(activeThisWeek)}
+                  subtext="Sessions completed in the last 7 days."
+                />
+              </div>
             </div>
 
-            {/* Score Trend + At-Risk panels */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1.4fr 1fr",
-                gap: 18,
-              }}
-            >
-              <Panel eyebrow="Analytics" title="Score Trend (12 weeks)">
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 800,
-                    color:
-                      overallTrendDelta === null
-                        ? "var(--text-muted)"
-                        : overallTrendDelta > 3
-                        ? "var(--chart-positive)"
-                        : overallTrendDelta < -3
-                        ? "var(--chart-critical)"
-                        : "var(--text-muted)",
-                    marginBottom: 14,
-                  }}
-                >
-                  {overallTrendLabel}
-                </div>
-
-                <div style={{ position: "relative", height: 120 }}>
-                  <svg
-                    width="100%"
-                    height="120"
-                    viewBox="0 0 660 120"
-                    preserveAspectRatio="none"
-                    style={{ display: "block" }}
+            {/* ── Section 2: ENGAGEMENT SIGNALS ───────────────────────── */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
+                Engagement Signals
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1.4fr 1fr",
+                  gap: 22,
+                }}
+              >
+                {/* Score Trend */}
+                <Panel eyebrow="Analytics" title="Score Trend (12 weeks)">
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color:
+                        overallTrendDelta === null
+                          ? "var(--text-muted)"
+                          : overallTrendDelta > 3
+                          ? "var(--chart-positive)"
+                          : overallTrendDelta < -3
+                          ? "var(--chart-critical)"
+                          : "var(--text-muted)",
+                      marginBottom: 14,
+                    }}
                   >
-                    {weeklyTrend.map((week, i) => {
-                      const barWidth = 44;
-                      const gap = 11;
-                      const x = i * (barWidth + gap);
-                      const chartH = 90;
-                      const barH = week.avg !== null ? Math.round((week.avg / 100) * chartH) : 0;
-                      const y = chartH - barH;
+                    {overallTrendLabel}
+                  </div>
 
-                      return (
-                        <g key={i}>
-                          {week.avg !== null ? (
-                            <>
+                  <div style={{ position: "relative", height: 120 }}>
+                    <svg
+                      width="100%"
+                      height="120"
+                      viewBox="0 0 660 120"
+                      preserveAspectRatio="none"
+                      style={{ display: "block" }}
+                    >
+                      {weeklyTrend.map((week, i) => {
+                        const barWidth = 44;
+                        const gap = 11;
+                        const x = i * (barWidth + gap);
+                        const chartH = 90;
+                        const barH = week.avg !== null ? Math.round((week.avg / 100) * chartH) : 0;
+                        const y = chartH - barH;
+
+                        return (
+                          <g key={i}>
+                            {week.avg !== null ? (
+                              <>
+                                <rect
+                                  x={x}
+                                  y={y}
+                                  width={barWidth}
+                                  height={barH}
+                                  rx={4}
+                                  fill="var(--accent)"
+                                  opacity="0.85"
+                                />
+                                <text
+                                  x={x + barWidth / 2}
+                                  y={y - 4}
+                                  textAnchor="middle"
+                                  fontSize="9"
+                                  fill="var(--text-muted)"
+                                  fontWeight="800"
+                                >
+                                  {week.avg}
+                                </text>
+                              </>
+                            ) : (
                               <rect
                                 x={x}
-                                y={y}
+                                y={0}
                                 width={barWidth}
-                                height={barH}
+                                height={chartH}
                                 rx={4}
-                                fill="var(--accent)"
-                                opacity="0.85"
+                                fill="none"
+                                stroke="var(--card-border-soft)"
+                                strokeWidth="1"
+                                strokeDasharray="3 3"
+                                opacity="0.5"
                               />
+                            )}
+                            {i % 3 === 0 && (
                               <text
                                 x={x + barWidth / 2}
-                                y={y - 4}
+                                y={110}
                                 textAnchor="middle"
                                 fontSize="9"
                                 fill="var(--text-muted)"
-                                fontWeight="800"
+                                fontWeight="700"
                               >
-                                {week.avg}
+                                {week.label}
                               </text>
-                            </>
-                          ) : (
-                            <rect
-                              x={x}
-                              y={0}
-                              width={barWidth}
-                              height={chartH}
-                              rx={4}
-                              fill="none"
-                              stroke="var(--card-border-soft)"
-                              strokeWidth="1"
-                              strokeDasharray="3 3"
-                              opacity="0.5"
-                            />
-                          )}
-                          {i % 3 === 0 && (
-                            <text
-                              x={x + barWidth / 2}
-                              y={110}
-                              textAnchor="middle"
-                              fontSize="9"
-                              fill="var(--text-muted)"
-                              fontWeight="700"
-                            >
-                              {week.label}
-                            </text>
-                          )}
-                        </g>
-                      );
-                    })}
-                  </svg>
-                </div>
-              </Panel>
+                            )}
+                          </g>
+                        );
+                      })}
+                    </svg>
+                  </div>
+                </Panel>
 
-              <Panel eyebrow="Interventions" title="At-Risk Students">
-                {atRiskStudentRows.length > 0 ? (
-                  <div style={{ display: "grid", gap: 10 }}>
-                    {atRiskStudentRows.map((s) => {
-                      const weakness = getTopWeakness(s);
-                      const intervention = getIntervention(s);
-                      return (
-                        <div
-                          key={s.id}
-                          style={{
-                            padding: "12px 14px",
-                            borderRadius: 14,
-                            border: "1px solid var(--card-border-soft)",
-                            background: "var(--card-bg)",
-                          }}
-                        >
+                {/* Engagement Funnel */}
+                {(() => {
+                  const total = filteredStudents.length;
+                  const funnelSteps = [
+                    { label: "Enrolled", count: total, desc: "Total students in this cohort" },
+                    { label: "Started", count: filteredStudents.filter((s) => s.attempts > 0).length, desc: "Completed at least 1 attempt" },
+                    { label: "Building habit", count: filteredStudents.filter((s) => s.attempts >= 3).length, desc: "3 or more attempts" },
+                    { label: "Active", count: filteredStudents.filter((s) => s.attempts >= 10).length, desc: "10 or more attempts" },
+                    { label: "High-performing", count: filteredStudents.filter((s) => (s.avgScore100 ?? 0) >= 80).length, desc: "Avg score 80+ (interview-ready)" },
+                  ];
+                  return (
+                    <Panel eyebrow="Student Journey" title="Engagement Funnel">
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {funnelSteps.map((step, i) => {
+                          const pct = total > 0 ? Math.round((step.count / total) * 100) : 0;
+                          const opacity = 1 - i * 0.12;
+                          return (
+                            <div key={step.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                                <div>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{step.label}</div>
+                                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{step.desc}</div>
+                                </div>
+                                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                  <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>{step.count}</div>
+                                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{pct}%</div>
+                                </div>
+                              </div>
+                              <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99, opacity }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Panel>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* ── Section 3: NEEDS ATTENTION ──────────────────────────── */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
+                Needs Attention
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
+                {/* At-Risk Students */}
+                <Panel eyebrow="Interventions" title="At-Risk Students">
+                  {atRiskStudentRows.length > 0 ? (
+                    <div style={{ display: "grid", gap: 10 }}>
+                      {atRiskStudentRows.map((s) => {
+                        const weakness = getTopWeakness(s);
+                        const intervention = getIntervention(s);
+                        return (
                           <div
+                            key={s.id}
                             style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "flex-start",
-                              gap: 10,
+                              padding: "12px 14px",
+                              borderRadius: 14,
+                              border: "1px solid var(--card-border-soft)",
+                              background: "var(--card-bg)",
                             }}
                           >
-                            <div style={{ minWidth: 0 }}>
-                              <div
-                                style={{
-                                  fontSize: 13,
-                                  fontWeight: 900,
-                                  color: "var(--text-primary)",
-                                }}
-                              >
-                                {s.name}
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                gap: 10,
+                              }}
+                            >
+                              <div style={{ minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    fontSize: 13,
+                                    fontWeight: 900,
+                                    color: "var(--text-primary)",
+                                  }}
+                                >
+                                  {s.name}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: 12,
+                                    color: "var(--text-muted)",
+                                    marginTop: 2,
+                                  }}
+                                >
+                                  {s.email}
+                                </div>
                               </div>
                               <div
                                 style={{
-                                  fontSize: 12,
-                                  color: "var(--text-muted)",
-                                  marginTop: 2,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "flex-end",
+                                  gap: 4,
+                                  flexShrink: 0,
                                 }}
                               >
-                                {s.email}
+                                <div
+                                  style={{
+                                    padding: "3px 8px",
+                                    borderRadius: 999,
+                                    background: "var(--chart-critical-soft, var(--accent-soft))",
+                                    color: "var(--chart-critical, var(--accent))",
+                                    fontSize: 11,
+                                    fontWeight: 900,
+                                  }}
+                                >
+                                  {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : " - "}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: 11,
+                                    fontWeight: 800,
+                                    color: "var(--text-muted)",
+                                    textAlign: "right",
+                                  }}
+                                >
+                                  {weakness}
+                                </div>
                               </div>
                             </div>
                             <div
                               style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "flex-end",
-                                gap: 4,
-                                flexShrink: 0,
+                                marginTop: 8,
+                                fontSize: 11,
+                                color: "var(--text-muted)",
+                                fontStyle: "italic",
+                                lineHeight: 1.6,
                               }}
                             >
-                              <div
-                                style={{
-                                  padding: "3px 8px",
-                                  borderRadius: 999,
-                                  background: "var(--chart-critical-soft, var(--accent-soft))",
-                                  color: "var(--chart-critical, var(--accent))",
-                                  fontSize: 11,
-                                  fontWeight: 900,
-                                }}
-                              >
-                                {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : " - "}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 11,
-                                  fontWeight: 800,
-                                  color: "var(--text-muted)",
-                                  textAlign: "right",
-                                }}
-                              >
-                                {weakness}
-                              </div>
-                            </div>
-                          </div>
-                          <div
-                            style={{
-                              marginTop: 8,
-                              fontSize: 11,
-                              color: "var(--text-muted)",
-                              fontStyle: "italic",
-                              lineHeight: 1.6,
-                            }}
-                          >
-                            {intervention}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      padding: "12px 14px",
-                      borderRadius: 14,
-                      border: "1px solid var(--card-border-soft)",
-                      background: "var(--card-bg)",
-                      fontSize: 13,
-                      color: "var(--text-muted)",
-                    }}
-                  >
-                    No at-risk students in this cohort.
-                  </div>
-                )}
-              </Panel>
-            </div>
-
-            {/* Engagement Funnel + Category Performance */}
-            {(() => {
-              const total = filteredStudents.length;
-              const funnelSteps = [
-                { label: "Enrolled", count: total, desc: "Total students in this cohort" },
-                { label: "Started", count: filteredStudents.filter((s) => s.attempts > 0).length, desc: "Completed at least 1 attempt" },
-                { label: "Building habit", count: filteredStudents.filter((s) => s.attempts >= 3).length, desc: "3 or more attempts" },
-                { label: "Active", count: filteredStudents.filter((s) => s.attempts >= 10).length, desc: "10 or more attempts" },
-                { label: "High-performing", count: filteredStudents.filter((s) => (s.avgScore100 ?? 0) >= 80).length, desc: "Avg score 80+ (interview-ready)" },
-              ];
-
-              const catScoreMap = new Map<string, number[]>();
-              for (const a of filteredAttempts) {
-                const raw = safeLabel(a.questionCategory, "other");
-                const label = titleCaseLabel(raw);
-                const score = getAttemptScore(a);
-                if (score !== null) {
-                  if (!catScoreMap.has(label)) catScoreMap.set(label, []);
-                  catScoreMap.get(label)!.push(score);
-                }
-              }
-              const catPerf = Array.from(catScoreMap.entries())
-                .map(([label, scores]) => ({
-                  label,
-                  avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
-                  count: scores.length,
-                }))
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 6);
-
-              return (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-                  <Panel eyebrow="Student Journey" title="Engagement Funnel">
-                    <div style={{ display: "grid", gap: 8 }}>
-                      {funnelSteps.map((step, i) => {
-                        const pct = total > 0 ? Math.round((step.count / total) * 100) : 0;
-                        const opacity = 1 - i * 0.12;
-                        return (
-                          <div key={step.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                              <div>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{step.label}</div>
-                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{step.desc}</div>
-                              </div>
-                              <div style={{ textAlign: "right", flexShrink: 0 }}>
-                                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--accent)" }}>{step.count}</div>
-                                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{pct}%</div>
-                              </div>
-                            </div>
-                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                              <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99, opacity }} />
+                              {intervention}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                  </Panel>
+                  ) : (
+                    <div
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 14,
+                        border: "1px solid var(--card-border-soft)",
+                        background: "var(--card-bg)",
+                        fontSize: 13,
+                        color: "var(--text-muted)",
+                      }}
+                    >
+                      No at-risk students in this cohort.
+                    </div>
+                  )}
+                </Panel>
 
-                  <Panel eyebrow="Skill Breakdown" title="Category Performance">
-                    {catPerf.length === 0 ? (
-                      <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                        No scored attempts yet. Category performance data will appear once students practice.
-                      </div>
-                    ) : (
-                      <div style={{ display: "grid", gap: 8 }}>
-                        {catPerf.map((cat) => {
-                          const color = cat.avg >= 75 ? "#10B981" : cat.avg >= 60 ? "#F59E0B" : "var(--chart-critical)";
-                          return (
-                            <div key={cat.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat.count} attempts</span>
-                                  <span style={{ fontSize: 14, fontWeight: 700, color }}>{cat.avg}</span>
+                {/* Category Performance */}
+                {(() => {
+                  const catScoreMap = new Map<string, number[]>();
+                  for (const a of filteredAttempts) {
+                    const raw = safeLabel(a.questionCategory, "other");
+                    const label = titleCaseLabel(raw);
+                    const score = getAttemptScore(a);
+                    if (score !== null) {
+                      if (!catScoreMap.has(label)) catScoreMap.set(label, []);
+                      catScoreMap.get(label)!.push(score);
+                    }
+                  }
+                  const catPerf = Array.from(catScoreMap.entries())
+                    .map(([label, scores]) => ({
+                      label,
+                      avg: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+                      count: scores.length,
+                    }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 6);
+
+                  return (
+                    <Panel eyebrow="Skill Breakdown" title="Category Performance">
+                      {catPerf.length === 0 ? (
+                        <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                          No scored attempts yet. Category performance data will appear once students practice.
+                        </div>
+                      ) : (
+                        <div style={{ display: "grid", gap: 8 }}>
+                          {catPerf.map((cat) => {
+                            const color = cat.avg >= 75 ? "#10B981" : cat.avg >= 60 ? "#F59E0B" : "var(--chart-critical)";
+                            return (
+                              <div key={cat.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                    <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat.count} attempts</span>
+                                    <span style={{ fontSize: 14, fontWeight: 700, color }}>{cat.avg}</span>
+                                  </div>
+                                </div>
+                                <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                  <div style={{ height: "100%", width: `${cat.avg}%`, background: color, borderRadius: 99 }} />
                                 </div>
                               </div>
-                              <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                                <div style={{ height: "100%", width: `${cat.avg}%`, background: color, borderRadius: 99 }} />
-                              </div>
-                            </div>
-                          );
-                        })}
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, paddingTop: 4 }}>
-                          Scores shown as 0–100 average per category. Categories below 60 suggest cohort-wide coaching opportunity.
+                            );
+                          })}
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, paddingTop: 4 }}>
+                            Scores shown as 0–100 average per category. Categories below 60 suggest cohort-wide coaching opportunity.
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </Panel>
-                </div>
-              );
-            })()}
+                      )}
+                    </Panel>
+                  );
+                })()}
+              </div>
+            </div>
+
           </div>
         )}
 
         {/* ── STUDENTS TAB ─────────────────────────────────────────────── */}
         {activeTab === "students" && (
-          <div style={{ display: "grid", gap: 18 }}>
+          <div style={{ display: "grid", gap: 22 }}>
             <BulkEnrollForm />
 
             {/* Full Student Roster */}
-            <GlowCard padding={22} radius={22}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 18 }}>
+            <GlowCard padding={24} radius={22}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
                     Student Roster
                   </div>
                   <div style={{ fontSize: 20, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)" }}>
@@ -1950,7 +1992,7 @@ const stalledPct =
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 10 }}>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 12 }}>
                     <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
                       <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--chart-positive)", display: "inline-block" }} />
                       High ≥80
@@ -1972,14 +2014,14 @@ const stalledPct =
                 display: "grid",
                 gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
                 gap: 12,
-                padding: "0 14px 10px 14px",
+                padding: "0 16px 10px 16px",
                 fontSize: 11,
                 fontWeight: 900,
                 letterSpacing: 0.6,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
                 borderBottom: "1px solid var(--card-border-soft)",
-                marginBottom: 8,
+                marginBottom: 4,
               }}>
                 <div>Student</div>
                 <div>Score</div>
@@ -1991,8 +2033,8 @@ const stalledPct =
                 <div />
               </div>
 
-              <div style={{ display: "grid", gap: 6 }}>
-                {attemptsByUser.length > 0 ? attemptsByUser.map((row) => {
+              <div style={{ display: "grid", gap: 0 }}>
+                {attemptsByUser.length > 0 ? attemptsByUser.map((row, rowIndex) => {
                   const cohortColor =
                     row.cohort === "high"
                       ? "var(--chart-positive)"
@@ -2029,10 +2071,10 @@ const stalledPct =
                         gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
                         gap: 12,
                         alignItems: "center",
-                        padding: "11px 14px",
-                        borderRadius: 14,
+                        padding: "11px 16px",
+                        borderRadius: 12,
                         border: "1px solid var(--card-border-soft)",
-                        background: "var(--card-bg)",
+                        background: rowIndex % 2 === 0 ? "var(--card-bg)" : "var(--card-bg-strong)",
                         cursor: "pointer",
                         transition: "border-color 0.15s",
                       }}>
