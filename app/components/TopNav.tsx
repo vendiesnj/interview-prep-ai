@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { X, MoreHorizontal, ChevronLeft, MessageSquare, Home, Mic, BarChart2, Map, Gamepad2, HelpCircle } from "lucide-react";
+import { X, MoreHorizontal, ChevronLeft, Home, Mic, BarChart2, Map, Gamepad2, HelpCircle } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
 import HelpPanel from "./HelpPanel";
+import { SignalLockup } from "./SignalLogo";
 
 // ── Route label map ───────────────────────────────────────────────────────────
 
@@ -135,11 +136,8 @@ export default function TopNav() {
             </button>
           ) : null}
 
-          <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-            <div style={{ width: 26, height: 26, borderRadius: 7, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <MessageSquare size={14} color="white" />
-            </div>
-            <span style={{ fontSize: 15, fontWeight: 950, color: "var(--accent)", letterSpacing: -0.3 }}>Signal</span>
+          <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <SignalLockup iconSize={26} />
           </Link>
 
           {!isDashboard && (
@@ -226,11 +224,8 @@ export default function TopNav() {
         boxSizing: "border-box",
       }}>
         {/* Logo — always links to dashboard */}
-        <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, marginRight: 20, flexShrink: 0 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <MessageSquare size={14} color="white" />
-          </div>
-          <span style={{ fontSize: 15, fontWeight: 950, color: "var(--accent)", letterSpacing: -0.3 }}>Signal</span>
+        <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", marginRight: 20, flexShrink: 0 }}>
+          <SignalLockup iconSize={28} />
         </Link>
 
         {/* Breadcrumb / back nav */}

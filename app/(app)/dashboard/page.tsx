@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import {
-  Mic, DollarSign, Shield, GraduationCap, BookOpen, Rocket,
+  Mic, DollarSign, Shield, BookOpen,
   BarChart2, CheckSquare, FileText, Home, BarChart, RefreshCw,
   TrendingUp, Brain, Target, CheckCircle2, Circle, Flame,
   ChevronRight, ChevronLeft, Plus, X, Clock, Heart,
@@ -117,6 +117,7 @@ type ScheduleItem = {
   done: boolean;
   category?: string;
   timeEstimate?: string;
+  scheduledTime?: string; // HH:mm, e.g. "09:00"
   notes?: string;
   custom?: boolean;
   stage?: string;
@@ -238,6 +239,324 @@ function CategoryIcon({ category, size = 14 }: { category: string; size?: number
   if (category === "Mindset")  return <Brain {...props} />;
   if (category === "Personal") return <Heart {...props} />;
   return <Target {...props} />;
+}
+
+// ── Time helpers ─────────────────────────────────────────────────────────────
+
+const HOURS = Array.from({ length: 17 }, (_, i) => i + 6); // 6am–10pm
+
+function fmtHour(h: number): string {
+  if (h === 0) return "12am";
+  if (h < 12)  return `${h}am`;
+  if (h === 12) return "12pm";
+  return `${h - 12}pm`;
+}
+
+function fmtTime(t: string): string {
+  const [h, m] = t.split(":").map(Number);
+  const suffix = h >= 12 ? "pm" : "am";
+  const disp   = h % 12 === 0 ? 12 : h % 12;
+  return m === 0 ? `${disp}${suffix}` : `${disp}:${m.toString().padStart(2, "0")}${suffix}`;
+}
+
+// ── WeekView ─────────────────────────────────────────────────────────────────
+
+function WeekView({
+  scheduled,
+  onDropTask,
+  onAddAtTime,
+}: {
+  scheduled: ScheduleItem[];
+  onDropTask: (taskIdOrTitle: string, date: string, time?: string) => void;
+  onAddAtTime: (date: string, time: string) => void;
+}) {
+  const today = new Date();
+  const todayKey = toDateStr(today);
+
+  // Start of current week (Sun)
+  const [weekStart, setWeekStart] = useState<Date>(() => {
+    const d = new Date(today);
+    d.setDate(today.getDate() - today.getDay());
+    return d;
+  });
+
+  const weekDays: { date: Date; key: string }[] = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return { date: d, key: toDateStr(d) };
+  });
+
+  function navWeek(dir: -1 | 1) {
+    setWeekStart(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + dir * 7);
+      return d;
+    });
+  }
+
+  const startLabel = weekDays[0].date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const endLabel   = weekDays[6].date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+
+  function getItemsAt(dateKey: string, hour: number): ScheduleItem[] {
+    return scheduled.filter(i => {
+      if (i.date !== dateKey) return false;
+      if (!i.scheduledTime) return false;
+      const h = parseInt(i.scheduledTime.split(":")[0], 10);
+      return h === hour;
+    });
+  }
+
+  function getUnscheduledItems(dateKey: string): ScheduleItem[] {
+    return scheduled.filter(i => i.date === dateKey && !i.scheduledTime);
+  }
+
+  const COL_WIDTH = "calc((100% - 56px) / 7)";
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--card-border)" }}>
+        <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronLeft size={16} /></button>
+        <div style={{ flex: 1, textAlign: "center", fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>
+          {startLabel} – {endLabel}
+        </div>
+        <button type="button" onClick={() => { const d = new Date(); const s = new Date(d); s.setDate(d.getDate() - d.getDay()); setWeekStart(s); }} style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>
+          Today
+        </button>
+        <button type="button" onClick={() => navWeek(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronRight size={16} /></button>
+      </div>
+
+      {/* Day column headers */}
+      <div style={{ display: "grid", gridTemplateColumns: `56px ${weekDays.map(() => "1fr").join(" ")}`, borderBottom: "1px solid var(--card-border)" }}>
+        <div />
+        {weekDays.map(({ date, key }) => {
+          const isToday = key === todayKey;
+          const dayNum  = date.getDate();
+          const dayName = DAY_LABELS_SHORT[date.getDay()];
+          return (
+            <div key={key} style={{ textAlign: "center", padding: "8px 4px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: isToday ? ACCENT_CAREER : "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{dayName}</div>
+              <div style={{ fontSize: 16, fontWeight: 900, color: isToday ? "#fff" : "var(--text-primary)", background: isToday ? ACCENT_CAREER : "transparent", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", margin: "2px auto 0" }}>{dayNum}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* All-day row */}
+      <div style={{ display: "grid", gridTemplateColumns: `56px ${weekDays.map(() => "1fr").join(" ")}`, borderBottom: "1px solid var(--card-border)", minHeight: 32 }}>
+        <div style={{ padding: "4px 8px", fontSize: 9, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, display: "flex", alignItems: "center" }}>All day</div>
+        {weekDays.map(({ key }) => {
+          const items = getUnscheduledItems(key);
+          return (
+            <div key={key} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key); }} style={{ borderLeft: "1px solid var(--card-border)", padding: "3px 4px", minHeight: 28 }}>
+              {items.slice(0, 2).map(item => {
+                const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
+                return <div key={item.itemId} title={item.label} style={{ fontSize: 9, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "15", borderLeft: `2px solid ${c}`, padding: "1px 4px", borderRadius: "0 3px 3px 0", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none" }}>{item.label}</div>;
+              })}
+              {items.length > 2 && <div style={{ fontSize: 9, color: "var(--text-muted)" }}>+{items.length - 2}</div>}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Time grid — scrollable */}
+      <div style={{ overflowY: "auto", maxHeight: 520 }}>
+        {HOURS.map(hour => (
+          <div key={hour} style={{ display: "grid", gridTemplateColumns: `56px ${weekDays.map(() => "1fr").join(" ")}`, borderBottom: "1px solid var(--card-border)", minHeight: 52 }}>
+            <div style={{ padding: "6px 8px 0", fontSize: 10, color: "var(--text-muted)", fontWeight: 600, textAlign: "right", flexShrink: 0 }}>{fmtHour(hour)}</div>
+            {weekDays.map(({ key }) => {
+              const items = getItemsAt(key, hour);
+              return (
+                <div
+                  key={key}
+                  onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key, `${hour.toString().padStart(2, "0")}:00`); }}
+                  onClick={() => onAddAtTime(key, `${hour.toString().padStart(2, "0")}:00`)}
+                  style={{ borderLeft: "1px solid var(--card-border)", padding: "2px 4px", cursor: "pointer", position: "relative" }}
+                >
+                  {items.map(item => {
+                    const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
+                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} title={item.label} style={{ fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, borderRadius: 5, padding: "2px 6px", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "grab" }}>{item.label}</div>;
+                  })}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── DayView ───────────────────────────────────────────────────────────────────
+
+function DayView({
+  scheduled,
+  onDropTask,
+  onAddAtTime,
+}: {
+  scheduled: ScheduleItem[];
+  onDropTask: (taskIdOrTitle: string, date: string, time?: string) => void;
+  onAddAtTime: (date: string, time: string) => void;
+}) {
+  const today = new Date();
+  const [viewDate, setViewDate] = useState<Date>(new Date(today));
+  const dateKey = toDateStr(viewDate);
+  const isToday = dateKey === toDateStr(today);
+
+  function navDay(dir: -1 | 1) {
+    setViewDate(prev => { const d = new Date(prev); d.setDate(d.getDate() + dir); return d; });
+  }
+
+  const dateLabel = viewDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+
+  function getItemsAt(hour: number): ScheduleItem[] {
+    return scheduled.filter(i => {
+      if (i.date !== dateKey) return false;
+      if (!i.scheduledTime) return false;
+      return parseInt(i.scheduledTime.split(":")[0], 10) === hour;
+    });
+  }
+
+  const allDay = scheduled.filter(i => i.date === dateKey && !i.scheduledTime);
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--card-border)" }}>
+        <button type="button" onClick={() => navDay(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronLeft size={16} /></button>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <span style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{dateLabel}</span>
+          {isToday && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "15", padding: "2px 7px", borderRadius: 5 }}>Today</span>}
+        </div>
+        <button type="button" onClick={() => setViewDate(new Date(today))} style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>Today</button>
+        <button type="button" onClick={() => navDay(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronRight size={16} /></button>
+      </div>
+
+      {/* All-day */}
+      {allDay.length > 0 && (
+        <div style={{ padding: "8px 16px", borderBottom: "1px solid var(--card-border)", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", marginRight: 4 }}>All day</span>
+          {allDay.map(item => {
+            const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
+            return <span key={item.itemId} style={{ fontSize: 11, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "18", padding: "2px 9px", borderRadius: 5, border: `1px solid ${c}25`, textDecoration: item.done ? "line-through" : "none" }}>{item.label}</span>;
+          })}
+        </div>
+      )}
+
+      {/* Time grid */}
+      <div style={{ overflowY: "auto", maxHeight: 520 }}>
+        {HOURS.map(hour => {
+          const items = getItemsAt(hour);
+          return (
+            <div key={hour} style={{ display: "grid", gridTemplateColumns: "72px 1fr", borderBottom: "1px solid var(--card-border)", minHeight: 60 }}>
+              <div style={{ padding: "8px 12px 0", fontSize: 11, color: "var(--text-muted)", fontWeight: 600, textAlign: "right" }}>{fmtHour(hour)}</div>
+              <div
+                onDragOver={e => e.preventDefault()}
+                onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, dateKey, `${hour.toString().padStart(2, "0")}:00`); }}
+                onClick={() => onAddAtTime(dateKey, `${hour.toString().padStart(2, "0")}:00`)}
+                style={{ borderLeft: "1px solid var(--card-border)", padding: "4px 12px", cursor: "pointer" }}
+              >
+                {items.map(item => {
+                  const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
+                  return (
+                    <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: item.done ? "var(--card-bg-strong)" : c, color: item.done ? "var(--text-muted)" : "#fff", fontSize: 12, fontWeight: 700, marginBottom: 3, cursor: "grab", textDecoration: item.done ? "line-through" : "none" }}>
+                      <div style={{ width: 3, height: "100%", background: "rgba(255,255,255,0.5)", borderRadius: 2, flexShrink: 0, alignSelf: "stretch" }} />
+                      {item.scheduledTime && <span style={{ opacity: 0.85, fontSize: 10 }}>{fmtTime(item.scheduledTime)}</span>}
+                      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
+                    </div>
+                  );
+                })}
+                {items.length === 0 && (
+                  <div style={{ height: "100%", minHeight: 52, display: "flex", alignItems: "center", paddingLeft: 4 }}>
+                    <span style={{ fontSize: 11, color: "transparent" }}>+</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── AddTaskModal ──────────────────────────────────────────────────────────────
+
+function AddTaskModal({
+  initialDate,
+  initialTime,
+  onSave,
+  onClose,
+}: {
+  initialDate: string;
+  initialTime: string;
+  onSave: (item: ScheduleItem) => void;
+  onClose: () => void;
+}) {
+  const [label, setLabel]       = useState("");
+  const [date, setDate]         = useState(initialDate);
+  const [time, setTime]         = useState(initialTime);
+  const [category, setCategory] = useState<string>("Career");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { inputRef.current?.focus(); }, []);
+
+  function save() {
+    const trimmed = label.trim();
+    if (!trimmed) return;
+    onSave({
+      itemId: "custom_" + Date.now(),
+      label: trimmed,
+      date,
+      done: false,
+      category,
+      scheduledTime: time || undefined,
+      custom: true,
+    });
+    onClose();
+  }
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+      <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, width: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>Add Task</div>
+        <input
+          ref={inputRef}
+          type="text"
+          value={label}
+          onChange={e => setLabel(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") onClose(); }}
+          placeholder="Task name..."
+          style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 14, outline: "none", marginBottom: 12, boxSizing: "border-box" }}
+        />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4 }}>Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4 }}>Time (optional)</label>
+            <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+          </div>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 6 }}>Category</label>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {(["Career","Finance","Learning","Mindset","Personal"] as const).map(cat => {
+              const color = CATEGORY_COLORS[cat];
+              return <button key={cat} type="button" onClick={() => setCategory(cat)} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${category === cat ? color : "var(--card-border)"}`, background: category === cat ? color + "20" : "transparent", color: category === cat ? color : "var(--text-muted)", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>{cat}</button>;
+            })}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <button type="button" onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Cancel</button>
+          <button type="button" onClick={save} disabled={!label.trim()} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: label.trim() ? ACCENT_CAREER : "var(--card-border)", color: label.trim() ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: label.trim() ? "pointer" : "not-allowed" }}>Add Task</button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── FullMonthCalendar ─────────────────────────────────────────────────────────
@@ -704,6 +1023,8 @@ export default function DashboardPage() {
   const [progress, setProgress] = useState<ChecklistProgressEntry[]>([]);
   const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
+  const [calView, setCalView] = useState<"month" | "week" | "day">("month");
+  const [addModal, setAddModal] = useState<{ date: string; time: string } | null>(null);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -743,11 +1064,15 @@ export default function DashboardPage() {
   const hasAnySessions = totalSessions !== null && totalSessions > 0;
   const checklistItems = stageConfig?.checklist ?? [];
 
-  function handleDropTask(taskIdOrTitle: string, date: string) {
+  function handleDropTask(taskIdOrTitle: string, date: string, time?: string) {
     const next = readSchedule();
     const existing = next.find(i => i.itemId === taskIdOrTitle || i.label === taskIdOrTitle);
     if (existing) {
-      const updated = next.map(i => (i.itemId === taskIdOrTitle || i.label === taskIdOrTitle) ? { ...i, date } : i);
+      const updated = next.map(i =>
+        (i.itemId === taskIdOrTitle || i.label === taskIdOrTitle)
+          ? { ...i, date, ...(time ? { scheduledTime: time } : {}) }
+          : i
+      );
       writeSchedule(updated);
       setScheduled(updated);
     } else {
@@ -757,12 +1082,19 @@ export default function DashboardPage() {
         date,
         done: false,
         category: "Career",
+        scheduledTime: time,
         custom: true,
       };
       const updated = [...next, newItem];
       writeSchedule(updated);
       setScheduled(updated);
     }
+  }
+
+  function handleAddTask(item: ScheduleItem) {
+    const next = [...scheduled, item];
+    writeSchedule(next);
+    setScheduled(next);
   }
 
   const TABS = [
@@ -890,8 +1222,24 @@ export default function DashboardPage() {
         {/* ── Compass: Calendar + Tabs ── */}
         <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 380px", gap: 24, alignItems: "start" }}>
 
-          {/* Full-width calendar */}
-          <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} />
+          {/* Calendar with view toggle */}
+          <div>
+            {/* View toggle */}
+            <div style={{ display: "flex", gap: 4, marginBottom: 12, width: "fit-content" }}>
+              {(["day","week","month"] as const).map(v => (
+                <button key={v} type="button" onClick={() => setCalView(v)} style={{ padding: "5px 14px", borderRadius: 7, border: "1px solid var(--card-border)", background: calView === v ? "var(--accent)" : "var(--card-bg)", color: calView === v ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer", textTransform: "capitalize", transition: "all 120ms" }}>
+                  {v}
+                </button>
+              ))}
+              <button type="button" onClick={() => setAddModal({ date: todayStr(), time: "" })} style={{ marginLeft: 8, padding: "5px 14px", borderRadius: 7, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                <Plus size={13} /> Add task
+              </button>
+            </div>
+
+            {calView === "month" && <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} />}
+            {calView === "week" && <WeekView scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} />}
+            {calView === "day"  && <DayView  scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} />}
+          </div>
 
           {/* Right panel: Tasks / Habits / Goals */}
           <div>
@@ -931,26 +1279,6 @@ export default function DashboardPage() {
                       onProgressChange={setProgress}
                     />
                   </div>
-                ) : (
-                  !loading && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {[
-                        { label: "Pre-College Guide",    href: "/pre-college",    Icon: GraduationCap, color: "#10B981" },
-                        { label: "During-College Guide", href: "/during-college", Icon: BookOpen,      color: "#2563EB" },
-                        { label: "Post-College Guide",   href: "/post-college",   Icon: Rocket,        color: "#8B5CF6" },
-                      ].map(s => (
-                        <Link key={s.href} href={s.href} style={{ textDecoration: "none" }}>
-                          <div style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 32, height: 32, borderRadius: 8, background: s.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                              <s.Icon size={16} color={s.color} />
-                            </div>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{s.label}</span>
-                            <ChevronRight size={14} color="var(--text-muted)" style={{ marginLeft: "auto" }} />
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  )
                 )}
               </div>
             )}
@@ -1049,6 +1377,17 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Add task modal */}
+      {addModal && (
+        <AddTaskModal
+          initialDate={addModal.date}
+          initialTime={addModal.time}
+          onSave={handleAddTask}
+          onClose={() => setAddModal(null)}
+        />
+      )}
+
     </PremiumShell>
   );
 }

@@ -11,6 +11,7 @@ import {
   avgOverall100,
   avgTenPoint,
 } from "@/app/lib/scoreScale";
+import StageSetterClient from "./StageSetterClient";
 
 
 function num(v: any): number | null {
@@ -191,6 +192,7 @@ export default async function AdminStudentDetailPage({
       name: true,
       email: true,
       tenantId: true,
+      demoPersona: true,
     },
   });
 
@@ -389,6 +391,11 @@ const trendLabel =
             }}
           >
             {student.email}
+          </div>
+
+          {/* Stage setter */}
+          <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--card-border-soft)" }}>
+            <StageSetterClient userId={student.id} currentStage={student.demoPersona ?? null} />
           </div>
         </GlowCard>
 
