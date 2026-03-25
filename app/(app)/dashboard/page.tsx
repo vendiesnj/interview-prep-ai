@@ -1279,7 +1279,7 @@ export default function DashboardPage() {
                       onProgressChange={setProgress}
                     />
                   </div>
-                )}
+                ) : null}
               </div>
             )}
 
