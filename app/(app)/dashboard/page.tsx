@@ -1,13 +1,18 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Mic, DollarSign, Shield, GraduationCap, BookOpen, Rocket, Calendar, BarChart2, CheckSquare, FileText, Home, BarChart, Zap, RefreshCw } from "lucide-react";
+import {
+  Mic, DollarSign, Shield, GraduationCap, BookOpen, Rocket,
+  BarChart2, CheckSquare, FileText, Home, BarChart, RefreshCw,
+  TrendingUp, Brain, Target, CheckCircle2, Circle, Flame,
+  ChevronRight, ChevronLeft, Plus, X, Clock, Heart,
+  Gamepad2, Zap,
+} from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
 import StreakBanner from "@/app/components/StreakBanner";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
-import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import { matchOccupations } from "@/app/lib/onet-occupations";
 import DailyGamesWidget from "@/app/components/DailyGamesWidget";
 
@@ -52,8 +57,6 @@ const POST_COLLEGE_CHECKLIST = [
   { id: "budget_post",     label: "Build a post-grad budget (50/30/20 rule)",       desc: "50% needs, 30% wants, 20% savings and extra debt paydown. Build from take-home pay, not salary.", linkHref: "/financial-literacy", linkLabel: "Financial Literacy tools" },
 ];
 
-// ── Stage config map ───────────────────────────────────────────────────────────
-
 const STAGE_MAP: Record<string, {
   accent: string;
   stageKey: string;
@@ -61,30 +64,10 @@ const STAGE_MAP: Record<string, {
   guideLabel: string;
   checklist: typeof PRE_COLLEGE_CHECKLIST;
 }> = {
-  pre_college: {
-    accent: "#10B981",
-    stageKey: "pre_college",
-    guideHref: "/pre-college",
-    guideLabel: "Pre-College Guide",
-    checklist: PRE_COLLEGE_CHECKLIST,
-  },
-  during_college: {
-    accent: "#2563EB",
-    stageKey: "during_college",
-    guideHref: "/during-college",
-    guideLabel: "During-College Guide",
-    checklist: DURING_COLLEGE_CHECKLIST,
-  },
-  post_college: {
-    accent: "#8B5CF6",
-    stageKey: "post_college",
-    guideHref: "/post-college",
-    guideLabel: "Post-College Guide",
-    checklist: POST_COLLEGE_CHECKLIST,
-  },
+  pre_college:    { accent: "#10B981", stageKey: "pre_college",    guideHref: "/pre-college",    guideLabel: "Pre-College Guide",    checklist: PRE_COLLEGE_CHECKLIST },
+  during_college: { accent: "#2563EB", stageKey: "during_college", guideHref: "/during-college", guideLabel: "During-College Guide", checklist: DURING_COLLEGE_CHECKLIST },
+  post_college:   { accent: "#8B5CF6", stageKey: "post_college",   guideHref: "/post-college",   guideLabel: "Post-College Guide",   checklist: POST_COLLEGE_CHECKLIST },
 };
-
-// ── RIASEC labels ─────────────────────────────────────────────────────────────
 
 const RIASEC_LABELS: Record<string, string> = {
   R: "Realistic", I: "Investigative", A: "Artistic",
@@ -92,43 +75,610 @@ const RIASEC_LABELS: Record<string, string> = {
 };
 
 function riasecDescription(code: string): string {
-  const labels = code.split("").map(c => RIASEC_LABELS[c] ?? c);
-  return labels.join("-");
+  return code.split("").map(c => RIASEC_LABELS[c] ?? c).join("-");
 }
-
-// ── Three pillars ─────────────────────────────────────────────────────────────
 
 const PILLARS = [
   {
     id: "career", Icon: Mic, title: "Career Readiness", color: "#2563EB", bg: "rgba(37,99,235,0.07)",
     actions: [
-      { label: "Interview Prep", href: "/practice", time: "~15 min" },
-      { label: "Networking Pitch", href: "/networking", time: "~10 min" },
-      { label: "Public Speaking", href: "/public-speaking", time: "~10 min" },
+      { label: "Interview Prep",    href: "/practice",        time: "~15 min" },
+      { label: "Networking Pitch",  href: "/networking",      time: "~10 min" },
+      { label: "Public Speaking",   href: "/public-speaking", time: "~10 min" },
     ],
     guideHref: "/career-guide", guideLabel: "Career Guide",
   },
   {
     id: "financial", Icon: DollarSign, title: "Financial Literacy", color: "#10B981", bg: "rgba(16,185,129,0.07)",
     actions: [
-      { label: "Budget Builder", href: "/career-guide/budget", time: "~5 min" },
-      { label: "Retirement Projection", href: "/career-guide/retirement", time: "~3 min" },
-      { label: "Financial Literacy", href: "/financial-literacy", time: "~10 min" },
+      { label: "Budget Builder",         href: "/career-guide/budget",      time: "~5 min" },
+      { label: "Retirement Projection",  href: "/career-guide/retirement",  time: "~3 min" },
+      { label: "Financial Literacy",     href: "/financial-literacy",       time: "~10 min" },
     ],
     guideHref: "/career-guide", guideLabel: "Financial Guide",
   },
   {
     id: "futureproof", Icon: Shield, title: "AI Resilience", color: "#EF4444", bg: "rgba(239,68,68,0.07)",
     actions: [
-      { label: "Future-Proof Guide", href: "/future-proof", time: "~10 min" },
-      { label: "Career Assessment", href: "/aptitude", time: "~15 min" },
-      { label: "Career Paths", href: "/career-guide/career-paths", time: "~5 min" },
+      { label: "Future-Proof Guide",  href: "/future-proof",              time: "~10 min" },
+      { label: "Career Assessment",   href: "/aptitude",                  time: "~15 min" },
+      { label: "Career Paths",        href: "/career-guide/career-paths", time: "~5 min" },
     ],
     guideHref: "/future-proof", guideLabel: "AI Guide",
   },
 ];
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Planner types & constants ────────────────────────────────────────────────
+
+type ScheduleItem = {
+  itemId: string;
+  label: string;
+  date: string;
+  done: boolean;
+  category?: string;
+  timeEstimate?: string;
+  notes?: string;
+  custom?: boolean;
+  stage?: string;
+};
+
+type HabitRecord  = { habitId: string; dates: string[] };
+type GoalItem     = { id: string; label: string; done: boolean; custom?: boolean };
+type GoalCategory = { id: string; label: string; color: string; goals: GoalItem[] };
+type HabitDef     = { id: string; label: string; category: string; streak?: number; custom?: boolean };
+type PersonalTask = { id: string; label: string; done: boolean; scheduledDate: string | null };
+
+const SCHED_KEY        = "ipc_schedule_v1";
+const HABITS_KEY       = "ipc_habits_v1";
+const HABITS_CUSTOM_KEY= "ipc_habits_custom_v1";
+const GOALS_KEY        = "ipc_goals_v1";
+const PERSONAL_KEY     = "ipc_personal_tasks_v1";
+
+const ACCENT_CAREER   = "#2563EB";
+const ACCENT_FINANCE  = "#10B981";
+const ACCENT_LEARNING = "#8B5CF6";
+const ACCENT_MINDSET  = "#F59E0B";
+const ACCENT_PERSONAL = "#EC4899";
+
+const CATEGORY_COLORS: Record<string, string> = {
+  Career: ACCENT_CAREER, Finance: ACCENT_FINANCE,
+  Learning: ACCENT_LEARNING, Mindset: ACCENT_MINDSET, Personal: ACCENT_PERSONAL,
+};
+
+const DAY_LABELS_SHORT = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+const DEFAULT_HABITS: HabitDef[] = [
+  { id: "practice",   label: "Practice session",              category: "Career" },
+  { id: "budget_check",label: "Budget check-in",             category: "Finance" },
+  { id: "networking", label: "Networking practice",           category: "Career" },
+  { id: "read_guide", label: "Read a guide or module",        category: "Learning" },
+  { id: "journal",    label: "Career journal entry",          category: "Mindset" },
+  { id: "linkedin",   label: "LinkedIn activity",             category: "Career" },
+  { id: "savings_check",label: "Check savings goal",         category: "Finance" },
+  { id: "apply_job",  label: "Job application or follow-up", category: "Career" },
+];
+
+const DEFAULT_GOAL_CATEGORIES: GoalCategory[] = [
+  { id: "career",    label: "Career Goals",    color: ACCENT_CAREER,
+    goals: [
+      { id: "cg1", label: "Complete 10 practice sessions", done: false },
+      { id: "cg2", label: "Land an internship",            done: false },
+      { id: "cg3", label: "Update resume",                 done: false },
+    ],
+  },
+  { id: "financial", label: "Financial Goals", color: ACCENT_FINANCE,
+    goals: [
+      { id: "fg1", label: "Build $500 emergency fund", done: false },
+      { id: "fg2", label: "Set up budget tracker",     done: false },
+      { id: "fg3", label: "Enroll in 401(k)",          done: false },
+    ],
+  },
+  { id: "skills",    label: "Skills",          color: ACCENT_LEARNING,
+    goals: [
+      { id: "sk1", label: "Take Career Assessment",                done: false },
+      { id: "sk2", label: "Complete financial literacy module",    done: false },
+    ],
+  },
+  { id: "future_proof", label: "Future-Proof", color: ACCENT_MINDSET,
+    goals: [
+      { id: "fp1", label: "Read AI resilience guide",    done: false },
+      { id: "fp2", label: "Identify side hustle match",  done: false },
+    ],
+  },
+];
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+
+function toDateStr(d: Date): string { return d.toISOString().split("T")[0]; }
+function todayStr(): string { return toDateStr(new Date()); }
+
+function computeStreak(dates: string[]): number {
+  if (!dates.length) return 0;
+  const sorted = [...new Set(dates)].sort().reverse();
+  const today = todayStr();
+  let streak = 0;
+  const cursor = new Date(today);
+  for (const d of sorted) {
+    const cursorStr = toDateStr(cursor);
+    if (d === cursorStr) { streak++; cursor.setDate(cursor.getDate() - 1); }
+    else if (d < cursorStr) break;
+  }
+  return streak;
+}
+
+function getLast28Days(): string[] {
+  const days: string[] = [];
+  const today = new Date();
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push(toDateStr(d));
+  }
+  return days;
+}
+
+function readSchedule(): ScheduleItem[] {
+  try { const raw = localStorage.getItem(SCHED_KEY); return raw ? JSON.parse(raw) : []; }
+  catch { return []; }
+}
+
+function writeSchedule(items: ScheduleItem[]) {
+  try { localStorage.setItem(SCHED_KEY, JSON.stringify(items)); } catch {}
+}
+
+// ── CategoryIcon ──────────────────────────────────────────────────────────────
+
+function CategoryIcon({ category, size = 14 }: { category: string; size?: number }) {
+  const color = CATEGORY_COLORS[category] ?? ACCENT_CAREER;
+  const props = { size, color, strokeWidth: 2.2 };
+  if (category === "Career")   return <TrendingUp {...props} />;
+  if (category === "Finance")  return <DollarSign {...props} />;
+  if (category === "Learning") return <BookOpen {...props} />;
+  if (category === "Mindset")  return <Brain {...props} />;
+  if (category === "Personal") return <Heart {...props} />;
+  return <Target {...props} />;
+}
+
+// ── FullMonthCalendar ─────────────────────────────────────────────────────────
+
+function FullMonthCalendar({
+  scheduled,
+  onDropTask,
+}: {
+  scheduled: ScheduleItem[];
+  onDropTask: (taskIdOrTitle: string, date: string) => void;
+}) {
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [highlightDay, setHighlightDay] = useState<string | null>(null);
+
+  const todayKey = toDateStr(today);
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const lastOfMonth  = new Date(viewYear, viewMonth + 1, 0);
+  const startPad     = firstOfMonth.getDay();
+  const totalCells   = Math.ceil((startPad + lastOfMonth.getDate()) / 7) * 7;
+
+  const cells: { dateKey: string; inMonth: boolean }[] = [];
+  for (let i = 0; i < totalCells; i++) {
+    const d = new Date(viewYear, viewMonth, 1 - startPad + i);
+    cells.push({ dateKey: toDateStr(d), inMonth: d.getMonth() === viewMonth });
+  }
+
+  function navMonth(dir: -1 | 1) {
+    setViewMonth(prev => {
+      const m = prev + dir;
+      if (m < 0)  { setViewYear(y => y - 1); return 11; }
+      if (m > 11) { setViewYear(y => y + 1); return 0; }
+      return m;
+    });
+  }
+
+  function handleDrop(e: React.DragEvent, dateKey: string) {
+    e.preventDefault();
+    setDragOverDay(null);
+    const raw = e.dataTransfer.getData("text/plain");
+    if (!raw) return;
+    onDropTask(raw, dateKey);
+    setHighlightDay(dateKey);
+    setTimeout(() => setHighlightDay(null), 800);
+  }
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden", width: "100%" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--card-border)" }}>
+        <button type="button" onClick={() => navMonth(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
+          <ChevronLeft size={16} />
+        </button>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <span style={{ fontSize: 17, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>
+            {MONTH_NAMES[viewMonth]} {viewYear}
+          </span>
+        </div>
+        <button type="button" onClick={() => { setViewYear(today.getFullYear()); setViewMonth(today.getMonth()); }} style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>
+          Today
+        </button>
+        <button type="button" onClick={() => navMonth(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* Day labels */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid var(--card-border)" }}>
+        {DAY_LABELS_SHORT.map(d => (
+          <div key={d} style={{ textAlign: "center", padding: "8px 0", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+        {cells.map(({ dateKey, inMonth }, idx) => {
+          const isToday    = dateKey === todayKey;
+          const isDragOver = dragOverDay === dateKey;
+          const isHighlight= highlightDay === dateKey;
+          const dayItems   = scheduled.filter(i => i.date === dateKey);
+          const dayNum     = parseInt(dateKey.split("-")[2], 10);
+          const isLastRow  = idx >= cells.length - 7;
+          const isLastCol  = idx % 7 === 6;
+
+          return (
+            <div
+              key={dateKey}
+              onDragOver={e => { e.preventDefault(); setDragOverDay(dateKey); }}
+              onDragLeave={() => setDragOverDay(null)}
+              onDrop={e => handleDrop(e, dateKey)}
+              style={{
+                minHeight: 90,
+                padding: "8px 6px 6px",
+                borderRight:  !isLastCol ? "1px solid var(--card-border)" : "none",
+                borderBottom: !isLastRow ? "1px solid var(--card-border)" : "none",
+                background: isHighlight ? ACCENT_CAREER + "20" : isDragOver ? ACCENT_CAREER + "10" : isToday ? ACCENT_CAREER + "06" : "transparent",
+                transition: "background 150ms",
+              }}
+            >
+              <div style={{ textAlign: "right", marginBottom: 4 }}>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  width: 24, height: 24, borderRadius: "50%",
+                  fontSize: 11, fontWeight: isToday ? 900 : inMonth ? 600 : 400,
+                  color: isToday ? "#fff" : inMonth ? "var(--text-primary)" : "var(--text-muted)",
+                  background: isToday ? ACCENT_CAREER : "transparent",
+                  opacity: inMonth ? 1 : 0.3,
+                }}>
+                  {dayNum}
+                </span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {dayItems.slice(0, 3).map(item => {
+                  const catColor = item.category ? (CATEGORY_COLORS[item.category] ?? ACCENT_CAREER) : ACCENT_CAREER;
+                  return (
+                    <div key={item.itemId} title={item.label} style={{ fontSize: 10, fontWeight: 600, color: item.done ? "var(--text-muted)" : catColor, background: catColor + "15", borderLeft: `2px solid ${catColor}`, padding: "1px 5px", borderRadius: "0 4px 4px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: item.done ? "line-through" : "none" }}>
+                      {item.label}
+                    </div>
+                  );
+                })}
+                {dayItems.length > 3 && (
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, paddingLeft: 4 }}>+{dayItems.length - 3} more</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Personal Tasks Section ────────────────────────────────────────────────────
+
+function PersonalTasksSection() {
+  const [tasks, setTasks] = useState<PersonalTask[]>([]);
+  const [newLabel, setNewLabel] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PERSONAL_KEY);
+      if (raw) setTasks(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  function save(next: PersonalTask[]) {
+    setTasks(next);
+    try { localStorage.setItem(PERSONAL_KEY, JSON.stringify(next)); } catch {}
+  }
+
+  function addTask() {
+    const trimmed = newLabel.trim();
+    if (!trimmed) return;
+    save([...tasks, { id: "pt_" + Date.now(), label: trimmed, done: false, scheduledDate: null }]);
+    setNewLabel("");
+    setAdding(false);
+  }
+
+  function toggleTask(id: string) {
+    save(tasks.map(t => t.id === id ? { ...t, done: !t.done } : t));
+  }
+
+  function deleteTask(id: string) {
+    save(tasks.filter(t => t.id !== id));
+  }
+
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Personal Tasks</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {tasks.map(task => (
+          <div key={task.id} draggable onDragStart={e => e.dataTransfer.setData("text/plain", task.label)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 9, background: task.done ? "transparent" : "var(--card-bg)", border: `1px solid ${task.done ? "var(--card-border-soft)" : "var(--card-border)"}`, cursor: "grab" }}>
+            <button type="button" onClick={() => toggleTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0 }}>
+              {task.done ? <CheckCircle2 size={15} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={15} color="var(--text-muted)" strokeWidth={2} />}
+            </button>
+            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: task.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: task.done ? "line-through" : "none" }}>{task.label}</span>
+            <button type="button" onClick={() => deleteTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", opacity: 0.4, flexShrink: 0 }}>
+              <X size={12} color="var(--text-muted)" />
+            </button>
+          </div>
+        ))}
+      </div>
+      {adding ? (
+        <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+          <input
+            autoFocus
+            type="text"
+            value={newLabel}
+            onChange={e => setNewLabel(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") addTask(); if (e.key === "Escape") { setAdding(false); setNewLabel(""); } }}
+            placeholder="Add a personal task..."
+            style={{ flex: 1, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }}
+          />
+          <button type="button" onClick={addTask} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
+          <button type="button" onClick={() => { setAdding(false); setNewLabel(""); }} style={{ padding: "7px 9px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setAdding(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6, background: "transparent", border: "1px dashed var(--card-border)", borderRadius: 8, padding: "6px 12px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+          <Plus size={13} /> Add task
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Habits Tab ────────────────────────────────────────────────────────────────
+
+function MiniHabitGrid({ completedDates, color }: { completedDates: string[]; color: string }) {
+  const days = getLast28Days();
+  const set = new Set(completedDates);
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(28, 1fr)", gap: 2, flex: 1 }}>
+      {days.map(d => {
+        const done = set.has(d);
+        return <div key={d} title={d} style={{ height: 10, borderRadius: 2, background: done ? color : "var(--card-border)", opacity: done ? 1 : 0.35, transition: "background 100ms" }} />;
+      })}
+    </div>
+  );
+}
+
+function HabitRow({ habit, completedDates, onToggle }: { habit: HabitDef; completedDates: string[]; onToggle: (id: string) => void }) {
+  const today     = todayStr();
+  const doneToday = completedDates.includes(today);
+  const streak    = computeStreak(completedDates);
+  const catColor  = CATEGORY_COLORS[habit.category] ?? ACCENT_CAREER;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, height: 48, padding: "0 12px 0 0", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)", overflow: "hidden" }}>
+      <div style={{ width: 3, height: "100%", background: catColor, flexShrink: 0, borderRadius: "10px 0 0 10px" }} />
+      <div style={{ width: 26, height: 26, borderRadius: 6, background: catColor + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <CategoryIcon category={habit.category} size={12} />
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: "0 0 auto", maxWidth: 180 }}>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{habit.label}</span>
+      </div>
+      {streak > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "1px 6px", borderRadius: 5, background: "#F59E0B18", border: "1px solid #F59E0B25", flexShrink: 0 }}>
+          <Flame size={10} color="#F59E0B" strokeWidth={2.2} />
+          <span style={{ fontSize: 10, fontWeight: 700, color: "#F59E0B" }}>{streak}</span>
+        </div>
+      )}
+      <div style={{ flex: 1, minWidth: 0, padding: "0 4px" }}>
+        <MiniHabitGrid completedDates={completedDates} color={catColor} />
+      </div>
+      <button type="button" onClick={() => onToggle(habit.id)} style={{ width: 28, height: 28, borderRadius: "50%", border: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0, padding: 0 }}>
+        {doneToday ? <CheckCircle2 size={20} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={20} color="var(--text-muted)" strokeWidth={1.8} />}
+      </button>
+    </div>
+  );
+}
+
+function HabitsTab() {
+  const [habits, setHabits]       = useState<HabitDef[]>(DEFAULT_HABITS);
+  const [habitData, setHabitData] = useState<HabitRecord[]>([]);
+  const [addingHabit, setAddingHabit] = useState(false);
+  const [newHabitLabel, setNewHabitLabel] = useState("");
+
+  useEffect(() => {
+    try { const raw = localStorage.getItem(HABITS_KEY); if (raw) setHabitData(JSON.parse(raw)); } catch {}
+    try {
+      const rawH = localStorage.getItem(HABITS_CUSTOM_KEY);
+      if (rawH) setHabits([...DEFAULT_HABITS, ...(JSON.parse(rawH) as HabitDef[])]);
+    } catch {}
+  }, []);
+
+  function saveHabitData(next: HabitRecord[]) {
+    setHabitData(next);
+    try { localStorage.setItem(HABITS_KEY, JSON.stringify(next)); } catch {}
+  }
+
+  function handleToggle(habitId: string) {
+    const today = todayStr();
+    const next  = [...habitData];
+    const idx   = next.findIndex(r => r.habitId === habitId);
+    if (idx === -1) {
+      next.push({ habitId, dates: [today] });
+    } else {
+      const record = { ...next[idx] };
+      record.dates = record.dates.includes(today) ? record.dates.filter(d => d !== today) : [...record.dates, today];
+      next[idx] = record;
+    }
+    saveHabitData(next);
+  }
+
+  function getCompletedDates(habitId: string): string[] {
+    return habitData.find(r => r.habitId === habitId)?.dates ?? [];
+  }
+
+  function handleAddHabit() {
+    const trimmed = newHabitLabel.trim();
+    if (!trimmed) return;
+    const newH: HabitDef = { id: "custom_" + Date.now(), label: trimmed, category: "Learning", streak: 0, custom: true };
+    const next = [...habits, newH];
+    setHabits(next);
+    try { localStorage.setItem(HABITS_CUSTOM_KEY, JSON.stringify(next.filter(h => h.custom))); } catch {}
+    setNewHabitLabel("");
+    setAddingHabit(false);
+  }
+
+  const today     = todayStr();
+  const doneCount = habits.filter(h => getCompletedDates(h.id).includes(today)).length;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Daily Habits</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{doneCount} of {habits.length} today</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 80, height: 5, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${habits.length === 0 ? 0 : Math.round((doneCount / habits.length) * 100)}%`, background: ACCENT_FINANCE, borderRadius: 3, transition: "width 300ms" }} />
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 700, color: ACCENT_FINANCE }}>{habits.length === 0 ? 0 : Math.round((doneCount / habits.length) * 100)}%</span>
+        </div>
+      </div>
+
+      {habits.map(habit => <HabitRow key={habit.id} habit={habit} completedDates={getCompletedDates(habit.id)} onToggle={handleToggle} />)}
+
+      {addingHabit ? (
+        <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+          <input autoFocus type="text" value={newHabitLabel} onChange={e => setNewHabitLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") { setAddingHabit(false); setNewHabitLabel(""); } }} placeholder="New habit name..." style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }} />
+          <button type="button" onClick={handleAddHabit} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
+          <button type="button" onClick={() => { setAddingHabit(false); setNewHabitLabel(""); }} style={{ padding: "6px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setAddingHabit(true)} style={{ display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-start", background: "var(--card-bg)", border: "1px dashed var(--card-border)", borderRadius: 10, padding: "7px 12px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+          <Plus size={13} />Add habit
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ── Goals Tab ─────────────────────────────────────────────────────────────────
+
+function GoalCategoryBlock({
+  category,
+  onToggleGoal,
+  onAddGoal,
+}: {
+  category: GoalCategory;
+  onToggleGoal: (catId: string, goalId: string) => void;
+  onAddGoal: (catId: string, label: string) => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const doneCount = category.goals.filter(g => g.done).length;
+  const total     = category.goals.length;
+  const pct       = total === 0 ? 0 : Math.round((doneCount / total) * 100);
+
+  function handleAdd() {
+    const trimmed = newLabel.trim();
+    if (!trimmed) return;
+    onAddGoal(category.id, trimmed);
+    setNewLabel("");
+    setAdding(false);
+  }
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 10, overflow: "hidden" }}>
+      <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--card-border)", display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 3, height: 18, borderRadius: 2, background: category.color, flexShrink: 0 }} />
+        <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", flex: 1 }}>{category.label}</span>
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{doneCount}/{total}</span>
+        <div style={{ width: 60, height: 4, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+          <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${pct}%`, background: category.color, borderRadius: 3, transition: "width 300ms" }} />
+        </div>
+        <span style={{ fontSize: 10, fontWeight: 700, color: category.color, minWidth: 24, textAlign: "right" }}>{pct}%</span>
+      </div>
+      <div style={{ padding: "4px 0" }}>
+        {category.goals.map((goal, idx) => (
+          <label key={goal.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 14px", cursor: "pointer", borderBottom: idx < category.goals.length - 1 ? "1px solid var(--card-border)" : "none" }}>
+            <input type="checkbox" checked={goal.done} onChange={() => onToggleGoal(category.id, goal.id)} style={{ accentColor: category.color, width: 14, height: 14, cursor: "pointer", flexShrink: 0 }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: goal.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: goal.done ? "line-through" : "none", flex: 1 }}>{goal.label}</span>
+            {goal.done && <CheckCircle2 size={13} color={ACCENT_FINANCE} strokeWidth={2} />}
+          </label>
+        ))}
+      </div>
+      <div style={{ padding: "6px 14px", borderTop: "1px solid var(--card-border)" }}>
+        {adding ? (
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <input autoFocus type="text" value={newLabel} onChange={e => setNewLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") { setAdding(false); setNewLabel(""); } }} placeholder="New goal..." style={{ flex: 1, padding: "5px 9px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 12, outline: "none" }} />
+            <button type="button" onClick={handleAdd} style={{ padding: "5px 10px", borderRadius: 7, border: "none", background: category.color, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Add</button>
+            <button type="button" onClick={() => { setAdding(false); setNewLabel(""); }} style={{ padding: "5px", borderRadius: 7, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={13} /></button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setAdding(true)} style={{ display: "flex", alignItems: "center", gap: 4, background: "transparent", border: "none", color: category.color, fontSize: 12, fontWeight: 700, cursor: "pointer", padding: "1px 0" }}><Plus size={12} />Add goal</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function GoalsTab() {
+  const [categories, setCategories] = useState<GoalCategory[]>(DEFAULT_GOAL_CATEGORIES);
+
+  useEffect(() => {
+    try { const raw = localStorage.getItem(GOALS_KEY); if (raw) setCategories(JSON.parse(raw)); } catch {}
+  }, []);
+
+  function save(next: GoalCategory[]) {
+    setCategories(next);
+    try { localStorage.setItem(GOALS_KEY, JSON.stringify(next)); } catch {}
+  }
+
+  function handleToggleGoal(catId: string, goalId: string) {
+    save(categories.map(cat => cat.id !== catId ? cat : { ...cat, goals: cat.goals.map(g => g.id === goalId ? { ...g, done: !g.done } : g) }));
+  }
+
+  function handleAddGoal(catId: string, label: string) {
+    save(categories.map(cat => cat.id !== catId ? cat : { ...cat, goals: [...cat.goals, { id: "g_" + Date.now(), label, done: false, custom: true }] }));
+  }
+
+  const totalGoals  = categories.reduce((s, c) => s + c.goals.length, 0);
+  const doneGoals   = categories.reduce((s, c) => s + c.goals.filter(g => g.done).length, 0);
+  const overallPct  = totalGoals === 0 ? 0 : Math.round((doneGoals / totalGoals) * 100);
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Milestone Goals</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{doneGoals} of {totalGoals} goals complete</div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 90, height: 5, borderRadius: 3, background: "var(--card-border)", overflow: "hidden", position: "relative" }}>
+            <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${overallPct}%`, background: ACCENT_FINANCE, borderRadius: 3, transition: "width 300ms" }} />
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 800, color: ACCENT_FINANCE, minWidth: 28, textAlign: "right" }}>{overallPct}%</span>
+        </div>
+      </div>
+      {categories.map(cat => <GoalCategoryBlock key={cat.id} category={cat} onToggleGoal={handleToggleGoal} onAddGoal={handleAddGoal} />)}
+    </div>
+  );
+}
+
+// ── Signal data types ─────────────────────────────────────────────────────────
 
 interface SignalData {
   signalScore: number | null;
@@ -146,12 +696,14 @@ interface SignalData {
   careerCheckIn: { salaryRange?: string; industry?: string } | null;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+// ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const [data, setData] = useState<SignalData | null>(null);
+  const [data, setData]       = useState<SignalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState<ChecklistProgressEntry[]>([]);
+  const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -162,64 +714,68 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const stage = (session as any)?.user?.demoPersona as string | undefined;
+  useEffect(() => {
+    setScheduled(readSchedule());
+  }, []);
+
+  const stage       = (session as any)?.user?.demoPersona as string | undefined;
   const stageConfig = stage ? STAGE_MAP[stage] : null;
 
-  const firstName = data?.profile?.name?.split(" ")[0] || "there";
-  const totalSessions = data
-    ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count
-    : null;
+  const firstName     = data?.profile?.name?.split(" ")[0] || "there";
+  const totalSessions = data ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count : null;
 
   const signalScore = data?.signalScore ?? null;
-  const signalColor = signalScore === null ? "var(--text-muted)"
-    : signalScore >= 60 ? "#10B981"
-    : signalScore >= 35 ? "#F59E0B"
-    : "#EF4444";
+  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 60 ? "#10B981" : signalScore >= 35 ? "#F59E0B" : "#EF4444";
 
-  const hour = new Date().getHours();
+  const hour    = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
-  // Aptitude + personalization
   const riasecProfile = data?.aptitude?.scores?.riasecProfile ?? data?.aptitude?.primary ?? null;
-  const industry = data?.careerCheckIn?.industry ?? data?.profile?.targetIndustry ?? null;
-  const topMatches = riasecProfile ? matchOccupations(riasecProfile, { limit: 3 }) : [];
+  const industry      = data?.careerCheckIn?.industry ?? data?.profile?.targetIndustry ?? null;
+  const topMatches    = riasecProfile ? matchOccupations(riasecProfile, { limit: 3 }) : [];
 
-  // Annual reassessment nudge
   const needsReassessment = (() => {
     if (!data?.aptitude?.completedAt) return false;
-    const months = (Date.now() - new Date(data.aptitude.completedAt).getTime()) / (1000 * 60 * 60 * 24 * 30);
-    return months >= 11;
+    return (Date.now() - new Date(data.aptitude.completedAt).getTime()) / (1000 * 60 * 60 * 24 * 30) >= 11;
   })();
 
-  const hasAptitude = !!data?.aptitude;
+  const hasAptitude    = !!data?.aptitude;
   const hasAnySessions = totalSessions !== null && totalSessions > 0;
-
-  // Checklist + Calendar wiring
   const checklistItems = stageConfig?.checklist ?? [];
-  const scheduledItems: ScheduledItem[] = checklistItems.map(item => {
-    const entry = progress.find(p => p.itemId === item.id);
-    return {
-      itemId: item.id,
-      label: item.label,
-      stage: stageConfig?.stageKey ?? "pre_college",
-      done: entry?.done ?? false,
-      scheduledDate: entry?.scheduledDate ?? null,
-    };
-  });
 
-  function handleSchedule(itemId: string, date: string | null) {
-    setProgress(prev => {
-      const existing = prev.find(p => p.itemId === itemId);
-      if (existing) return prev.map(p => p.itemId === itemId ? { ...p, scheduledDate: date } : p);
-      return [...prev, { itemId, done: false, scheduledDate: date }];
-    });
+  function handleDropTask(taskIdOrTitle: string, date: string) {
+    const next = readSchedule();
+    const existing = next.find(i => i.itemId === taskIdOrTitle || i.label === taskIdOrTitle);
+    if (existing) {
+      const updated = next.map(i => (i.itemId === taskIdOrTitle || i.label === taskIdOrTitle) ? { ...i, date } : i);
+      writeSchedule(updated);
+      setScheduled(updated);
+    } else {
+      const newItem: ScheduleItem = {
+        itemId: "drop_" + Date.now(),
+        label: taskIdOrTitle,
+        date,
+        done: false,
+        category: "Career",
+        custom: true,
+      };
+      const updated = [...next, newItem];
+      writeSchedule(updated);
+      setScheduled(updated);
+    }
   }
+
+  const TABS = [
+    { id: "tasks"  as const, label: "Tasks" },
+    { id: "habits" as const, label: "Habits" },
+    { id: "goals"  as const, label: "Goals" },
+  ];
 
   return (
     <PremiumShell hideHeader>
-      <div style={{ maxWidth: 1120, margin: "0 auto", paddingBottom: 80 }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", paddingBottom: 80 }}>
 
-        {/* ── Header row ── */}
+        {/* ── Header ── */}
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div>
             <h1 style={{ margin: "0 0 4px", fontSize: 26, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.4 }}>
@@ -229,8 +785,6 @@ export default function DashboardPage() {
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
-
-          {/* Compact Signal Score */}
           {!loading && signalScore !== null && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
               <div style={{ fontSize: 24, fontWeight: 950, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
@@ -249,166 +803,162 @@ export default function DashboardPage() {
         </div>
 
         <StreakBanner />
-
         <DailyGamesWidget />
 
-        {/* ── Annual reassessment nudge ── */}
+        {/* ── Reassessment nudge ── */}
         {needsReassessment && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-            padding: "10px 16px", borderRadius: 12,
-            background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)",
-            marginTop: 16, marginBottom: 0, flexWrap: "wrap",
-          }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 16, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <RefreshCw size={18} color="#92400E" />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 900, color: "#92400E" }}>Time to retake your Career Assessment</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interests shift over time — see if your profile has evolved and get updated career matches.</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interests shift over time — see if your profile has evolved.</div>
               </div>
             </div>
-            <Link href="/aptitude" style={{ padding: "7px 16px", borderRadius: 8, background: "#F59E0B", color: "#fff", fontWeight: 900, fontSize: 12, textDecoration: "none", flexShrink: 0 }}>
-              Retake Assessment →
-            </Link>
+            <Link href="/aptitude" style={{ padding: "7px 16px", borderRadius: 8, background: "#F59E0B", color: "#fff", fontWeight: 900, fontSize: 12, textDecoration: "none", flexShrink: 0 }}>Retake →</Link>
           </div>
         )}
 
         {/* ── Personalized path ── */}
         {!loading && hasAptitude && riasecProfile && (
-          <div style={{
-            marginTop: 16,
-            padding: "18px 22px",
-            borderRadius: 16,
-            border: "1px solid var(--card-border-soft)",
-            background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))",
-          }}>
+          <div style={{ marginTop: 16, padding: "18px 22px", borderRadius: 16, border: "1px solid var(--card-border-soft)", background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))" }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 300px" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 5 }}>
-                  Your Path
-                </div>
-                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.4, marginBottom: 6 }}>
+              <div style={{ flex: "1 1 280px" }}>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 5 }}>Your Path</div>
+                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.4, marginBottom: 6 }}>
                   {industry
-                    ? <>Because you're a <span style={{ color: "var(--accent)" }}>{riasecDescription(riasecProfile)}</span> type interested in <span style={{ color: "var(--accent)" }}>{industry}</span>, here's your direction.</>
-                    : <>Because you're a <span style={{ color: "var(--accent)" }}>{riasecDescription(riasecProfile)}</span> type, here are your strongest career matches.</>
+                    ? <>You're a <span style={{ color: "var(--accent)" }}>{riasecDescription(riasecProfile)}</span> type in <span style={{ color: "var(--accent)" }}>{industry}</span>.</>
+                    : <>You're a <span style={{ color: "var(--accent)" }}>{riasecDescription(riasecProfile)}</span> type — here are your strongest matches.</>
                   }
                 </div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  Profile: <strong>{riasecProfile}</strong> · Top type: {RIASEC_LABELS[riasecProfile[0]] ?? riasecProfile[0]}
-                  {data?.aptitude?.scores?.riasecProfile && (
-                    <> · <Link href="/aptitude" style={{ color: "var(--accent)", textDecoration: "none" }}>Retake to update</Link></>
-                  )}
-                </div>
               </div>
-
-              {/* Top 3 career matches */}
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", flex: "0 0 auto" }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flex: "0 0 auto" }}>
                 {topMatches.map(occ => (
                   <Link key={occ.id} href={`/career-guide/career-paths/${occ.id}`} style={{ textDecoration: "none" }}>
-                    <div style={{
-                      padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border)",
-                      background: "var(--card-bg)", minWidth: 140,
-                    }}>
-                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 2 }}>{occ.title}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{occ.category}</div>
-                      <div style={{ marginTop: 5, fontSize: 10, fontWeight: 700, color: "#10B981" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>
+                    <div style={{ padding: "9px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", minWidth: 130 }}>
+                      <div style={{ fontSize: 11, fontWeight: 950, color: "var(--text-primary)", marginBottom: 2 }}>{occ.title}</div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{occ.category}</div>
+                      <div style={{ marginTop: 4, fontSize: 10, fontWeight: 700, color: "#10B981" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>
                     </div>
                   </Link>
                 ))}
-                <Link href="/career-guide/career-paths" style={{
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: "10px 14px", borderRadius: 12, border: "1px dashed var(--card-border)",
-                  background: "transparent", fontSize: 12, fontWeight: 700, color: "var(--accent)", textDecoration: "none", minWidth: 80,
-                }}>
-                  View all →
+                <Link href="/career-guide/career-paths" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "9px 12px", borderRadius: 10, border: "1px dashed var(--card-border)", background: "transparent", fontSize: 12, fontWeight: 700, color: "var(--accent)", textDecoration: "none", minWidth: 72 }}>
+                  All →
                 </Link>
               </div>
             </div>
           </div>
         )}
 
-        {/* ── Empty state: no aptitude, no sessions ── */}
+        {/* ── Empty state ── */}
         {!loading && !hasAptitude && !hasAnySessions && (
-          <div style={{
-            marginTop: 16,
-            padding: "28px 24px",
-            borderRadius: 16,
-            border: "1px dashed var(--card-border)",
-            background: "var(--card-bg)",
-            textAlign: "center",
-          }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-              <BarChart2 size={36} color="var(--text-muted)" />
-            </div>
+          <div style={{ marginTop: 16, padding: "28px 24px", borderRadius: 16, border: "1px dashed var(--card-border)", background: "var(--card-bg)", textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><BarChart2 size={36} color="var(--text-muted)" /></div>
             <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>Start with your Career Assessment</div>
             <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 440, margin: "0 auto 18px" }}>
-              Answer 60 questions to discover your RIASEC profile and get personalized career matches, side hustle ideas, and your path forward.
+              Answer 60 questions to discover your RIASEC profile and get personalized career matches.
             </div>
             <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/aptitude" style={{ padding: "10px 22px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>
-                Take Career Assessment →
-              </Link>
-              <Link href="/practice" style={{ padding: "10px 22px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>
-                Practice Interview →
-              </Link>
+              <Link href="/aptitude"  style={{ padding: "10px 22px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Take Career Assessment →</Link>
+              <Link href="/practice"  style={{ padding: "10px 22px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Practice Interview →</Link>
             </div>
           </div>
         )}
 
-        {/* ── Main two-column: checklist + calendar ── */}
-        {stageConfig ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24, alignItems: "start", marginTop: 24 }}>
-
-            {/* Left: checklist */}
-            <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: stageConfig.accent, textTransform: "uppercase" }}>
-                  Your Stage Checklist
+        {/* ── Practice quick-links ── */}
+        <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          {[
+            { label: "Interview Prep",    sub: "~15 min",  href: "/practice",              color: ACCENT_CAREER,   Icon: Mic },
+            { label: "Public Speaking",   sub: "~10 min",  href: "/public-speaking",       color: ACCENT_LEARNING, Icon: Zap },
+            { label: "Career Assessment", sub: "~15 min",  href: "/aptitude",              color: ACCENT_MINDSET,  Icon: Target },
+            { label: "Career of the Day", sub: "daily",    href: "/games/career-of-the-day", color: ACCENT_PERSONAL, Icon: Gamepad2 },
+          ].map(item => (
+            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
+              <div style={{ padding: "14px 16px", borderRadius: 12, border: `1px solid ${item.color}25`, background: item.color + "08", display: "flex", alignItems: "center", gap: 10, transition: "background 120ms" }}>
+                <div style={{ width: 34, height: 34, borderRadius: 9, background: item.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <item.Icon size={17} color={item.color} />
                 </div>
-                <Link href={stageConfig.guideHref} style={{ fontSize: 12, fontWeight: 700, color: stageConfig.accent, textDecoration: "none" }}>
-                  {stageConfig.guideLabel} →
-                </Link>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{item.label}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{item.sub}</div>
+                </div>
               </div>
-              <ChecklistSection
-                stage={stageConfig.stageKey}
-                items={checklistItems}
-                accentColor={stageConfig.accent}
-                onProgressChange={setProgress}
-              />
-            </div>
+            </Link>
+          ))}
+        </div>
 
-            {/* Right: calendar */}
-            <MiniCalendar
-              items={scheduledItems}
-              accentColor={stageConfig.accent}
-              stage={stageConfig.stageKey}
-              onSchedule={handleSchedule}
-            />
-          </div>
-        ) : (
-          /* No stage configured — show quick access to stage guides */
-          !loading && (
-            <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-              {[
-                { label: "Starting Your Journey", sub: "Pre-College",    href: "/pre-college",    Icon: GraduationCap, color: "#10B981" },
-                { label: "Building Your Future",  sub: "During College", href: "/during-college", Icon: BookOpen,      color: "#2563EB" },
-                { label: "Developing Your Career",sub: "Post-College",   href: "/post-college",   Icon: Rocket,        color: "#8B5CF6" },
-              ].map(s => (
-                <Link key={s.href} href={s.href} style={{ textDecoration: "none" }}>
-                  <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: s.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <s.Icon size={20} color={s.color} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{s.label}</div>
-                      <div style={{ fontSize: 11, color: s.color, fontWeight: 700 }}>{s.sub}</div>
-                    </div>
-                  </div>
-                </Link>
+        {/* ── Compass: Calendar + Tabs ── */}
+        <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 380px", gap: 24, alignItems: "start" }}>
+
+          {/* Full-width calendar */}
+          <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} />
+
+          {/* Right panel: Tasks / Habits / Goals */}
+          <div>
+            {/* Tab bar */}
+            <div style={{ display: "flex", gap: 4, marginBottom: 16, padding: "4px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    flex: 1, padding: "7px 10px", borderRadius: 7, border: "none", cursor: "pointer",
+                    fontSize: 12, fontWeight: 800,
+                    background: activeTab === tab.id ? "var(--accent)" : "transparent",
+                    color: activeTab === tab.id ? "#fff" : "var(--text-muted)",
+                    transition: "background 150ms, color 150ms",
+                  }}
+                >
+                  {tab.label}
+                </button>
               ))}
             </div>
-          )
-        )}
+
+            {activeTab === "tasks" && (
+              <div>
+                <PersonalTasksSection />
+                {stageConfig ? (
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: stageConfig.accent, textTransform: "uppercase" }}>Stage Checklist</div>
+                      <Link href={stageConfig.guideHref} style={{ fontSize: 11, fontWeight: 700, color: stageConfig.accent, textDecoration: "none" }}>{stageConfig.guideLabel} →</Link>
+                    </div>
+                    <ChecklistSection
+                      stage={stageConfig.stageKey}
+                      items={checklistItems}
+                      accentColor={stageConfig.accent}
+                      onProgressChange={setProgress}
+                    />
+                  </div>
+                ) : (
+                  !loading && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { label: "Pre-College Guide",    href: "/pre-college",    Icon: GraduationCap, color: "#10B981" },
+                        { label: "During-College Guide", href: "/during-college", Icon: BookOpen,      color: "#2563EB" },
+                        { label: "Post-College Guide",   href: "/post-college",   Icon: Rocket,        color: "#8B5CF6" },
+                      ].map(s => (
+                        <Link key={s.href} href={s.href} style={{ textDecoration: "none" }}>
+                          <div style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 10 }}>
+                            <div style={{ width: 32, height: 32, borderRadius: 8, background: s.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <s.Icon size={16} color={s.color} />
+                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{s.label}</span>
+                            <ChevronRight size={14} color="var(--text-muted)" style={{ marginLeft: "auto" }} />
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )
+                )}
+              </div>
+            )}
+
+            {activeTab === "habits" && <HabitsTab />}
+            {activeTab === "goals"  && <GoalsTab />}
+          </div>
+        </div>
 
         {/* ── Three Pillars ── */}
         <div style={{ marginTop: 32 }}>
@@ -444,12 +994,8 @@ export default function DashboardPage() {
         {data && data.naceScores.some(n => n.score !== null) && (
           <div style={{ padding: "16px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", marginTop: 24 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>
-                NACE Career Readiness
-              </div>
-              <Link href="/my-journey?tab=nace" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>
-                Full breakdown →
-              </Link>
+              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>NACE Career Readiness</div>
+              <Link href="/my-journey?tab=nace" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Full breakdown →</Link>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "7px 18px" }}>
               {data.naceScores.filter(n => n.key !== "equity_inclusion" && n.score !== null).map(ns => (
@@ -459,7 +1005,7 @@ export default function DashboardPage() {
                     <span style={{ fontSize: 10, fontWeight: 900, color: ns.score! >= 50 ? "#10B981" : "var(--text-muted)" }}>{ns.score}</span>
                   </div>
                   <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${ns.score}%`, borderRadius: 99, background: ns.score! >= 50 ? "#10B981" : "#F59E0B", transition: "width 0.6s ease" }} />
+                    <div style={{ height: "100%", width: `${ns.score}%`, borderRadius: 99, background: "var(--accent)", transition: "width 0.6s ease" }} />
                   </div>
                 </div>
               ))}
@@ -469,13 +1015,7 @@ export default function DashboardPage() {
 
         {/* ── Next recommended action ── */}
         {data?.nextAction && (
-          <div style={{
-            marginTop: 16,
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-            padding: "14px 20px", borderRadius: 14,
-            background: "rgba(37,99,235,0.05)", border: "1px solid rgba(37,99,235,0.15)",
-            flexWrap: "wrap",
-          }}>
+          <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 20px", borderRadius: 14, background: "rgba(37,99,235,0.05)", border: "1px solid rgba(37,99,235,0.15)", flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 2 }}>Recommended next step</div>
               <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{data.nextAction.label}</div>
@@ -491,22 +1031,17 @@ export default function DashboardPage() {
           <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>Quick Access</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {[
-              { Icon: Calendar,    label: "Planner",           href: "/planner",                  color: "#8B5CF6" },
               { Icon: BarChart2,   label: "My Journey",         href: "/my-journey",               color: "#2563EB" },
               { Icon: CheckSquare, label: "Career Check-In",    href: "/career-checkin",           color: "#10B981" },
               { Icon: FileText,    label: "Resume Analyzer",    href: "/resume-gap",               color: "#F59E0B" },
               { Icon: Home,        label: "Housing Guide",      href: "/career-guide/housing",     color: "#0EA5E9" },
               { Icon: BarChart,    label: "Salary Benchmarks",  href: "/career-guide/benchmarks",  color: "#EC4899" },
-              { Icon: Zap,         label: "Career Instincts",   href: "/career-instincts",         color: "#EF4444" },
-            ].map(tool => (
-              <Link key={tool.href} href={tool.href} style={{ textDecoration: "none" }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 7,
-                  padding: "8px 14px", borderRadius: 10,
-                  border: "1px solid var(--card-border)", background: "var(--card-bg)",
-                }}>
-                  <tool.Icon size={14} color={tool.color} />
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{tool.label}</span>
+              { Icon: BookOpen,    label: "Financial Literacy", href: "/financial-literacy",       color: "#8B5CF6" },
+            ].map(item => (
+              <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap" }}>
+                  <item.Icon size={13} color={item.color} />
+                  {item.label}
                 </div>
               </Link>
             ))}
@@ -517,4 +1052,3 @@ export default function DashboardPage() {
     </PremiumShell>
   );
 }
-

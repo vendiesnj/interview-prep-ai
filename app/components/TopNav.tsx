@@ -28,7 +28,6 @@ const ROUTE_LABELS: Record<string, string> = {
   "/career-guide/finances":       "Financial Guide",
   "/financial-literacy":          "Financial Literacy",
   "/future-proof":                "Future-Proof",
-  "/planner":                     "Planner",
   "/my-journey":                  "My Journey",
   "/settings":                    "Settings",
   "/account":                     "Account",
@@ -87,7 +86,6 @@ const MOBILE_NAV = [
 
 const MOBILE_DRAWER_LINKS = [
   { label: "Daily Games",          href: "/games" },
-  { label: "Planner",              href: "/planner" },
   { label: "Career Assessment",    href: "/aptitude" },
   { label: "Future-Proof",         href: "/future-proof" },
   { label: "Budget Builder",       href: "/career-guide/budget" },
@@ -283,9 +281,6 @@ export default function TopNav() {
             <HelpCircle size={15} />
             <span style={{ fontSize: 13 }}>?</span>
           </button>
-          <Link href="/planner" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/planner") ? "var(--accent)" : "var(--text-muted)", background: isActive("/planner") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
-            Planner
-          </Link>
           <Link href="/my-journey" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/my-journey") ? "var(--accent)" : "var(--text-muted)", background: isActive("/my-journey") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
             My Journey
           </Link>
