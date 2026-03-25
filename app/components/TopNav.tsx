@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { X, MoreHorizontal, ChevronLeft, MessageSquare, Home, Mic, BarChart2, Map, Gamepad2, Monitor } from "lucide-react";
+import { X, MoreHorizontal, ChevronLeft, MessageSquare, Home, Mic, BarChart2, Map, Gamepad2, Monitor, HelpCircle } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
+import HelpPanel from "./HelpPanel";
 
 // ── Route label map ───────────────────────────────────────────────────────────
 
@@ -107,6 +108,7 @@ export default function TopNav() {
   const { data: session } = useSession();
   const isMobile = useIsMobile();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const isAdmin = (session?.user as any)?.tenantRole === "tenant_admin";
   const isDashboard = pathname === "/dashboard";
@@ -209,70 +211,98 @@ export default function TopNav() {
             </div>
           </div>
         )}
+
+        <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
       </>
     );
   }
 
   // ── DESKTOP ──────────────────────────────────────────────────────────────────
   return (
-    <header style={{
-      position: "sticky", top: 0, zIndex: 100,
-      height: 54, width: "100%",
-      background: "var(--card-bg)",
-      borderBottom: "1px solid var(--card-border-soft)",
-      display: "flex", alignItems: "center",
-      padding: "0 24px", gap: 0,
-      boxSizing: "border-box",
-    }}>
-      {/* Logo — always links to dashboard */}
-      <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, marginRight: 20, flexShrink: 0 }}>
-        <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <MessageSquare size={14} color="white" />
-        </div>
-        <span style={{ fontSize: 15, fontWeight: 950, color: "var(--accent)", letterSpacing: -0.3 }}>Signal</span>
-      </Link>
+    <>
+      <header style={{
+        position: "sticky", top: 0, zIndex: 100,
+        height: 54, width: "100%",
+        background: "var(--card-bg)",
+        borderBottom: "1px solid var(--card-border-soft)",
+        display: "flex", alignItems: "center",
+        padding: "0 24px", gap: 0,
+        boxSizing: "border-box",
+      }}>
+        {/* Logo — always links to dashboard */}
+        <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8, marginRight: 20, flexShrink: 0 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <MessageSquare size={14} color="white" />
+          </div>
+          <span style={{ fontSize: 15, fontWeight: 950, color: "var(--accent)", letterSpacing: -0.3 }}>Signal</span>
+        </Link>
 
-      {/* Breadcrumb / back nav */}
-      {!isAdmin && !isDashboard && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <Link
-            href="/dashboard"
-            style={{ display: "flex", alignItems: "center", gap: 3, padding: "4px 10px", borderRadius: 7, textDecoration: "none", fontSize: 13, fontWeight: 700, color: "var(--text-muted)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)", transition: "color 120ms" }}
-          >
-            <ChevronLeft size={14} />
-            Dashboard
+        {/* Breadcrumb / back nav */}
+        {!isAdmin && !isDashboard && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <Link
+              href="/dashboard"
+              style={{ display: "flex", alignItems: "center", gap: 3, padding: "4px 10px", borderRadius: 7, textDecoration: "none", fontSize: 13, fontWeight: 700, color: "var(--text-muted)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)", transition: "color 120ms" }}
+            >
+              <ChevronLeft size={14} />
+              Dashboard
+            </Link>
+            <span style={{ fontSize: 13, color: "var(--card-border)" }}>/</span>
+            <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{pageLabel}</span>
+          </div>
+        )}
+
+        {isDashboard && !isAdmin && (
+          <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>Dashboard</span>
+        )}
+
+        {/* Right side */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", flexShrink: 0 }}>
+          <BillingSidebarButton collapsed={true} />
+          <Link href="/workspace" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/workspace") ? "var(--accent)" : "var(--text-muted)", background: isActive("/workspace") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
+            <Monitor size={14} />
+            Workspace
           </Link>
-          <span style={{ fontSize: 13, color: "var(--card-border)" }}>/</span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{pageLabel}</span>
+          <Link href="/games" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/games") ? "var(--accent)" : "var(--text-muted)", background: isActive("/games") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
+            <Gamepad2 size={14} />
+            Games
+          </Link>
+          {/* Help button */}
+          <button
+            onClick={() => setHelpOpen(true)}
+            aria-label="Open help panel"
+            title="Help"
+            style={{
+              padding: "5px 9px",
+              borderRadius: 7,
+              fontSize: 13,
+              fontWeight: 700,
+              color: helpOpen ? "var(--accent)" : "var(--text-muted)",
+              background: helpOpen ? "var(--accent-soft)" : "transparent",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <HelpCircle size={15} />
+            <span style={{ fontSize: 13 }}>?</span>
+          </button>
+          <Link href="/planner" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/planner") ? "var(--accent)" : "var(--text-muted)", background: isActive("/planner") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
+            Planner
+          </Link>
+          <Link href="/my-journey" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/my-journey") ? "var(--accent)" : "var(--text-muted)", background: isActive("/my-journey") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
+            My Journey
+          </Link>
+          <Link href="/settings" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/settings") ? "var(--accent)" : "var(--text-muted)", background: isActive("/settings") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
+            Settings
+          </Link>
+          <LogoutButton />
         </div>
-      )}
+      </header>
 
-      {isDashboard && !isAdmin && (
-        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>Dashboard</span>
-      )}
-
-      {/* Right side */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", flexShrink: 0 }}>
-        <BillingSidebarButton collapsed={true} />
-        <Link href="/workspace" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/workspace") ? "var(--accent)" : "var(--text-muted)", background: isActive("/workspace") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
-          <Monitor size={14} />
-          Workspace
-        </Link>
-        <Link href="/games" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/games") ? "var(--accent)" : "var(--text-muted)", background: isActive("/games") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
-          <Gamepad2 size={14} />
-          Games
-        </Link>
-        <Link href="/planner" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/planner") ? "var(--accent)" : "var(--text-muted)", background: isActive("/planner") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
-          Planner
-        </Link>
-        <Link href="/my-journey" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/my-journey") ? "var(--accent)" : "var(--text-muted)", background: isActive("/my-journey") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
-          My Journey
-        </Link>
-        <Link href="/settings" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/settings") ? "var(--accent)" : "var(--text-muted)", background: isActive("/settings") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
-          Settings
-        </Link>
-        <LogoutButton />
-      </div>
-    </header>
+      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+    </>
   );
 }

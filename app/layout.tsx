@@ -14,13 +14,13 @@ export const metadata: Metadata = {
   title: "AI Interview Practice Tool | STAR Feedback & Mock Interview Coaching",
   description:
     "Practice interviews with AI-powered feedback. Get STAR breakdown scoring, communication analysis, and personalized improvement tips to ace your next interview.",
-  metadataBase: new URL("https://interviewperformancecoach.com"),
+  metadataBase: new URL("https://signal.app"),
   openGraph: {
-    title: "AI Interview Practice Tool | Interview Performance Coach",
+    title: "AI Interview Practice Tool | Signal",
     description:
       "AI-powered mock interview practice with STAR scoring, communication analysis, and personalized feedback.",
-    url: "https://interviewperformancecoach.com",
-    siteName: "Interview Performance Coach",
+    url: "https://signal.app",
+    siteName: "Signal",
     type: "website",
   },
 };

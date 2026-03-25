@@ -1,313 +1,315 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
+import {
+  X,
+  ChevronDown,
+  ChevronRight,
+  Sparkles,
+  User,
+  ClipboardList,
+  LayoutDashboard,
+  CheckSquare,
+  Grid,
+  Mic,
+  Activity,
+  Zap,
+  Calendar,
+  CalendarDays,
+  BookOpen,
+  Sunrise,
+  TrendingUp,
+  Gamepad2,
+  Layers,
+  Monitor,
+  Settings,
+  Lock,
+} from "lucide-react";
 
-const STORAGE_KEY = "ipc_help_panel_v1";
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-type Tab = "start" | "tips" | "results" | "faq";
+type HelpItem = {
+  icon: React.ReactNode;
+  title: string;
+  body: string;
+};
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "start", label: "Getting Started" },
-  { id: "tips", label: "Practice Tips" },
-  { id: "results", label: "Reading Results" },
-  { id: "faq", label: "FAQ" },
+type HelpSection = {
+  heading: string;
+  items: HelpItem[];
+};
+
+// ── Content ───────────────────────────────────────────────────────────────────
+
+const SECTIONS: HelpSection[] = [
+  {
+    heading: "GETTING STARTED",
+    items: [
+      {
+        icon: <Sparkles size={15} />,
+        title: "What is Signal?",
+        body: "Signal is your career readiness platform — built to help you land the right job with the right skills. It tracks your interview practice, career clarity, and financial health in one place, then gives you a single score to show how ready you are.",
+      },
+      {
+        icon: <User size={15} />,
+        title: "Setting up your profile",
+        body: "Head to Settings to choose your career stage (Pre-College, During College, or Post-College). Your stage personalizes your checklist, career guide content, and Signal Score weights so everything you see is relevant to where you actually are.",
+      },
+      {
+        icon: <ClipboardList size={15} />,
+        title: "Taking the Career Assessment",
+        body: "The Career Assessment uses the RIASEC model to map your personality to career paths. Complete it from the Dashboard or from Career Assessment in the nav. Your results set your career clarity baseline and feed directly into your Signal Score.",
+      },
+    ],
+  },
+  {
+    heading: "YOUR DASHBOARD",
+    items: [
+      {
+        icon: <LayoutDashboard size={15} />,
+        title: "Signal Score — what it means",
+        body: "Your Signal Score (0–100) combines Interview Readiness, Financial Health, and Career Clarity. It updates as you practice, complete assessments, and check off tasks. Think of it as your career fitness level — not a grade, but a direction.",
+      },
+      {
+        icon: <CheckSquare size={15} />,
+        title: "The checklist — stage-specific tasks",
+        body: "The checklist shows the highest-impact actions for your current stage. Items are grouped by priority, and completing them moves your Signal Score. It refreshes as you progress and unlock new milestones.",
+      },
+      {
+        icon: <Grid size={15} />,
+        title: "Quick Access tiles",
+        body: "The dashboard tiles let you jump straight into Mock Interviews, the Planner, Daily Games, and more. They also surface your streak, recent scores, and upcoming calendar items so nothing slips through the cracks.",
+      },
+    ],
+  },
+  {
+    heading: "PRACTICE & TOOLS",
+    items: [
+      {
+        icon: <Mic size={15} />,
+        title: "Mock Interviews — how scoring works",
+        body: "Record or type your answer to a behavioral question. You get a STAR breakdown (Situation / Task / Action / Result), a Communication score, a Confidence score, and a rewritten stronger answer. Scores improve with practice — most people jump 10–15 points by attempt three.",
+      },
+      {
+        icon: <Activity size={15} />,
+        title: "Vocal Analysis — what the signals mean",
+        body: "After a spoken answer, Signal analyzes your pace (WPM), filler word rate, vocal energy, and monotone risk. Aim for 130–160 WPM, a filler rate under 5%, and a monotone risk below 5/10. These signals show how your delivery lands — not just what you said.",
+      },
+      {
+        icon: <Zap size={15} />,
+        title: "Career Assessment — RIASEC explained",
+        body: "RIASEC stands for Realistic, Investigative, Artistic, Social, Enterprising, Conventional — six personality types that map to career families. Your top two or three types are used to surface matching career paths, job profiles, and learning priorities in your career guide.",
+      },
+    ],
+  },
+  {
+    heading: "PLANNING",
+    items: [
+      {
+        icon: <Calendar size={15} />,
+        title: "Planner — Today, Habits, Goals tabs",
+        body: "The Planner has three layers: Today (tasks due now), Habits (recurring actions like daily practice), and Goals (long-term milestones). Completing daily tasks builds your streak and keeps your Signal Score moving.",
+      },
+      {
+        icon: <CalendarDays size={15} />,
+        title: "Scheduling tasks on the calendar",
+        body: "Any task in the Planner can be assigned a date. It will appear on the calendar view for that day. Tap any date on the MiniCalendar to see what's scheduled, and drag tasks to reschedule if plans change.",
+      },
+      {
+        icon: <CalendarDays size={15} />,
+        title: "MiniCalendar on the dashboard",
+        body: "The MiniCalendar widget on the dashboard shows a compact month view with dot indicators on days that have tasks. Click any date to expand that day's agenda without leaving the dashboard.",
+      },
+    ],
+  },
+  {
+    heading: "CAREER TOOLS",
+    items: [
+      {
+        icon: <BookOpen size={15} />,
+        title: "Career Guide & paths",
+        body: "The Career Guide organizes financial literacy, job profiles, budget tools, and career paths in one place. Career Paths surface RIASEC-matched occupations with salary ranges, growth outlooks, and skill requirements so you can explore with real data.",
+      },
+      {
+        icon: <Sunrise size={15} />,
+        title: "Career of the Day",
+        body: "Every day a new career is featured with a short profile — what the job involves, typical salary, required skills, and growth outlook. It's a quick way to stumble onto paths you might not have considered.",
+      },
+      {
+        icon: <TrendingUp size={15} />,
+        title: "My Journey — tracking progress",
+        body: "My Journey is your personal history log. It shows your practice sessions over time, score trends, streaks, and milestones. Use it to see how far you've come and identify which areas still need work.",
+      },
+    ],
+  },
+  {
+    heading: "DAILY GAMES",
+    items: [
+      {
+        icon: <Gamepad2 size={15} />,
+        title: "Hustle (Wordle) — daily word game",
+        body: "Hustle is a career-themed word game in the style of Wordle. One new puzzle per day. It takes about two minutes and keeps your vocabulary sharp. Your streak is tracked on the Games dashboard.",
+      },
+      {
+        icon: <Layers size={15} />,
+        title: "Career Connections — group the tiles",
+        body: "Career Connections challenges you to find the hidden groupings among 16 career-related tiles. It's inspired by the NYT Connections format. One puzzle per day — harder groups are worth more to your streak.",
+      },
+      {
+        icon: <Sunrise size={15} />,
+        title: "Career of the Day",
+        body: "Find the Career of the Day in the Daily Games section as well as the Career Guide. It's the same featured career — a bite-sized career exploration that takes under a minute to read.",
+      },
+    ],
+  },
+  {
+    heading: "WORKSPACE",
+    items: [
+      {
+        icon: <Monitor size={15} />,
+        title: "Tracked browser sessions explained",
+        body: "Workspace lets you open a monitored browser window for job searching or career research. Sessions are timestamped and logged to My Journey so you can track how much time you're investing in your search — without any content being recorded.",
+      },
+    ],
+  },
+  {
+    heading: "ACCOUNT & SETTINGS",
+    items: [
+      {
+        icon: <Settings size={15} />,
+        title: "Changing your stage",
+        body: "Your career stage (Pre-College, During College, Post-College) controls which checklist items, career guide sections, and Signal Score weights apply to you. Change it anytime in Settings — your history is preserved and your checklist will update immediately.",
+      },
+      {
+        icon: <Lock size={15} />,
+        title: "Privacy & tracking policy",
+        body: "Audio from practice sessions is processed to generate delivery analytics and is accessible only to you. Workspace sessions log timestamps, not content. No interview audio or browser content is shared with third parties or used for advertising.",
+      },
+    ],
+  },
 ];
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 900,
-          letterSpacing: 0.7,
-          color: "var(--accent)",
-          textTransform: "uppercase" as const,
-          marginBottom: 8,
-        }}
-      >
-        {title}
-      </div>
-      {children}
-    </div>
-  );
-}
+// ── Accordion item ─────────────────────────────────────────────────────────
 
-function Step({ n, text }: { n: number; text: string }) {
-  return (
-    <div style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 10 }}>
-      <div
-        style={{
-          width: 22,
-          height: 22,
-          borderRadius: "50%",
-          background: "var(--accent-soft)",
-          border: "1px solid var(--accent-strong)",
-          color: "var(--accent)",
-          fontSize: 11,
-          fontWeight: 900,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flex: "0 0 auto",
-          marginTop: 1,
-        }}
-      >
-        {n}
-      </div>
-      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{text}</div>
-    </div>
-  );
-}
-
-function Tip({ children }: { children: React.ReactNode }) {
+function AccordionItem({ item }: { item: HelpItem }) {
+  const [open, setOpen] = useState(false);
   return (
     <div
       style={{
-        display: "flex",
-        gap: 8,
-        alignItems: "flex-start",
-        marginBottom: 10,
-        padding: "10px 12px",
         borderRadius: 10,
-        background: "var(--card-bg)",
         border: "1px solid var(--card-border-soft)",
+        background: open ? "var(--card-bg)" : "transparent",
+        marginBottom: 6,
+        overflow: "hidden",
+        transition: "background 120ms",
       }}
     >
-      <span style={{ color: "var(--accent)", fontSize: 13, flex: "0 0 auto", marginTop: 1 }}>→</span>
-      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{children}</div>
-    </div>
-  );
-}
-
-function MetricRow({ label, what }: { label: string; what: string }) {
-  return (
-    <div style={{ marginBottom: 10 }}>
-      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{label}</div>
-      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 2 }}>{what}</div>
-    </div>
-  );
-}
-
-function FaqItem({ q, a }: { q: string; a: string }) {
-  const [open, setOpen] = React.useState(false);
-  return (
-    <div style={{ borderBottom: "1px solid var(--card-border-soft)", paddingBottom: 10, marginBottom: 10 }}>
       <button
         onClick={() => setOpen((v) => !v)}
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
           width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 12px",
           background: "none",
           border: "none",
-          padding: 0,
           cursor: "pointer",
-          textAlign: "left" as const,
-          gap: 8,
+          textAlign: "left",
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.4 }}>{q}</span>
-        <span style={{ fontSize: 16, color: "var(--text-muted)", flex: "0 0 auto" }}>{open ? "−" : "+"}</span>
+        <span style={{ color: "var(--accent)", flex: "0 0 auto", display: "flex" }}>
+          {item.icon}
+        </span>
+        <span
+          style={{
+            flex: 1,
+            fontSize: 13,
+            fontWeight: 800,
+            color: "var(--text-primary)",
+            lineHeight: 1.4,
+          }}
+        >
+          {item.title}
+        </span>
+        <span style={{ color: "var(--text-muted)", flex: "0 0 auto", display: "flex" }}>
+          {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+        </span>
       </button>
       {open && (
-        <div style={{ marginTop: 8, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{a}</div>
+        <div
+          style={{
+            padding: "0 12px 12px 37px",
+            fontSize: 13,
+            color: "var(--text-muted)",
+            lineHeight: 1.6,
+          }}
+        >
+          {item.body}
+        </div>
       )}
     </div>
   );
 }
 
-function TabContent({ tab, onGoToPractice }: { tab: Tab; onGoToPractice: () => void }) {
-  if (tab === "start") {
-    return (
-      <>
-        <Section title="How it works">
-          <Step n={1} text="Set up a Job Profile with the role you're targeting. Paste a real job description for the most relevant questions." />
-          <Step n={2} text="Go to Practice and answer an interview question by speaking or typing your response." />
-          <Step n={3} text="Review your Results - you'll get STAR scoring, communication feedback, delivery analysis, and a stronger-answer rewrite." />
-          <Step n={4} text="Track your Progress over time. Repeat for different question types and profiles." />
-        </Section>
+// ── Section heading ────────────────────────────────────────────────────────
 
-        <Section title="Start here">
-          <Tip>Set your first job profile before practicing - it unlocks tailored questions and better keyword scoring.</Tip>
-          <Tip>Try the Question Bank to pick a specific behavioral or technical question to work on.</Tip>
-        </Section>
-
-        <button
-          onClick={onGoToPractice}
-          style={{
-            width: "100%",
-            marginTop: 4,
-            padding: "13px 16px",
-            borderRadius: 12,
-            border: "1px solid var(--accent-strong)",
-            background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
-            color: "var(--accent)",
-            fontWeight: 950,
-            fontSize: 14,
-            cursor: "pointer",
-            boxShadow: "var(--shadow-glow)",
-          }}
-        >
-          Go to Practice →
-        </button>
-      </>
-    );
-  }
-
-  if (tab === "tips") {
-    return (
-      <>
-        <Section title="Answer structure">
-          <Tip>Use STAR: Situation → Task → Action → Result. Keep Situation and Task brief - the Action and Result are what interviewers remember.</Tip>
-          <Tip>End every answer with a specific, measurable result. "The team met the deadline" is weak. "We shipped 2 weeks early and reduced bug reports by 40%" is strong.</Tip>
-          <Tip>Use "I" not "we" - interviewers want to know what you specifically did, not what the group accomplished.</Tip>
-        </Section>
-
-        <Section title="Delivery">
-          <Tip>Speak at 130–160 WPM. Much faster sounds rushed; slower can sound unsure. Your results page shows your actual WPM.</Tip>
-          <Tip>Replace filler words (um, uh, like) with a 1-second pause. Silence sounds more confident than filler.</Tip>
-          <Tip>Vary your energy when you get to the result - the outcome line should land with more weight than the setup.</Tip>
-        </Section>
-
-        <Section title="Practice habits">
-          <Tip>Do at least 3 attempts per question type to see meaningful score improvement.</Tip>
-          <Tip>Practice out loud, not in your head. Reading an answer silently doesn't train your delivery.</Tip>
-          <Tip>Review the "Better Answer" rewrite in your results - it shows exactly what the ideal version sounds like for your role.</Tip>
-        </Section>
-      </>
-    );
-  }
-
-  if (tab === "results") {
-    return (
-      <>
-        <Section title="Score tabs">
-          <MetricRow label="Overview" what="Your overall score, headline strengths, and top improvement areas at a glance." />
-          <MetricRow label="Relevance" what="How directly your answer addressed the question - scored on directness, completeness, and on-topic focus." />
-          <MetricRow label="Structure" what="STAR breakdown with evidence excerpts from your transcript and per-component scores (S / T / A / R)." />
-          <MetricRow label="Delivery" what="Speech pace (WPM), filler rate, monotone risk, energy variation, and pitch dynamics from your audio." />
-          <MetricRow label="Coaching" what="Why you scored what you scored, what the next attempt should focus on, and a rewritten stronger answer." />
-          <MetricRow label="Transcript" what="Full text of what you said, with keyword highlights." />
-        </Section>
-
-        <Section title="Key metrics">
-          <MetricRow label="STAR avg" what="Average of your Situation, Task, Action, and Result scores - the core structural quality signal." />
-          <MetricRow label="Communication" what="How clearly and fluently you expressed your ideas, independent of content quality." />
-          <MetricRow label="Confidence" what="Ownership language, assertive phrasing, and avoidance of hedging - not how you felt, but how you sounded." />
-          <MetricRow label="Closing Impact" what="How strong your Result statement was - the single highest-leverage thing to improve in most answers." />
-          <MetricRow label="Monotone Risk" what="Higher = flatter delivery. Aim below 5/10. Raise energy especially on your result line." />
-        </Section>
-      </>
-    );
-  }
-
-  // faq
+function SectionHeading({ label }: { label: string }) {
   return (
-    <>
-      <FaqItem
-        q="Does my audio get recorded?"
-        a="Yes, when you practice by speaking, audio is recorded to generate delivery analytics (pace, fillers, vocal variety). Recordings are accessible in your results and not shared."
-      />
-      <FaqItem
-        q="What's a good overall score?"
-        a="Scores above 70/100 indicate a solid, structured answer. Scores of 80+ are strong. Most first attempts land between 45–65 - improvement after feedback is common and expected."
-      />
-      <FaqItem
-        q="What is STAR scoring?"
-        a="STAR (Situation, Task, Action, Result) is the standard structure for behavioral interview answers. Each component is scored separately so you can see exactly where your answer breaks down."
-      />
-      <FaqItem
-        q="Can I practice without a job profile?"
-        a="Yes - you can answer general behavioral questions without a profile. Adding a profile unlocks role-tailored questions and better keyword alignment scoring."
-      />
-      <FaqItem
-        q="How do I improve my Confidence score?"
-        a="Use first-person ownership language ('I decided', 'I led', 'my approach was'), avoid hedging phrases ('kind of', 'sort of', 'I think maybe'), and slow your pace on key sentences."
-      />
-      <FaqItem
-        q="What does 'Closing Impact' measure?"
-        a="It scores how strong your Result statement was. A strong close names a specific, preferably quantified outcome. This is the single highest-leverage improvement for most candidates."
-      />
-    </>
+    <div
+      style={{
+        fontSize: 10,
+        fontWeight: 900,
+        letterSpacing: 0.8,
+        color: "var(--accent)",
+        textTransform: "uppercase" as const,
+        padding: "16px 0 6px",
+      }}
+    >
+      {label}
+    </div>
   );
 }
 
-export default function HelpPanel() {
-  const router = useRouter();
-  const [open, setOpen] = React.useState(false);
-  const [tab, setTab] = React.useState<Tab>("start");
-  const [initialized, setInitialized] = React.useState(false);
+// ── Main component ─────────────────────────────────────────────────────────
 
-  React.useEffect(() => {
-    try {
-      const seen = localStorage.getItem(STORAGE_KEY);
-      if (!seen) {
-        setOpen(true);
-        localStorage.setItem(STORAGE_KEY, "1");
-      }
-    } catch {}
-    setInitialized(true);
-  }, []);
+export interface HelpPanelProps {
+  open: boolean;
+  onClose: () => void;
+}
 
-  function handleGoToPractice() {
-    setOpen(false);
-    router.push("/practice");
-  }
-
-  if (!initialized) return null;
-
+export default function HelpPanel({ open, onClose }: HelpPanelProps) {
   return (
     <>
-      {/* Floating trigger button when collapsed */}
-      {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          title="Help & Guide"
-          className="ipc-help-panel"
+      {/* Backdrop */}
+      {open && (
+        <div
+          onClick={onClose}
           style={{
             position: "fixed",
-            right: 20,
-            bottom: 24,
-            width: 44,
-            height: 44,
-            borderRadius: "50%",
-            border: "1px solid var(--accent-strong)",
-            background: "var(--accent-soft)",
-            color: "var(--accent)",
-            fontSize: 18,
-            fontWeight: 950,
-            cursor: "pointer",
-            boxShadow: "var(--shadow-glow)",
-            zIndex: 200,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            inset: 0,
+            background: "rgba(0,0,0,0.35)",
+            zIndex: 290,
           }}
-        >
-          ?
-        </button>
+        />
       )}
 
-      {/* Panel */}
+      {/* Slide-in panel */}
       <div
-        className="ipc-help-panel"
         style={{
           position: "fixed",
-          right: open ? 0 : -380,
           top: 0,
+          right: 0,
           width: 360,
           height: "100vh",
           background: "var(--card-bg-strong)",
           borderLeft: "1px solid var(--card-border-soft)",
-          boxShadow: open ? "-8px 0 32px rgba(0,0,0,0.12)" : "none",
+          boxShadow: open ? "-8px 0 40px rgba(0,0,0,0.18)" : "none",
           display: "flex",
           flexDirection: "column",
           zIndex: 300,
-          transition: "right 240ms cubic-bezier(0.4,0,0.2,1)",
-          overflowY: "auto",
+          transform: open ? "translateX(0)" : "translateX(100%)",
+          transition: "transform 260ms cubic-bezier(0.4,0,0.2,1)",
         }}
       >
         {/* Header */}
@@ -319,22 +321,29 @@ export default function HelpPanel() {
             alignItems: "center",
             justifyContent: "space-between",
             gap: 10,
-            position: "sticky",
-            top: 0,
             background: "var(--card-bg-strong)",
-            zIndex: 1,
+            flexShrink: 0,
           }}
         >
           <div>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase" as const }}>
-              Help & Guide
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 900,
+                letterSpacing: 0.8,
+                color: "var(--accent)",
+                textTransform: "uppercase" as const,
+              }}
+            >
+              Help &amp; Guide
             </div>
             <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginTop: 2 }}>
-              How to get the most out of IPC
+              Everything in Signal
             </div>
           </div>
           <button
-            onClick={() => setOpen(false)}
+            onClick={onClose}
+            aria-label="Close help panel"
             style={{
               width: 32,
               height: 32,
@@ -343,51 +352,26 @@ export default function HelpPanel() {
               background: "var(--card-bg)",
               color: "var(--text-muted)",
               cursor: "pointer",
-              fontSize: 16,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flex: "0 0 auto",
             }}
           >
-            ×
+            <X size={15} />
           </button>
         </div>
 
-        {/* Tabs */}
-        <div
-          style={{
-            display: "flex",
-            gap: 4,
-            padding: "10px 14px",
-            borderBottom: "1px solid var(--card-border-soft)",
-            flexWrap: "wrap",
-          }}
-        >
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              style={{
-                padding: "6px 10px",
-                borderRadius: 8,
-                border: tab === t.id ? "1px solid var(--accent-strong)" : "1px solid var(--card-border-soft)",
-                background: tab === t.id ? "var(--accent-soft)" : "transparent",
-                color: tab === t.id ? "var(--accent)" : "var(--text-muted)",
-                fontSize: 12,
-                fontWeight: 900,
-                cursor: "pointer",
-                whiteSpace: "nowrap" as const,
-              }}
-            >
-              {t.label}
-            </button>
+        {/* Scrollable content */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 18px 32px" }}>
+          {SECTIONS.map((section) => (
+            <div key={section.heading}>
+              <SectionHeading label={section.heading} />
+              {section.items.map((item) => (
+                <AccordionItem key={item.title} item={item} />
+              ))}
+            </div>
           ))}
-        </div>
-
-        {/* Content */}
-        <div style={{ padding: "16px 18px", flex: 1 }}>
-          <TabContent tab={tab} onGoToPractice={handleGoToPractice} />
         </div>
       </div>
     </>

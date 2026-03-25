@@ -308,7 +308,7 @@ export async function GET() {
     });
 
     const workbook = new ExcelJS.Workbook();
-    workbook.creator = "Interview Performance Coach";
+    workbook.creator = "Signal";
     workbook.created = new Date();
 
     const summarySheet = workbook.addWorksheet("Student Summary");

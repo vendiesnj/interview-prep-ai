@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TopNav from "../components/TopNav";
-import HelpPanel from "../components/HelpPanel";
+import OnboardingOverlay from "../components/OnboardingOverlay";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -26,7 +26,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       >
         {children}
       </main>
-      {!isAdmin && <HelpPanel />}
+      {!isAdmin && <OnboardingOverlay />}
     </div>
   );
 }

@@ -62,7 +62,7 @@ export default function RemoteBrowser({
     const browserServiceUrl = process.env.NEXT_PUBLIC_BROWSER_WS_URL;
     let wsUrl: string;
     if (browserServiceUrl) {
-      // Production: Railway service URL (set in Vercel env vars)
+      // Production: Fly.io browser service URL
       const base = browserServiceUrl.replace(/^http/, "ws").replace(/\/$/, "");
       wsUrl = `${base}?sessionId=${sessionId}&studentId=${studentId}`;
     } else {

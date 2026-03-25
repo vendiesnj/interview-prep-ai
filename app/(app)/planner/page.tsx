@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 import {
-  Mic,
   TrendingUp,
   DollarSign,
   BookOpen,
@@ -20,7 +19,6 @@ import {
   X,
   BarChart2,
   Clock,
-  Trash2,
   Flag,
   Heart,
 } from "lucide-react";
@@ -105,6 +103,10 @@ type CategoryName = typeof CATEGORIES[number];
 const TIME_OPTIONS = ["5min", "15min", "30min", "60min"];
 
 const DAY_LABELS_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_NAMES = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
 
 function CategoryIcon({ category, size = 14 }: { category: string; size?: number }) {
   const color = CATEGORY_COLORS[category] ?? ACCENT_CAREER;
@@ -194,7 +196,12 @@ function formatDateDisplay(dateStr: string): string {
 }
 
 function getTodayLong(): string {
-  return new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  return new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function getGreeting(): string {
@@ -385,121 +392,611 @@ function ProgressBar({ value, total, color }: { value: number; total: number; co
   );
 }
 
-// ── Today Tab ────────────────────────────────────────────────────────────────
+// ── Context Menu Type ─────────────────────────────────────────────────────────
 
-function FocusTaskRow({ task }: { task: FocusTask }) {
+type ContextMenuState = {
+  x: number;
+  y: number;
+  taskId: string;
+  taskLabel: string;
+} | null;
+
+// ── Full-Width Month Calendar ─────────────────────────────────────────────────
+
+function FullMonthCalendar({
+  scheduled,
+  onDropTask,
+}: {
+  scheduled: ScheduleItem[];
+  onDropTask: (taskIdOrTitle: string, date: string) => void;
+}) {
+  const today = new Date();
+  const [viewYear, setViewYear] = useState(today.getFullYear());
+  const [viewMonth, setViewMonth] = useState(today.getMonth());
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [highlightDay, setHighlightDay] = useState<string | null>(null);
+
+  const todayKey = toDateStr(today);
+
+  const firstOfMonth = new Date(viewYear, viewMonth, 1);
+  const lastOfMonth = new Date(viewYear, viewMonth + 1, 0);
+  const startPad = firstOfMonth.getDay();
+  const totalCells = Math.ceil((startPad + lastOfMonth.getDate()) / 7) * 7;
+
+  const cells: { dateKey: string; inMonth: boolean }[] = [];
+  for (let i = 0; i < totalCells; i++) {
+    const d = new Date(viewYear, viewMonth, 1 - startPad + i);
+    cells.push({ dateKey: toDateStr(d), inMonth: d.getMonth() === viewMonth });
+  }
+
+  function navMonth(dir: -1 | 1) {
+    setViewMonth((prev) => {
+      const m = prev + dir;
+      if (m < 0) { setViewYear((y) => y - 1); return 11; }
+      if (m > 11) { setViewYear((y) => y + 1); return 0; }
+      return m;
+    });
+  }
+
+  function jumpToday() {
+    setViewYear(today.getFullYear());
+    setViewMonth(today.getMonth());
+  }
+
+  function getItemsForDay(dateKey: string): ScheduleItem[] {
+    return scheduled.filter((i) => i.date === dateKey);
+  }
+
+  function handleDrop(e: React.DragEvent, dateKey: string) {
+    e.preventDefault();
+    setDragOverDay(null);
+    const raw = e.dataTransfer.getData("text/plain");
+    if (!raw) return;
+    onDropTask(raw, dateKey);
+    setHighlightDay(dateKey);
+    setTimeout(() => setHighlightDay(null), 800);
+  }
+
+  const numRows = totalCells / 7;
+
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-      <div style={{ width: 3, height: 36, borderRadius: 2, background: PRIORITY_COLORS[task.priority], flexShrink: 0 }} />
-      <div style={{ width: 32, height: 32, borderRadius: 8, background: task.color + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-        <CategoryIcon category={task.label === "Practice" ? "Career" : task.label === "Finance" ? "Finance" : "Learning"} size={15} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>{task.title}</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: PRIORITY_COLORS[task.priority], background: PRIORITY_COLORS[task.priority] + "15", padding: "1px 6px", borderRadius: 4, letterSpacing: 0.4 }}>
-            {PRIORITY_LABELS[task.priority]}
+    <div
+      style={{
+        background: "var(--card-bg)",
+        border: "1px solid var(--card-border)",
+        borderRadius: 16,
+        overflow: "hidden",
+        boxShadow: "var(--shadow-card)",
+        width: "100%",
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "14px 20px",
+          borderBottom: "1px solid var(--card-border)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => navMonth(-1)}
+          style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <div style={{ flex: 1, textAlign: "center" }}>
+          <span style={{ fontSize: 17, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>
+            {MONTH_NAMES[viewMonth]} {viewYear}
           </span>
         </div>
-        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.desc}</div>
+        <button
+          type="button"
+          onClick={jumpToday}
+          style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}
+        >
+          Today
+        </button>
+        <button
+          type="button"
+          onClick={() => navMonth(1)}
+          style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}
+        >
+          <ChevronRight size={16} />
+        </button>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", background: "var(--app-bg, #F9FAFB)", border: "1px solid var(--card-border)", padding: "3px 8px", borderRadius: 6 }}>{task.time}</span>
-        <Link href={task.href} style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 12, fontWeight: 700, color: task.color, textDecoration: "none", padding: "4px 10px", borderRadius: 7, background: task.color + "12", border: `1px solid ${task.color}25` }}>
-          Start <ChevronRight size={12} />
-        </Link>
+
+      {/* Day-of-week labels */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid var(--card-border)" }}>
+        {DAY_LABELS_SHORT.map((d) => (
+          <div
+            key={d}
+            style={{
+              textAlign: "center",
+              padding: "8px 0",
+              fontSize: 11,
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              textTransform: "uppercase",
+              letterSpacing: 0.6,
+            }}
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+        {cells.map(({ dateKey, inMonth }, idx) => {
+          const isToday = dateKey === todayKey;
+          const isDragOver = dragOverDay === dateKey;
+          const isHighlight = highlightDay === dateKey;
+          const dayItems = getItemsForDay(dateKey);
+          const dayNum = parseInt(dateKey.split("-")[2], 10);
+          const isLastRow = idx >= cells.length - 7;
+          const isLastCol = idx % 7 === 6;
+
+          return (
+            <div
+              key={dateKey}
+              onDragOver={(e) => { e.preventDefault(); setDragOverDay(dateKey); }}
+              onDragLeave={() => setDragOverDay(null)}
+              onDrop={(e) => handleDrop(e, dateKey)}
+              style={{
+                minHeight: 100,
+                padding: "8px 6px 6px",
+                borderRight: !isLastCol ? "1px solid var(--card-border)" : "none",
+                borderBottom: !isLastRow ? "1px solid var(--card-border)" : "none",
+                background: isHighlight
+                  ? ACCENT_CAREER + "20"
+                  : isDragOver
+                  ? ACCENT_CAREER + "10"
+                  : isToday
+                  ? ACCENT_CAREER + "06"
+                  : "transparent",
+                transition: "background 150ms",
+                position: "relative",
+              }}
+            >
+              {/* Day number */}
+              <div style={{ textAlign: "right", marginBottom: 4 }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 26,
+                    height: 26,
+                    borderRadius: "50%",
+                    fontSize: 12,
+                    fontWeight: isToday ? 900 : inMonth ? 600 : 400,
+                    color: isToday ? "#fff" : inMonth ? "var(--text-primary)" : "var(--text-muted)",
+                    background: isToday ? ACCENT_CAREER : "transparent",
+                    opacity: inMonth ? 1 : 0.3,
+                  }}
+                >
+                  {dayNum}
+                </span>
+              </div>
+
+              {/* Events */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {dayItems.slice(0, 3).map((item) => {
+                  const catColor = item.category ? (CATEGORY_COLORS[item.category] ?? ACCENT_CAREER) : ACCENT_CAREER;
+                  return (
+                    <div
+                      key={item.itemId}
+                      title={item.label}
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 600,
+                        color: item.done ? "var(--text-muted)" : catColor,
+                        background: catColor + "15",
+                        borderLeft: `2px solid ${catColor}`,
+                        padding: "1px 5px",
+                        borderRadius: "0 3px 3px 0",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        textDecoration: item.done ? "line-through" : "none",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {item.label}
+                    </div>
+                  );
+                })}
+                {dayItems.length > 3 && (
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, paddingLeft: 5 }}>
+                    +{dayItems.length - 3} more
+                  </div>
+                )}
+              </div>
+
+              {isDragOver && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 2,
+                    border: `2px dashed ${ACCENT_CAREER}60`,
+                    borderRadius: 6,
+                    pointerEvents: "none",
+                  }}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
+// ── Today Tab ─────────────────────────────────────────────────────────────────
+
 function TodayTab() {
   const day = new Date().getDay();
-  const tasks = getFocusTasks(day);
+  const focusTasks = getFocusTasks(day);
   const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
+  const [assignDateValue, setAssignDateValue] = useState("");
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setScheduled(readSchedule()); }, []);
+  useEffect(() => {
+    setScheduled(readSchedule());
+  }, []);
 
-  const today = todayStr();
-  const todayItems = scheduled.filter((i) => i.date === today);
-  const weekEnd = new Date();
-  weekEnd.setDate(weekEnd.getDate() + 7);
-  const weekEndStr = toDateStr(weekEnd);
-  const weekItems = scheduled.filter((i) => i.date > today && i.date <= weekEndStr);
+  useEffect(() => {
+    if (!contextMenu) return;
+    function handleClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [contextMenu]);
+
+  function handleDropTask(taskIdOrTitle: string, date: string) {
+    const existing = scheduled.find((i) => i.itemId === taskIdOrTitle);
+    if (existing) {
+      const next = scheduled.map((i) =>
+        i.itemId === taskIdOrTitle ? { ...i, date } : i
+      );
+      setScheduled(next);
+      writeSchedule(next);
+      return;
+    }
+    // Focus task being dropped onto calendar
+    const ft = focusTasks.find((t) => t.title === taskIdOrTitle);
+    if (ft) {
+      const newItem: ScheduleItem = {
+        itemId: "focus_" + Date.now() + "_" + Math.random().toString(36).slice(2),
+        label: ft.title,
+        date,
+        done: false,
+        category: ft.label === "Finance" ? "Finance" : "Career",
+        timeEstimate: ft.time,
+        custom: false,
+      };
+      const next = [...scheduled, newItem];
+      setScheduled(next);
+      writeSchedule(next);
+    }
+  }
+
+  function openContextMenu(e: React.MouseEvent, taskId: string, taskLabel: string) {
+    e.preventDefault();
+    setAssignDateValue("");
+    setContextMenu({ x: e.clientX, y: e.clientY, taskId, taskLabel });
+  }
+
+  function handleContextAssign() {
+    if (!contextMenu || !assignDateValue) return;
+    handleDropTask(contextMenu.taskId, assignDateValue);
+    setContextMenu(null);
+  }
+
+  function handleFocusDragStart(e: React.DragEvent, title: string) {
+    e.dataTransfer.setData("text/plain", title);
+    e.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleScheduledDragStart(e: React.DragEvent, itemId: string) {
+    e.dataTransfer.setData("text/plain", itemId);
+    e.dataTransfer.effectAllowed = "move";
+  }
 
   function toggleDone(itemId: string) {
-    const next = scheduled.map(i => i.itemId === itemId ? { ...i, done: !i.done } : i);
+    const next = scheduled.map((i) =>
+      i.itemId === itemId ? { ...i, done: !i.done } : i
+    );
     setScheduled(next);
     writeSchedule(next);
   }
 
+  const today = todayStr();
+  const todayItems = scheduled.filter((i) => i.date === today);
+
+  // Unified task list: focus tasks + today's scheduled items
+  const allTasks = [
+    ...focusTasks.map((ft) => ({
+      id: ft.title,
+      label: ft.title,
+      time: ft.time,
+      href: ft.href,
+      color: ft.color,
+      category: ft.label === "Finance" ? "Finance" : "Career",
+      priority: ft.priority,
+      isFocus: true as const,
+      done: false,
+    })),
+    ...todayItems.map((si) => ({
+      id: si.itemId,
+      label: si.label,
+      time: si.timeEstimate ?? "",
+      href: "",
+      color: si.category ? (CATEGORY_COLORS[si.category] ?? ACCENT_CAREER) : ACCENT_CAREER,
+      category: si.category ?? "Career",
+      priority: 3 as 1 | 2 | 3,
+      isFocus: false as const,
+      done: si.done,
+    })),
+  ];
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-        <div>
-          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>{getGreeting()}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, display: "flex", alignItems: "center", gap: 5 }}>
-            <Calendar size={11} />
-            {getTodayLong()}
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", padding: "5px 12px", borderRadius: 8, border: `1px solid ${ACCENT_CAREER}20` }}>
-          <Target size={13} color={ACCENT_CAREER} />
-          {tasks.length} focus tasks
-        </div>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Full-width month calendar */}
+      <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} />
 
-      <div>
-        <SectionLabel>Today&apos;s Focus</SectionLabel>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {tasks.map((task) => <FocusTaskRow key={task.title} task={task} />)}
+      {/* Compact scrollable task list */}
+      <div
+        style={{
+          background: "var(--card-bg)",
+          border: "1px solid var(--card-border)",
+          borderRadius: 14,
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          style={{
+            padding: "10px 16px",
+            borderBottom: "1px solid var(--card-border)",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <Target size={14} color={ACCENT_CAREER} strokeWidth={2.2} />
+          <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>Tasks</span>
+          <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 2 }}>
+            Drag to calendar · Right-click to assign date
+          </span>
         </div>
-      </div>
 
-      <div>
-        <SectionLabel>Scheduled for Today</SectionLabel>
-        {todayItems.length === 0 ? (
-          <div style={{ padding: "12px 16px", borderRadius: 10, background: "var(--card-bg)", border: "1px dashed var(--card-border)", fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 8 }}>
-            <Calendar size={14} />
-            Nothing scheduled — add items in the Week tab or via the checklist.
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {todayItems.map((item) => (
-              <div key={item.itemId + item.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: item.done ? 0.65 : 1 }}>
-                <button type="button" onClick={() => toggleDone(item.itemId)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-                  {item.done ? <CheckCircle2 size={16} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={16} color="var(--text-muted)" strokeWidth={2} />}
-                </button>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.4 }}>
-                  {item.label}
+        {/* Scrollable rows */}
+        <div style={{ maxHeight: 320, overflowY: "auto" }}>
+          {allTasks.length === 0 && (
+            <div style={{ padding: "20px 16px", textAlign: "center", fontSize: 13, color: "var(--text-muted)" }}>
+              No tasks today.
+            </div>
+          )}
+          {allTasks.map((task) => {
+            const catColor = CATEGORY_COLORS[task.category] ?? ACCENT_CAREER;
+            return (
+              <div
+                key={task.id}
+                draggable
+                onDragStart={(e) =>
+                  task.isFocus
+                    ? handleFocusDragStart(e, task.id)
+                    : handleScheduledDragStart(e, task.id)
+                }
+                onContextMenu={(e) => openContextMenu(e, task.id, task.label)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  height: 44,
+                  padding: "0 14px",
+                  borderBottom: "1px solid var(--card-border)",
+                  background: "var(--card-bg)",
+                  cursor: "grab",
+                  opacity: task.done ? 0.55 : 1,
+                  userSelect: "none",
+                }}
+              >
+                {/* Priority stripe */}
+                <div
+                  style={{
+                    width: 3,
+                    height: 26,
+                    borderRadius: 2,
+                    background: PRIORITY_COLORS[task.priority],
+                    flexShrink: 0,
+                  }}
+                />
+
+                {/* Category dot */}
+                <div
+                  style={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: catColor,
+                    flexShrink: 0,
+                  }}
+                />
+
+                {/* Task name */}
+                <span
+                  style={{
+                    flex: 1,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: task.done ? "var(--text-muted)" : "var(--text-primary)",
+                    textDecoration: task.done ? "line-through" : "none",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {task.label}
                 </span>
-                {item.category && (
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: CATEGORY_COLORS[item.category] ?? ACCENT_CAREER, flexShrink: 0 }} />
+
+                {/* Category label */}
+                <span
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    color: catColor,
+                    background: catColor + "15",
+                    padding: "1px 7px",
+                    borderRadius: 4,
+                    letterSpacing: 0.3,
+                    flexShrink: 0,
+                  }}
+                >
+                  {task.category}
+                </span>
+
+                {/* Time estimate */}
+                {task.time && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      color: "var(--text-muted)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 3,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Clock size={10} />
+                    {task.time}
+                  </span>
+                )}
+
+                {/* Checkbox for scheduled items */}
+                {!task.isFocus && (
+                  <button
+                    type="button"
+                    onClick={() => toggleDone(task.id)}
+                    style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0 }}
+                  >
+                    {task.done
+                      ? <CheckCircle2 size={16} color={ACCENT_FINANCE} strokeWidth={2.2} />
+                      : <Circle size={16} color="var(--text-muted)" strokeWidth={2} />}
+                  </button>
+                )}
+
+                {/* Start link for focus tasks */}
+                {task.isFocus && task.href && (
+                  <Link
+                    href={task.href}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 3,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: task.color,
+                      textDecoration: "none",
+                      padding: "3px 9px",
+                      borderRadius: 6,
+                      background: task.color + "12",
+                      border: `1px solid ${task.color}25`,
+                      flexShrink: 0,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Start <ChevronRight size={11} />
+                  </Link>
                 )}
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
-      {weekItems.length > 0 && (
-        <div>
-          <SectionLabel>Upcoming This Week</SectionLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {weekItems.map((item) => (
-              <div key={item.itemId + item.date} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 16px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: item.done ? 0.65 : 1 }}>
-                <button type="button" onClick={() => toggleDone(item.itemId)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center" }}>
-                  {item.done ? <CheckCircle2 size={16} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={16} color="var(--text-muted)" strokeWidth={2} />}
-                </button>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.4 }}>
-                  {item.label}
-                </span>
-                <span style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
-                  <Calendar size={11} />
-                  {formatDateDisplay(item.date)}
-                </span>
-              </div>
-            ))}
+      {/* Context menu */}
+      {contextMenu && (
+        <div
+          ref={menuRef}
+          style={{
+            position: "fixed",
+            top: contextMenu.y,
+            left: contextMenu.x,
+            zIndex: 9999,
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border)",
+            borderRadius: 10,
+            boxShadow: "0 8px 28px rgba(0,0,0,0.18)",
+            padding: 10,
+            minWidth: 230,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "var(--text-muted)",
+              padding: "2px 4px 8px",
+              borderBottom: "1px solid var(--card-border)",
+              marginBottom: 8,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {contextMenu.taskLabel}
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", padding: "0 4px 6px" }}>
+            Schedule for...
+          </div>
+          <div style={{ display: "flex", gap: 6, padding: "0 2px" }}>
+            <input
+              type="date"
+              autoFocus
+              value={assignDateValue}
+              onChange={(e) => setAssignDateValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleContextAssign();
+                if (e.key === "Escape") setContextMenu(null);
+              }}
+              style={{
+                flex: 1,
+                padding: "5px 8px",
+                borderRadius: 7,
+                border: "1px solid var(--card-border)",
+                background: "var(--app-bg, #F9FAFB)",
+                color: "var(--text-primary)",
+                fontSize: 12,
+                outline: "none",
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleContextAssign}
+              disabled={!assignDateValue}
+              style={{
+                padding: "5px 12px",
+                borderRadius: 7,
+                border: "none",
+                background: assignDateValue ? ACCENT_CAREER : "var(--card-border)",
+                color: assignDateValue ? "#fff" : "var(--text-muted)",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: assignDateValue ? "pointer" : "not-allowed",
+                transition: "background 120ms",
+              }}
+            >
+              Assign
+            </button>
           </div>
         </div>
       )}
@@ -534,12 +1031,12 @@ function WeekTab() {
     return d;
   });
 
-  const weekDayKeys = weekDays.map(d => toDateStr(d));
-  const weekItems = scheduled.filter(i => weekDayKeys.includes(i.date));
-  const weekDone = weekItems.filter(i => i.done).length;
+  const weekDayKeys = weekDays.map((d) => toDateStr(d));
+  const weekItems = scheduled.filter((i) => weekDayKeys.includes(i.date));
+  const weekDone = weekItems.filter((i) => i.done).length;
 
   function navWeek(dir: -1 | 1) {
-    setWeekStart(prev => {
+    setWeekStart((prev) => {
       const d = new Date(prev);
       d.setDate(d.getDate() + dir * 7);
       return d;
@@ -552,7 +1049,7 @@ function WeekTab() {
 
   function weekLabel(): string {
     const end = weekDays[6];
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
     if (weekStart.getMonth() === end.getMonth()) {
       return `${months[weekStart.getMonth()]} ${weekStart.getDate()}–${end.getDate()}, ${weekStart.getFullYear()}`;
     }
@@ -560,17 +1057,17 @@ function WeekTab() {
   }
 
   function getItemsForDay(dateKey: string): ScheduleItem[] {
-    return scheduled.filter(i => i.date === dateKey);
+    return scheduled.filter((i) => i.date === dateKey);
   }
 
   function toggleDone(itemId: string) {
-    const next = scheduled.map(i => i.itemId === itemId ? { ...i, done: !i.done } : i);
+    const next = scheduled.map((i) => i.itemId === itemId ? { ...i, done: !i.done } : i);
     setScheduled(next);
     writeSchedule(next);
   }
 
   function deleteItem(itemId: string) {
-    const next = scheduled.filter(i => i.itemId !== itemId);
+    const next = scheduled.filter((i) => i.itemId !== itemId);
     setScheduled(next);
     writeSchedule(next);
   }
@@ -606,14 +1103,13 @@ function WeekTab() {
     setDragOverDay(null);
     const itemId = e.dataTransfer.getData("text/plain");
     if (!itemId) return;
-    const next = scheduled.map(i => i.itemId === itemId ? { ...i, date: dateKey } : i);
+    const next = scheduled.map((i) => i.itemId === itemId ? { ...i, date: dateKey } : i);
     setScheduled(next);
     writeSchedule(next);
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Week nav header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
           <ChevronLeft size={16} />
@@ -632,16 +1128,14 @@ function WeekTab() {
         </button>
       </div>
 
-      {/* Week progress bar */}
       {weekItems.length > 0 && (
         <div style={{ padding: "0 2px" }}>
           <ProgressBar value={weekDone} total={weekItems.length} color={ACCENT_CAREER} />
         </div>
       )}
 
-      {/* Day columns grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 8 }}>
-        {weekDays.map(d => {
+        {weekDays.map((d) => {
           const dateKey = toDateStr(d);
           const isToday = dateKey === today;
           const dayItems = getItemsForDay(dateKey);
@@ -651,9 +1145,9 @@ function WeekTab() {
           return (
             <div
               key={dateKey}
-              onDragOver={e => { e.preventDefault(); setDragOverDay(dateKey); }}
+              onDragOver={(e) => { e.preventDefault(); setDragOverDay(dateKey); }}
               onDragLeave={() => setDragOverDay(null)}
-              onDrop={e => handleDrop(e, dateKey)}
+              onDrop={(e) => handleDrop(e, dateKey)}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -666,7 +1160,6 @@ function WeekTab() {
                 transition: "border-color 100ms, background 100ms",
               }}
             >
-              {/* Day header */}
               <div style={{ textAlign: "center", marginBottom: 2 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: isToday ? ACCENT_CAREER : "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>
                   {DAY_LABELS_SHORT[d.getDay()]}
@@ -686,15 +1179,14 @@ function WeekTab() {
                 </div>
               </div>
 
-              {/* Items */}
               <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-                {dayItems.map(item => {
+                {dayItems.map((item) => {
                   const catColor = item.category ? (CATEGORY_COLORS[item.category] ?? ACCENT_CAREER) : ACCENT_CAREER;
                   return (
                     <div
                       key={item.itemId}
                       draggable
-                      onDragStart={e => handleDragStart(e, item.itemId)}
+                      onDragStart={(e) => handleDragStart(e, item.itemId)}
                       style={{
                         display: "flex",
                         alignItems: "flex-start",
@@ -732,46 +1224,45 @@ function WeekTab() {
                 })}
               </div>
 
-              {/* Add panel or Add button */}
               {isAddingHere ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, padding: "8px", borderRadius: 8, background: "var(--app-bg, #F9FAFB)", border: "1px solid var(--card-border)" }}>
                   <input
                     autoFocus
                     type="text"
                     value={addPanel.label}
-                    onChange={e => setAddPanel(p => p ? { ...p, label: e.target.value } : p)}
-                    onKeyDown={e => { if (e.key === "Enter") saveAdd(); if (e.key === "Escape") setAddPanel(null); }}
+                    onChange={(e) => setAddPanel((p) => p ? { ...p, label: e.target.value } : p)}
+                    onKeyDown={(e) => { if (e.key === "Enter") saveAdd(); if (e.key === "Escape") setAddPanel(null); }}
                     placeholder="Activity title..."
                     style={{ width: "100%", padding: "5px 7px", borderRadius: 6, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 11, outline: "none", boxSizing: "border-box" }}
                   />
                   <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                    {CATEGORIES.map(cat => {
+                    {CATEGORIES.map((cat) => {
                       const color = CATEGORY_COLORS[cat];
                       const isSelected = addPanel.category === cat;
                       return (
-                        <button key={cat} type="button" onClick={() => setAddPanel(p => p ? { ...p, category: cat } : p)} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${color}${isSelected ? "99" : "40"}`, background: isSelected ? color + "25" : "transparent", color: isSelected ? color : "var(--text-muted)", cursor: "pointer" }}>
+                        <button key={cat} type="button" onClick={() => setAddPanel((p) => p ? { ...p, category: cat } : p)} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${color}${isSelected ? "99" : "40"}`, background: isSelected ? color + "25" : "transparent", color: isSelected ? color : "var(--text-muted)", cursor: "pointer" }}>
                           {cat}
                         </button>
                       );
                     })}
                   </div>
                   <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
-                    {TIME_OPTIONS.map(t => {
+                    {TIME_OPTIONS.map((t) => {
                       const isSelected = addPanel.timeEstimate === t;
                       return (
-                        <button key={t} type="button" onClick={() => setAddPanel(p => p ? { ...p, timeEstimate: isSelected ? "" : t } : p)} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${isSelected ? ACCENT_CAREER + "99" : "var(--card-border)"}`, background: isSelected ? ACCENT_CAREER + "15" : "transparent", color: isSelected ? ACCENT_CAREER : "var(--text-muted)", cursor: "pointer" }}>
+                        <button key={t} type="button" onClick={() => setAddPanel((p) => p ? { ...p, timeEstimate: isSelected ? "" : t } : p)} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, border: `1px solid ${isSelected ? ACCENT_CAREER + "99" : "var(--card-border)"}`, background: isSelected ? ACCENT_CAREER + "15" : "transparent", color: isSelected ? ACCENT_CAREER : "var(--text-muted)", cursor: "pointer" }}>
                           {t}
                         </button>
                       );
                     })}
                   </div>
-                  <button type="button" onClick={() => setAddPanel(p => p ? { ...p, showNotes: !p.showNotes } : p)} style={{ fontSize: 9, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
+                  <button type="button" onClick={() => setAddPanel((p) => p ? { ...p, showNotes: !p.showNotes } : p)} style={{ fontSize: 9, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
                     {addPanel.showNotes ? "▾ Hide notes" : "▸ Add notes"}
                   </button>
                   {addPanel.showNotes && (
                     <textarea
                       value={addPanel.notes}
-                      onChange={e => setAddPanel(p => p ? { ...p, notes: e.target.value } : p)}
+                      onChange={(e) => setAddPanel((p) => p ? { ...p, notes: e.target.value } : p)}
                       placeholder="Optional notes..."
                       rows={2}
                       style={{ width: "100%", padding: "5px 7px", borderRadius: 6, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 10, outline: "none", resize: "none", boxSizing: "border-box" }}
@@ -797,10 +1288,9 @@ function WeekTab() {
         })}
       </div>
 
-      {/* Legend */}
       <div style={{ display: "flex", gap: 12, flexWrap: "wrap", padding: "8px 12px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, alignSelf: "center" }}>Categories:</span>
-        {CATEGORIES.map(cat => (
+        {CATEGORIES.map((cat) => (
           <div key={cat} style={{ display: "flex", alignItems: "center", gap: 4 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: CATEGORY_COLORS[cat] }} />
             <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{cat}</span>
@@ -887,12 +1377,12 @@ function HabitsTab() {
   function handleToggle(habitId: string) {
     const today = todayStr();
     const next = [...habitData];
-    const idx = next.findIndex(r => r.habitId === habitId);
+    const idx = next.findIndex((r) => r.habitId === habitId);
     if (idx === -1) {
       next.push({ habitId, dates: [today] });
     } else {
       const record = { ...next[idx] };
-      if (record.dates.includes(today)) record.dates = record.dates.filter(d => d !== today);
+      if (record.dates.includes(today)) record.dates = record.dates.filter((d) => d !== today);
       else record.dates = [...record.dates, today];
       next[idx] = record;
     }
@@ -900,7 +1390,7 @@ function HabitsTab() {
   }
 
   function getCompletedDates(habitId: string): string[] {
-    return habitData.find(r => r.habitId === habitId)?.dates ?? [];
+    return habitData.find((r) => r.habitId === habitId)?.dates ?? [];
   }
 
   function handleAddHabit() {
@@ -909,13 +1399,13 @@ function HabitsTab() {
     const newH: HabitDef = { id: "custom_" + Date.now(), label: trimmed, category: "Learning", streak: 0, custom: true };
     const next = [...habits, newH];
     setHabits(next);
-    try { localStorage.setItem(HABITS_CUSTOM_KEY, JSON.stringify(next.filter(h => h.custom))); } catch {}
+    try { localStorage.setItem(HABITS_CUSTOM_KEY, JSON.stringify(next.filter((h) => h.custom))); } catch {}
     setNewHabitLabel("");
     setAddingHabit(false);
   }
 
   const today = todayStr();
-  const doneCount = habits.filter(h => getCompletedDates(h.id).includes(today)).length;
+  const doneCount = habits.filter((h) => getCompletedDates(h.id).includes(today)).length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -940,11 +1430,11 @@ function HabitsTab() {
         <div />
       </div>
 
-      {habits.map(habit => <HabitRow key={habit.id} habit={habit} completedDates={getCompletedDates(habit.id)} onToggle={handleToggle} />)}
+      {habits.map((habit) => <HabitRow key={habit.id} habit={habit} completedDates={getCompletedDates(habit.id)} onToggle={handleToggle} />)}
 
       {addingHabit ? (
         <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "10px 14px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-          <input autoFocus type="text" value={newHabitLabel} onChange={e => setNewHabitLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") { setAddingHabit(false); setNewHabitLabel(""); } }} placeholder="New habit name..." style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }} />
+          <input autoFocus type="text" value={newHabitLabel} onChange={(e) => setNewHabitLabel(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") { setAddingHabit(false); setNewHabitLabel(""); } }} placeholder="New habit name..." style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }} />
           <button type="button" onClick={handleAddHabit} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
           <button type="button" onClick={() => { setAddingHabit(false); setNewHabitLabel(""); }} style={{ padding: "6px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
         </div>
@@ -959,10 +1449,18 @@ function HabitsTab() {
 
 // ── Goals Tab ────────────────────────────────────────────────────────────────
 
-function GoalCategoryBlock({ category, onToggleGoal, onAddGoal }: { category: GoalCategory; onToggleGoal: (catId: string, goalId: string) => void; onAddGoal: (catId: string, label: string) => void }) {
+function GoalCategoryBlock({
+  category,
+  onToggleGoal,
+  onAddGoal,
+}: {
+  category: GoalCategory;
+  onToggleGoal: (catId: string, goalId: string) => void;
+  onAddGoal: (catId: string, label: string) => void;
+}) {
   const [adding, setAdding] = useState(false);
   const [newLabel, setNewLabel] = useState("");
-  const doneCount = category.goals.filter(g => g.done).length;
+  const doneCount = category.goals.filter((g) => g.done).length;
   const total = category.goals.length;
   const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
 
@@ -999,7 +1497,7 @@ function GoalCategoryBlock({ category, onToggleGoal, onAddGoal }: { category: Go
       <div style={{ padding: "8px 16px", borderTop: "1px solid var(--card-border)" }}>
         {adding ? (
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <input autoFocus type="text" value={newLabel} onChange={e => setNewLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") { setAdding(false); setNewLabel(""); } }} placeholder="New goal..." style={{ flex: 1, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 12, outline: "none" }} />
+            <input autoFocus type="text" value={newLabel} onChange={(e) => setNewLabel(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); if (e.key === "Escape") { setAdding(false); setNewLabel(""); } }} placeholder="New goal..." style={{ flex: 1, padding: "6px 10px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 12, outline: "none" }} />
             <button type="button" onClick={handleAdd} style={{ padding: "6px 12px", borderRadius: 7, border: "none", background: category.color, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>Add</button>
             <button type="button" onClick={() => { setAdding(false); setNewLabel(""); }} style={{ padding: "6px", borderRadius: 7, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={13} /></button>
           </div>
@@ -1027,15 +1525,15 @@ function GoalsTab() {
   }
 
   function handleToggleGoal(catId: string, goalId: string) {
-    save(categories.map(cat => cat.id !== catId ? cat : { ...cat, goals: cat.goals.map(g => g.id === goalId ? { ...g, done: !g.done } : g) }));
+    save(categories.map((cat) => cat.id !== catId ? cat : { ...cat, goals: cat.goals.map((g) => g.id === goalId ? { ...g, done: !g.done } : g) }));
   }
 
   function handleAddGoal(catId: string, label: string) {
-    save(categories.map(cat => cat.id !== catId ? cat : { ...cat, goals: [...cat.goals, { id: "g_" + Date.now(), label, done: false, custom: true }] }));
+    save(categories.map((cat) => cat.id !== catId ? cat : { ...cat, goals: [...cat.goals, { id: "g_" + Date.now(), label, done: false, custom: true }] }));
   }
 
   const totalGoals = categories.reduce((s, c) => s + c.goals.length, 0);
-  const doneGoals = categories.reduce((s, c) => s + c.goals.filter(g => g.done).length, 0);
+  const doneGoals = categories.reduce((s, c) => s + c.goals.filter((g) => g.done).length, 0);
   const overallPct = totalGoals === 0 ? 0 : Math.round((doneGoals / totalGoals) * 100);
 
   return (
@@ -1052,7 +1550,7 @@ function GoalsTab() {
           <span style={{ fontSize: 13, fontWeight: 800, color: ACCENT_FINANCE, minWidth: 32, textAlign: "right" }}>{overallPct}%</span>
         </div>
       </div>
-      {categories.map(cat => <GoalCategoryBlock key={cat.id} category={cat} onToggleGoal={handleToggleGoal} onAddGoal={handleAddGoal} />)}
+      {categories.map((cat) => <GoalCategoryBlock key={cat.id} category={cat} onToggleGoal={handleToggleGoal} onAddGoal={handleAddGoal} />)}
     </div>
   );
 }
@@ -1082,37 +1580,30 @@ function StatsTab() {
   }, []);
 
   const today = todayStr();
-
-  // This week stats
   const weekStartDate = startOfWeekDate(new Date());
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStartDate);
     d.setDate(weekStartDate.getDate() + i);
     return toDateStr(d);
   });
-  const weekScheduled = scheduled.filter(i => weekDays.includes(i.date));
-  const weekDone = weekScheduled.filter(i => i.done).length;
+  const weekScheduled = scheduled.filter((i) => weekDays.includes(i.date));
+  const weekDone = weekScheduled.filter((i) => i.done).length;
   const weekTotal = weekScheduled.length;
-
-  // All-time stats
-  const allDone = scheduled.filter(i => i.done).length;
+  const allDone = scheduled.filter((i) => i.done).length;
   const allTotal = scheduled.length;
 
-  // Top 3 habits by streak
-  const habitStreaks = habits.map(h => {
-    const dates = habitData.find(r => r.habitId === h.id)?.dates ?? [];
+  const habitStreaks = habits.map((h) => {
+    const dates = habitData.find((r) => r.habitId === h.id)?.dates ?? [];
     return { habit: h, streak: computeStreak(dates), dates };
   }).sort((a, b) => b.streak - a.streak).slice(0, 3);
 
-  // Goals per category
-  const goalStats = categories.map(cat => ({
+  const goalStats = categories.map((cat) => ({
     label: cat.label,
     color: cat.color,
-    done: cat.goals.filter(g => g.done).length,
+    done: cat.goals.filter((g) => g.done).length,
     total: cat.goals.length,
   }));
 
-  // Activity heatmap: 12 weeks
   const heatmapDays: string[] = [];
   for (let i = 83; i >= 0; i--) {
     const d = new Date();
@@ -1121,23 +1612,19 @@ function StatsTab() {
   }
   const doneDayMap = new Map<string, number>();
   for (const item of scheduled) {
-    if (item.done) {
-      doneDayMap.set(item.date, (doneDayMap.get(item.date) ?? 0) + 1);
-    }
+    if (item.done) doneDayMap.set(item.date, (doneDayMap.get(item.date) ?? 0) + 1);
   }
   const maxDoneInDay = Math.max(1, ...Array.from(doneDayMap.values()));
 
   function heatColor(count: number): string {
     if (count === 0) return "var(--card-border)";
     const intensity = Math.min(count / maxDoneInDay, 1);
-    // Blend from light blue to dark blue
     const alpha = Math.round(intensity * 200 + 40);
     return `rgba(37, 99, 235, ${(alpha / 255).toFixed(2)})`;
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* This Week */}
       <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <BarChart2 size={15} color={ACCENT_CAREER} />
@@ -1146,9 +1633,9 @@ function StatsTab() {
         </div>
         <ProgressBar value={weekDone} total={weekTotal} color={ACCENT_CAREER} />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginTop: 12 }}>
-          {weekDays.map(d => {
-            const dayItems = scheduled.filter(i => i.date === d);
-            const dayDone = dayItems.filter(i => i.done).length;
+          {weekDays.map((d) => {
+            const dayItems = scheduled.filter((i) => i.date === d);
+            const dayDone = dayItems.filter((i) => i.done).length;
             const isToday = d === today;
             return (
               <div key={d} style={{ textAlign: "center" }}>
@@ -1164,7 +1651,6 @@ function StatsTab() {
         </div>
       </div>
 
-      {/* Habit Streaks */}
       <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <Flame size={15} color="#F59E0B" />
@@ -1184,7 +1670,7 @@ function StatsTab() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{habit.label}</div>
                     <div style={{ display: "flex", gap: 3, marginTop: 4 }}>
-                      {last7.map(d => (
+                      {last7.map((d) => (
                         <div key={d} title={d} style={{ width: 14, height: 14, borderRadius: 3, background: doneSet.has(d) ? catColor : "var(--card-border)", opacity: doneSet.has(d) ? 1 : 0.35 }} />
                       ))}
                     </div>
@@ -1201,14 +1687,13 @@ function StatsTab() {
         )}
       </div>
 
-      {/* Goals Progress */}
       <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <Flag size={15} color={ACCENT_LEARNING} />
           <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>Goals Progress</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {goalStats.map(cat => (
+          {goalStats.map((cat) => (
             <div key={cat.label}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</span>
@@ -1220,7 +1705,6 @@ function StatsTab() {
         </div>
       </div>
 
-      {/* All-time */}
       <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <Target size={15} color={ACCENT_CAREER} />
@@ -1238,7 +1722,6 @@ function StatsTab() {
         </div>
       </div>
 
-      {/* Activity Heatmap */}
       <div style={{ padding: "16px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <Calendar size={15} color={ACCENT_CAREER} />
@@ -1273,7 +1756,7 @@ function StatsTab() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 8, justifyContent: "flex-end" }}>
           <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Less</span>
-          {[0, 0.25, 0.5, 0.75, 1].map(v => (
+          {[0, 0.25, 0.5, 0.75, 1].map((v) => (
             <div key={v} style={{ width: 10, height: 10, borderRadius: 2, background: v === 0 ? "var(--card-border)" : `rgba(37, 99, 235, ${(v * 0.78 + 0.16).toFixed(2)})` }} />
           ))}
           <span style={{ fontSize: 10, color: "var(--text-muted)" }}>More</span>
@@ -1311,7 +1794,7 @@ export default function PlannerPage() {
               Habits, goals, and daily focus — all in one place.
             </div>
           </div>
-          <SegmentedControl tabs={TABS} active={activeTab} onChange={k => setActiveTab(k as TabKey)} />
+          <SegmentedControl tabs={TABS} active={activeTab} onChange={(k) => setActiveTab(k as TabKey)} />
         </div>
 
         {activeTab === "today" && <TodayTab />}

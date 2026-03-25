@@ -129,7 +129,7 @@ if (!user?.id || !user.passwordHash) {
     await resend.emails.send({
       from,
       to: email,
-      subject: "Reset your Interview Performance Coach password",
+      subject: "Reset your Signal password",
       html: `
         <div style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.5;">
           <h2 style="margin: 0 0 12px;">Reset your password</h2>

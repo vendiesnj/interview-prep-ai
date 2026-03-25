@@ -5,7 +5,7 @@ import PremiumShell from "@/app/components/PremiumShell";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Career Guide | Interview Performance Coach",
+  title: "Career Guide | Signal",
 };
 
 
