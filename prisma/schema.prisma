@@ -43,6 +43,7 @@ model User {
   studentSkills        StudentSkill[]
   resumeAnalyses       ResumeAnalysis[]
   instinctSessions     InstinctSession[]
+  browserSessions      BrowserSession[]   @relation("BrowserSessions")
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -436,6 +437,49 @@ model InstinctSession {
 
   @@index([userId, createdAt])
   @@index([tenantId])
+}
+
+model BrowserSession {
+  id           String              @id @default(cuid())
+  studentId    String
+  startedAt    DateTime            @default(now())
+  endedAt      DateTime?
+  totalSeconds Int                 @default(0)
+  isActive     Boolean             @default(true)
+  urlVisits    UrlVisit[]
+  screenshots  BrowserScreenshot[]
+  taskEvents   BrowserTaskEvent[]
+  student      User                @relation("BrowserSessions", fields: [studentId], references: [id])
+}
+
+model UrlVisit {
+  id            String         @id @default(cuid())
+  sessionId     String
+  url           String
+  title         String?
+  domain        String
+  enteredAt     DateTime       @default(now())
+  exitedAt      DateTime?
+  activeSeconds Int            @default(0)
+  session       BrowserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model BrowserScreenshot {
+  id        String         @id @default(cuid())
+  sessionId String
+  url       String
+  takenAt   DateTime       @default(now())
+  imageData String         @db.Text
+  session   BrowserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model BrowserTaskEvent {
+  id          String         @id @default(cuid())
+  sessionId   String
+  taskId      String
+  activeUrl   String
+  completedAt DateTime       @default(now())
+  session     BrowserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
 
 enum TenantRole {
