@@ -42,14 +42,18 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
     return;
   }
 
-  console.log(`[WS] Student ${studentId} connected → session ${sessionId}`);
+  // Narrowed to string (TypeScript loses null-narrowing across async closures)
+  const sid: string = sessionId;
+  const stid: string = studentId;
+
+  console.log(`[WS] Student ${stid} connected → session ${sid}`);
 
   // Create Chrome instance
-  if (!browserManager.isActive(sessionId)) {
+  if (!browserManager.isActive(sid)) {
     try {
-      await browserManager.createSession(sessionId, studentId);
+      await browserManager.createSession(sid, stid);
       await prisma.browserSession
-        .create({ data: { id: sessionId, studentId, isActive: true } })
+        .create({ data: { id: sid, studentId: stid, isActive: true } })
         .catch(() => {});
     } catch (err) {
       console.error("[WS] Failed to create browser session:", err);
@@ -72,7 +76,7 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
     }
     const domain = (() => { try { return new URL(visitUrl).hostname; } catch { return visitUrl; } })();
     const visit = await prisma.urlVisit
-      .create({ data: { sessionId, url: visitUrl, title, domain, enteredAt: new Date() } })
+      .create({ data: { sessionId: sid, url: visitUrl, title, domain, enteredAt: new Date() } })
       .catch(() => null);
     currentUrlId = visit?.id ?? null;
     currentUrlStartTime = Date.now();
@@ -83,7 +87,7 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
 
   // Start JPEG screencast stream
   browserManager.startScreencast(
-    sessionId,
+    sid,
     (jpeg: string) => {
       if (ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ type: "frame", data: jpeg }));
@@ -96,11 +100,11 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
 
   // Screenshot every 5 minutes
   screenshotInterval = setInterval(async () => {
-    const screenshot = await browserManager.captureScreenshot(sessionId);
+    const screenshot = await browserManager.captureScreenshot(sid);
     if (screenshot) {
-      const currentUrl = browserManager.getCurrentUrl(sessionId);
+      const currentUrl = browserManager.getCurrentUrl(sid);
       await prisma.browserScreenshot
-        .create({ data: { sessionId, url: currentUrl, imageData: screenshot } })
+        .create({ data: { sessionId: sid, url: currentUrl, imageData: screenshot } })
         .catch(() => {});
     }
   }, 5 * 60 * 1000);
@@ -111,41 +115,41 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
       const msg: WsMessage = JSON.parse(raw.toString());
       switch (msg.type) {
         case "mouseMove":
-          await browserManager.sendMouseEvent(sessionId, "mouseMoved", msg.x as number, msg.y as number, "none", 0);
+          await browserManager.sendMouseEvent(sid, "mouseMoved", msg.x as number, msg.y as number, "none", 0);
           break;
         case "mouseDown":
-          await browserManager.sendMouseEvent(sessionId, "mousePressed", msg.x as number, msg.y as number, (msg.button as string) ?? "left", 1);
+          await browserManager.sendMouseEvent(sid, "mousePressed", msg.x as number, msg.y as number, (msg.button as string) ?? "left", 1);
           break;
         case "mouseUp":
-          await browserManager.sendMouseEvent(sessionId, "mouseReleased", msg.x as number, msg.y as number, (msg.button as string) ?? "left", 1);
+          await browserManager.sendMouseEvent(sid, "mouseReleased", msg.x as number, msg.y as number, (msg.button as string) ?? "left", 1);
           break;
         case "scroll":
-          await browserManager.sendScrollEvent(sessionId, msg.x as number, msg.y as number, msg.deltaX as number, msg.deltaY as number);
+          await browserManager.sendScrollEvent(sid, msg.x as number, msg.y as number, msg.deltaX as number, msg.deltaY as number);
           break;
         case "keyDown":
-          await browserManager.sendKeyEvent(sessionId, "rawKeyDown", msg.key as string, msg.code as string, msg.keyCode as number, (msg.modifiers as number) ?? 0);
+          await browserManager.sendKeyEvent(sid, "rawKeyDown", msg.key as string, msg.code as string, msg.keyCode as number, (msg.modifiers as number) ?? 0);
           break;
         case "keyUp":
-          await browserManager.sendKeyEvent(sessionId, "keyUp", msg.key as string, msg.code as string, msg.keyCode as number, (msg.modifiers as number) ?? 0);
+          await browserManager.sendKeyEvent(sid, "keyUp", msg.key as string, msg.code as string, msg.keyCode as number, (msg.modifiers as number) ?? 0);
           break;
         case "keyChar":
-          await browserManager.sendKeyEvent(sessionId, "char", msg.key as string, msg.code as string, msg.keyCode as number, 0);
+          await browserManager.sendKeyEvent(sid, "char", msg.key as string, msg.code as string, msg.keyCode as number, 0);
           break;
         case "navigate":
-          await browserManager.navigate(sessionId, msg.url as string);
+          await browserManager.navigate(sid, msg.url as string);
           break;
         case "back":
-          await browserManager.goBack(sessionId);
+          await browserManager.goBack(sid);
           break;
         case "forward":
-          await browserManager.goForward(sessionId);
+          await browserManager.goForward(sid);
           break;
         case "reload":
-          await browserManager.reload(sessionId);
+          await browserManager.reload(sid);
           break;
         case "taskComplete":
           await prisma.browserTaskEvent
-            .create({ data: { sessionId, taskId: msg.taskId as string, activeUrl: browserManager.getCurrentUrl(sessionId) } })
+            .create({ data: { sessionId: sid, taskId: msg.taskId as string, activeUrl: browserManager.getCurrentUrl(sid) } })
             .catch(() => {});
           break;
       }
@@ -156,7 +160,7 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
 
   // On disconnect — finalize session data
   ws.on("close", async () => {
-    console.log(`[WS] Student ${studentId} disconnected from session ${sessionId}`);
+    console.log(`[WS] Student ${stid} disconnected from session ${sid}`);
     if (screenshotInterval) clearInterval(screenshotInterval);
 
     if (currentUrlId) {
@@ -166,21 +170,21 @@ wss.on("connection", async (ws: WebSocket, req: IncomingMessage) => {
         .catch(() => {});
     }
 
-    const screenshot = await browserManager.captureScreenshot(sessionId);
+    const screenshot = await browserManager.captureScreenshot(sid);
     if (screenshot) {
       await prisma.browserScreenshot
-        .create({ data: { sessionId, url: browserManager.getCurrentUrl(sessionId), imageData: screenshot } })
+        .create({ data: { sessionId: sid, url: browserManager.getCurrentUrl(sid), imageData: screenshot } })
         .catch(() => {});
     }
 
-    const visits = await prisma.urlVisit.findMany({ where: { sessionId } });
+    const visits = await prisma.urlVisit.findMany({ where: { sessionId: sid } });
     const totalSeconds = visits.reduce((sum, v) => sum + (v.activeSeconds ?? 0), 0);
     await prisma.browserSession
-      .update({ where: { id: sessionId }, data: { endedAt: new Date(), totalSeconds, isActive: false } })
+      .update({ where: { id: sid }, data: { endedAt: new Date(), totalSeconds, isActive: false } })
       .catch(() => {});
 
-    browserManager.stopScreencast(sessionId);
-    await browserManager.destroySession(sessionId);
+    browserManager.stopScreencast(sid);
+    await browserManager.destroySession(sid);
   });
 });
 
