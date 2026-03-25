@@ -265,10 +265,12 @@ function WeekView({
   scheduled,
   onDropTask,
   onAddAtTime,
+  onEditTask,
 }: {
   scheduled: ScheduleItem[];
   onDropTask: (taskIdOrTitle: string, date: string, time?: string) => void;
   onAddAtTime: (date: string, time: string) => void;
+  onEditTask: (item: ScheduleItem) => void;
 }) {
   const today = new Date();
   const todayKey = toDateStr(today);
@@ -376,7 +378,7 @@ function WeekView({
                 >
                   {items.map(item => {
                     const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
-                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} title={item.label} style={{ fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, borderRadius: 5, padding: "2px 6px", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "grab" }}>{item.label}</div>;
+                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, borderRadius: 5, padding: "2px 6px", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>{item.label}</div>;
                   })}
                 </div>
               );
@@ -394,10 +396,12 @@ function DayView({
   scheduled,
   onDropTask,
   onAddAtTime,
+  onEditTask,
 }: {
   scheduled: ScheduleItem[];
   onDropTask: (taskIdOrTitle: string, date: string, time?: string) => void;
   onAddAtTime: (date: string, time: string) => void;
+  onEditTask: (item: ScheduleItem) => void;
 }) {
   const today = new Date();
   const [viewDate, setViewDate] = useState<Date>(new Date(today));
@@ -460,7 +464,7 @@ function DayView({
                 {items.map(item => {
                   const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
                   return (
-                    <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: item.done ? "var(--card-bg-strong)" : c, color: item.done ? "var(--text-muted)" : "#fff", fontSize: 12, fontWeight: 700, marginBottom: 3, cursor: "grab", textDecoration: item.done ? "line-through" : "none" }}>
+                    <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: item.done ? "var(--card-bg-strong)" : c, color: item.done ? "var(--text-muted)" : "#fff", fontSize: 12, fontWeight: 700, marginBottom: 3, cursor: "pointer", textDecoration: item.done ? "line-through" : "none" }}>
                       <div style={{ width: 3, height: "100%", background: "rgba(255,255,255,0.5)", borderRadius: 2, flexShrink: 0, alignSelf: "stretch" }} />
                       {item.scheduledTime && <span style={{ opacity: 0.85, fontSize: 10 }}>{fmtTime(item.scheduledTime)}</span>}
                       <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
@@ -481,39 +485,47 @@ function DayView({
   );
 }
 
-// ── AddTaskModal ──────────────────────────────────────────────────────────────
+// ── TaskModal (add + edit) ─────────────────────────────────────────────────────
 
-function AddTaskModal({
+function TaskModal({
   initialDate,
   initialTime,
+  existing,
   onSave,
+  onUpdate,
+  onDelete,
   onClose,
 }: {
   initialDate: string;
   initialTime: string;
-  onSave: (item: ScheduleItem) => void;
-  onClose: () => void;
+  existing?: ScheduleItem;
+  onSave:   (item: ScheduleItem) => void;
+  onUpdate: (item: ScheduleItem) => void;
+  onDelete: (itemId: string) => void;
+  onClose:  () => void;
 }) {
-  const [label, setLabel]       = useState("");
-  const [date, setDate]         = useState(initialDate);
-  const [time, setTime]         = useState(initialTime);
-  const [category, setCategory] = useState<string>("Career");
+  const isEdit = !!existing;
+  const [label,    setLabel]    = useState(existing?.label    ?? "");
+  const [date,     setDate]     = useState(existing?.date     ?? initialDate);
+  const [time,     setTime]     = useState(existing?.scheduledTime ?? initialTime);
+  const [category, setCategory] = useState(existing?.category ?? "Career");
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
 
-  function save() {
+  function commit() {
     const trimmed = label.trim();
     if (!trimmed) return;
-    onSave({
-      itemId: "custom_" + Date.now(),
-      label: trimmed,
+    const item: ScheduleItem = {
+      itemId:        existing?.itemId ?? "custom_" + Date.now(),
+      label:         trimmed,
       date,
-      done: false,
+      done:          existing?.done ?? false,
       category,
       scheduledTime: time || undefined,
-      custom: true,
-    });
+      custom:        true,
+    };
+    isEdit ? onUpdate(item) : onSave(item);
     onClose();
   }
 
@@ -521,16 +533,20 @@ function AddTaskModal({
     <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
       <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, width: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>Add Task</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>
+          {isEdit ? "Edit Task" : "Add Task"}
+        </div>
+
         <input
           ref={inputRef}
           type="text"
           value={label}
           onChange={e => setLabel(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") onClose(); }}
+          onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") onClose(); }}
           placeholder="Task name..."
           style={{ width: "100%", padding: "9px 12px", borderRadius: 9, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 14, outline: "none", marginBottom: 12, boxSizing: "border-box" }}
         />
+
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4 }}>Date</label>
@@ -541,6 +557,7 @@ function AddTaskModal({
             <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
           </div>
         </div>
+
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 6 }}>Category</label>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -550,9 +567,18 @@ function AddTaskModal({
             })}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {isEdit && (
+            <button type="button" onClick={() => { onDelete(existing!.itemId); onClose(); }} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #EF444430", background: "#EF444408", color: "#EF4444", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+              Delete
+            </button>
+          )}
+          <div style={{ flex: 1 }} />
           <button type="button" onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Cancel</button>
-          <button type="button" onClick={save} disabled={!label.trim()} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: label.trim() ? ACCENT_CAREER : "var(--card-border)", color: label.trim() ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: label.trim() ? "pointer" : "not-allowed" }}>Add Task</button>
+          <button type="button" onClick={commit} disabled={!label.trim()} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: label.trim() ? ACCENT_CAREER : "var(--card-border)", color: label.trim() ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: label.trim() ? "pointer" : "not-allowed" }}>
+            {isEdit ? "Save" : "Add Task"}
+          </button>
         </div>
       </div>
     </div>
@@ -564,9 +590,11 @@ function AddTaskModal({
 function FullMonthCalendar({
   scheduled,
   onDropTask,
+  onEditTask,
 }: {
   scheduled: ScheduleItem[];
   onDropTask: (taskIdOrTitle: string, date: string) => void;
+  onEditTask: (item: ScheduleItem) => void;
 }) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -674,7 +702,7 @@ function FullMonthCalendar({
                 {dayItems.slice(0, 3).map(item => {
                   const catColor = item.category ? (CATEGORY_COLORS[item.category] ?? ACCENT_CAREER) : ACCENT_CAREER;
                   return (
-                    <div key={item.itemId} title={item.label} style={{ fontSize: 10, fontWeight: 600, color: item.done ? "var(--text-muted)" : catColor, background: catColor + "15", borderLeft: `2px solid ${catColor}`, padding: "1px 5px", borderRadius: "0 4px 4px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: item.done ? "line-through" : "none" }}>
+                    <div key={item.itemId} title={item.label} onClick={e => { e.stopPropagation(); onEditTask(item); }} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} style={{ fontSize: 10, fontWeight: 600, color: item.done ? "var(--text-muted)" : catColor, background: catColor + "15", borderLeft: `2px solid ${catColor}`, padding: "1px 5px", borderRadius: "0 4px 4px 0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>
                       {item.label}
                     </div>
                   );
@@ -694,16 +722,19 @@ function FullMonthCalendar({
 // ── Personal Tasks Section ────────────────────────────────────────────────────
 
 function PersonalTasksSection() {
-  const [tasks, setTasks] = useState<PersonalTask[]>([]);
+  const [tasks, setTasks]     = useState<PersonalTask[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [newLabel, setNewLabel] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding]   = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(PERSONAL_KEY);
-      if (raw) setTasks(JSON.parse(raw));
-    } catch {}
+    try { const raw = localStorage.getItem(PERSONAL_KEY); if (raw) setTasks(JSON.parse(raw)); } catch {}
+    setSchedule(readSchedule());
   }, []);
+
+  function getScheduledEntry(label: string): ScheduleItem | undefined {
+    return schedule.find(i => i.label === label);
+  }
 
   function save(next: PersonalTask[]) {
     setTasks(next);
@@ -730,17 +761,27 @@ function PersonalTasksSection() {
     <div style={{ marginBottom: 16 }}>
       <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Personal Tasks</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {tasks.map(task => (
-          <div key={task.id} draggable onDragStart={e => e.dataTransfer.setData("text/plain", task.label)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 9, background: task.done ? "transparent" : "var(--card-bg)", border: `1px solid ${task.done ? "var(--card-border-soft)" : "var(--card-border)"}`, cursor: "grab" }}>
-            <button type="button" onClick={() => toggleTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0 }}>
-              {task.done ? <CheckCircle2 size={15} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={15} color="var(--text-muted)" strokeWidth={2} />}
-            </button>
-            <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: task.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: task.done ? "line-through" : "none" }}>{task.label}</span>
-            <button type="button" onClick={() => deleteTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", opacity: 0.4, flexShrink: 0 }}>
-              <X size={12} color="var(--text-muted)" />
-            </button>
-          </div>
-        ))}
+        {tasks.map(task => {
+          const entry = getScheduledEntry(task.label);
+          const isScheduled = !!entry;
+          return (
+            <div key={task.id} draggable onDragStart={e => e.dataTransfer.setData("text/plain", task.label)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 9, background: task.done ? "transparent" : "var(--card-bg)", border: `1px solid ${isScheduled ? ACCENT_CAREER + "40" : task.done ? "var(--card-border-soft)" : "var(--card-border)"}`, cursor: "grab" }}>
+              <button type="button" onClick={() => toggleTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0 }}>
+                {task.done ? <CheckCircle2 size={15} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={15} color="var(--text-muted)" strokeWidth={2} />}
+              </button>
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: task.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: task.done ? "line-through" : "none" }}>{task.label}</span>
+              {isScheduled && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}25`, padding: "2px 7px", borderRadius: 5, whiteSpace: "nowrap", flexShrink: 0 }}>
+                  <Clock size={9} style={{ display: "inline", marginRight: 3, verticalAlign: "middle" }} />
+                  {entry!.scheduledTime ? `${entry!.date} ${fmtTime(entry!.scheduledTime)}` : entry!.date}
+                </span>
+              )}
+              <button type="button" onClick={() => deleteTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", opacity: 0.4, flexShrink: 0 }}>
+                <X size={12} color="var(--text-muted)" />
+              </button>
+            </div>
+          );
+        })}
       </div>
       {adding ? (
         <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
@@ -1024,7 +1065,7 @@ export default function DashboardPage() {
   const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
   const [calView, setCalView] = useState<"month" | "week" | "day">("month");
-  const [addModal, setAddModal] = useState<{ date: string; time: string } | null>(null);
+  const [addModal, setAddModal] = useState<{ date: string; time: string; existing?: ScheduleItem } | null>(null);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -1095,6 +1136,22 @@ export default function DashboardPage() {
     const next = [...scheduled, item];
     writeSchedule(next);
     setScheduled(next);
+  }
+
+  function handleUpdateTask(item: ScheduleItem) {
+    const next = scheduled.map(i => i.itemId === item.itemId ? item : i);
+    writeSchedule(next);
+    setScheduled(next);
+  }
+
+  function handleDeleteTask(itemId: string) {
+    const next = scheduled.filter(i => i.itemId !== itemId);
+    writeSchedule(next);
+    setScheduled(next);
+  }
+
+  function openEditModal(item: ScheduleItem) {
+    setAddModal({ date: item.date, time: item.scheduledTime ?? "", existing: item });
   }
 
   const TABS = [
@@ -1236,9 +1293,9 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            {calView === "month" && <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} />}
-            {calView === "week" && <WeekView scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} />}
-            {calView === "day"  && <DayView  scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} />}
+            {calView === "month" && <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} onEditTask={openEditModal} />}
+            {calView === "week" && <WeekView scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} onEditTask={openEditModal} />}
+            {calView === "day"  && <DayView  scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} onEditTask={openEditModal} />}
           </div>
 
           {/* Right panel: Tasks / Habits / Goals */}
@@ -1378,12 +1435,15 @@ export default function DashboardPage() {
 
       </div>
 
-      {/* Add task modal */}
+      {/* Add / edit task modal */}
       {addModal && (
-        <AddTaskModal
+        <TaskModal
           initialDate={addModal.date}
           initialTime={addModal.time}
+          existing={addModal.existing}
           onSave={handleAddTask}
+          onUpdate={handleUpdateTask}
+          onDelete={handleDeleteTask}
           onClose={() => setAddModal(null)}
         />
       )}
