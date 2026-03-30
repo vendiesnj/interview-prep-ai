@@ -110,6 +110,7 @@ export default function TopNav() {
   const isAdmin = (session?.user as any)?.tenantRole === "tenant_admin";
   const isDashboard = pathname === "/dashboard";
   const pageLabel = getPageLabel(pathname ?? "/dashboard");
+  const tenantName = (session as any)?.tenant?.name as string | undefined;
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -139,6 +140,12 @@ export default function TopNav() {
           <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", flexShrink: 0 }}>
             <SignalLockup iconSize={26} />
           </Link>
+
+          {tenantName && isDashboard && (
+            <span style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", whiteSpace: "nowrap", flexShrink: 0 }}>
+              {tenantName}
+            </span>
+          )}
 
           {!isDashboard && (
             <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -224,9 +231,19 @@ export default function TopNav() {
         boxSizing: "border-box",
       }}>
         {/* Logo — always links to dashboard */}
-        <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", marginRight: 20, flexShrink: 0 }}>
+        <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", marginRight: tenantName ? 12 : 20, flexShrink: 0 }}>
           <SignalLockup iconSize={28} />
         </Link>
+
+        {/* Tenant name badge */}
+        {tenantName && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginRight: 16, flexShrink: 0 }}>
+            <div style={{ width: 1, height: 18, background: "var(--card-border)" }} />
+            <span style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", letterSpacing: 0.1, whiteSpace: "nowrap" }}>
+              {tenantName}
+            </span>
+          </div>
+        )}
 
         {/* Breadcrumb / back nav */}
         {!isAdmin && !isDashboard && (

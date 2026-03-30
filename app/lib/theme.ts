@@ -386,6 +386,46 @@ export const ipcBlueTheme: AppTheme = {
   },
 };
 
+// Roosevelt University — Forest green (#1E6B2E) + dark green secondary
+export const rooseveltTheme: AppTheme = {
+  ...lightTheme,
+  name: "roosevelt",
+  colors: {
+    ...lightTheme.colors,
+    pageBg: "#F6FAF7",
+    pageBgAccentA: "rgba(30,107,46,0.05)",
+    pageBgAccentB: "rgba(30,107,46,0.03)",
+
+    cardBg: "#FFFFFF",
+    cardBgStrong: "#F8FBF8",
+    cardBorder: "rgba(30,107,46,0.12)",
+    cardBorderSoft: "rgba(28,25,23,0.05)",
+
+    inputBorder: "rgba(30,107,46,0.16)",
+
+    accent: "#1E6B2E",
+    accentSoft: "rgba(30,107,46,0.09)",
+    accentStrong: "rgba(30,107,46,0.24)",
+
+    accent2: "#145220",
+    accent2Soft: "rgba(20,82,32,0.10)",
+
+    success: "#166534",
+    successSoft: "rgba(22,101,52,0.08)",
+
+    chartPositive: "#16A34A",
+    chartNegative: "#DC2626",
+    chartNeutral: "#D97706",
+    chartCritical: "#B91C1C",
+  },
+  shadows: {
+    card: "0 1px 2px rgba(28,25,23,0.06), 0 4px 16px rgba(30,107,46,0.07)",
+    cardSoft: "0 1px 2px rgba(28,25,23,0.04), 0 2px 8px rgba(28,25,23,0.03)",
+    glow: "0 8px 24px rgba(30,107,46,0.18)",
+    none: "none",
+  },
+};
+
 export const themePresets = {
   default: defaultTheme,
   light: lightTheme,
@@ -396,6 +436,7 @@ export const themePresets = {
   pennState: pennStateTheme,
   virginiaTech: virginiaTechTheme,
   demoCollege: demoCollegeTheme,
+  roosevelt: rooseveltTheme,
 };
 
 export type ThemePresetName = keyof typeof themePresets;

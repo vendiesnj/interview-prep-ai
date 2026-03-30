@@ -353,7 +353,7 @@ function WeekView({
             <div key={key} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key); }} style={{ borderLeft: "1px solid var(--card-border)", padding: "3px 4px", minHeight: 28 }}>
               {items.slice(0, 2).map(item => {
                 const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
-                return <div key={item.itemId} title={item.label} style={{ fontSize: 9, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "15", borderLeft: `2px solid ${c}`, padding: "1px 4px", borderRadius: "0 3px 3px 0", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none" }}>{item.label}</div>;
+                return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ fontSize: 9, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "15", borderLeft: `2px solid ${c}`, padding: "1px 4px", borderRadius: "0 3px 3px 0", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>{item.label}</div>;
               })}
               {items.length > 2 && <div style={{ fontSize: 9, color: "var(--text-muted)" }}>+{items.length - 2}</div>}
             </div>
@@ -443,7 +443,7 @@ function DayView({
           <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", marginRight: 4 }}>All day</span>
           {allDay.map(item => {
             const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
-            return <span key={item.itemId} style={{ fontSize: 11, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "18", padding: "2px 9px", borderRadius: 5, border: `1px solid ${c}25`, textDecoration: item.done ? "line-through" : "none" }}>{item.label}</span>;
+            return <span key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} style={{ fontSize: 11, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "18", padding: "2px 9px", borderRadius: 5, border: `1px solid ${c}25`, textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>{item.label}</span>;
           })}
         </div>
       )}
@@ -721,19 +721,17 @@ function FullMonthCalendar({
 
 // ── Personal Tasks Section ────────────────────────────────────────────────────
 
-function PersonalTasksSection() {
+function PersonalTasksSection({ scheduled }: { scheduled: ScheduleItem[] }) {
   const [tasks, setTasks]     = useState<PersonalTask[]>([]);
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [newLabel, setNewLabel] = useState("");
   const [adding, setAdding]   = useState(false);
 
   useEffect(() => {
     try { const raw = localStorage.getItem(PERSONAL_KEY); if (raw) setTasks(JSON.parse(raw)); } catch {}
-    setSchedule(readSchedule());
   }, []);
 
   function getScheduledEntry(label: string): ScheduleItem | undefined {
-    return schedule.find(i => i.label === label);
+    return scheduled.find(i => i.label === label);
   }
 
   function save(next: PersonalTask[]) {
@@ -1106,30 +1104,30 @@ export default function DashboardPage() {
   const checklistItems = stageConfig?.checklist ?? [];
 
   function handleDropTask(taskIdOrTitle: string, date: string, time?: string) {
-    const next = readSchedule();
-    const existing = next.find(i => i.itemId === taskIdOrTitle || i.label === taskIdOrTitle);
-    if (existing) {
-      const updated = next.map(i =>
-        (i.itemId === taskIdOrTitle || i.label === taskIdOrTitle)
-          ? { ...i, date, ...(time ? { scheduledTime: time } : {}) }
-          : i
-      );
+    setScheduled(prev => {
+      const existing = prev.find(i => i.itemId === taskIdOrTitle || i.label === taskIdOrTitle);
+      let updated: ScheduleItem[];
+      if (existing) {
+        updated = prev.map(i =>
+          (i.itemId === taskIdOrTitle || i.label === taskIdOrTitle)
+            ? { ...i, date, ...(time ? { scheduledTime: time } : {}) }
+            : i
+        );
+      } else {
+        const newItem: ScheduleItem = {
+          itemId: "drop_" + Date.now(),
+          label: taskIdOrTitle,
+          date,
+          done: false,
+          category: "Career",
+          scheduledTime: time,
+          custom: true,
+        };
+        updated = [...prev, newItem];
+      }
       writeSchedule(updated);
-      setScheduled(updated);
-    } else {
-      const newItem: ScheduleItem = {
-        itemId: "drop_" + Date.now(),
-        label: taskIdOrTitle,
-        date,
-        done: false,
-        category: "Career",
-        scheduledTime: time,
-        custom: true,
-      };
-      const updated = [...next, newItem];
-      writeSchedule(updated);
-      setScheduled(updated);
-    }
+      return updated;
+    });
   }
 
   function handleAddTask(item: ScheduleItem) {
@@ -1139,9 +1137,11 @@ export default function DashboardPage() {
   }
 
   function handleUpdateTask(item: ScheduleItem) {
-    const next = scheduled.map(i => i.itemId === item.itemId ? item : i);
-    writeSchedule(next);
-    setScheduled(next);
+    setScheduled(prev => {
+      const next = prev.map(i => i.itemId === item.itemId ? item : i);
+      writeSchedule(next);
+      return next;
+    });
   }
 
   function handleDeleteTask(itemId: string) {
@@ -1322,7 +1322,7 @@ export default function DashboardPage() {
 
             {activeTab === "tasks" && (
               <div>
-                <PersonalTasksSection />
+                <PersonalTasksSection scheduled={scheduled} />
                 {stageConfig ? (
                   <div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
