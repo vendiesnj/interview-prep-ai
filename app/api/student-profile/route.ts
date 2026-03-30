@@ -501,6 +501,25 @@ export async function GET() {
   const lowestNace = scoredNace.sort((a, b) => (a.score ?? 100) - (b.score ?? 100))[0];
   const nextAction = lowestNace ? { ...ACTION_MAP[lowestNace.key], naceKey: lowestNace.key, currentScore: lowestNace.score } : null;
 
+  // ── Financial Readiness Score ─────────────────────────────────────────────
+  // Computed entirely from real DB fields — no made-up numbers.
+  // Max 100: finlit modules (up to 50) + career check-in data (up to 50)
+  const finlitTotal = 40;
+  const finReadiness = (() => {
+    let score = 0;
+    // Financial literacy modules: up to 50 pts
+    score += Math.min(50, Math.round((finlitDone / finlitTotal) * 50));
+    // Career check-in data (each field proves a real financial action taken)
+    if (careerCheckIn) {
+      score += 10; // completing the check-in itself
+      if (careerCheckIn.salaryRange) score += 8;   // knows their income
+      if (careerCheckIn.has401k)     score += 15;  // enrolled in retirement
+      if ((careerCheckIn as any).currentSavingsRange) score += 9; // tracks savings
+      if (careerCheckIn.studentLoanRange)            score += 8;  // loan awareness
+    }
+    return Math.min(100, score);
+  })();
+
   // ── Completeness ──────────────────────────────────────────────────────────
 
   const completeness = computeCompleteness({
@@ -574,6 +593,7 @@ export async function GET() {
 
     naceScores,
     signalScore,
+    financialReadinessScore: finReadiness,
     nextAction,
 
     faceMetrics: faceMetricsAggregate,

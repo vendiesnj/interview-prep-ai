@@ -15,6 +15,7 @@ import StreakBanner from "@/app/components/StreakBanner";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import { matchOccupations } from "@/app/lib/onet-occupations";
 import DailyGamesWidget from "@/app/components/DailyGamesWidget";
+import JourneySidebar from "@/app/components/JourneySidebar";
 
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
@@ -259,6 +260,12 @@ function fmtTime(t: string): string {
   return m === 0 ? `${disp}${suffix}` : `${disp}:${m.toString().padStart(2, "0")}${suffix}`;
 }
 
+function fmtScheduledLabel(date: string, time?: string): string {
+  const d = new Date(date + "T12:00:00");
+  const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return time ? `Scheduled for ${dateStr} at ${fmtTime(time)}` : `Scheduled for ${dateStr}`;
+}
+
 // ── WeekView ─────────────────────────────────────────────────────────────────
 
 function WeekView({
@@ -374,11 +381,11 @@ function WeekView({
                   onDragOver={e => e.preventDefault()}
                   onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key, `${hour.toString().padStart(2, "0")}:00`); }}
                   onClick={() => onAddAtTime(key, `${hour.toString().padStart(2, "0")}:00`)}
-                  style={{ borderLeft: "1px solid var(--card-border)", padding: "2px 4px", cursor: "pointer", position: "relative" }}
+                  style={{ borderLeft: "1px solid var(--card-border)", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column" }}
                 >
                   {items.map(item => {
                     const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
-                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, borderRadius: 5, padding: "2px 6px", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>{item.label}</div>;
+                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 5px", fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer", width: "100%", boxSizing: "border-box", minHeight: 50 }}>{item.label}</div>;
                   })}
                 </div>
               );
@@ -459,23 +466,19 @@ function DayView({
                 onDragOver={e => e.preventDefault()}
                 onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, dateKey, `${hour.toString().padStart(2, "0")}:00`); }}
                 onClick={() => onAddAtTime(dateKey, `${hour.toString().padStart(2, "0")}:00`)}
-                style={{ borderLeft: "1px solid var(--card-border)", padding: "4px 12px", cursor: "pointer" }}
+                style={{ borderLeft: "1px solid var(--card-border)", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column" }}
               >
                 {items.map(item => {
                   const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
                   return (
-                    <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: item.done ? "var(--card-bg-strong)" : c, color: item.done ? "var(--text-muted)" : "#fff", fontSize: 12, fontWeight: 700, marginBottom: 3, cursor: "pointer", textDecoration: item.done ? "line-through" : "none" }}>
-                      <div style={{ width: 3, height: "100%", background: "rgba(255,255,255,0.5)", borderRadius: 2, flexShrink: 0, alignSelf: "stretch" }} />
-                      {item.scheduledTime && <span style={{ opacity: 0.85, fontSize: 10 }}>{fmtTime(item.scheduledTime)}</span>}
+                    <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "0 12px", minHeight: 58, background: item.done ? "var(--card-bg-strong)" : c, color: item.done ? "var(--text-muted)" : "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: item.done ? "line-through" : "none", width: "100%", boxSizing: "border-box" }}>
+                      <div style={{ width: 3, alignSelf: "stretch", background: "rgba(255,255,255,0.4)", borderRadius: 2, flexShrink: 0, marginTop: 8, marginBottom: 8 }} />
+                      {item.scheduledTime && <span style={{ opacity: 0.8, fontSize: 10, flexShrink: 0 }}>{fmtTime(item.scheduledTime)}</span>}
                       <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.label}</span>
                     </div>
                   );
                 })}
-                {items.length === 0 && (
-                  <div style={{ height: "100%", minHeight: 52, display: "flex", alignItems: "center", paddingLeft: 4 }}>
-                    <span style={{ fontSize: 11, color: "transparent" }}>+</span>
-                  </div>
-                )}
+                {items.length === 0 && <div style={{ minHeight: 58 }} />}
               </div>
             </div>
           );
@@ -762,19 +765,25 @@ function PersonalTasksSection({ scheduled }: { scheduled: ScheduleItem[] }) {
         {tasks.map(task => {
           const entry = getScheduledEntry(task.label);
           const isScheduled = !!entry;
+          const scheduledBg   = task.done ? "rgba(134,239,172,0.18)" : "rgba(254,243,199,0.7)";
+          const scheduledBorder = task.done ? "rgba(34,197,94,0.35)" : "rgba(234,179,8,0.45)";
           return (
-            <div key={task.id} draggable onDragStart={e => e.dataTransfer.setData("text/plain", task.label)} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 9, background: task.done ? "transparent" : "var(--card-bg)", border: `1px solid ${isScheduled ? ACCENT_CAREER + "40" : task.done ? "var(--card-border-soft)" : "var(--card-border)"}`, cursor: "grab" }}>
-              <button type="button" onClick={() => toggleTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <div key={task.id} draggable onDragStart={e => e.dataTransfer.setData("text/plain", task.label)} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "8px 10px", borderRadius: 9, background: isScheduled ? scheduledBg : task.done ? "transparent" : "var(--card-bg)", border: `1px solid ${isScheduled ? scheduledBorder : task.done ? "var(--card-border-soft)" : "var(--card-border)"}`, cursor: "grab" }}>
+              <button type="button" onClick={() => toggleTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", flexShrink: 0, marginTop: 1 }}>
                 {task.done ? <CheckCircle2 size={15} color={ACCENT_FINANCE} strokeWidth={2.2} /> : <Circle size={15} color="var(--text-muted)" strokeWidth={2} />}
               </button>
-              <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: task.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: task.done ? "line-through" : "none" }}>{task.label}</span>
-              {isScheduled && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}25`, padding: "2px 7px", borderRadius: 5, whiteSpace: "nowrap", flexShrink: 0 }}>
-                  <Clock size={9} style={{ display: "inline", marginRight: 3, verticalAlign: "middle" }} />
-                  {entry!.scheduledTime ? `${entry!.date} ${fmtTime(entry!.scheduledTime)}` : entry!.date}
-                </span>
-              )}
-              <button type="button" onClick={() => deleteTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", opacity: 0.4, flexShrink: 0 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: task.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: task.done ? "line-through" : "none" }}>{task.label}</span>
+                {isScheduled && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                    <Clock size={9} color={task.done ? "#16A34A" : "#92400E"} />
+                    <span style={{ fontSize: 10, fontWeight: 700, color: task.done ? "#16A34A" : "#92400E" }}>
+                      {fmtScheduledLabel(entry!.date, entry!.scheduledTime)}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <button type="button" onClick={() => deleteTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", alignItems: "center", opacity: 0.4, flexShrink: 0, marginTop: 1 }}>
                 <X size={12} color="var(--text-muted)" />
               </button>
             </div>
@@ -1044,14 +1053,20 @@ interface SignalData {
   profile: { name?: string; graduationYear?: string; stage?: string; targetIndustry?: string };
   speaking: { interview: { count: number; avgScore: number | null }; networking: { count: number }; publicSpeaking: { count: number } };
   completeness: number;
-  nextAction: { label: string; href: string; reason: string } | null;
+  nextAction: { label: string; href: string; naceKey?: string; currentScore?: number | null } | null;
   aptitude: {
     primary: string;
     secondary?: string;
     scores?: { riasecProfile?: string; [key: string]: unknown };
     completedAt?: string;
   } | null;
-  careerCheckIn: { salaryRange?: string; industry?: string } | null;
+  careerCheckIn: { salaryRange?: string; industry?: string; has401k?: boolean | null; employmentStatus?: string; currentSavingsRange?: string | null; studentLoanRange?: string | null } | null;
+  financialReadinessScore: number;
+  checklist: { preCollege: { total: number; done: number }; duringCollege: { total: number; done: number }; postCollege: { total: number; done: number }; financialLiteracy: { total: number; done: number } };
+  resumeHistory: { id: string }[];
+  interviewPipeline: { total: number; offers: number; accepted: number };
+  instincts: { totalXp: number };
+  completeness: number;
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -1064,6 +1079,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
   const [calView, setCalView] = useState<"month" | "week" | "day">("month");
   const [addModal, setAddModal] = useState<{ date: string; time: string; existing?: ScheduleItem } | null>(null);
+  const [journeyOpen, setJourneyOpen] = useState(false);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -1159,6 +1175,15 @@ export default function DashboardPage() {
     { id: "habits" as const, label: "Habits" },
     { id: "goals"  as const, label: "Goals" },
   ];
+
+  const finScore    = data?.financialReadinessScore ?? 0;
+  const finColor    = finScore >= 70 ? "#16A34A" : finScore >= 40 ? "#D97706" : "#EF4444";
+  const riasecProfile = data?.aptitude?.scores?.riasecProfile ?? data?.aptitude?.primary ?? null;
+  const topMatches    = riasecProfile ? matchOccupations(riasecProfile, { limit: 3 }) : [];
+  const totalSessions = data
+    ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count
+    : null;
+  const todayScheduled = scheduled.filter(i => i.date === todayStr() && !i.done).length;
 
   return (
     <PremiumShell hideHeader>
