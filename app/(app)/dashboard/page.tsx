@@ -1066,7 +1066,6 @@ interface SignalData {
   resumeHistory: { id: string }[];
   interviewPipeline: { total: number; offers: number; accepted: number };
   instincts: { totalXp: number };
-  completeness: number;
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
@@ -1178,11 +1177,6 @@ export default function DashboardPage() {
 
   const finScore    = data?.financialReadinessScore ?? 0;
   const finColor    = finScore >= 70 ? "#16A34A" : finScore >= 40 ? "#D97706" : "#EF4444";
-  const riasecProfile = data?.aptitude?.scores?.riasecProfile ?? data?.aptitude?.primary ?? null;
-  const topMatches    = riasecProfile ? matchOccupations(riasecProfile, { limit: 3 }) : [];
-  const totalSessions = data
-    ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count
-    : null;
   const todayScheduled = scheduled.filter(i => i.date === todayStr() && !i.done).length;
 
   return (
@@ -1190,38 +1184,40 @@ export default function DashboardPage() {
       <div style={{ maxWidth: 1280, margin: "0 auto", paddingBottom: 80 }}>
 
         {/* ── Header ── */}
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div>
-            <h1 style={{ margin: "0 0 4px", fontSize: 26, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.4 }}>
+            <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.4 }}>
               {greeting}, {firstName}.
             </h1>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)" }}>
+            <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
-          {!loading && signalScore !== null && (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 16px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-              <div style={{ fontSize: 24, fontWeight: 950, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
-              <div>
-                <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Signal Score</div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{totalSessions} sessions · {data?.completeness ?? 0}% profile</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {!loading && signalScore !== null && (
+              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                <div style={{ fontSize: 22, fontWeight: 950, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Signal Score</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{data?.completeness ?? 0}% complete</div>
+                </div>
               </div>
-              <Link href="/my-journey" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none", marginLeft: 6 }}>Details →</Link>
-            </div>
-          )}
-          {!loading && signalScore === null && (
-            <div style={{ padding: "8px 16px", borderRadius: 12, border: "1px dashed var(--card-border)", background: "var(--card-bg)", fontSize: 12, color: "var(--text-muted)" }}>
-              Complete sessions to build your Signal Score
-            </div>
-          )}
+            )}
+            <button
+              type="button"
+              onClick={() => setJourneyOpen(true)}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer" }}
+            >
+              My Journey →
+            </button>
+          </div>
         </div>
 
         <StreakBanner />
-        <DailyGamesWidget />
 
         {/* ── Reassessment nudge ── */}
         {needsReassessment && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 16, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 12, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <RefreshCw size={18} color="#92400E" />
               <div>
@@ -1233,80 +1229,219 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Personalized path ── */}
-        {!loading && hasAptitude && riasecProfile && (
-          <div style={{ marginTop: 16, padding: "18px 22px", borderRadius: 16, border: "1px solid var(--card-border-soft)", background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-              <div style={{ flex: "1 1 280px" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 5 }}>Your Path</div>
-                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1.4, marginBottom: 6 }}>
-                  {industry
-                    ? <>You're a <span style={{ color: "var(--accent)" }}>{riasecDescription(riasecProfile)}</span> type in <span style={{ color: "var(--accent)" }}>{industry}</span>.</>
-                    : <>You're a <span style={{ color: "var(--accent)" }}>{riasecDescription(riasecProfile)}</span> type — here are your strongest matches.</>
-                  }
-                </div>
+        {/* ── Row 1: Speaking Hub + Career Hub ── */}
+        <div style={{ marginTop: 20, display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16 }}>
+
+          {/* Speaking Hub */}
+          <div style={{ padding: "20px 22px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 9, background: `${ACCENT_CAREER}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Mic size={16} color={ACCENT_CAREER} />
               </div>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", flex: "0 0 auto" }}>
-                {topMatches.map(occ => (
-                  <Link key={occ.id} href={`/career-guide/career-paths/${occ.id}`} style={{ textDecoration: "none" }}>
-                    <div style={{ padding: "9px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", minWidth: 130 }}>
-                      <div style={{ fontSize: 11, fontWeight: 950, color: "var(--text-primary)", marginBottom: 2 }}>{occ.title}</div>
-                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{occ.category}</div>
-                      <div style={{ marginTop: 4, fontSize: 10, fontWeight: 700, color: "#10B981" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>Speaking Hub</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Interview · Networking · Public Speaking</div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {[
+                { label: "Interview",       href: "/practice",        count: data?.speaking.interview.count ?? 0,       avg: data?.speaking.interview.avgScore ?? null,  color: ACCENT_CAREER },
+                { label: "Networking",      href: "/networking",      count: data?.speaking.networking.count ?? 0,      avg: null,                                        color: "#10B981" },
+                { label: "Public Speaking", href: "/public-speaking", count: data?.speaking.publicSpeaking.count ?? 0,  avg: null,                                        color: ACCENT_LEARNING },
+              ].map(s => (
+                <Link key={s.label} href={s.href} style={{ textDecoration: "none" }}>
+                  <div style={{ padding: "12px", borderRadius: 10, background: `${s.color}08`, border: `1px solid ${s.color}20` }}>
+                    <div style={{ fontSize: 10, fontWeight: 900, color: s.color, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 6 }}>{s.label}</div>
+                    <div style={{ fontSize: 26, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>
+                      {s.avg !== null ? Math.round(s.avg) : s.count > 0 ? s.count : "—"}
                     </div>
-                  </Link>
-                ))}
-                <Link href="/career-guide/career-paths" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "9px 12px", borderRadius: 10, border: "1px dashed var(--card-border)", background: "transparent", fontSize: 12, fontWeight: 700, color: "var(--accent)", textDecoration: "none", minWidth: 72 }}>
-                  All →
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3 }}>
+                      {s.avg !== null ? `avg score · ${s.count} sessions` : s.count > 0 ? `session${s.count !== 1 ? "s" : ""}` : "No sessions yet"}
+                    </div>
+                  </div>
                 </Link>
+              ))}
+            </div>
+            {(totalSessions ?? 0) === 0 && (
+              <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)" }}>
+                Start a session to build your Signal Score →
               </div>
+            )}
+          </div>
+
+          {/* Career Hub */}
+          <div style={{ padding: "20px 22px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 9, background: `${ACCENT_MINDSET}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Target size={16} color={ACCENT_MINDSET} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>Career Hub</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Paths · Resume · Check-In</div>
+              </div>
+              <Link href="/career-guide/career-paths" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none", flexShrink: 0 }}>All →</Link>
+            </div>
+            {riasecProfile ? (
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", marginBottom: 8 }}>
+                  {riasecDescription(riasecProfile)} Type
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {topMatches.slice(0, 3).map(occ => (
+                    <Link key={occ.id} href={`/career-guide/career-paths/${occ.id}`} style={{ textDecoration: "none" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 9, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)" }}>
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{occ.title}</div>
+                          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{occ.category}</div>
+                        </div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", flexShrink: 0 }}>${occ.salary[0]}K+</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ textAlign: "center", padding: "16px 0" }}>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>Take the Career Assessment to get matched to roles</div>
+                <Link href="/aptitude" style={{ padding: "8px 16px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 12, textDecoration: "none" }}>Start Assessment →</Link>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 6, marginTop: 14, flexWrap: "wrap" }}>
+              <Link href="/resume-gap" style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textDecoration: "none" }}>
+                <FileText size={11} color="#F59E0B" /> Resume
+              </Link>
+              <Link href="/career-checkin" style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textDecoration: "none" }}>
+                <CheckSquare size={11} color="#10B981" /> Check-In
+              </Link>
+              <Link href="/my-journey" style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 11, fontWeight: 700, color: "var(--text-primary)", textDecoration: "none" }}>
+                <BarChart2 size={11} color="#2563EB" /> Journey
+              </Link>
             </div>
           </div>
-        )}
-
-        {/* ── Empty state ── */}
-        {!loading && !hasAptitude && !hasAnySessions && (
-          <div style={{ marginTop: 16, padding: "28px 24px", borderRadius: 16, border: "1px dashed var(--card-border)", background: "var(--card-bg)", textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}><BarChart2 size={36} color="var(--text-muted)" /></div>
-            <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>Start with your Career Assessment</div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 440, margin: "0 auto 18px" }}>
-              Answer 60 questions to discover your RIASEC profile and get personalized career matches.
-            </div>
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/aptitude"  style={{ padding: "10px 22px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Take Career Assessment →</Link>
-              <Link href="/practice"  style={{ padding: "10px 22px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Practice Interview →</Link>
-            </div>
-          </div>
-        )}
-
-        {/* ── Practice quick-links ── */}
-        <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
-          {[
-            { label: "Interview Prep",    sub: "~15 min",  href: "/practice",              color: ACCENT_CAREER,   Icon: Mic },
-            { label: "Public Speaking",   sub: "~10 min",  href: "/public-speaking",       color: ACCENT_LEARNING, Icon: Zap },
-            { label: "Career Assessment", sub: "~15 min",  href: "/aptitude",              color: ACCENT_MINDSET,  Icon: Target },
-            { label: "Career of the Day", sub: "daily",    href: "/games/career-of-the-day", color: ACCENT_PERSONAL, Icon: Gamepad2 },
-          ].map(item => (
-            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-              <div style={{ padding: "14px 16px", borderRadius: 12, border: `1px solid ${item.color}25`, background: item.color + "08", display: "flex", alignItems: "center", gap: 10, transition: "background 120ms" }}>
-                <div style={{ width: 34, height: 34, borderRadius: 9, background: item.color + "18", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <item.Icon size={17} color={item.color} />
-                </div>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{item.label}</div>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{item.sub}</div>
-                </div>
-              </div>
-            </Link>
-          ))}
         </div>
 
-        {/* ── Compass: Calendar + Tabs ── */}
+        {/* ── Row 2: Financial Readiness + Planner + Games ── */}
+        <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+
+          {/* Financial Readiness */}
+          <Link href="/financial-literacy" style={{ textDecoration: "none" }}>
+            <div style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", height: "100%", boxSizing: "border-box" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 9, background: `${ACCENT_PERSONAL}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <DollarSign size={15} color={ACCENT_PERSONAL} />
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>Financial Readiness</div>
+                </div>
+                <ChevronRight size={14} color="var(--text-muted)" />
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 8 }}>
+                <div style={{ fontSize: 32, fontWeight: 950, color: finColor, lineHeight: 1 }}>{finScore}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", paddingBottom: 3 }}>/100</div>
+              </div>
+              <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden", marginBottom: 12 }}>
+                <div style={{ height: "100%", width: `${finScore}%`, borderRadius: 99, background: finColor, transition: "width 0.6s ease" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {[
+                  { label: "Financial Literacy", done: (data?.checklist.financialLiteracy.done ?? 0) >= 10, val: `${data?.checklist.financialLiteracy.done ?? 0}/40 modules` },
+                  { label: "Career Check-In",    done: !!data?.careerCheckIn,                              val: data?.careerCheckIn?.employmentStatus?.replace(/_/g, " ") ?? "Not started" },
+                ].map(row => (
+                  <div key={row.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 11 }}>
+                    <span style={{ color: "var(--text-muted)" }}>{row.label}</span>
+                    <span style={{ fontWeight: 800, color: row.done ? "#16A34A" : "var(--text-muted)" }}>{row.val}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Link>
+
+          {/* Planner */}
+          <div style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, background: `${ACCENT_LEARNING}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Clock size={15} color={ACCENT_LEARNING} />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>Planner</div>
+              </div>
+              <button type="button" onClick={() => setAddModal({ date: todayStr(), time: "" })} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 7, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
+                <Plus size={11} /> Add
+              </button>
+            </div>
+            {todayScheduled > 0 ? (
+              <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1, marginBottom: 4 }}>{todayScheduled}</div>
+            ) : (
+              <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>0</div>
+            )}
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 14 }}>
+              {todayScheduled > 0 ? `task${todayScheduled !== 1 ? "s" : ""} scheduled today` : "tasks scheduled today"}
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {(["day","week","month"] as const).map(v => (
+                <button key={v} type="button" onClick={() => setCalView(v)} style={{ flex: 1, padding: "5px 0", borderRadius: 7, border: "1px solid var(--card-border)", background: calView === v ? "var(--accent)" : "var(--card-bg)", color: calView === v ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 11, cursor: "pointer", textTransform: "capitalize" }}>
+                  {v}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Games */}
+          <div style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, background: `${ACCENT_MINDSET}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Gamepad2 size={15} color={ACCENT_MINDSET} />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>Games</div>
+              </div>
+              <Link href="/career-instincts" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>All →</Link>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 950, color: ACCENT_MINDSET, lineHeight: 1, marginBottom: 4 }}>
+              {data?.instincts.totalXp ?? 0}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 14 }}>XP earned</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Link href="/games/career-of-the-day" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", textDecoration: "none" }}>
+                <Zap size={12} color={ACCENT_MINDSET} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>Career of the Day</span>
+              </Link>
+              <Link href="/career-instincts" style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", textDecoration: "none" }}>
+                <Brain size={12} color={ACCENT_MINDSET} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>Career Instincts</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* ── NACE Career Readiness ── */}
+        {data && data.naceScores.some(n => n.score !== null) && (
+          <div style={{ padding: "16px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", marginTop: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>NACE Career Readiness</div>
+              <Link href="/my-journey?tab=nace" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Full breakdown →</Link>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "7px 18px" }}>
+              {data.naceScores.filter(n => n.key !== "equity_inclusion" && n.score !== null).map(ns => (
+                <div key={ns.key}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{ns.shortLabel}</span>
+                    <span style={{ fontSize: 10, fontWeight: 900, color: ns.score! >= 50 ? "#10B981" : "var(--text-muted)" }}>{ns.score}</span>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${ns.score}%`, borderRadius: 99, background: "var(--accent)", transition: "width 0.6s ease" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Planner workspace: Calendar + Tabs ── */}
         <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 380px", gap: 24, alignItems: "start" }}>
 
-          {/* Calendar with view toggle */}
+          {/* Calendar */}
           <div>
-            {/* View toggle */}
             <div style={{ display: "flex", gap: 4, marginBottom: 12, width: "fit-content" }}>
               {(["day","week","month"] as const).map(v => (
                 <button key={v} type="button" onClick={() => setCalView(v)} style={{ padding: "5px 14px", borderRadius: 7, border: "1px solid var(--card-border)", background: calView === v ? "var(--accent)" : "var(--card-bg)", color: calView === v ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer", textTransform: "capitalize", transition: "all 120ms" }}>
@@ -1317,7 +1452,6 @@ export default function DashboardPage() {
                 <Plus size={13} /> Add task
               </button>
             </div>
-
             {calView === "month" && <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} onEditTask={openEditModal} />}
             {calView === "week" && <WeekView scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} onEditTask={openEditModal} />}
             {calView === "day"  && <DayView  scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} onEditTask={openEditModal} />}
@@ -1325,7 +1459,6 @@ export default function DashboardPage() {
 
           {/* Right panel: Tasks / Habits / Goals */}
           <div>
-            {/* Tab bar */}
             <div style={{ display: "flex", gap: 4, marginBottom: 16, padding: "4px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
               {TABS.map(tab => (
                 <button
@@ -1370,93 +1503,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Three Pillars ── */}
-        <div style={{ marginTop: 32 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
-            Practice & Explore
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-            {PILLARS.map(pillar => (
-              <div key={pillar.id} style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: pillar.bg }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <pillar.Icon size={20} color={pillar.color} />
-                  <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>{pillar.title}</div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                  {pillar.actions.map(action => (
-                    <Link key={action.href} href={action.href} style={{ textDecoration: "none" }}>
-                      <div style={{ padding: "8px 11px", borderRadius: 9, background: "var(--card-bg)", border: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{action.label}</span>
-                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{action.time}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-                <Link href={pillar.guideHref} style={{ display: "block", marginTop: 10, textAlign: "center", fontSize: 11, fontWeight: 900, color: pillar.color, textDecoration: "none" }}>
-                  {pillar.guideLabel} →
-                </Link>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── NACE mini bars ── */}
-        {data && data.naceScores.some(n => n.score !== null) && (
-          <div style={{ padding: "16px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", marginTop: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>NACE Career Readiness</div>
-              <Link href="/my-journey?tab=nace" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Full breakdown →</Link>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "7px 18px" }}>
-              {data.naceScores.filter(n => n.key !== "equity_inclusion" && n.score !== null).map(ns => (
-                <div key={ns.key}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{ns.shortLabel}</span>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: ns.score! >= 50 ? "#10B981" : "var(--text-muted)" }}>{ns.score}</span>
-                  </div>
-                  <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${ns.score}%`, borderRadius: 99, background: "var(--accent)", transition: "width 0.6s ease" }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Next recommended action ── */}
-        {data?.nextAction && (
-          <div style={{ marginTop: 16, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 20px", borderRadius: 14, background: "rgba(37,99,235,0.05)", border: "1px solid rgba(37,99,235,0.15)", flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 2 }}>Recommended next step</div>
-              <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{data.nextAction.label}</div>
-            </div>
-            <Link href={data.nextAction.href} style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none", flexShrink: 0 }}>
-              Start →
-            </Link>
-          </div>
-        )}
-
-        {/* ── Quick links ── */}
-        <div style={{ marginTop: 24 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>Quick Access</div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {[
-              { Icon: BarChart2,   label: "My Journey",         href: "/my-journey",               color: "#2563EB" },
-              { Icon: CheckSquare, label: "Career Check-In",    href: "/career-checkin",           color: "#10B981" },
-              { Icon: FileText,    label: "Resume Analyzer",    href: "/resume-gap",               color: "#F59E0B" },
-              { Icon: Home,        label: "Housing Guide",      href: "/career-guide/housing",     color: "#0EA5E9" },
-              { Icon: BarChart,    label: "Salary Benchmarks",  href: "/career-guide/benchmarks",  color: "#EC4899" },
-              { Icon: BookOpen,    label: "Financial Literacy", href: "/financial-literacy",       color: "#8B5CF6" },
-            ].map(item => (
-              <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 9, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap" }}>
-                  <item.Icon size={13} color={item.color} />
-                  {item.label}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+        <JourneySidebar open={journeyOpen} onClose={() => setJourneyOpen(false)} data={data} />
 
       </div>
 
