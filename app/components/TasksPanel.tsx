@@ -103,8 +103,9 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
   const [saving, setSaving]     = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
 
-  const done    = !!task.completedAt;
-  const overdue = isOverdue(task.dueDate, task.completedAt);
+  const done        = !!task.completedAt;
+  const overdue     = isOverdue(task.dueDate, task.completedAt);
+  const isScheduled = !!task.scheduledAt && !done;
 
   useEffect(() => {
     if (expanded && titleRef.current) titleRef.current.focus();
@@ -138,46 +139,63 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
 
   const prioColor = PRIORITY_COLOR[priority];
 
+  const rowBg     = done ? "rgba(134,239,172,0.12)" : isScheduled ? "rgba(254,243,199,0.7)" : "var(--card-bg)";
+  const rowBorder = done ? "rgba(34,197,94,0.3)"    : isScheduled ? "rgba(234,179,8,0.4)"    : "var(--card-border)";
+
   return (
-    <div style={{
-      borderRadius: 8,
-      border: "1px solid var(--card-border)",
-      background: done ? "transparent" : "var(--card-bg)",
-      overflow: "hidden",
-      transition: "border-color 120ms",
-    }}>
+    <div
+      draggable={!done}
+      onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); }}
+      style={{
+        borderRadius: 8,
+        border: `1px solid ${rowBorder}`,
+        background: rowBg,
+        overflow: "hidden",
+        transition: "border-color 120ms, background 120ms",
+        cursor: done ? "default" : "grab",
+      }}
+    >
       {/* Main row */}
       <div
         style={{
           display: "flex", alignItems: "center", gap: 10,
           padding: "9px 12px",
-          cursor: "pointer",
-          borderLeft: done ? "none" : `3px solid ${prioColor}`,
+          borderLeft: done ? "3px solid #16A34A" : `3px solid ${prioColor}`,
         }}
       >
         <PriorityDot priority={task.priority as "high" | "medium" | "low"} done={done} onClick={toggleDone} />
-        <span
-          onClick={() => !done && setExpanded(e => !e)}
-          style={{
-            flex: 1, fontSize: 13, fontWeight: 500,
-            color: done ? "var(--text-muted)" : "var(--text-primary)",
-            textDecoration: done ? "line-through" : "none",
-            userSelect: "none",
-          }}
-        >
-          {task.title}
-        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <span
+            onClick={() => !done && setExpanded(e => !e)}
+            style={{
+              fontSize: 13, fontWeight: 500,
+              color: done ? "var(--text-muted)" : "var(--text-primary)",
+              textDecoration: done ? "line-through" : "none",
+              userSelect: "none", cursor: done ? "default" : "pointer",
+            }}
+          >
+            {task.title}
+          </span>
+          {isScheduled && (
+            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+              <Calendar size={9} color="#92400E" />
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#92400E" }}>
+                Scheduled {new Date(task.scheduledAt!).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                {task.scheduledAt!.split("T")[1]?.slice(0,5) !== "00:00"
+                  ? ` at ${new Date(task.scheduledAt!).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`
+                  : ""}
+              </span>
+            </div>
+          )}
+        </div>
         {task.dueDate && !done && (
-          <span style={{
-            fontSize: 11, fontWeight: 600, flexShrink: 0,
-            color: overdue ? "#EF4444" : "var(--text-muted)",
-          }}>
+          <span style={{ fontSize: 11, fontWeight: 600, flexShrink: 0, color: overdue ? "#EF4444" : "var(--text-muted)" }}>
             {fmtDate(task.dueDate.split("T")[0])}
           </span>
         )}
         {done && task.completedAt && (
-          <span style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>
-            {new Date(task.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+          <span style={{ fontSize: 10, color: "#16A34A", fontWeight: 600, flexShrink: 0 }}>
+            ✓ {new Date(task.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
           </span>
         )}
         {!done && (

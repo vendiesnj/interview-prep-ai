@@ -1201,8 +1201,29 @@ export default function DashboardPage() {
 
         <StreakBanner />
 
+        {/* ── Quick-access bar ── */}
+        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          {[
+            { Icon: Mic,         label: "Interview Prep",     href: "/practice",             color: ACCENT_CAREER },
+            { Icon: Target,      label: "Career Assessment",  href: "/aptitude",             color: ACCENT_MINDSET },
+            { Icon: BarChart2,   label: "My Journey",         href: "/my-journey",           color: "#2563EB" },
+            { Icon: FileText,    label: "Resume",             href: "/resume-gap",           color: "#F59E0B" },
+            { Icon: CheckSquare, label: "Career Check-In",    href: "/career-checkin",       color: "#10B981" },
+            { Icon: BookOpen,    label: "Financial Literacy", href: "/financial-literacy",   color: "#8B5CF6" },
+            { Icon: DollarSign,  label: "Budget",             href: "/career-guide/budget",  color: ACCENT_PERSONAL },
+            { Icon: Gamepad2,    label: "Games",              href: "/games",                color: ACCENT_MINDSET },
+          ].map(item => (
+            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap" }}>
+                <item.Icon size={12} color={item.color} />
+                {item.label}
+              </div>
+            </Link>
+          ))}
+        </div>
+
         {needsReassessment && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 10, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <RefreshCw size={18} color="#92400E" />
               <div>
@@ -1261,28 +1282,6 @@ export default function DashboardPage() {
             {activeTab === "habits" && <HabitsTab />}
             {activeTab === "goals"  && <GoalsTab />}
           </div>
-        </div>
-
-        {/* ── Quick-access bar ── */}
-        <div style={{ marginTop: 24, padding: "14px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6, marginRight: 4, flexShrink: 0 }}>Quick access</span>
-          {[
-            { Icon: Mic,         label: "Interview Prep",    href: "/practice",               color: ACCENT_CAREER },
-            { Icon: Target,      label: "Career Assessment", href: "/aptitude",               color: ACCENT_MINDSET },
-            { Icon: BarChart2,   label: "My Journey",        href: "/my-journey",             color: "#2563EB" },
-            { Icon: FileText,    label: "Resume",            href: "/resume-gap",             color: "#F59E0B" },
-            { Icon: CheckSquare, label: "Career Check-In",   href: "/career-checkin",         color: "#10B981" },
-            { Icon: BookOpen,    label: "Financial Literacy",href: "/financial-literacy",     color: "#8B5CF6" },
-            { Icon: DollarSign,  label: "Budget",            href: "/career-guide/budget",    color: ACCENT_PERSONAL },
-            { Icon: Gamepad2,    label: "Games",             href: "/games",                  color: ACCENT_MINDSET },
-          ].map(item => (
-            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 11px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap" }}>
-                <item.Icon size={12} color={item.color} />
-                {item.label}
-              </div>
-            </Link>
-          ))}
         </div>
 
         {/* ── NACE snapshot (only when data exists) ── */}

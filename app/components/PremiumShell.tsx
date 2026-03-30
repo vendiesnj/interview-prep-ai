@@ -44,29 +44,6 @@ export default function PremiumShell({
     >
       <div style={{ maxWidth: 1120, margin: "0 auto", padding: 20 }}>
 
-        {/* ── Stage banner ── */}
-        {stageInfo && (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "7px 14px",
-            borderRadius: 10,
-            background: stageInfo.color + "10",
-            border: `1px solid ${stageInfo.color}25`,
-            marginBottom: 18,
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <stageInfo.Icon size={14} color={stageInfo.color} />
-              <span style={{ fontSize: 12, fontWeight: 900, color: stageInfo.color, letterSpacing: 0.3 }}>
-                {stageInfo.label}
-              </span>
-            </div>
-            <Link href={stageInfo.href} style={{ fontSize: 11, fontWeight: 700, color: stageInfo.color, textDecoration: "none", opacity: 0.8 }}>
-              View stage guide →
-            </Link>
-          </div>
-        )}
 
                 {!hideHeader && (title || subtitle || logoUrl || tenantName) ? (
           <div style={{ marginBottom: 12 }}>
