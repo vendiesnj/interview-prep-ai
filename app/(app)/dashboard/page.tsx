@@ -1466,11 +1466,27 @@ export default function DashboardPage() {
             </div>
 
             {activeTab === "tasks" && (
-              <TasksPanel
-                tasks={tasks}
-                onRefresh={refreshTasks}
-                defaultDate={calAddDate ?? undefined}
-              />
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <TasksPanel
+                  tasks={tasks}
+                  onRefresh={refreshTasks}
+                  defaultDate={calAddDate ?? undefined}
+                />
+                {stageConfig && (
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: stageConfig.accent, textTransform: "uppercase" }}>Stage Checklist</div>
+                      <Link href={stageConfig.guideHref} style={{ fontSize: 11, fontWeight: 700, color: stageConfig.accent, textDecoration: "none" }}>{stageConfig.guideLabel} →</Link>
+                    </div>
+                    <ChecklistSection
+                      stage={stageConfig.stageKey}
+                      items={checklistItems}
+                      accentColor={stageConfig.accent}
+                      onProgressChange={setProgress}
+                    />
+                  </div>
+                )}
+              </div>
             )}
             {activeTab === "habits" && <HabitsTab />}
             {activeTab === "goals"  && <GoalsTab />}
