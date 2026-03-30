@@ -16,6 +16,7 @@ import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/
 import { matchOccupations } from "@/app/lib/onet-occupations";
 import DailyGamesWidget from "@/app/components/DailyGamesWidget";
 import JourneySidebar from "@/app/components/JourneySidebar";
+import TasksPanel, { type Task as DbTask } from "@/app/components/TasksPanel";
 
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
@@ -1074,10 +1075,10 @@ export default function DashboardPage() {
   const [data, setData]       = useState<SignalData | null>(null);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState<ChecklistProgressEntry[]>([]);
-  const [scheduled, setScheduled] = useState<ScheduleItem[]>([]);
+  const [tasks, setTasks]     = useState<DbTask[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
   const [calView, setCalView] = useState<"month" | "week" | "day">("month");
-  const [addModal, setAddModal] = useState<{ date: string; time: string; existing?: ScheduleItem } | null>(null);
+  const [calAddDate, setCalAddDate] = useState<string | null>(null); // date clicked on calendar
   const [journeyOpen, setJourneyOpen] = useState(false);
   const { data: session } = useSession();
 
@@ -1089,9 +1090,30 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    setScheduled(readSchedule());
-  }, []);
+  async function refreshTasks() {
+    try {
+      const res = await fetch("/api/tasks");
+      const json = await res.json();
+      if (Array.isArray(json)) setTasks(json);
+    } catch {}
+  }
+
+  useEffect(() => { refreshTasks(); }, []);
+
+  // Map DB tasks to ScheduleItem[] for calendar display (only tasks with scheduledAt)
+  const scheduled: ScheduleItem[] = tasks
+    .filter(t => !!t.scheduledAt)
+    .map(t => ({
+      itemId: t.id,
+      label:  t.title,
+      date:   t.scheduledAt!.split("T")[0],
+      done:   !!t.completedAt,
+      category: t.category ?? "Career",
+      scheduledTime: t.scheduledAt!.includes("T") && t.scheduledAt!.split("T")[1].length >= 5
+        ? t.scheduledAt!.split("T")[1].slice(0, 5)
+        : undefined,
+      notes: t.notes ?? undefined,
+    }));
 
   const stage       = (session as any)?.user?.demoPersona as string | undefined;
   const stageConfig = stage ? STAGE_MAP[stage] : null;
@@ -1118,55 +1140,18 @@ export default function DashboardPage() {
   const hasAnySessions = totalSessions !== null && totalSessions > 0;
   const checklistItems = stageConfig?.checklist ?? [];
 
-  function handleDropTask(taskIdOrTitle: string, date: string, time?: string) {
-    setScheduled(prev => {
-      const existing = prev.find(i => i.itemId === taskIdOrTitle || i.label === taskIdOrTitle);
-      let updated: ScheduleItem[];
-      if (existing) {
-        updated = prev.map(i =>
-          (i.itemId === taskIdOrTitle || i.label === taskIdOrTitle)
-            ? { ...i, date, ...(time ? { scheduledTime: time } : {}) }
-            : i
-        );
-      } else {
-        const newItem: ScheduleItem = {
-          itemId: "drop_" + Date.now(),
-          label: taskIdOrTitle,
-          date,
-          done: false,
-          category: "Career",
-          scheduledTime: time,
-          custom: true,
-        };
-        updated = [...prev, newItem];
-      }
-      writeSchedule(updated);
-      return updated;
+  async function handleDropTask(taskId: string, date: string, time?: string) {
+    const scheduledAt = time ? `${date}T${time}:00.000Z` : `${date}T00:00:00.000Z`;
+    await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scheduledAt }),
     });
+    refreshTasks();
   }
 
-  function handleAddTask(item: ScheduleItem) {
-    const next = [...scheduled, item];
-    writeSchedule(next);
-    setScheduled(next);
-  }
-
-  function handleUpdateTask(item: ScheduleItem) {
-    setScheduled(prev => {
-      const next = prev.map(i => i.itemId === item.itemId ? item : i);
-      writeSchedule(next);
-      return next;
-    });
-  }
-
-  function handleDeleteTask(itemId: string) {
-    const next = scheduled.filter(i => i.itemId !== itemId);
-    writeSchedule(next);
-    setScheduled(next);
-  }
-
-  function openEditModal(item: ScheduleItem) {
-    setAddModal({ date: item.date, time: item.scheduledTime ?? "", existing: item });
+  function openEditModal(_item: ScheduleItem) {
+    // Task editing handled inline in TasksPanel
   }
 
   const TABS = [
@@ -1175,9 +1160,10 @@ export default function DashboardPage() {
     { id: "goals"  as const, label: "Goals" },
   ];
 
-  const finScore    = data?.financialReadinessScore ?? 0;
-  const finColor    = finScore >= 70 ? "#16A34A" : finScore >= 40 ? "#D97706" : "#EF4444";
-  const todayScheduled = scheduled.filter(i => i.date === todayStr() && !i.done).length;
+  const finScore       = data?.financialReadinessScore ?? 0;
+  const finColor       = finScore >= 70 ? "#16A34A" : finScore >= 40 ? "#D97706" : "#EF4444";
+  const todayStr_      = new Date().toISOString().split("T")[0];
+  const todayScheduled = tasks.filter(t => !t.completedAt && t.dueDate?.startsWith(todayStr_)).length;
 
   return (
     <PremiumShell hideHeader>
@@ -1365,7 +1351,7 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)" }}>Planner</div>
               </div>
-              <button type="button" onClick={() => setAddModal({ date: todayStr(), time: "" })} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 7, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
+              <button type="button" onClick={() => { setActiveTab("tasks"); setCalAddDate(todayStr_); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 7, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>
                 <Plus size={11} /> Add
               </button>
             </div>
@@ -1437,8 +1423,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Planner workspace: Calendar + Tabs ── */}
-        <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 380px", gap: 24, alignItems: "start" }}>
+        {/* ── Planner workspace: Calendar + Tasks/Habits/Goals ── */}
+        <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
 
           {/* Calendar */}
           <div>
@@ -1448,17 +1434,18 @@ export default function DashboardPage() {
                   {v}
                 </button>
               ))}
-              <button type="button" onClick={() => setAddModal({ date: todayStr(), time: "" })} style={{ marginLeft: 8, padding: "5px 14px", borderRadius: 7, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+              <button type="button" onClick={() => { setActiveTab("tasks"); setCalAddDate(todayStr_); }} style={{ marginLeft: 8, padding: "5px 14px", borderRadius: 7, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
                 <Plus size={13} /> Add task
               </button>
             </div>
             {calView === "month" && <FullMonthCalendar scheduled={scheduled} onDropTask={handleDropTask} onEditTask={openEditModal} />}
-            {calView === "week" && <WeekView scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} onEditTask={openEditModal} />}
-            {calView === "day"  && <DayView  scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date, time) => setAddModal({ date, time })} onEditTask={openEditModal} />}
+            {calView === "week"  && <WeekView scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date) => { setActiveTab("tasks"); setCalAddDate(date); }} onEditTask={openEditModal} />}
+            {calView === "day"   && <DayView  scheduled={scheduled} onDropTask={handleDropTask} onAddAtTime={(date) => { setActiveTab("tasks"); setCalAddDate(date); }} onEditTask={openEditModal} />}
           </div>
 
           {/* Right panel: Tasks / Habits / Goals */}
           <div>
+            {/* Tab bar */}
             <div style={{ display: "flex", gap: 4, marginBottom: 16, padding: "4px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
               {TABS.map(tab => (
                 <button
@@ -1479,25 +1466,12 @@ export default function DashboardPage() {
             </div>
 
             {activeTab === "tasks" && (
-              <div>
-                <PersonalTasksSection scheduled={scheduled} />
-                {stageConfig ? (
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: stageConfig.accent, textTransform: "uppercase" }}>Stage Checklist</div>
-                      <Link href={stageConfig.guideHref} style={{ fontSize: 11, fontWeight: 700, color: stageConfig.accent, textDecoration: "none" }}>{stageConfig.guideLabel} →</Link>
-                    </div>
-                    <ChecklistSection
-                      stage={stageConfig.stageKey}
-                      items={checklistItems}
-                      accentColor={stageConfig.accent}
-                      onProgressChange={setProgress}
-                    />
-                  </div>
-                ) : null}
-              </div>
+              <TasksPanel
+                tasks={tasks}
+                onRefresh={refreshTasks}
+                defaultDate={calAddDate ?? undefined}
+              />
             )}
-
             {activeTab === "habits" && <HabitsTab />}
             {activeTab === "goals"  && <GoalsTab />}
           </div>
@@ -1506,19 +1480,6 @@ export default function DashboardPage() {
         <JourneySidebar open={journeyOpen} onClose={() => setJourneyOpen(false)} data={data} />
 
       </div>
-
-      {/* Add / edit task modal */}
-      {addModal && (
-        <TaskModal
-          initialDate={addModal.date}
-          initialTime={addModal.time}
-          existing={addModal.existing}
-          onSave={handleAddTask}
-          onUpdate={handleUpdateTask}
-          onDelete={handleDeleteTask}
-          onClose={() => setAddModal(null)}
-        />
-      )}
 
     </PremiumShell>
   );
