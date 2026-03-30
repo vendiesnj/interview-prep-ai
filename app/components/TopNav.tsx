@@ -97,6 +97,19 @@ const MOBILE_DRAWER_LINKS = [
   { label: "Account",              href: "/account" },
 ];
 
+// ── Practice sub-nav routes ───────────────────────────────────────────────────
+
+const PRACTICE_SUBNAV = [
+  { label: "Practice",      href: "/practice" },
+  { label: "Question Bank", href: "/question-bank" },
+  { label: "Job Profiles",  href: "/job-profiles" },
+  { label: "Sessions",      href: "/sessions" },
+  { label: "Results",       href: "/results" },
+  { label: "Insights",      href: "/progress" },
+];
+
+const PRACTICE_PATHS = new Set(PRACTICE_SUBNAV.map(n => n.href));
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function TopNav() {
@@ -302,6 +315,39 @@ export default function TopNav() {
           <LogoutButton />
         </div>
       </header>
+
+      {/* Practice sub-nav */}
+      {PRACTICE_PATHS.has(pathname ?? "") && (
+        <div style={{
+          position: "sticky", top: 54, zIndex: 99,
+          background: "var(--card-bg)",
+          borderBottom: "1px solid var(--card-border-soft)",
+          display: "flex", alignItems: "center",
+          padding: "0 24px", gap: 2,
+          height: 40,
+        }}>
+          {PRACTICE_SUBNAV.map(item => {
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  padding: "6px 12px", borderRadius: 6,
+                  fontSize: 12, fontWeight: active ? 800 : 600,
+                  color: active ? "var(--accent)" : "var(--text-muted)",
+                  background: active ? "var(--accent-soft)" : "transparent",
+                  textDecoration: "none",
+                  borderBottom: active ? "2px solid var(--accent)" : "2px solid transparent",
+                  transition: "all 120ms",
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
 
       <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
     </>
