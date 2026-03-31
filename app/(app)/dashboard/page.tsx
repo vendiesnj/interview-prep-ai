@@ -359,7 +359,7 @@ function WeekView({
         {weekDays.map(({ key }) => {
           const items = getUnscheduledItems(key);
           return (
-            <div key={key} onDragOver={e => { e.preventDefault(); setDragOverCell(`allday_${key}`); }} onDragLeave={() => setDragOverCell(null)} onDrop={e => { e.preventDefault(); setDragOverCell(null); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key); }} style={{ borderLeft: "1px solid var(--card-border)", padding: "3px 4px", minHeight: 28, background: dragOverCell === `allday_${key}` ? "rgba(37,99,235,0.10)" : "transparent", transition: "background 80ms" }}>
+            <div key={key} onDragOver={e => { e.preventDefault(); setDragOverCell(`allday_${key}`); }} onDragLeave={() => setDragOverCell(null)} onDrop={e => { e.preventDefault(); setDragOverCell(null); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key); }} style={{ borderLeft: "1px solid var(--card-border)", padding: "3px 4px", minHeight: 28, background: dragOverCell === `allday_${key}` ? "rgba(37,99,235,0.10)" : "transparent", transition: "background 80ms", overflow: "hidden", minWidth: 0 }}>
               {items.slice(0, 2).map(item => {
                 const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
                 return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ fontSize: 9, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "15", borderLeft: `2px solid ${c}`, padding: "1px 4px", borderRadius: "0 3px 3px 0", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>{item.label}</div>;
@@ -384,11 +384,11 @@ function WeekView({
                   onDragLeave={() => setDragOverCell(null)}
                   onDrop={e => { e.preventDefault(); setDragOverCell(null); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key, `${hour.toString().padStart(2, "0")}:00`); }}
                   onClick={() => onAddAtTime(key, `${hour.toString().padStart(2, "0")}:00`)}
-                  style={{ borderLeft: "1px solid var(--card-border)", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column", background: dragOverCell === `${key}_${hour}` ? "rgba(37,99,235,0.10)" : "transparent", transition: "background 80ms" }}
+                  style={{ borderLeft: "1px solid var(--card-border)", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column", background: dragOverCell === `${key}_${hour}` ? "rgba(37,99,235,0.10)" : "transparent", transition: "background 80ms", overflow: "hidden", minWidth: 0 }}
                 >
                   {items.map(item => {
                     const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
-                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 5px", fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer", width: "100%", boxSizing: "border-box", minHeight: 50 }}>{item.label}</div>;
+                    return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ display: "flex", alignItems: "center", padding: "4px 6px", fontSize: 10, fontWeight: 700, color: item.done ? "var(--text-muted)" : "#fff", background: item.done ? "var(--card-border)" : c, overflow: "hidden", textDecoration: item.done ? "line-through" : "none", cursor: "pointer", minHeight: 46, borderRadius: 4, margin: "1px 2px" }}><span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", width: "100%" }}>{item.label}</span></div>;
                   })}
                 </div>
               );
@@ -1121,7 +1121,8 @@ export default function DashboardPage() {
   const stage       = (session as any)?.user?.demoPersona as string | undefined;
   const stageConfig = stage ? STAGE_MAP[stage] : null;
 
-  const firstName     = data?.profile?.name?.split(" ")[0] || "there";
+  const sessionName   = (session as any)?.user?.name as string | undefined;
+  const firstName     = data?.profile?.name?.split(" ")[0] || sessionName?.split(" ")[0] || "";
   const totalSessions = data ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count : null;
 
   const signalScore = data?.signalScore ?? null;
@@ -1192,7 +1193,7 @@ export default function DashboardPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div>
             <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.4 }}>
-              {greeting}, {firstName}.
+              {greeting}{firstName ? `, ${firstName}` : ""}.
             </h1>
             <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
               {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
@@ -1255,6 +1256,19 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* ── Onboarding nudge (new users with no activity) ── */}
+        {!loading && data && !hasAptitude && !hasAnySessions && (
+          <div style={{ marginTop: 12, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal — let's get you set up</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan.</div>
+            </div>
+            <Link href="/aptitude" style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
+              Take Career Assessment →
+            </Link>
+          </div>
+        )}
+
         {/* ── Primary: Calendar + Tasks/Habits/Goals ── */}
         <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
 
@@ -1287,6 +1301,13 @@ export default function DashboardPage() {
 
             {activeTab === "tasks" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {tasks.length === 0 && !stageConfig && (
+                  <div style={{ textAlign: "center", padding: "28px 16px", borderRadius: 12, border: "1px dashed var(--card-border)", color: "var(--text-muted)" }}>
+                    <div style={{ fontSize: 22, marginBottom: 8 }}>📋</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>No tasks yet</div>
+                    <div style={{ fontSize: 12 }}>Add a task below or drag a checklist item onto the calendar.</div>
+                  </div>
+                )}
                 <TasksPanel tasks={tasks} onRefresh={refreshTasks} defaultDate={calAddDate ?? undefined} />
                 {stageConfig && (
                   <div>

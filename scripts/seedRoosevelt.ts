@@ -435,6 +435,21 @@ async function run() {
   });
   console.log("  Career check-in, checklist, skills, interview activity seeded.");
 
+  await prisma.task.deleteMany({ where: { userId: marcus.id } });
+  await prisma.task.createMany({ data: [
+    { userId: marcus.id, tenantId, title: "Max out 401(k) contribution to 10%", priority: "high", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 3), completedAt: null, createdAt: daysAgo(TODAY, 5) },
+    { userId: marcus.id, tenantId, title: "Schedule 30-day check-in with manager", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 1), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: marcus.id, tenantId, title: "Open Roth IRA account", priority: "medium", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 14), completedAt: null, createdAt: daysAgo(TODAY, 6) },
+    { userId: marcus.id, tenantId, title: "Update LinkedIn with Northern Trust role", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 2), completedAt: null, createdAt: daysAgo(TODAY, 3) },
+    { userId: marcus.id, tenantId, title: "Build post-grad monthly budget", priority: "high", category: "Finance", scheduledAt: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate(), 10, 0), dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()), completedAt: null, createdAt: daysAgo(TODAY, 7) },
+    { userId: marcus.id, tenantId, title: "Request renter's insurance quote", priority: "low", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 7), completedAt: null, createdAt: daysAgo(TODAY, 2) },
+    { userId: marcus.id, tenantId, title: "Complete Signal career assessment retake", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 5), completedAt: null, createdAt: daysAgo(TODAY, 1) },
+    { userId: marcus.id, tenantId, title: "Review first pay stub and verify withholdings", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 10) },
+    { userId: marcus.id, tenantId, title: "Enroll in health + dental benefits", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 5), createdAt: daysAgo(TODAY, 14) },
+    { userId: marcus.id, tenantId, title: "Connect with mentor from Roosevelt alumni network", priority: "medium", category: "Career", completedAt: daysAgo(TODAY, 8), createdAt: daysAgo(TODAY, 20) },
+  ]});
+  console.log("  Tasks seeded for Marcus.");
+
   // ══════════════════════════════════════════════════════════════════════════════
   // 2. AALIYAH WASHINGTON — High performer, consulting track
   //    Business/Communications senior, targeting Deloitte & Accenture
@@ -583,6 +598,21 @@ async function run() {
       },
     ],
   });
+  await prisma.task.deleteMany({ where: { userId: diego.id } });
+  await prisma.task.createMany({ data: [
+    { userId: diego.id, tenantId, title: "LeetCode medium: binary trees (3 problems)", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()), scheduledAt: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate(), 9, 0), completedAt: null, createdAt: daysAgo(TODAY, 2) },
+    { userId: diego.id, tenantId, title: "Prep behavioral stories for Outcome Health final round", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 1), completedAt: null, createdAt: daysAgo(TODAY, 3) },
+    { userId: diego.id, tenantId, title: "Polish GitHub — pin 3 best projects with READMEs", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 3), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: diego.id, tenantId, title: "Apply to 2 more Chicago tech internships", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 5), completedAt: null, createdAt: daysAgo(TODAY, 1) },
+    { userId: diego.id, tenantId, title: "Email CS advisor about spring registration", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 2), completedAt: null, createdAt: daysAgo(TODAY, 2) },
+    { userId: diego.id, tenantId, title: "Build personal portfolio site", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 14), completedAt: null, createdAt: daysAgo(TODAY, 5) },
+    { userId: diego.id, tenantId, title: "Research Relativity — prep company-specific questions", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 4), completedAt: null, createdAt: daysAgo(TODAY, 1) },
+    { userId: diego.id, tenantId, title: "Complete Signal mock interview session", priority: "high", category: "Career", completedAt: daysAgo(TODAY, 1), createdAt: daysAgo(TODAY, 3) },
+    { userId: diego.id, tenantId, title: "Submit FAFSA renewal", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 6), createdAt: daysAgo(TODAY, 10) },
+    { userId: diego.id, tenantId, title: "Ask Professor Kim for recommendation letter", priority: "medium", category: "Career", completedAt: daysAgo(TODAY, 4), createdAt: daysAgo(TODAY, 8) },
+  ]});
+  console.log("  Tasks seeded for Diego.");
+
   console.log("  Checklist, skills, interview activity seeded.");
 
   // ══════════════════════════════════════════════════════════════════════════════
@@ -698,6 +728,20 @@ async function run() {
   ]) {
     await prisma.studentSkill.create({ data: { userId: jordan.id, tenantId, skill, category, confidence: round2(random(0.55, 0.78)), source: "ai_extracted" } });
   }
+
+  await prisma.task.deleteMany({ where: { userId: jordan.id } });
+  await prisma.task.createMany({ data: [
+    { userId: jordan.id, tenantId, title: "Submit housing application by deadline", priority: "high", category: "Personal", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 4), scheduledAt: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate(), 14, 0), completedAt: null, createdAt: daysAgo(TODAY, 2) },
+    { userId: jordan.id, tenantId, title: "Set up Roosevelt student email and portal", priority: "high", category: "Personal", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 1), completedAt: null, createdAt: daysAgo(TODAY, 3) },
+    { userId: jordan.id, tenantId, title: "Register for orientation", priority: "high", category: "Personal", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 7), completedAt: null, createdAt: daysAgo(TODAY, 1) },
+    { userId: jordan.id, tenantId, title: "Build first college budget — tuition, housing, books", priority: "medium", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 6), completedAt: null, createdAt: daysAgo(TODAY, 2) },
+    { userId: jordan.id, tenantId, title: "Schedule meeting with academic advisor", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 10), completedAt: null, createdAt: daysAgo(TODAY, 1) },
+    { userId: jordan.id, tenantId, title: "Add headshot and major to LinkedIn profile", priority: "low", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 8), completedAt: null, createdAt: daysAgo(TODAY, 2) },
+    { userId: jordan.id, tenantId, title: "Complete Signal career assessment", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 2), completedAt: null, createdAt: daysAgo(TODAY, 1) },
+    { userId: jordan.id, tenantId, title: "Complete FAFSA application", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 5), createdAt: daysAgo(TODAY, 12) },
+    { userId: jordan.id, tenantId, title: "Set up student email", priority: "high", category: "Personal", completedAt: daysAgo(TODAY, 3), createdAt: daysAgo(TODAY, 8) },
+  ]});
+  console.log("  Tasks seeded for Jordan.");
 
   console.log("  Checklist and skills seeded. No interview activity yet (sophomore).");
 
