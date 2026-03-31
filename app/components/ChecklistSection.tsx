@@ -275,7 +275,7 @@ export default function ChecklistSection({
                         fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99,
                         background: accentColor + "18", color: accentColor,
                       }}>
-                        📅 {new Date(itemScheduled + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        📅 {new Date(itemScheduled.split("T")[0] + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                       </span>
                     )}
                   </div>
