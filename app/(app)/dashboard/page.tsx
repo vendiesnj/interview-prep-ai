@@ -289,6 +289,7 @@ function WeekView({
     d.setDate(today.getDate() - today.getDay());
     return d;
   });
+  const [dragOverCell, setDragOverCell] = useState<string | null>(null);
 
   const weekDays: { date: Date; key: string }[] = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
@@ -358,7 +359,7 @@ function WeekView({
         {weekDays.map(({ key }) => {
           const items = getUnscheduledItems(key);
           return (
-            <div key={key} onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key); }} style={{ borderLeft: "1px solid var(--card-border)", padding: "3px 4px", minHeight: 28 }}>
+            <div key={key} onDragOver={e => { e.preventDefault(); setDragOverCell(`allday_${key}`); }} onDragLeave={() => setDragOverCell(null)} onDrop={e => { e.preventDefault(); setDragOverCell(null); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key); }} style={{ borderLeft: "1px solid var(--card-border)", padding: "3px 4px", minHeight: 28, background: dragOverCell === `allday_${key}` ? "rgba(37,99,235,0.10)" : "transparent", transition: "background 80ms" }}>
               {items.slice(0, 2).map(item => {
                 const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
                 return <div key={item.itemId} draggable onDragStart={e => { e.stopPropagation(); e.dataTransfer.setData("text/plain", item.itemId); }} onClick={e => { e.stopPropagation(); onEditTask(item); }} title={item.label} style={{ fontSize: 9, fontWeight: 600, color: item.done ? "var(--text-muted)" : c, background: c + "15", borderLeft: `2px solid ${c}`, padding: "1px 4px", borderRadius: "0 3px 3px 0", marginBottom: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textDecoration: item.done ? "line-through" : "none", cursor: "pointer" }}>{item.label}</div>;
@@ -379,10 +380,11 @@ function WeekView({
               return (
                 <div
                   key={key}
-                  onDragOver={e => e.preventDefault()}
-                  onDrop={e => { e.preventDefault(); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key, `${hour.toString().padStart(2, "0")}:00`); }}
+                  onDragOver={e => { e.preventDefault(); setDragOverCell(`${key}_${hour}`); }}
+                  onDragLeave={() => setDragOverCell(null)}
+                  onDrop={e => { e.preventDefault(); setDragOverCell(null); const raw = e.dataTransfer.getData("text/plain"); if (raw) onDropTask(raw, key, `${hour.toString().padStart(2, "0")}:00`); }}
                   onClick={() => onAddAtTime(key, `${hour.toString().padStart(2, "0")}:00`)}
-                  style={{ borderLeft: "1px solid var(--card-border)", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column" }}
+                  style={{ borderLeft: "1px solid var(--card-border)", padding: 0, cursor: "pointer", display: "flex", flexDirection: "column", background: dragOverCell === `${key}_${hour}` ? "rgba(37,99,235,0.10)" : "transparent", transition: "background 80ms" }}
                 >
                   {items.map(item => {
                     const c = CATEGORY_COLORS[item.category ?? "Career"] ?? ACCENT_CAREER;
@@ -1072,14 +1074,15 @@ interface SignalData {
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const [data, setData]       = useState<SignalData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState<ChecklistProgressEntry[]>([]);
-  const [tasks, setTasks]     = useState<DbTask[]>([]);
+  const [data, setData]           = useState<SignalData | null>(null);
+  const [loading, setLoading]     = useState(true);
+  const [progress, setProgress]   = useState<ChecklistProgressEntry[]>([]);
+  const [tasks, setTasks]         = useState<DbTask[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
-  const [calView, setCalView] = useState<"month" | "week" | "day">("week");
-  const [calAddDate, setCalAddDate] = useState<string | null>(null); // date clicked on calendar
+  const [calView, setCalView]     = useState<"month" | "week" | "day">("week");
+  const [calAddDate, setCalAddDate] = useState<string | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
+  const [checklistKey, setChecklistKey] = useState(0);
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -1141,21 +1144,22 @@ export default function DashboardPage() {
   const checklistItems = stageConfig?.checklist ?? [];
 
   async function handleDropTask(raw: string, date: string, time?: string) {
-    const scheduledAt = time ? `${date}T${time}:00.000Z` : `${date}T00:00:00.000Z`;
-
     // Check if this is a checklist item drop (JSON payload) vs an existing task ID
     let parsed: { type: "checklist"; id: string; label: string } | null = null;
     try { const j = JSON.parse(raw); if (j?.type === "checklist") parsed = j; } catch {}
 
     if (parsed) {
-      // Create a new task from the checklist item, then schedule it
-      const res = await fetch("/api/tasks", {
-        method: "POST",
+      // Schedule the checklist item itself — don't create a task
+      const stage = stageConfig?.stageKey;
+      if (!stage) return;
+      await fetch("/api/checklist", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: parsed.label, priority: "medium", scheduledAt }),
+        body: JSON.stringify({ stage, itemId: parsed.id, scheduledDate: date }),
       });
-      if (res.ok) refreshTasks();
+      setChecklistKey(k => k + 1); // force ChecklistSection to re-fetch and show the date badge
     } else {
+      const scheduledAt = time ? `${date}T${time}:00.000Z` : `${date}T00:00:00.000Z`;
       await fetch(`/api/tasks/${raw}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -1290,7 +1294,7 @@ export default function DashboardPage() {
                       <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: stageConfig.accent, textTransform: "uppercase" }}>Stage Checklist</div>
                       <Link href={stageConfig.guideHref} style={{ fontSize: 11, fontWeight: 700, color: stageConfig.accent, textDecoration: "none" }}>{stageConfig.guideLabel} →</Link>
                     </div>
-                    <ChecklistSection stage={stageConfig.stageKey} items={checklistItems} accentColor={stageConfig.accent} onProgressChange={setProgress} />
+                    <ChecklistSection key={checklistKey} stage={stageConfig.stageKey} items={checklistItems} accentColor={stageConfig.accent} onProgressChange={setProgress} />
                   </div>
                 )}
               </div>

@@ -146,7 +146,23 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
   return (
     <div
       ref={rowRef}
-      onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); }}
+      onDragStart={e => {
+        e.dataTransfer.setData("text/plain", task.id);
+        const ghost = document.createElement("div");
+        ghost.textContent = "📌 " + task.title;
+        Object.assign(ghost.style, {
+          position: "fixed", top: "-120px", left: "-120px",
+          padding: "6px 14px", borderRadius: "99px",
+          background: PRIORITY_COLOR[task.priority as "high" | "medium" | "low"] ?? "#2563EB",
+          color: "#fff", fontSize: "12px", fontWeight: "700",
+          whiteSpace: "nowrap", maxWidth: "240px",
+          overflow: "hidden", textOverflow: "ellipsis",
+          pointerEvents: "none",
+        });
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, 14, 14);
+        setTimeout(() => document.body.removeChild(ghost), 0);
+      }}
       onDragEnd={() => { if (rowRef.current) rowRef.current.draggable = false; }}
       style={{
         borderRadius: 8,
