@@ -166,7 +166,7 @@ export default function BudgetPage() {
       <div style={{ maxWidth: 900, margin: "0 auto", paddingBottom: 60 }}>
 
         <div style={{ marginBottom: 20 }}>
-          <Link href="/career-guide" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>← Career Guide</Link>
+          <Link href="/dashboard" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700 }}>← Dashboard</Link>
         </div>
 
         {/* Income row */}

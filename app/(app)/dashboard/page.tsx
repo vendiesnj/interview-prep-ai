@@ -8,7 +8,7 @@ import {
   BarChart2, CheckSquare, FileText, Home, BarChart, RefreshCw,
   TrendingUp, Brain, Target, CheckCircle2, Circle, Flame,
   ChevronRight, ChevronLeft, Plus, X, Clock, Heart,
-  Gamepad2, Zap,
+  Gamepad2, Zap, Map,
 } from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
 import StreakBanner from "@/app/components/StreakBanner";
@@ -1077,7 +1077,7 @@ export default function DashboardPage() {
   const [progress, setProgress] = useState<ChecklistProgressEntry[]>([]);
   const [tasks, setTasks]     = useState<DbTask[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
-  const [calView, setCalView] = useState<"month" | "week" | "day">("month");
+  const [calView, setCalView] = useState<"month" | "week" | "day">("week");
   const [calAddDate, setCalAddDate] = useState<string | null>(null); // date clicked on calendar
   const [journeyOpen, setJourneyOpen] = useState(false);
   const { data: session } = useSession();
@@ -1211,6 +1211,7 @@ export default function DashboardPage() {
             { Icon: CheckSquare, label: "Career Check-In",    href: "/career-checkin",       color: "#10B981" },
             { Icon: BookOpen,    label: "Financial Literacy", href: "/financial-literacy",   color: "#8B5CF6" },
             { Icon: DollarSign,  label: "Budget",             href: "/career-guide/budget",  color: ACCENT_PERSONAL },
+            { Icon: Map,         label: "Career Guide",       href: "/career-guide",         color: "#0EA5E9" },
             { Icon: Gamepad2,    label: "Games",              href: "/games",                color: ACCENT_MINDSET },
           ].map(item => (
             <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>

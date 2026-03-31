@@ -144,15 +144,12 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
 
   return (
     <div
-      draggable={!done}
-      onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); }}
       style={{
         borderRadius: 8,
         border: `1px solid ${rowBorder}`,
         background: rowBg,
         overflow: "hidden",
         transition: "border-color 120ms, background 120ms",
-        cursor: done ? "default" : "grab",
       }}
     >
       {/* Main row */}
@@ -163,6 +160,16 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
           borderLeft: done ? "3px solid #16A34A" : `3px solid ${prioColor}`,
         }}
       >
+        {!done && (
+          <div
+            draggable
+            onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); }}
+            style={{ cursor: "grab", color: "var(--text-muted)", display: "flex", flexShrink: 0, padding: "0 2px", opacity: 0.4, fontSize: 13, userSelect: "none" }}
+            title="Drag to calendar"
+          >
+            ⠿
+          </div>
+        )}
         <PriorityDot priority={task.priority as "high" | "medium" | "low"} done={done} onClick={toggleDone} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <span

@@ -63,13 +63,13 @@ const AI_RISK_TIERS = [
   {
     label: "Moderate risk (30–60%)",
     color: "#F59E0B",
-    examples: ["Financial analyst", "Accountant", "Supply chain analyst", "Social media manager", "Copywriter", "Radiologist"],
+    examples: ["Financial analyst", "Accountant", "Supply chain analyst", "Social media manager", "Copywriter", "Radiologist", "Software engineer"],
     message: "Parts of these roles are automatable, but human judgment, client relationships, and creative direction keep them viable. Leaning into the high-value human components matters.",
   },
   {
     label: "Low risk (under 30%)",
     color: "#10B981",
-    examples: ["Surgeon", "Electrician", "Nurse practitioner", "Therapist", "Teacher", "Software engineer", "Entrepreneur", "UX researcher"],
+    examples: ["Surgeon", "Electrician", "Nurse practitioner", "Therapist", "Teacher", "Entrepreneur", "UX researcher"],
     message: "These roles require physical dexterity in unpredictable environments, deep human relationships, or creative/strategic judgment that remains difficult for AI to replicate.",
   },
 ];
