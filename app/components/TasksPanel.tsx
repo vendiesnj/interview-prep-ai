@@ -102,6 +102,7 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
   const [dueDate, setDueDate]   = useState(task.dueDate ? task.dueDate.split("T")[0] : "");
   const [saving, setSaving]     = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+  const rowRef   = useRef<HTMLDivElement>(null);
 
   const done        = !!task.completedAt;
   const overdue     = isOverdue(task.dueDate, task.completedAt);
@@ -144,11 +145,13 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
 
   return (
     <div
+      ref={rowRef}
+      onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); }}
+      onDragEnd={() => { if (rowRef.current) rowRef.current.draggable = false; }}
       style={{
         borderRadius: 8,
         border: `1px solid ${rowBorder}`,
         background: rowBg,
-        overflow: "hidden",
         transition: "border-color 120ms, background 120ms",
       }}
     >
@@ -162,12 +165,18 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
       >
         {!done && (
           <div
-            draggable
-            onDragStart={e => { e.dataTransfer.setData("text/plain", task.id); }}
-            style={{ cursor: "grab", color: "var(--text-muted)", display: "flex", flexShrink: 0, padding: "0 2px", opacity: 0.4, fontSize: 13, userSelect: "none" }}
+            onMouseDown={() => { if (rowRef.current) rowRef.current.draggable = true; }}
+            onMouseUp={() => { if (rowRef.current) rowRef.current.draggable = false; }}
+            style={{
+              cursor: "grab", flexShrink: 0, padding: "2px 4px",
+              display: "flex", flexDirection: "column", gap: "2px",
+              userSelect: "none",
+            }}
             title="Drag to calendar"
           >
-            ⠿
+            <span style={{ display: "block", width: 12, height: 2, borderRadius: 1, background: "var(--text-muted)", opacity: 0.4 }} />
+            <span style={{ display: "block", width: 12, height: 2, borderRadius: 1, background: "var(--text-muted)", opacity: 0.4 }} />
+            <span style={{ display: "block", width: 12, height: 2, borderRadius: 1, background: "var(--text-muted)", opacity: 0.4 }} />
           </div>
         )}
         <PriorityDot priority={task.priority as "high" | "medium" | "low"} done={done} onClick={toggleDone} />
