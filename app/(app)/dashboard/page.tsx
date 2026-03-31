@@ -1140,14 +1140,29 @@ export default function DashboardPage() {
   const hasAnySessions = totalSessions !== null && totalSessions > 0;
   const checklistItems = stageConfig?.checklist ?? [];
 
-  async function handleDropTask(taskId: string, date: string, time?: string) {
+  async function handleDropTask(raw: string, date: string, time?: string) {
     const scheduledAt = time ? `${date}T${time}:00.000Z` : `${date}T00:00:00.000Z`;
-    await fetch(`/api/tasks/${taskId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scheduledAt }),
-    });
-    refreshTasks();
+
+    // Check if this is a checklist item drop (JSON payload) vs an existing task ID
+    let parsed: { type: "checklist"; id: string; label: string } | null = null;
+    try { const j = JSON.parse(raw); if (j?.type === "checklist") parsed = j; } catch {}
+
+    if (parsed) {
+      // Create a new task from the checklist item, then schedule it
+      const res = await fetch("/api/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: parsed.label, priority: "medium", scheduledAt }),
+      });
+      if (res.ok) refreshTasks();
+    } else {
+      await fetch(`/api/tasks/${raw}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scheduledAt }),
+      });
+      refreshTasks();
+    }
   }
 
   function openEditModal(_item: ScheduleItem) {

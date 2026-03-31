@@ -213,7 +213,7 @@ export default function ChecklistSection({
               key={item.id}
               draggable={!checked}
               onDragStart={(e) => {
-                e.dataTransfer.setData("text/plain", item.id);
+                e.dataTransfer.setData("text/plain", JSON.stringify({ type: "checklist", id: item.id, label: item.label }));
                 e.dataTransfer.effectAllowed = "link";
                 // Small pill ghost so calendar days stay visible while dragging
                 const ghost = document.createElement("div");
