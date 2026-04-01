@@ -1277,12 +1277,12 @@ export default function DashboardPage() {
         {!isUniversity && (
           <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
             {[
-              { Icon: Mic,       title: "Interview Practice",   desc: "AI-powered mock interviews with real-time scoring and feedback.",         href: "/practice",        color: ACCENT_CAREER },
-              { Icon: BarChart2, title: "My Progress",          desc: "Track your Signal Score and improvement across every session.",           href: "/my-journey",      color: "#2563EB" },
-              { Icon: FileText,  title: "Sessions",             desc: "Review past sessions, transcripts, and coaching feedback.",               href: "/sessions",        color: "#F59E0B" },
-              { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",     href: "/question-bank",   color: "#8B5CF6" },
-              { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                href: "/job-profiles",    color: ACCENT_MINDSET },
-              { Icon: Gamepad2,  title: "Daily Games",          desc: "Build career instincts in minutes with Career Connections and Hustle.",   href: "/games",           color: "#10B981" },
+              { Icon: Mic,       title: "Interview Practice",   desc: "AI-powered mock interviews with real-time scoring, vocal and facial feedback.",  href: "/practice",            color: ACCENT_CAREER },
+              { Icon: BarChart2, title: "My Progress",          desc: "Track your scores, vocal patterns, eye contact, and improvement over time.",      href: "/progress",            color: "#2563EB" },
+              { Icon: FileText,  title: "Resume Analysis",      desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",          href: "/resume-gap",          color: "#8B5CF6" },
+              { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",              href: "/question-bank",       color: "#F59E0B" },
+              { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                         href: "/job-profiles",        color: ACCENT_MINDSET },
+              { Icon: Gamepad2,  title: "Daily Games",          desc: "Build career instincts in minutes with Career Connections and Hustle.",            href: "/games",               color: "#10B981" },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
                 <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>

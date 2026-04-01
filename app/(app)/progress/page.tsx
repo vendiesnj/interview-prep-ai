@@ -4,7 +4,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
 import NaceScoreCard from "../../components/NaceScoreCard";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useIsUniversity } from "@/app/hooks/usePlan";
 import { userScopedKey } from "@/app/lib/userStorage";
 import { computeNaceProfile } from "@/app/lib/nace";
 import { downloadNacePdf } from "@/app/lib/nace-pdf";
@@ -59,7 +61,7 @@ type Attempt = {
   inputMethod?: "spoken" | "pasted";
 };
 
-type InsightsTab = "overview" | "performance" | "delivery" | "notes" | "nace";
+type InsightsTab = "overview" | "performance" | "delivery" | "notes" | "nace" | "visual" | "resume";
 type RoleFamily = "finance" | "operations" | "research" | "consulting" | "general";
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -1004,9 +1006,11 @@ function interpretFrameworkRow(row: {
 export default function ProgressPage() {
   const [history, setHistory] = useState<Attempt[]>([]);
   const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
+  const [resumeHistory, setResumeHistory] = useState<any[]>([]);
   const { data: session, status } = useSession();
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const [activeTab, setActiveTab] = useState<InsightsTab>("overview");
+  const isUniversity = useIsUniversity();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -1017,16 +1021,20 @@ export default function ProgressPage() {
     (async () => {
       try {
         if (session?.user) {
-          const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
-          if (res.ok) {
-            const data = await res.json();
+          const [attRes, profRes] = await Promise.all([
+            fetch("/api/attempts?limit=200", { cache: "no-store" }),
+            fetch("/api/student-profile", { cache: "no-store" }),
+          ]);
+          if (attRes.ok) {
+            const data = await attRes.json();
             const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
-
-            if (!cancelled && attempts.length > 0) {
-              setHistory(attempts);
-              return;
-            }
+            if (!cancelled && attempts.length > 0) setHistory(attempts);
           }
+          if (profRes.ok) {
+            const prof = await profRes.json();
+            if (!cancelled) setResumeHistory(prof?.resumeHistory ?? []);
+          }
+          if (!cancelled) { setLoadState("ready"); return; }
         }
 
         const saved = safeJSONParse<Attempt[]>(localStorage.getItem(HISTORY_KEY), []);
@@ -1778,15 +1786,27 @@ export default function ProgressPage() {
                 onClick={() => setActiveTab("delivery")}
               />
               <InsightsTabButton
+                label="Visual"
+                active={activeTab === "visual"}
+                onClick={() => setActiveTab("visual")}
+              />
+              <InsightsTabButton
+                label="Resume"
+                active={activeTab === "resume"}
+                onClick={() => setActiveTab("resume")}
+              />
+              <InsightsTabButton
                 label="Interview Notes"
                 active={activeTab === "notes"}
                 onClick={() => setActiveTab("notes")}
               />
-              <InsightsTabButton
-                label="NACE Competencies"
-                active={activeTab === "nace"}
-                onClick={() => setActiveTab("nace")}
-              />
+              {isUniversity && (
+                <InsightsTabButton
+                  label="NACE Competencies"
+                  active={activeTab === "nace"}
+                  onClick={() => setActiveTab("nace")}
+                />
+              )}
             </div>
 
             {activeTab === "overview" && (
@@ -2359,6 +2379,125 @@ export default function ProgressPage() {
                 reminders={interviewNotes.reminders}
               />
             )}
+
+            {activeTab === "visual" && (() => {
+              const facialSessions = history.filter((a: any) => a.deliveryMetrics?.face && typeof a.deliveryMetrics.face.eyeContact === "number");
+              const vocalSessions  = history.filter((a: any) => a.deliveryMetrics && typeof a.deliveryMetrics.wpm === "number");
+              const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 10) / 10 : null;
+              const avgEye   = avg(facialSessions.map((a: any) => a.deliveryMetrics.face.eyeContact * 100));
+              const avgExpr  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.expressiveness ?? 0) * 100));
+              const avgHead  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.headStability ?? 0) * 100));
+              const avgWpm   = avg(vocalSessions.map((a: any) => a.deliveryMetrics.wpm));
+              const avgEnergy = avg(vocalSessions.map((a: any) => a.deliveryMetrics.energyVariation ?? 0));
+              const avgPitch  = avg(vocalSessions.map((a: any) => a.deliveryMetrics.pitchStd ?? 0));
+              const avgFiller = avg(vocalSessions.map((a: any) => a.deliveryMetrics.fillerCount ?? a.feedback?.filler?.total ?? 0));
+              const scoreColor = (v: number | null, good: number) => v === null ? "var(--text-muted)" : v >= good ? "#10B981" : "#F59E0B";
+              function MiniBar({ value, max, color }: { value: number | null; max: number; color: string }) {
+                const pct = value !== null ? Math.min(100, Math.round((value / max) * 100)) : 0;
+                return <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", flex: 1 }}><div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width 0.5s" }} /></div>;
+              }
+              return (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  {/* Vocal */}
+                  <PremiumCard><div style={{ marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Vocal Delivery</div>{vocalSessions.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Averaged across {vocalSessions.length} sessions</div>}</div>
+                    {vocalSessions.length === 0 ? (
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "12px 0" }}>Complete a session to see vocal metrics.</div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        {[
+                          { label: "Speaking Pace", value: avgWpm !== null ? `${avgWpm} wpm` : "—", bar: avgWpm, max: 200, color: scoreColor(avgWpm, 120), hint: avgWpm && avgWpm >= 120 && avgWpm <= 160 ? "Ideal range" : avgWpm && avgWpm < 120 ? "A bit slow" : "A bit fast" },
+                          { label: "Energy Variation", value: avgEnergy !== null ? `${avgEnergy}/10` : "—", bar: avgEnergy, max: 10, color: scoreColor(avgEnergy, 4), hint: avgEnergy && avgEnergy >= 4 ? "Good variety" : "Try varying your tone" },
+                          { label: "Pitch Range", value: avgPitch !== null ? `${avgPitch} Hz` : "—", bar: avgPitch, max: 60, color: scoreColor(avgPitch, 20), hint: avgPitch && avgPitch >= 20 ? "Expressive range" : "Sounds flat" },
+                          { label: "Filler Words", value: avgFiller !== null ? `${avgFiller}/session` : "—", bar: avgFiller !== null ? Math.max(0, 10 - avgFiller) : null, max: 10, color: avgFiller !== null && avgFiller <= 3 ? "#10B981" : "#EF4444", hint: avgFiller !== null && avgFiller <= 3 ? "Very clean" : "Work on fillers" },
+                        ].map(row => (
+                          <div key={row.label}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{row.label}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{row.hint}</span>
+                                <span style={{ fontSize: 13, fontWeight: 900, color: row.color, minWidth: 56, textAlign: "right" }}>{row.value}</span>
+                              </div>
+                            </div>
+                            <MiniBar value={row.bar} max={row.max} color={row.color} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </PremiumCard>
+                  {/* Webcam */}
+                  <PremiumCard><div style={{ marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Visual Delivery</div>{facialSessions.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Averaged across {facialSessions.length} webcam sessions</div>}</div>
+                    {facialSessions.length === 0 ? (
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, padding: "8px 0" }}>
+                        No webcam data yet. Enable your camera before recording to unlock eye contact, expressiveness, and head stability scores.
+                        <br /><br />
+                        <Link href="/practice" style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Start a session →</Link>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        {[
+                          { label: "Eye Contact", value: avgEye !== null ? `${Math.round(avgEye)}%` : "—", bar: avgEye, max: 100, color: scoreColor(avgEye, 65), hint: avgEye && avgEye >= 65 ? "Strong" : "Look toward camera more" },
+                          { label: "Expressiveness", value: avgExpr !== null ? `${Math.round(avgExpr)}%` : "—", bar: avgExpr, max: 100, color: scoreColor(avgExpr, 55), hint: avgExpr && avgExpr >= 55 ? "Engaging" : "Show more expression" },
+                          { label: "Head Stability", value: avgHead !== null ? `${Math.round(avgHead)}%` : "—", bar: avgHead, max: 100, color: scoreColor(avgHead, 60), hint: avgHead && avgHead >= 60 ? "Steady" : "Reduce movement" },
+                        ].map(row => (
+                          <div key={row.label}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{row.label}</span>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{row.hint}</span>
+                                <span style={{ fontSize: 13, fontWeight: 900, color: row.color, minWidth: 42, textAlign: "right" }}>{row.value}</span>
+                              </div>
+                            </div>
+                            <MiniBar value={row.bar} max={row.max} color={row.color} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </PremiumCard>
+                </div>
+              );
+            })()}
+
+            {activeTab === "resume" && (() => {
+              const scoreColor = (s: number | null) => s === null ? "var(--text-muted)" : s >= 70 ? "#10B981" : s >= 45 ? "#F59E0B" : "#EF4444";
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                      Upload your resume to get an ATS score, keyword gap analysis, and prioritized action items.
+                    </div>
+                    <Link href="/resume-gap" style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
+                      {resumeHistory.length > 0 ? "Analyze again →" : "Analyze my resume →"}
+                    </Link>
+                  </div>
+                  {resumeHistory.length === 0 ? (
+                    <div style={{ padding: "32px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--card-border)", color: "var(--text-muted)", fontSize: 13 }}>
+                      No resume analyses yet. Upload your resume to get started.
+                    </div>
+                  ) : (
+                    resumeHistory.map((r: any, i: number) => {
+                      const sc = scoreColor(r.overallScore);
+                      return (
+                        <Link key={r.id} href="/resume-gap" style={{ textDecoration: "none" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 16px", borderRadius: 12, border: "1px solid var(--card-border)", background: i === 0 ? "var(--card-bg-strong)" : "var(--card-bg)", transition: "border-color 120ms" }}>
+                            <div style={{ fontSize: 28, fontWeight: 900, color: sc, minWidth: 44, textAlign: "center", lineHeight: 1 }}>{r.overallScore ?? "—"}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+                                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{r.overallLabel ?? "Resume Analysis"}</span>
+                                {i === 0 && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", background: "var(--accent-soft)", padding: "1px 7px", borderRadius: 99 }}>Latest</span>}
+                                {r.atsScore !== null && <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 4 }}>ATS: <strong>{r.atsScore}</strong></span>}
+                              </div>
+                              {r.topAction && <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Top action: {r.topAction}</div>}
+                              {r.summary && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.summary}</div>}
+                              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+              );
+            })()}
 
             {activeTab === "nace" && (() => {
               const naceScores = computeNaceProfile({

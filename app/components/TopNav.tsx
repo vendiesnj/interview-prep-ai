@@ -46,6 +46,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/progress":                    "Insights",
   "/history":                     "History",
   "/career-instincts":            "Career Instincts",
+  "/consumer-progress":           "My Progress",
   "/admin":                       "Admin",
   "/games":                       "Daily Games",
   "/games/connections":           "Career Connections",
