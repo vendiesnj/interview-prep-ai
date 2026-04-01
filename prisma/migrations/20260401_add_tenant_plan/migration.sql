@@ -1,0 +1,1 @@
+ALTER TABLE "Tenant" ADD COLUMN IF NOT EXISTS "plan" TEXT NOT NULL DEFAULT 'university';

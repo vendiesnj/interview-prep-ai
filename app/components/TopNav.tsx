@@ -8,6 +8,7 @@ import { X, MoreHorizontal, ChevronLeft, Home, Mic, BarChart2, Map, Gamepad2, He
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
+import { useIsUniversity } from "@/app/hooks/usePlan";
 import HelpPanel from "./HelpPanel";
 import { SignalLockup } from "./SignalLogo";
 
@@ -85,13 +86,23 @@ const MOBILE_NAV = [
   { label: "Explore",   href: "/career-guide",    Icon: Map },
 ];
 
-const MOBILE_DRAWER_LINKS = [
+const MOBILE_DRAWER_LINKS_UNIVERSITY = [
   { label: "Daily Games",          href: "/games" },
   { label: "Career Assessment",    href: "/aptitude" },
   { label: "Future-Proof",         href: "/future-proof" },
   { label: "Budget Builder",       href: "/career-guide/budget" },
   { label: "Financial Literacy",   href: "/financial-literacy" },
   { label: "Networking Pitch",     href: "/networking" },
+  { label: "Public Speaking",      href: "/public-speaking" },
+  { label: "Settings",             href: "/settings" },
+  { label: "Account",              href: "/account" },
+];
+
+const MOBILE_DRAWER_LINKS_CONSUMER = [
+  { label: "Daily Games",          href: "/games" },
+  { label: "Question Bank",        href: "/question-bank" },
+  { label: "Job Profiles",         href: "/job-profiles" },
+  { label: "Sessions",             href: "/sessions" },
   { label: "Public Speaking",      href: "/public-speaking" },
   { label: "Settings",             href: "/settings" },
   { label: "Account",              href: "/account" },
@@ -121,6 +132,7 @@ export default function TopNav() {
   const [helpOpen, setHelpOpen] = useState(false);
 
   const isAdmin = (session?.user as any)?.tenantRole === "tenant_admin";
+  const isUniversity = useIsUniversity();
   const isDashboard = pathname === "/dashboard";
   const pageLabel = getPageLabel(pathname ?? "/dashboard");
   const tenantName = (session as any)?.tenant?.name as string | undefined;
@@ -213,7 +225,7 @@ export default function TopNav() {
                 <X size={20} />
               </button>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>More</div>
-              {MOBILE_DRAWER_LINKS.map((item) => (
+              {(isUniversity ? MOBILE_DRAWER_LINKS_UNIVERSITY : MOBILE_DRAWER_LINKS_CONSUMER).map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setDrawerOpen(false)} style={{ display: "flex", alignItems: "center", padding: "11px 16px", borderRadius: 12, textDecoration: "none", color: isActive(item.href) ? "var(--accent)" : "var(--text-primary)", background: isActive(item.href) ? "var(--accent-soft)" : "transparent", fontWeight: 800, fontSize: 14, marginBottom: 2 }}>
                   {item.label}
                 </Link>
@@ -306,9 +318,11 @@ export default function TopNav() {
             <HelpCircle size={15} />
             <span style={{ fontSize: 13 }}>?</span>
           </button>
-          <Link href="/my-journey" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/my-journey") ? "var(--accent)" : "var(--text-muted)", background: isActive("/my-journey") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
-            My Journey
-          </Link>
+          {isUniversity && (
+            <Link href="/my-journey" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/my-journey") ? "var(--accent)" : "var(--text-muted)", background: isActive("/my-journey") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
+              My Journey
+            </Link>
+          )}
           <Link href="/settings" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/settings") ? "var(--accent)" : "var(--text-muted)", background: isActive("/settings") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
             Settings
           </Link>

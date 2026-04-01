@@ -318,6 +318,7 @@ async function run() {
   const { prisma } = await import("../app/lib/prisma");
 
   const tenant = await prisma.tenant.findUnique({ where: { slug: "roosevelt" } });
+  if (tenant) await prisma.tenant.update({ where: { slug: "roosevelt" }, data: { plan: "university" } });
   if (!tenant) {
     console.error("Roosevelt tenant not found. Run setupRoosevelt.ts first.");
     process.exit(1);

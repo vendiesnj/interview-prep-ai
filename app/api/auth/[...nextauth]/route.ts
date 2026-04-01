@@ -92,6 +92,7 @@ export const authOptions: NextAuthOptions = {
               id: true,
               name: true,
               slug: true,
+              plan: true,
               themeKey: true,
               logoUrl: true,
 
@@ -192,7 +193,7 @@ export const authOptions: NextAuthOptions = {
           dbUser = {
             ...dbUser,
             tenantId: matchedTenant.id,
-            tenant: matchedTenant,
+            tenant: { plan: "university", ...matchedTenant },
           };
         }
       }

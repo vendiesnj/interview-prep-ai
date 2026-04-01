@@ -17,6 +17,7 @@ import { matchOccupations } from "@/app/lib/onet-occupations";
 import DailyGamesWidget from "@/app/components/DailyGamesWidget";
 import JourneySidebar from "@/app/components/JourneySidebar";
 import TasksPanel, { type Task as DbTask } from "@/app/components/TasksPanel";
+import { useIsUniversity } from "@/app/hooks/usePlan";
 
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
@@ -1084,6 +1085,7 @@ export default function DashboardPage() {
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [checklistKey, setChecklistKey] = useState(0);
   const { data: session } = useSession();
+  const isUniversity = useIsUniversity();
 
   useEffect(() => {
     fetch("/api/student-profile")
@@ -1221,8 +1223,8 @@ export default function DashboardPage() {
 
         <StreakBanner />
 
-        {/* ── Quick-access bar ── */}
-        <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        {/* ── Quick-access bar (university only) ── */}
+        {isUniversity && <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           {[
             { Icon: Mic,         label: "Interview Prep",     href: "/practice",             color: ACCENT_CAREER },
             { Icon: Target,      label: "Career Assessment",  href: "/aptitude",             color: ACCENT_MINDSET },
@@ -1241,9 +1243,9 @@ export default function DashboardPage() {
               </div>
             </Link>
           ))}
-        </div>
+        </div>}
 
-        {needsReassessment && (
+        {isUniversity && needsReassessment && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 10, flexWrap: "wrap" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <RefreshCw size={18} color="#92400E" />
@@ -1261,16 +1263,44 @@ export default function DashboardPage() {
           <div style={{ marginTop: 12, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal — let's get you set up</div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan.</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {isUniversity ? "Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan." : "Start with an interview practice session to get your first score and personalized feedback."}
+              </div>
             </div>
-            <Link href="/aptitude" style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
-              Take Career Assessment →
+            <Link href={isUniversity ? "/aptitude" : "/practice"} style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
+              {isUniversity ? "Take Career Assessment →" : "Start Practicing →"}
             </Link>
           </div>
         )}
 
-        {/* ── Primary: Calendar + Tasks/Habits/Goals ── */}
-        <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
+        {/* ── Consumer dashboard: interview-focused tiles ── */}
+        {!isUniversity && (
+          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+            {[
+              { Icon: Mic,       title: "Interview Practice",   desc: "AI-powered mock interviews with real-time scoring and feedback.",         href: "/practice",        color: ACCENT_CAREER },
+              { Icon: BarChart2, title: "My Progress",          desc: "Track your Signal Score and improvement across every session.",           href: "/my-journey",      color: "#2563EB" },
+              { Icon: FileText,  title: "Sessions",             desc: "Review past sessions, transcripts, and coaching feedback.",               href: "/sessions",        color: "#F59E0B" },
+              { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",     href: "/question-bank",   color: "#8B5CF6" },
+              { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                href: "/job-profiles",    color: ACCENT_MINDSET },
+              { Icon: Gamepad2,  title: "Daily Games",          desc: "Build career instincts in minutes with Career Connections and Hustle.",   href: "/games",           color: "#10B981" },
+            ].map(item => (
+              <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
+                <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: item.color + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <item.Icon size={18} color={item.color} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{item.desc}</div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* ── Primary: Calendar + Tasks/Habits/Goals (university only) ── */}
+        {isUniversity && <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
 
           {/* Calendar */}
           <div>
@@ -1323,10 +1353,10 @@ export default function DashboardPage() {
             {activeTab === "habits" && <HabitsTab />}
             {activeTab === "goals"  && <GoalsTab />}
           </div>
-        </div>
+        </div>}
 
-        {/* ── NACE snapshot (only when data exists) ── */}
-        {data && data.naceScores.some(n => n.score !== null) && (
+        {/* ── NACE snapshot (university only) ── */}
+        {isUniversity && data && data.naceScores.some(n => n.score !== null) && (
           <div style={{ padding: "14px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", marginTop: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>NACE Career Readiness</span>
