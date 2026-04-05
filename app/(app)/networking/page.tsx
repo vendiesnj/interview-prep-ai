@@ -369,7 +369,7 @@ export default function NetworkingPage() {
             {!isPro && (
               <p style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
                 Free plan includes 3 total attempts across all modules.{" "}
-                <Link href="/billing" style={{ color: "var(--accent)", fontWeight: 900 }}>Upgrade for unlimited →</Link>
+                <Link href="/account" style={{ color: "var(--accent)", fontWeight: 900 }}>Upgrade for unlimited →</Link>
               </p>
             )}
           </>

@@ -1,3 +1,6 @@
+import type { ArchetypeResult, DeliveryArchetype } from "./archetypes";
+export type { ArchetypeResult, DeliveryArchetype };
+
 export type RoleFamily =
   | "finance"
   | "operations"
@@ -44,6 +47,8 @@ export type ComposeArgs = {
   question: string;
   transcript: string;
   deliveryMetrics: any | null;
+  faceMetrics?: { eyeContact: number; expressiveness: number; headStability: number; framesAnalyzed?: number } | null;
+  eslMode?: boolean;
   fillerStats: {
     total: number;
     wordCount: number;

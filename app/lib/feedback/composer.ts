@@ -1,5 +1,6 @@
 import { ROLE_LIBRARY } from "./library";
 import type { ComposeArgs, RoleFamily } from "./types";
+import { computeArchetype } from "./archetypes";
 
 function normalizeText(s: string) {
   return (s || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -64,6 +65,9 @@ function extractSignals(args: ComposeArgs) {
   const exp = (normalized.experience_depth ?? {}) as any;
   const star = (normalized.star ?? {}) as any;
 
+  // Face metrics — prefer top-level faceMetrics arg, fall back to delivery.face if present
+  const face = (args.faceMetrics ?? delivery.face ?? {}) as any;
+
   const transcript = normalizeText(args.transcript ?? "");
   const iCount = (transcript.match(/\bi\b/g) || []).length;
   const weCount = (transcript.match(/\bwe\b/g) || []).length;
@@ -84,10 +88,13 @@ function extractSignals(args: ComposeArgs) {
     pauseCount: num(delivery.pauseCount) ?? num(delivery.pause_count),
     longPauseCount: num(delivery.longPauseCount) ?? num(delivery.long_pause_count),
     monotoneScore: num(acoustics.monotoneScore) ?? num(prosody.monotoneScore) ?? num(normalized?.deliveryMetrics?.acoustics?.monotoneScore),
+    pitchMean: num(acoustics.pitchMean) ?? num(acoustics.pitch_mean),
     pitchStd: num(acoustics.pitchStd) ?? num(acoustics.pitch_std) ?? num(acoustics.pitchStdHz),
     pitchRange: num(acoustics.pitchRange) ?? num(acoustics.pitch_range),
+    energyMean: num(acoustics.energyMean) ?? num(acoustics.energy_mean),
     energyStd: num(acoustics.energyStd) ?? num(acoustics.energy_std),
     energyVariation: num(acoustics.energyVariation) ?? num(acoustics.energy_variation),
+    tempo: num(acoustics.tempo) ?? num(delivery.tempo),
     tempoDynamics: num(delivery.tempoDynamics) ?? num(delivery.tempo_dynamics),
     starResult: num(star.result),
     techDepth: num(tech.depth),
@@ -101,27 +108,43 @@ function extractSignals(args: ComposeArgs) {
     iCount,
     weCount,
     transcript,
+    // Face / presence signals (0–1 scale; null if webcam was off)
+    eyeContact: num(face.eyeContact),
+    expressiveness: num(face.expressiveness),
+    headStability: num(face.headStability),
   };
 }
 
-function buildDeliveryProfile(s: ReturnType<typeof extractSignals>) {
+function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = false) {
+  // ESL mode relaxes filler/pace thresholds to avoid penalizing natural non-native patterns
+  const fillerHeavyThreshold  = eslMode ? 6.0  : 4.2;
+  const fillerSlightThreshold = eslMode ? 3.8  : 2.4;
+  const hesitantPauseMs       = eslMode ? 1400 : 1100;
+  const rushedWpm             = eslMode ? 178  : 168;
+
+  // Pace — use wpm primarily; fall back to tempo (syllables/sec * ~1.4 ≈ wpm estimate)
   let pace: "slow" | "controlled" | "fast" | "rushed" = "controlled";
-  if (s.wpm !== null && s.wpm >= 168) pace = "rushed";
-  else if (s.wpm !== null && s.wpm >= 150) pace = "fast";
-  else if (s.wpm !== null && s.wpm < 102) pace = "slow";
+  const effectiveWpm = s.wpm ?? (s.tempo !== null ? s.tempo * 1.4 * 60 / 4 : null); // rough estimate
+  if (effectiveWpm !== null && effectiveWpm >= rushedWpm) pace = "rushed";
+  else if (effectiveWpm !== null && effectiveWpm >= 152) pace = "fast";
+  else if (effectiveWpm !== null && effectiveWpm < (eslMode ? 90 : 102)) pace = "slow";
 
+  // Fluency
   let fluency: "clean" | "slightly_disfluent" | "filler_heavy" | "fragmented" = "clean";
-  if (s.fillersPer100 >= 4.2) fluency = "filler_heavy";
-  else if (s.fillersPer100 >= 2.4) fluency = "slightly_disfluent";
-  if (s.avgPauseMs !== null && s.avgPauseMs > 1500 && s.fillersPer100 >= 2.4) fluency = "fragmented";
+  if (s.fillersPer100 >= fillerHeavyThreshold) fluency = "filler_heavy";
+  else if (s.fillersPer100 >= fillerSlightThreshold) fluency = "slightly_disfluent";
+  if (s.avgPauseMs !== null && s.avgPauseMs > 1500 && s.fillersPer100 >= fillerSlightThreshold) fluency = "fragmented";
 
+  // Pausing — incorporate longPauseCount: 3+ long pauses signals hesitation regardless of avg
   let pausing: "controlled" | "hesitant" | "compressed" | "over_paused" = "controlled";
   if (s.avgPauseMs !== null && s.avgPauseMs > 1500) pausing = "over_paused";
-  else if (s.avgPauseMs !== null && s.avgPauseMs > 1100) pausing = "hesitant";
+  else if ((s.avgPauseMs !== null && s.avgPauseMs > hesitantPauseMs) || (s.longPauseCount !== null && s.longPauseCount >= 3)) pausing = "hesitant";
   else if (s.avgPauseMs !== null && s.avgPauseMs < 380) pausing = "compressed";
 
+  // Vocal dynamics — pitchMean refines: very low mean (<110 Hz) + flat range = stronger flat signal
+  const pitchMeanFlat = s.pitchMean !== null && s.pitchMean < 110;
   let vocalDynamics: "flat" | "moderate" | "dynamic" | "erratic" = "moderate";
-  if ((s.monotoneScore !== null && s.monotoneScore >= 6.2) || (s.pitchRange !== null && s.pitchRange < 70)) {
+  if ((s.monotoneScore !== null && s.monotoneScore >= 6.2) || (s.pitchRange !== null && s.pitchRange < 70) || pitchMeanFlat) {
     vocalDynamics = "flat";
   } else if ((s.energyVariation !== null && s.energyVariation > 1.7) || (s.tempoDynamics !== null && s.tempoDynamics > 1.7)) {
     vocalDynamics = "erratic";
@@ -129,8 +152,10 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>) {
     vocalDynamics = "dynamic";
   }
 
+  // Energy profile — energyMean adds an absolute volume floor (quiet speaker = low regardless of variation)
+  const quietSpeaker = s.energyMean !== null && s.energyMean < 0.018;
   let energyProfile: "low" | "steady" | "engaging" | "inconsistent" = "steady";
-  if ((s.energyVariation !== null && s.energyVariation < 0.35) || vocalDynamics === "flat") energyProfile = "low";
+  if ((s.energyVariation !== null && s.energyVariation < 0.35) || vocalDynamics === "flat" || quietSpeaker) energyProfile = "low";
   else if ((s.energyVariation !== null && s.energyVariation > 1.7) || vocalDynamics === "erratic") energyProfile = "inconsistent";
   else if (vocalDynamics === "dynamic" && pace !== "rushed") energyProfile = "engaging";
 
@@ -142,13 +167,27 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>) {
   if (pace === "rushed" && fluency !== "clean") cadenceStability = "erratic";
   else if (pausing === "hesitant" || pausing === "compressed" || vocalDynamics === "erratic") cadenceStability = "slightly_uneven";
 
-  return { pace, fluency, pausing, vocalDynamics, energyProfile, emphasisControl, cadenceStability };
+  // Presence signal — incorporates headStability alongside eyeContact and expressiveness
+  let presenceSignal: "strong" | "moderate" | "low" | null = null;
+  if (s.eyeContact !== null && s.expressiveness !== null) {
+    const stabilityBonus = s.headStability !== null ? (s.headStability - 0.6) * 0.15 : 0;
+    const presenceScore = (s.eyeContact * 0.55) + (s.expressiveness * 0.35) + stabilityBonus;
+    if (presenceScore >= 0.58 && s.eyeContact >= 0.65) presenceSignal = "strong";
+    else if (presenceScore < 0.28 || s.eyeContact < 0.35) presenceSignal = "low";
+    else presenceSignal = "moderate";
+  }
+
+  return { pace, fluency, pausing, vocalDynamics, energyProfile, emphasisControl, cadenceStability, presenceSignal, quietSpeaker, pitchMeanFlat };
 }
 
 function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeArgs) {
+  // Structure — use techStructure for technical framework when available
   let structure: "strong" | "moderate" | "weak" = "moderate";
-  if (s.communication >= 7.8) structure = "strong";
-  else if (s.communication <= 6.2) structure = "weak";
+  const structureSignal = args.framework === "technical_explanation" && s.techStructure !== null
+    ? s.techStructure
+    : s.communication;
+  if (structureSignal >= 7.8) structure = "strong";
+  else if (structureSignal <= 6.2) structure = "weak";
 
   let directness: "direct" | "delayed" | "wandering" = "direct";
   if (s.directness <= 6.0) directness = "wandering";
@@ -166,24 +205,41 @@ function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeA
   if ((outcomeSignal ?? 6.5) >= 7.8) outcomeStrength = "strong";
   else if ((outcomeSignal ?? 6.5) <= 6.2) outcomeStrength = "weak";
 
+  // Specificity — expExampleQuality sharpens this for experience answers
   let specificity: "specific" | "mixed" | "generalized" = "mixed";
-  if (/\b\d+%|\b\d+\b|\$|\bpercent\b|\bmetric\b|\bkpi\b/.test(s.transcript) || (s.expSpecificity ?? 0) >= 7.4) specificity = "specific";
-  else if ((s.expSpecificity ?? 6.5) <= 6.2) specificity = "generalized";
+  const hasMetrics = /\b\d+%|\b\d+\b|\$|\bpercent\b|\bmetric\b|\bkpi\b/.test(s.transcript);
+  const specificityScore = args.framework === "experience_depth" && s.expExampleQuality !== null
+    ? (s.expSpecificity ?? 6.5) * 0.5 + s.expExampleQuality * 0.5
+    : s.expSpecificity ?? 6.5;
+  if (hasMetrics || specificityScore >= 7.4) specificity = "specific";
+  else if (specificityScore <= 6.2 && !hasMetrics) specificity = "generalized";
 
   let evidenceMode: "metrics_forward" | "example_forward" | "process_forward" | "generalized" = "generalized";
-  if (/\b\d+%|\b\d+\b|\$|\bpercent\b|\bmetric\b|\bkpi\b/.test(s.transcript)) evidenceMode = "metrics_forward";
+  if (hasMetrics) evidenceMode = "metrics_forward";
   else if (/\bfor example\b|\bfor instance\b|\bone time\b|\bin one project\b/.test(s.transcript)) evidenceMode = "example_forward";
   else if (/\bfirst\b|\bthen\b|\bafter\b|\bprocess\b|\bworkflow\b|\bmethod\b/.test(s.transcript)) evidenceMode = "process_forward";
 
+  // Depth — techClarity refines for technical answers; expExampleQuality for experience
   let depthMode: "deep" | "adequate" | "thin" = "adequate";
-  const depthSignal = args.framework === "technical_explanation" ? s.techDepth : args.framework === "experience_depth" ? s.expDepth : s.communication;
+  let depthSignal: number;
+  if (args.framework === "technical_explanation") {
+    depthSignal = s.techDepth !== null && s.techClarity !== null
+      ? (s.techDepth * 0.6 + s.techClarity * 0.4)
+      : s.techDepth ?? s.communication;
+  } else if (args.framework === "experience_depth") {
+    depthSignal = s.expDepth !== null && s.expExampleQuality !== null
+      ? (s.expDepth * 0.65 + s.expExampleQuality * 0.35)
+      : s.expDepth ?? s.communication;
+  } else {
+    depthSignal = s.communication;
+  }
   if ((depthSignal ?? 6.5) >= 7.6) depthMode = "deep";
   else if ((depthSignal ?? 6.5) <= 6.1) depthMode = "thin";
 
   return { structure, directness, completeness, ownership, outcomeStrength, specificity, evidenceMode, depthMode };
 }
 
-type ThemeKey = "structure" | "clarity" | "delivery_control" | "pace_control" | "vocal_presence" | "outcome_strength" | "specificity" | "ownership" | "depth" | "directness" | "completeness" | "role_alignment";
+type ThemeKey = "structure" | "clarity" | "delivery_control" | "pace_control" | "vocal_presence" | "outcome_strength" | "specificity" | "ownership" | "depth" | "directness" | "completeness" | "role_alignment" | "presence";
 
 function buildStrengthThemes(s: ReturnType<typeof extractSignals>, delivery: ReturnType<typeof buildDeliveryProfile>, answer: ReturnType<typeof buildAnswerPattern>, roleFamily: RoleFamily) {
   const themes: { key: ThemeKey; weight: number }[] = [];
@@ -202,6 +258,7 @@ function buildStrengthThemes(s: ReturnType<typeof extractSignals>, delivery: Ret
   if (roleFamily === "operations" && answer.depthMode !== "thin" && answer.evidenceMode === "process_forward") themes.push({ key: "role_alignment", weight: 0.72 });
   if (roleFamily === "research" && answer.specificity === "specific" && answer.depthMode !== "thin") themes.push({ key: "role_alignment", weight: 0.72 });
   if (roleFamily === "consulting" && answer.structure === "strong" && answer.directness === "direct") themes.push({ key: "role_alignment", weight: 0.72 });
+  if (delivery.presenceSignal === "strong") themes.push({ key: "presence", weight: 0.85 });
   return themes.sort((a, b) => b.weight - a.weight);
 }
 
@@ -221,6 +278,7 @@ function buildImprovementThemes(s: ReturnType<typeof extractSignals>, delivery: 
   if (roleFamily === "operations" && (answer.depthMode === "thin" || answer.evidenceMode === "generalized")) themes.push({ key: "role_alignment", weight: 0.68 });
   if (roleFamily === "research" && (answer.specificity === "generalized" || answer.depthMode === "thin")) themes.push({ key: "role_alignment", weight: 0.68 });
   if (roleFamily === "consulting" && (answer.structure === "weak" || answer.directness !== "direct")) themes.push({ key: "role_alignment", weight: 0.68 });
+  if (delivery.presenceSignal === "low") themes.push({ key: "presence", weight: 0.78 });
   const deduped: { key: ThemeKey; weight: number }[] = [];
   const seen = new Set<ThemeKey>();
   for (const item of themes.sort((a, b) => b.weight - a.weight)) {
@@ -234,7 +292,7 @@ function buildImprovementThemes(s: ReturnType<typeof extractSignals>, delivery: 
 function buildDiagnosis(args: ComposeArgs) {
   const roleFamily = inferRoleFamily(args.jobDesc, args.question);
   const signals = extractSignals(args);
-  const delivery = buildDeliveryProfile(signals);
+  const delivery = buildDeliveryProfile(signals, args.eslMode ?? false);
   const answer = buildAnswerPattern(signals, args);
   const strengthThemes = buildStrengthThemes(signals, delivery, answer, roleFamily);
   const improvementThemes = buildImprovementThemes(signals, delivery, answer, roleFamily);
@@ -899,6 +957,33 @@ const BETTER_ANSWER_PREFIXES: Record<string, string[]> = {
   ],
 };
 
+// presence pool injected separately - used when webcam data shows strong/weak eye contact
+const PRESENCE_STRENGTH_POOL = [
+  "Strong eye contact throughout the session signals confidence and genuine engagement — that's a real differentiator on video interviews.",
+  "Your camera presence is working for you: sustained eye contact communicates that you're composed and present, not reading notes.",
+  "The facial expressiveness here adds energy to your delivery — interviewers notice when a candidate looks genuinely invested.",
+  "Eye contact at this level is rare in practice sessions and it shows in the overall confidence signal.",
+  "Your on-camera composure is a real asset — steady eye contact and expressive delivery make the content land harder.",
+  "The presence you're projecting on camera is above average: natural, engaged, and not visibly nervous.",
+  "Strong eye contact signals directness and conviction — two things interviewers weight heavily in final-round decisions.",
+  "Your facial expressiveness matches the energy of the content, which makes the delivery feel coherent rather than flat.",
+  "Camera confidence is coachable, but you're already there — sustained eye contact under pressure is a legitimate strength.",
+  "The physical delivery here supports the verbal one: you look like someone who believes what they're saying.",
+];
+
+const PRESENCE_IMPROVEMENT_POOL = [
+  "Eye contact dropped noticeably during parts of this answer — on video, looking away reads as uncertainty or distraction to the interviewer.",
+  "The delivery loses some conviction because your gaze shifts away from the camera at key moments — where eye contact drops, confidence scoring follows.",
+  "More consistent camera engagement would raise the perceived confidence in this response significantly.",
+  "Looking down or away during the hardest parts of the answer undermines the verbal content — eye contact at those moments matters most.",
+  "The expressiveness is flatter than the content deserves — on camera, facial engagement directly shapes how confident you appear.",
+  "Sustained eye contact through the result statement is one of the highest-leverage fixes available in this answer.",
+  "The presence signal here is mixed: the content is workable but the camera engagement isn't reinforcing it.",
+  "When eye contact breaks early in a sentence, it softens even a strong answer — that's the main delivery issue in this response.",
+  "More expressive delivery would help the interviewer feel your investment in the story, not just hear it.",
+  "The camera is reading a mismatch between your answer quality and your visible confidence — eye contact consistency would close that gap.",
+];
+
 // ---------------------------------------------------------------------------
 // MISSED OPPORTUNITY DATA
 // ---------------------------------------------------------------------------
@@ -944,6 +1029,11 @@ const MO_DATA: Record<string, { labels: string[]; whys: string[]; sentences: str
     whys: ["Vague answers feel rehearsed and forgettable - one specific detail changes the impression.", "The story is plausible but not grounded; a concrete fact would anchor it.", "Without a named detail, the answer could apply to anyone who's done anything similar.", "Specific numbers, names, and constraints make your experience feel real and credible.", "The credibility gap is in the detail level - one precise fact would close it."],
     sentences: ["Add at least one concrete metric - even a rough estimate ('roughly 20%') is more convincing than none.", "Name the constraint or challenge you were working against; it makes the action feel earned.", "Replace general verbs ('helped', 'worked on') with specific ones ('modeled', 'negotiated', 'redesigned').", "The strongest version of this story includes the exact figure: %, $, time, or scope.", "Naming the tool, framework, or process you used would add real credibility to the example."],
   },
+  presence: {
+    labels: ["Hold eye contact through the result", "Stay on camera at the hardest moments", "Match your facial energy to your content", "Don't break eye contact when you're uncertain", "Let your face show your conviction"],
+    whys: ["Eye contact drops at exactly the moments that matter most for confidence scoring.", "Looking away during the result or key claim sends an uncertainty signal the interviewer will pick up.", "The verbal answer is stronger than the physical delivery is currently suggesting.", "On video, where your eyes go shapes how confident you appear — even when your words are strong.", "Facial expressiveness is a measurable component of perceived confidence in video interviews."],
+    sentences: ["Hold eye contact directly through the result sentence — that's the moment where it counts most.", "On the next attempt, commit to the camera at every key claim — no looking down.", "Let your expression shift slightly when you deliver the outcome: let the energy show.", "The fix is simple but high-impact: don't look away when the answer gets difficult.", "Match the weight of what you're saying with how your face delivers it — engagement is visible."],
+  },
 };
 
 // ---------------------------------------------------------------------------
@@ -956,6 +1046,8 @@ function buildStrengthCopy(args: ComposeArgs, diagnosis: ReturnType<typeof build
   for (const key of top) {
     if (key === "role_alignment") {
       lines.push(roleLine(diagnosis.roleFamily, "praise", seed, "role-praise"));
+    } else if (key === "presence") {
+      lines.push(pickDeterministic(PRESENCE_STRENGTH_POOL, seed, "strength-presence"));
     } else {
       const pool = STRENGTH_POOLS[key];
       if (pool?.length) lines.push(pickDeterministic(pool, seed, `strength-${key}`));
@@ -971,6 +1063,8 @@ function buildImprovementCopy(args: ComposeArgs, diagnosis: ReturnType<typeof bu
   for (const key of top) {
     if (key === "role_alignment") {
       lines.push(roleLine(diagnosis.roleFamily, "alignment", seed, "role-alignment"));
+    } else if (key === "presence") {
+      lines.push(pickDeterministic(PRESENCE_IMPROVEMENT_POOL, seed, "improve-presence"));
     } else {
       const pool = IMPROVEMENT_POOLS[key];
       if (pool?.length) lines.push(pickDeterministic(pool, seed, `improve-${key}`));
@@ -1089,7 +1183,8 @@ function buildMilestoneNote(prevAttemptCount: number | null): string | null {
 }
 
 export function composeRichFeedback(args: ComposeArgs) {
-  const seed = `${args.question}|||${(args.transcript || "").slice(0, 500)}`;
+  // Include attempt count in seed so repeated attempts on the same question get different phrase selections
+  const seed = `${args.question}|||${(args.transcript || "").slice(0, 500)}|||${args.prevAttemptCount ?? 0}`;
   const seedNum = hashString(seed);
   const diagnosis = buildDiagnosis(args);
 
@@ -1132,6 +1227,38 @@ export function composeRichFeedback(args: ComposeArgs) {
   );
 
   next.milestone_note = buildMilestoneNote(args.prevAttemptCount ?? null);
+
+  // Archetype — computed from full signal set, guides next-attempt focus
+  const archetypeResult = computeArchetype({
+    overall: diagnosis.signals.overall,
+    communication: diagnosis.signals.communication,
+    confidence: diagnosis.signals.confidence,
+    wpm: diagnosis.signals.wpm,
+    fillersPer100: diagnosis.signals.fillersPer100,
+    wordCount: diagnosis.signals.wordCount,
+    iCount: diagnosis.signals.iCount,
+    weCount: diagnosis.signals.weCount,
+    pitchRange: diagnosis.signals.pitchRange,
+    monotoneScore: diagnosis.signals.monotoneScore,
+    energyProfile: diagnosis.delivery.energyProfile,
+    presenceSignal: diagnosis.delivery.presenceSignal,
+    pace: diagnosis.delivery.pace,
+    fluency: diagnosis.delivery.fluency,
+    cadenceStability: diagnosis.delivery.cadenceStability,
+    vocalDynamics: diagnosis.delivery.vocalDynamics,
+    structure: diagnosis.answer.structure,
+    directness: diagnosis.answer.directness as any,
+    ownership: diagnosis.answer.ownership,
+    specificity: diagnosis.answer.specificity as any,
+    outcomeStrength: diagnosis.answer.outcomeStrength,
+    depthMode: diagnosis.answer.depthMode as any,
+    completeness: diagnosis.answer.completeness,
+    evidenceMode: diagnosis.answer.evidenceMode,
+  });
+  next.delivery_archetype = archetypeResult.archetype;
+  next.archetype_coaching = archetypeResult.archetypeCoaching;
+  next.archetype_description = archetypeResult.archetypeDescription;
+  next.archetype_signals = archetypeResult.primarySignals;
 
   return next;
 }

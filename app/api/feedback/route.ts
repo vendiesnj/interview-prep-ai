@@ -517,7 +517,7 @@ function computeQuestionAlignment(question: string, transcript: string) {
 // Prompt architecture
 // -------------------------
 
-function buildSystemMessage(framework: EvaluationFramework) {
+function buildSystemMessage(framework: EvaluationFramework, eslMode = false) {
   const common = `
 You are an interview evaluator for a production SaaS coaching product.
 
@@ -540,6 +540,11 @@ Evidence rules:
 - strengths and improvements must be answer-specific, not generic.
 - better_answer must preserve the same story/topic but improve it.
 
+Webcam presence rules (when presence_signals is provided):
+- Factor eye_contact and expressiveness into confidence_score. Strong eye contact (>= "strong") supports higher confidence scores. Weak eye contact ("weak") should lower the confidence_score by 0.3–0.8 relative to verbal content alone.
+- If eye_contact is weak, include one confidence_evidence item noting the camera disengagement and its effect on perceived confidence.
+- Do not mention webcam or eye contact in strengths/improvements/better_answer unless presence_signals shows a clear signal worth naming — if it's strong, it can appear as a strength; if weak, as an improvement.
+
 Output rules:
 - Return exactly one JSON object
 - Do not wrap it in markdown
@@ -550,8 +555,18 @@ Output rules:
 - Evidence, strengths, and improvements must be grounded in actual content from the transcript — never invented
 `.trim();
 
+  const eslBlock = `
+
+ESL / International speaker mode is ACTIVE. Apply these adjustments:
+- Do NOT penalize non-native accent, regional dialect, or minor grammatical variation.
+- Evaluate idea clarity and professional communication quality — not linguistic polish.
+- Filler thresholds are 25% more lenient: treat fillers_per_100_words < 6.5 as acceptable.
+- Do NOT include language-level corrections in improvements unless comprehension is clearly impaired.
+- Confidence scoring should not penalize hedging phrases that reflect cultural communication norms.
+- Scores should reflect the quality of ideas and clarity of communication, not native fluency.`;
+
   if (framework === "star") {
-    return `${common}
+    return `${common}${eslMode ? eslBlock : ""}
 
 Behavioral rules:
 - Evaluate Situation, Task, Action, and Result.
@@ -562,7 +577,7 @@ Behavioral rules:
   }
 
   if (framework === "technical_explanation") {
-    return `${common}
+    return `${common}${eslMode ? eslBlock : ""}
 
 Technical explanation rules:
 - Do NOT use STAR framing.
@@ -572,7 +587,7 @@ Technical explanation rules:
   }
 
   if (framework === "public_speaking") {
-    return `${common}
+    return `${common}${eslMode ? eslBlock : ""}
 
 Public speaking rules:
 - Do NOT use STAR framing. This is NOT an interview answer evaluation.
@@ -586,7 +601,7 @@ Public speaking rules:
   }
 
   if (framework === "networking_pitch") {
-    return `${common}
+    return `${common}${eslMode ? eslBlock : ""}
 
 Networking pitch rules:
 - Do NOT use STAR framing. This is NOT an interview answer evaluation.
@@ -601,7 +616,7 @@ Networking pitch rules:
 `;
   }
 
-  return `${common}
+  return `${common}${eslMode ? eslBlock : ""}
 
 Experience depth rules:
 - Do NOT use STAR framing.
@@ -610,15 +625,34 @@ Experience depth rules:
 `;
 }
 
+function labelPresence(value: number | null | undefined, thresholdHigh: number, thresholdLow: number): string | null {
+  if (value === null || value === undefined || typeof value !== "number") return null;
+  const pct = Math.round(value * 100);
+  if (value >= thresholdHigh) return `strong (${pct}%)`;
+  if (value < thresholdLow) return `weak (${pct}%)`;
+  return `moderate (${pct}%)`;
+}
+
 function buildUserMessage(args: {
   framework: EvaluationFramework;
   jobDesc: string;
   question: string;
   transcript: string;
   deliveryMetrics: any;
+  faceMetrics: any;
   fillerStats: ReturnType<typeof countFillers>;
 }) {
-  const { framework, jobDesc, question, transcript, deliveryMetrics, fillerStats } = args;
+  const { framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, fillerStats } = args;
+
+  // Build presence_signals block only when webcam data is available and meaningful
+  const presenceSignals = faceMetrics && typeof faceMetrics === "object" && (faceMetrics.framesAnalyzed ?? 1) > 0
+    ? {
+        eye_contact: labelPresence(faceMetrics.eyeContact, 0.65, 0.35),
+        expressiveness: labelPresence(faceMetrics.expressiveness, 0.5, 0.2),
+        head_stability: labelPresence(faceMetrics.headStability, 0.8, 0.5),
+        note: "Measured from webcam. Strong eye contact and expressiveness should support confidence_score. Weak eye contact should be reflected in confidence_evidence.",
+      }
+    : null;
 
   return JSON.stringify(
     {
@@ -632,6 +666,7 @@ function buildUserMessage(args: {
         fillers_per_100_words: round1(fillerStats.fillersPer100Words),
       },
       delivery_metrics: deliveryMetrics ?? null,
+      ...(presenceSignals ? { presence_signals: presenceSignals } : {}),
       grading_instructions: {
         score_scale: "All scores are 1.0 to 10.0 with decimals allowed.",
         communication_score_definition:
@@ -1358,18 +1393,21 @@ async function callFeedbackModel(args: {
   question: string;
   transcript: string;
   deliveryMetrics: any;
+  faceMetrics: any;
+  eslMode: boolean;
   fillerStats: ReturnType<typeof countFillers>;
 }) {
-  const { client, framework, jobDesc, question, transcript, deliveryMetrics, fillerStats } = args;
+  const { client, framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, eslMode, fillerStats } = args;
 
   const schema = buildSchema(framework);
-  const system = buildSystemMessage(framework);
+  const system = buildSystemMessage(framework, eslMode);
   const user = buildUserMessage({
     framework,
     jobDesc,
     question,
     transcript,
     deliveryMetrics,
+    faceMetrics,
     fillerStats,
   });
 
@@ -1467,6 +1505,8 @@ export async function POST(req: Request) {
     const question = typeof body.question === "string" ? body.question : "";
     const transcript = typeof body.transcript === "string" ? body.transcript : "";
     const deliveryMetrics = body.deliveryMetrics ?? null;
+    const faceMetrics = (body.faceMetrics && typeof body.faceMetrics === "object") ? body.faceMetrics : null;
+    const eslMode = body.eslMode === true;
     const prevScore = typeof body.prevScore === "number" ? body.prevScore : null;
     const prevAttemptCount = typeof body.prevAttemptCount === "number" ? body.prevAttemptCount : null;
 
@@ -1687,6 +1727,8 @@ export async function POST(req: Request) {
       question,
       transcript,
       deliveryMetrics,
+      faceMetrics,
+      eslMode,
       fillerStats,
     });
 
@@ -1782,6 +1824,8 @@ export async function POST(req: Request) {
         question,
         transcript,
         deliveryMetrics,
+        faceMetrics,
+        eslMode,
         fillerStats,
         normalized,
         prevScore,

@@ -2,6 +2,8 @@
 
 import UpgradeModal from "@/app/components/UpgradeModal";
 import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
+import { computeRewards, type RewardUnlock } from "@/app/lib/feedback/rewards";
+import { ARCHETYPE_COLOR } from "@/app/lib/feedback/archetypes";
 import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
 import React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -631,6 +633,8 @@ const [inputMethod, setInputMethod] = useState<"spoken" | "pasted">("pasted");
 type FocusGoal = "pace" | "fillers" | "star_result" | "vocal_variety" | "clarity";
 
 const [focusGoal, setFocusGoal] = useState<FocusGoal | null>(null);
+const ESL_KEY = userScopedKey("ipc_esl_mode", session);
+const [eslMode, setEslMode] = useState(false);
 
 useEffect(() => {
   try {
@@ -639,6 +643,18 @@ useEffect(() => {
     else setFocusGoal(null);
   } catch {}
 }, [email, FOCUS_KEY]);
+
+useEffect(() => {
+  try {
+    setEslMode(localStorage.getItem(ESL_KEY) === "1");
+  } catch {}
+}, [ESL_KEY]);
+
+function toggleEslMode() {
+  const next = !eslMode;
+  setEslMode(next);
+  try { next ? localStorage.setItem(ESL_KEY, "1") : localStorage.removeItem(ESL_KEY); } catch {}
+}
 
 useEffect(() => {
   try {
@@ -2171,6 +2187,7 @@ const res = await fetch("/api/feedback", {
     evaluationFramework,
     transcript,
     deliveryMetrics: voiceMetricsRef.current,
+    faceMetrics: faceMetricsRef.current ?? null,
     prevScore: history[0]?.score ?? null,
     prevAttemptCount: history.length,
   }),
@@ -4378,9 +4395,13 @@ boxShadow: "var(--shadow-glow)",
 <UpgradeModal
   open={upgradeOpen}
   onClose={() => setUpgradeOpen(false)}
-  onPrimary={() => {
+  onPrimary={async () => {
     setUpgradeOpen(false);
-    router.push("/account");
+    try {
+      const res = await fetch("/api/billing/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode: "subscription" }) });
+      const data = await res.json();
+      if (data?.url) { window.location.href = data.url; }
+    } catch {}
   }}
 />
 
