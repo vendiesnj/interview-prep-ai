@@ -37,6 +37,10 @@ export type ProductivityResult = {
   checklistScheduled: number;
   label:             "Excellent" | "Strong" | "Building" | "Getting Started";
   color:             string;
+  // Behavioral detail fields
+  avgDaysScheduledInAdvance: number | null; // avg days between scheduledAt and dueDate (how far ahead they plan)
+  avgDaysEarlyOnCompletion:  number | null; // avg days between completedAt and deadline (positive = early, negative = late)
+  missedDeadlines:           number;        // items with a dueDate that were not completed or completed after the deadline
 };
 
 const WEIGHTS = {
@@ -137,6 +141,64 @@ export function computeProductivity(input: ProductivityInput): ProductivityResul
   // Normalize streak to 0–1: 7-day streak = full score; cap at 7
   const streakRate = Math.min(streak / 7, 1);
 
+  // ── Days Scheduled In Advance ────────────────────────────────────────────────
+  // How many days ahead of the deadline did they schedule each item?
+  // Only items that have both a scheduledAt/scheduledDate AND a dueDate count.
+  const advanceDays: number[] = [];
+  for (const t of tasks) {
+    if (t.scheduledAt && t.dueDate) {
+      const days = (t.dueDate.getTime() - t.scheduledAt.getTime()) / 86400000;
+      if (days >= 0) advanceDays.push(days); // ignore if scheduled after due (data artifact)
+    }
+  }
+  for (const c of checklist) {
+    if (c.scheduledDate && c.dueDate) {
+      const days = (c.dueDate.getTime() - c.scheduledDate.getTime()) / 86400000;
+      if (days >= 0) advanceDays.push(days);
+    }
+  }
+  const avgDaysScheduledInAdvance = advanceDays.length
+    ? Math.round((advanceDays.reduce((a, b) => a + b, 0) / advanceDays.length) * 10) / 10
+    : null;
+
+  // ── Time Remaining On Completion ─────────────────────────────────────────────
+  // Positive = completed early, negative = completed late.
+  // Only items that have both a completedAt and a deadline count.
+  const earlyDays: number[] = [];
+  for (const t of tasks) {
+    const deadline = t.dueDate ?? t.scheduledAt;
+    if (t.completedAt && deadline) {
+      const days = (deadline.getTime() - t.completedAt.getTime()) / 86400000;
+      earlyDays.push(days);
+    }
+  }
+  for (const c of checklist) {
+    const deadline = c.dueDate ?? c.scheduledDate;
+    if (c.completedAt && deadline) {
+      const days = (deadline.getTime() - c.completedAt.getTime()) / 86400000;
+      earlyDays.push(days);
+    }
+  }
+  const avgDaysEarlyOnCompletion = earlyDays.length
+    ? Math.round((earlyDays.reduce((a, b) => a + b, 0) / earlyDays.length) * 10) / 10
+    : null;
+
+  // ── Missed Deadlines ──────────────────────────────────────────────────────────
+  // An item is "missed" if it had a dueDate AND was either (a) not completed, or
+  // (b) completed after the deadline.
+  const now = new Date();
+  const missedTasks = tasks.filter(t => {
+    if (!t.dueDate) return false;
+    if (!t.completedAt) return t.dueDate < now; // past due and not done
+    return t.completedAt > t.dueDate;           // done but late
+  }).length;
+  const missedChecklist = checklist.filter(c => {
+    if (!c.dueDate) return false;
+    if (!c.completedAt) return c.dueDate < now;
+    return c.completedAt > c.dueDate;
+  }).length;
+  const missedDeadlines = missedTasks + missedChecklist;
+
   // ── Composite Score ──────────────────────────────────────────────────────────
   const raw =
     schedulingRate  * WEIGHTS.scheduling  * 100 +
@@ -166,6 +228,9 @@ export function computeProductivity(input: ProductivityInput): ProductivityResul
     checklistScheduled,
     label,
     color,
+    avgDaysScheduledInAdvance,
+    avgDaysEarlyOnCompletion,
+    missedDeadlines,
   };
 }
 

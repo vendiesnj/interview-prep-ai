@@ -2163,10 +2163,20 @@ const activeThisWeek = filteredAttempts.filter(
                           const prod = row.productivity;
                           if (!prod) return <div style={{ fontSize: 11, color: "var(--text-muted)" }}> - </div>;
                           const grade = productivityGrade(prod.score);
+                          const missedColor = prod.missedDeadlines > 0 ? "#EF4444" : "var(--text-muted)";
                           return (
                             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                               <div style={{ fontSize: 12, fontWeight: 900, color: prod.color }}>{grade}</div>
-                              <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{Math.round(prod.score)}</div>
+                              {prod.missedDeadlines > 0 && (
+                                <div style={{ fontSize: 10, fontWeight: 700, color: missedColor }}>
+                                  {prod.missedDeadlines} missed
+                                </div>
+                              )}
+                              {prod.avgDaysScheduledInAdvance !== null && (
+                                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                                  {prod.avgDaysScheduledInAdvance}d ahead
+                                </div>
+                              )}
                             </div>
                           );
                         })()}
@@ -2221,31 +2231,74 @@ const activeThisWeek = filteredAttempts.filter(
             {(() => {
               const withProd = filteredStudents.filter((s) => s.productivity !== null);
               if (withProd.length === 0) return null;
+
+              // KPI aggregates
               const avgScore = Math.round(
-                withProd.reduce((sum, s) => sum + (s.productivity!.score), 0) / withProd.length
+                withProd.reduce((sum, s) => sum + s.productivity!.score, 0) / withProd.length
               );
-              const avgScheduling = Math.round(
-                withProd.reduce((sum, s) => sum + s.productivity!.schedulingRate, 0) / withProd.length * 100
-              );
-              const avgCompletion = Math.round(
-                withProd.reduce((sum, s) => sum + s.productivity!.completionRate, 0) / withProd.length * 100
-              );
+              const totalMissed = withProd.reduce((sum, s) => sum + s.productivity!.missedDeadlines, 0);
+              const studentsWithMissed = withProd.filter((s) => s.productivity!.missedDeadlines > 0).length;
+
+              const advanceValues = withProd
+                .map((s) => s.productivity!.avgDaysScheduledInAdvance)
+                .filter((v): v is number => v !== null);
+              const avgAdvance = advanceValues.length
+                ? Math.round((advanceValues.reduce((a, b) => a + b, 0) / advanceValues.length) * 10) / 10
+                : null;
+
+              const earlyValues = withProd
+                .map((s) => s.productivity!.avgDaysEarlyOnCompletion)
+                .filter((v): v is number => v !== null);
+              const avgEarly = earlyValues.length
+                ? Math.round((earlyValues.reduce((a, b) => a + b, 0) / earlyValues.length) * 10) / 10
+                : null;
+
               const labelCounts = { "Excellent": 0, "Strong": 0, "Building": 0, "Getting Started": 0 };
               for (const s of withProd) labelCounts[s.productivity!.label]++;
+
+              // Students with most missed deadlines - for intervention list
+              const missedLeaderboard = [...withProd]
+                .filter((s) => s.productivity!.missedDeadlines > 0)
+                .sort((a, b) => b.productivity!.missedDeadlines - a.productivity!.missedDeadlines)
+                .slice(0, 5);
+
               return (
                 <Panel eyebrow="Productivity" title="Cohort Productivity">
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+
+                  {/* Top KPIs */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 16 }}>
                     {[
-                      { label: "Avg Score", value: `${avgScore}` },
-                      { label: "Scheduling Rate", value: `${avgScheduling}%` },
-                      { label: "Completion Rate", value: `${avgCompletion}%` },
+                      { label: "Avg Score", value: `${avgScore}`, sub: "composite" },
+                      { label: "Missed Deadlines", value: `${totalMissed}`, sub: `${studentsWithMissed} student${studentsWithMissed !== 1 ? "s" : ""}`, color: totalMissed > 0 ? "#EF4444" : undefined },
+                      { label: "Avg Days Scheduled Ahead", value: avgAdvance !== null ? `${avgAdvance}d` : "-", sub: "before due date" },
+                      { label: "Avg Time on Completion", value: avgEarly !== null ? (avgEarly >= 0 ? `${avgEarly}d early` : `${Math.abs(avgEarly)}d late`) : "-", sub: "vs deadline", color: avgEarly !== null && avgEarly < 0 ? "#EF4444" : avgEarly !== null && avgEarly >= 1 ? "#10B981" : undefined },
                     ].map((kpi) => (
-                      <div key={kpi.label} style={{ textAlign: "center", padding: "10px 0" }}>
-                        <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text-primary)" }}>{kpi.value}</div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3, fontWeight: 600 }}>{kpi.label}</div>
+                      <div key={kpi.label} style={{ padding: "10px 12px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 20, fontWeight: 900, color: kpi.color ?? "var(--text-primary)" }}>{kpi.value}</div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>{kpi.label}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{kpi.sub}</div>
                       </div>
                     ))}
                   </div>
+
+                  {/* Missed deadlines leaderboard */}
+                  {missedLeaderboard.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>
+                        Most Missed Deadlines
+                      </div>
+                      <div style={{ display: "grid", gap: 6 }}>
+                        {missedLeaderboard.map((s) => (
+                          <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
+                            <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{s.name}</span>
+                            <span style={{ color: "#EF4444", fontWeight: 900 }}>{s.productivity!.missedDeadlines} missed</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tier breakdown */}
                   <div style={{ display: "grid", gap: 6 }}>
                     {(["Excellent", "Strong", "Building", "Getting Started"] as const).map((label) => {
                       const count = labelCounts[label];
