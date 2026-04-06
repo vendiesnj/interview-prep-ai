@@ -32,6 +32,7 @@ import {
   type NaceKey,
 } from "@/app/lib/nace";
 import { computeProductivity, productivityGrade } from "@/app/lib/productivity";
+import { ARCHETYPE_COLOR, type DeliveryArchetype } from "@/app/lib/feedback/archetypes";
 
 
 type AttemptRow = {
@@ -1036,6 +1037,13 @@ export default async function AdminPage({
     }
     const topArchetype = Object.entries(archetypes).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 
+    // Delivery archetype from latest interview attempt
+    const latestInterviewAttempt = interviewAttempts[0] ?? null;
+    const latestArchetype: string | null = (latestInterviewAttempt?.feedback as any)?.delivery_archetype ?? null;
+    const latestArchetypeCoaching: string | null = (latestInterviewAttempt?.feedback as any)?.archetype_coaching ?? null;
+    const latestArchetypeDescription: string | null = (latestInterviewAttempt?.feedback as any)?.archetype_description ?? null;
+    const latestArchetypeSignals: string[] = (latestInterviewAttempt?.feedback as any)?.archetype_signals ?? [];
+
     // Profile completeness score (0–100)
     let completeness = 0;
     if (user.graduationYear) completeness += 10;
@@ -1085,6 +1093,10 @@ export default async function AdminPage({
       topPitchStyle,
       topArchetype,
       productivity: productivityByUser.get(user.id) ?? null,
+      latestArchetype,
+      latestArchetypeCoaching,
+      latestArchetypeDescription,
+      latestArchetypeSignals,
     };
   });
 
@@ -2097,34 +2109,88 @@ const activeThisWeek = filteredAttempts.filter(
                         display: "grid",
                         gridTemplateColumns: "1.6fr 80px 80px 80px 80px 80px 100px 110px 36px",
                         gap: 12,
-                        alignItems: "center",
-                        padding: "11px 16px",
+                        alignItems: "flex-start",
+                        padding: "12px 16px",
                         borderRadius: 12,
                         border: "1px solid var(--card-border-soft)",
                         background: rowIndex % 2 === 0 ? "var(--card-bg)" : "var(--card-bg-strong)",
                         cursor: "pointer",
                         transition: "border-color 0.15s",
                       }}>
-                        <div style={{ minWidth: 0, display: "flex", alignItems: "center", gap: 10 }}>
-                          {/* Avatar */}
-                          <div style={{
-                            width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                            background: `linear-gradient(135deg, ${cohortColor}22, ${cohortColor}44)`,
-                            border: `1.5px solid ${cohortColor}55`,
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 12, fontWeight: 900, color: cohortColor,
-                          }}>
-                            {(row.name || "?")[0].toUpperCase()}
-                          </div>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {row.name}
+                        {(() => {
+                          const archColor = row.latestArchetype
+                            ? (ARCHETYPE_COLOR[row.latestArchetype as keyof typeof ARCHETYPE_COLOR] ?? "#6B7280")
+                            : null;
+                          return (
+                            <div style={{ minWidth: 0, display: "flex", alignItems: "flex-start", gap: 10 }}>
+                              {/* Avatar */}
+                              <div style={{
+                                width: 32, height: 32, borderRadius: "50%", flexShrink: 0, marginTop: 2,
+                                background: `linear-gradient(135deg, ${cohortColor}22, ${cohortColor}44)`,
+                                border: `1.5px solid ${cohortColor}55`,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 12, fontWeight: 900, color: cohortColor,
+                              }}>
+                                {(row.name || "?")[0].toUpperCase()}
+                              </div>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {row.name}
+                                </div>
+                                <div style={{ marginTop: 1, fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {row.email}
+                                </div>
+                                {row.latestArchetype && archColor && (
+                                  <div style={{ marginTop: 5, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 5 }}>
+                                    <span style={{
+                                      display: "inline-block",
+                                      padding: "2px 7px",
+                                      borderRadius: 999,
+                                      fontSize: 10,
+                                      fontWeight: 900,
+                                      color: archColor,
+                                      background: `${archColor}18`,
+                                      border: `1px solid ${archColor}40`,
+                                      whiteSpace: "nowrap",
+                                    }}>
+                                      {row.latestArchetype}
+                                    </span>
+                                    {row.latestArchetypeSignals.slice(0, 2).map((sig) => (
+                                      <span key={sig} style={{
+                                        display: "inline-block",
+                                        padding: "1px 5px",
+                                        borderRadius: 999,
+                                        fontSize: 9,
+                                        fontWeight: 700,
+                                        color: "var(--text-muted)",
+                                        background: "var(--card-bg-strong)",
+                                        border: "1px solid var(--card-border-soft)",
+                                        whiteSpace: "nowrap",
+                                      }}>
+                                        {sig.replace(/_/g, " ")}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                                {row.latestArchetypeCoaching && (
+                                  <div style={{
+                                    marginTop: 3,
+                                    fontSize: 10,
+                                    color: "var(--text-muted)",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical" as const,
+                                    lineHeight: 1.4,
+                                  }}>
+                                    {row.latestArchetypeCoaching}
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <div style={{ marginTop: 2, fontSize: 11, color: "var(--text-muted)" }}>
-                              {row.email}
-                            </div>
-                          </div>
-                        </div>
+                          );
+                        })()}
 
                         {/* Score with cohort pill */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>

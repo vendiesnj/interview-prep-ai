@@ -1,27 +1,33 @@
 /**
- * Roosevelt University — Demo Seed
+ * Roosevelt University - Demo Seed (v2)
  *
- * Five student personas that tell a complete career-center story:
- *  1. Marcus Johnson    — post-grad success story (52→81, placed at Northern Trust $67k)
- *  2. Aaliyah Washington— consulting track, high performer (72→88, interviewing at Deloitte)
- *  3. Diego Reyes       — CS junior, rapid improver (58→79, targeting Motorola/Accenture tech)
- *  4. Sophie Park       — HR/Psychology, classic plateau (65→69, needs coaching intervention)
- *  5. Jordan Taylor     — first-gen sophomore, early stage (44→62, lots of runway)
+ * Five student personas with full variable coverage:
+ *   face metrics, delivery archetypes, strengths/improvements,
+ *   ESL mode (Diego), completedAt/scheduledDate/dueDate on checklist,
+ *   user profiles, and productivity stories that tell distinct narratives.
  *
- * Run after setupRoosevelt.ts:
- *   npx tsx scripts/seedRoosevelt.ts
+ *  1. Marcus Johnson    - post-grad success (52->81, 38 sessions, Hedger->Polished Performer)
+ *  2. Aaliyah Washington- high performer  (72->88, 26 sessions, Polished Performer throughout)
+ *  3. Diego Reyes       - CS rapid improver (58->79, 20 sessions, Monotone Expert->Quiet Achiever, ESL mode)
+ *  4. Sophie Park       - plateau case    (65->69, 18 sessions, Hedger throughout - needs intervention)
+ *  5. Jordan Taylor     - first-gen early (44->62, 12 sessions, Scattered Thinker->Vague Narrator)
+ *
+ * Run:  npx tsx scripts/seedRoosevelt.ts
  */
 
 import path from "path";
 import dotenv from "dotenv";
 dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
 
-// ─── Utilities ────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Utilities
+// ---------------------------------------------------------------------------
 
 function random(min: number, max: number) { return Math.random() * (max - min) + min; }
 function clamp(v: number, mn: number, mx: number) { return Math.max(mn, Math.min(mx, v)); }
 function round1(v: number) { return Math.round(v * 10) / 10; }
 function round2(v: number) { return Math.round(v * 100) / 100; }
+function round3(v: number) { return Math.round(v * 1000) / 1000; }
 function pickRandom<T>(a: T[]): T { return a[Math.floor(Math.random() * a.length)]; }
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 function noise(base: number, vol: number) { return base + random(-vol, vol); }
@@ -30,8 +36,15 @@ function daysAgo(from: Date, days: number): Date {
   d.setDate(d.getDate() - days);
   return d;
 }
+function daysFromNow(from: Date, days: number): Date {
+  const d = new Date(from);
+  d.setDate(d.getDate() + days);
+  return d;
+}
 
-// ─── Question bank ────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Question bank
+// ---------------------------------------------------------------------------
 
 type QuestionCategory = "behavioral" | "teamwork" | "leadership" | "technical" | "career_dev";
 type Question = { question: string; category: QuestionCategory; transcript: string };
@@ -40,104 +53,260 @@ const QUESTIONS: Question[] = [
   {
     question: "Tell me about a time you led a team through a challenge.",
     category: "leadership",
-    transcript:
-      "In my campus leadership role I coordinated a five-person team through a compressed timeline for a business plan competition. I delegated based on each person's strengths, held quick daily check-ins, and we finished second in the regional round — our best result in three years.",
+    transcript: "In my campus leadership role I coordinated a five-person team through a compressed timeline for a business plan competition. I delegated based on each person's strengths, held quick daily check-ins, and we finished second in the regional round — our best result in three years.",
   },
   {
     question: "Describe a situation where you had to handle conflict.",
     category: "behavioral",
-    transcript:
-      "Two group members disagreed on our financial model assumptions. I set up a working session where each person walked through their logic, then we aligned on a hybrid projection with documented assumptions. The tension dropped immediately and we hit our deadline.",
+    transcript: "Two group members disagreed on our financial model assumptions. I set up a working session where each person walked through their logic, then we aligned on a hybrid projection with documented assumptions. The tension dropped immediately and we hit our deadline.",
   },
   {
     question: "Tell me about a time you failed and what you learned.",
     category: "behavioral",
-    transcript:
-      "I underestimated how long it would take to build a client-facing report and missed the draft deadline. I owned it to my supervisor, created a buffer system for future projects, and the final version was delivered ahead of schedule.",
+    transcript: "I underestimated how long it would take to build a client-facing report and missed the draft deadline. I owned it to my supervisor, created a buffer system for future projects, and the final version was delivered ahead of schedule.",
   },
   {
     question: "Describe a time you improved a process.",
     category: "career_dev",
-    transcript:
-      "Our student organization was tracking event sign-ups in a shared spreadsheet that frequently had version conflicts. I moved us to a form-based system that auto-populated a master sheet. Time to reconcile RSVPs dropped from 40 minutes to under five.",
+    transcript: "Our student organization was tracking event sign-ups in a shared spreadsheet that frequently had version conflicts. I moved us to a form-based system that auto-populated a master sheet. Time to reconcile RSVPs dropped from 40 minutes to under five.",
   },
   {
     question: "Tell me about a difficult decision you had to make.",
     category: "behavioral",
-    transcript:
-      "I had to recommend dropping a vendor relationship mid-semester that had a personal connection for a teammate. I laid out the cost data and risk profile objectively, the team agreed, and we found a better partner within two weeks.",
+    transcript: "I had to recommend dropping a vendor relationship mid-semester that had a personal connection for a teammate. I laid out the cost data and risk profile objectively, the team agreed, and we found a better partner within two weeks.",
   },
   {
     question: "Walk me through how you would prioritize competing deadlines.",
     category: "technical",
-    transcript:
-      "I rank tasks by impact and urgency — not just due date — using a quick two-by-two. I communicate proactively if something has to shift, then batch similar work to protect focus time. That approach got me through a week with three finals and a part-time internship deadline.",
+    transcript: "I rank tasks by impact and urgency — not just due date — using a quick two-by-two. I communicate proactively if something has to shift, then batch similar work to protect focus time. That approach got me through a week with three finals and a part-time internship deadline.",
   },
   {
     question: "How would you explain a technical recommendation to a non-technical audience?",
     category: "career_dev",
-    transcript:
-      "I lead with the outcome in plain terms, then give one analogy that connects to something familiar. I save the methodology details for follow-up questions rather than front-loading them. A recent presentation I gave to a community nonprofit got a standing ovation from a non-technical board.",
+    transcript: "I lead with the outcome in plain terms, then give one analogy that connects to something familiar. I save the methodology details for follow-up questions rather than front-loading them. A recent presentation I gave to a community nonprofit got a standing ovation from a non-technical board.",
   },
   {
     question: "Walk me through a time you used data to influence a decision.",
     category: "technical",
-    transcript:
-      "I analyzed two semesters of tutoring center visit data and showed that Thursday evening drop-in hours had 40% lower utilization but the same staffing cost. The director reallocated those hours to a high-demand Monday slot and saw a 25% increase in weekly sessions.",
+    transcript: "I analyzed two semesters of tutoring center visit data and showed that Thursday evening drop-in hours had 40% lower utilization but the same staffing cost. The director reallocated those hours to a high-demand Monday slot and saw a 25% increase in weekly sessions.",
   },
   {
     question: "Describe a time you worked effectively as part of a team.",
     category: "teamwork",
-    transcript:
-      "For a capstone consulting project we had five students across three majors. I built a shared Notion workspace, set weekly milestones, and created a role assignment doc so no one overlapped. We received an A and the client implemented two of our three recommendations.",
+    transcript: "For a capstone consulting project we had five students across three majors. I built a shared Notion workspace, set weekly milestones, and created a role assignment doc so no one overlapped. We received an A and the client implemented two of our three recommendations.",
   },
   {
     question: "Tell me about a time you had to adapt quickly to change.",
     category: "career_dev",
-    transcript:
-      "My internship project was scoped for eight weeks but the team got a production incident that pulled everyone off for ten days. I independently reprioritized to work on documentation and testing, then re-onboarded the team to my progress in a structured handoff when they returned.",
+    transcript: "My internship project was scoped for eight weeks but the team got a production incident that pulled everyone off for ten days. I independently reprioritized to work on documentation and testing, then re-onboarded the team to my progress in a structured handoff when they returned.",
   },
   {
     question: "Tell me about your greatest professional strength.",
     category: "behavioral",
-    transcript:
-      "I'm unusually good at translating ambiguous problems into structured plans. Whether it's a vague assignment from a professor or an open-ended client brief, I instinctively break it into components, assign time to each, and identify the first unknown I need to resolve. That's kept me ahead on almost every complex project.",
+    transcript: "I'm unusually good at translating ambiguous problems into structured plans. Whether it's a vague assignment from a professor or an open-ended client brief, I instinctively break it into components, assign time to each, and identify the first unknown I need to resolve. That's kept me ahead on almost every complex project.",
   },
   {
     question: "Where do you see yourself in five years?",
     category: "career_dev",
-    transcript:
-      "I see myself in a client-facing strategy role, having moved from individual contributor to someone who shapes the framing of problems, not just the solutions. I want to have built real domain depth in two or three industries and have managed at least one direct report through a meaningful project.",
+    transcript: "I see myself in a client-facing strategy role, having moved from individual contributor to someone who shapes the framing of problems, not just the solutions. I want to have built real domain depth in two or three industries and have managed at least one direct report through a meaningful project.",
+  },
+  {
+    question: "Tell me about a time you took initiative without being asked.",
+    category: "leadership",
+    transcript: "I noticed our team had no standard onboarding doc for new project members and people kept asking the same three questions. I spent two evenings building a one-page reference sheet and posted it to our shared drive. Two semesters later it's still being used.",
   },
 ];
 
-// ─── Acoustic / scoring persona profiles ─────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Archetype definitions
+// ---------------------------------------------------------------------------
+
+type DeliveryArchetype =
+  | "Polished Performer"
+  | "Hedger"
+  | "Monotone Expert"
+  | "Quiet Achiever"
+  | "Scattered Thinker"
+  | "Vague Narrator"
+  | "Rusher"
+  | "Overloader";
+
+const ARCHETYPE_META: Record<DeliveryArchetype, { coaching: string; description: string }> = {
+  "Polished Performer": {
+    description: "Your fundamentals are solid - clean delivery, clear structure, and ownership language working together.",
+    coaching: "You're executing well. The next level is one specific metric or dollar figure in your Result to separate you from other strong candidates.",
+  },
+  "Hedger": {
+    description: "Your content is there but your ownership language is softening it - too much 'we' and conditional phrasing.",
+    coaching: "Start your next answer with 'I decided...' or 'I drove...' - first-person ownership in the opening line immediately shifts the confidence signal.",
+  },
+  "Monotone Expert": {
+    description: "Your content is solid but the delivery is acoustically flat - the answer sounds recited rather than lived.",
+    coaching: "When you reach your Result, raise your pitch slightly and pause one beat before saying the outcome. That contrast will carry the whole answer.",
+  },
+  "Quiet Achiever": {
+    description: "Your content and ownership are strong but your delivery energy isn't matching the quality of what you're saying.",
+    coaching: "The story is there - project 15% more volume on your Action and Result sections and the answer will land the way it deserves to.",
+  },
+  "Scattered Thinker": {
+    description: "Your ideas are present but not sequenced - the interviewer has to work to track your through-line.",
+    coaching: "Write S-T-A-R on paper before your next attempt and say 'Situation:' out loud before you start. The label forces structure.",
+  },
+  "Vague Narrator": {
+    description: "The story is plausible but not grounded - no numbers, named tools, or concrete proof points.",
+    coaching: "Add one concrete number to your Result - a percentage, timeline, or dollar figure. Even a rough estimate makes the story credible.",
+  },
+  "Rusher": {
+    description: "Your pace is outrunning your content - the interviewer is processing before you finish landing your points.",
+    coaching: "Slow down the first sentence of your Result section. That's the moment interviewers decide if they understood you.",
+  },
+  "Overloader": {
+    description: "Strong depth and detail, but you're burying the lead - the setup is longer than the answer can justify.",
+    coaching: "Your first two sentences should cover the entire Situation and Task. Everything after that is Action and Result.",
+  },
+};
+
+const ARCHETYPE_PRIMARY_SIGNALS: Record<DeliveryArchetype, string[]> = {
+  "Polished Performer":  ["overall_score", "communication", "confidence"],
+  "Hedger":              ["ownership", "confidence_score", "we_vs_i_ratio"],
+  "Monotone Expert":     ["monotoneScore", "pitchRange", "vocal_dynamics"],
+  "Quiet Achiever":      ["energyMean", "expressiveness", "delivery_energy"],
+  "Scattered Thinker":   ["structure", "directness", "communication_score"],
+  "Vague Narrator":      ["specificity", "outcome_strength", "star_result"],
+  "Rusher":              ["wpm", "pace", "fillers_per_100"],
+  "Overloader":          ["word_count", "directness", "structure"],
+};
+
+// ---------------------------------------------------------------------------
+// Strengths and improvements per archetype stage
+// ---------------------------------------------------------------------------
+
+const STRENGTHS: Record<DeliveryArchetype, string[][]> = {
+  "Polished Performer": [
+    ["Your structure is clean - each section of the answer flows naturally into the next.", "The closing impact lands clearly - the interviewer hears what changed.", "Ownership language is strong throughout - the contribution is unmistakable."],
+    ["Your pace is controlled - each point gets the space it needs to land.", "The answer closes the loop: situation, action, and result all accounted for.", "Confidence comes through consistently, not just in flashes."],
+    ["Strong first-person framing from the opening line.", "The answer has real specificity - named tools and measurable outcomes.", "Delivery and content are working together here, not against each other."],
+  ],
+  "Hedger": [
+    ["There's genuine structure here - the story has a beginning, middle, and end.", "The detail level is appropriate - you're not padding or rushing.", "The underlying content quality is higher than the delivery currently signals."],
+    ["Your context-setting is efficient - the setup doesn't overstay its welcome.", "The answer addresses what was asked without going off-topic.", "There's evidence of real preparation - this isn't a generic answer."],
+    ["The completeness is there - you're covering the full question.", "The transition from situation to action is smooth.", "Depth is present - you've developed the idea beyond a headline."],
+  ],
+  "Monotone Expert": [
+    ["The content is technically strong - you clearly understand what you did.", "Your specificity is above average - named tools and actual numbers appear.", "The structure is logical and easy to follow even when delivery is flat."],
+    ["You're bringing real depth to the answer - this isn't surface-level.", "The result is stated clearly even if the delivery doesn't emphasize it.", "Your pacing is controlled - you're not rushing through the technical content."],
+    ["The answer is complete - all four STAR sections are present.", "Your ownership is direct - you're not hiding behind team language.", "Clarity is genuine here - the listener can follow the technical arc."],
+  ],
+  "Quiet Achiever": [
+    ["The ownership language is strong - your role is unmistakably named.", "The answer has real specificity - numbers and named outcomes are present.", "Your structure is clean and the through-line is easy to follow."],
+    ["The result section is your strongest moment - the impact lands.", "You're not hedging - the language is direct and confident.", "The answer covers the full question without padding."],
+    ["Good pacing - you're not rushing the key details.", "The story is grounded in something real, not generic.", "The transition from action to result is well-executed."],
+  ],
+  "Scattered Thinker": [
+    ["There are real examples in here - the raw material is workable.", "You have genuine experience behind this answer - it shows.", "Some of your individual sentences are strong even if the sequence needs work."],
+    ["The attempt is earnest - you're engaging with the question.", "There's specificity in places - a few concrete details are present.", "The energy is present even if the structure isn't yet."],
+    ["You're not repeating yourself - each sentence adds something new.", "The answer stays relevant - you're not going off-topic.", "There are moments of strong ownership scattered through the response."],
+  ],
+  "Vague Narrator": [
+    ["The story arc is present - situation, action, and something like a result.", "You're following the structure - the answer has a beginning and middle.", "The answer is honest - you're not overclaiming what you did."],
+    ["Your pace is appropriate - you're not rushing the story.", "The action section has some detail - you're explaining the how.", "The relevance is there - you're answering what was asked."],
+    ["You're showing some ownership in the action section.", "The answer is an appropriate length - you're not padding.", "There's real effort here - the foundation is workable."],
+  ],
+  "Rusher": [
+    ["The content quality is higher than the delivery speed suggests.", "Your ideas are organized - if slowed down this would score well.", "You're covering all the STAR components even at speed."],
+    ["The specificity is there - you're bringing real examples.", "Ownership language is present - you're claiming your contribution.", "The answer stays on topic throughout."],
+    ["The result section exists - you're completing the loop.", "Your preparation shows - this isn't a generic answer.", "There's real experience behind this response."],
+  ],
+  "Overloader": [
+    ["The depth of your knowledge shows - this is clearly a real experience.", "Your answer has strong action detail - you know what you did.", "The result is in there - you do close the loop."],
+    ["Specificity is high - you're naming tools, people, and outcomes.", "Your ownership is clear - there's no hiding behind 'we' language.", "Preparation is evident - this is a real story, not a fabrication."],
+    ["The technical accuracy is strong - the details are consistent.", "You're bringing context that makes the story believable.", "The underlying answer is stronger than the structure is letting it appear."],
+  ],
+};
+
+const IMPROVEMENTS: Record<DeliveryArchetype, string[][]> = {
+  "Polished Performer": [
+    ["Adding one specific metric to your Result would separate this from other strong answers.", "The close is almost there - naming the actual number or percentage would lock it in.", "There's nothing critical to fix - the next iteration is about precision, not foundation."],
+    ["A sharper Situation setup in one sentence would tighten an already strong answer.", "The answer is polished enough that the next gain is in the Result specificity.", "Consider adding the timeline to your result - 'within three weeks' adds credibility."],
+    ["One more concrete proof point in the Action would raise this from strong to excellent.", "The answer stands on its own - the marginal gain is in the closing precision.", "Specificity in the outcome line is your highest available lever right now."],
+  ],
+  "Hedger": [
+    ["Your role in the outcome isn't clear enough - 'I led' needs to replace 'we worked on' throughout.", "First-person ownership language would immediately raise the confidence signal - 'I decided' rather than 'we decided'.", "The ownership gap is the highest-leverage fix available - name your specific contribution directly."],
+    ["The answer is using too much conditional phrasing - 'I tried to' and 'I think I managed' are weakening strong content.", "Replacing 'we' with 'I' in your Action section would change how this answer is read entirely.", "The story needs a clearer main character - that character is you, and the language needs to reflect that."],
+    ["First-person verbs in the opening sentence would shift the entire confidence signal.", "The credit is being shared where it should be claimed - 'I drove' over 'we drove'.", "Ownership is the fastest confidence lever available here - use it more directly."],
+  ],
+  "Monotone Expert": [
+    ["Your vocal range is flat - raising pitch slightly on the Result would make the whole answer feel more dynamic.", "The delivery is acoustically consistent in a way that reads as rehearsed - more pitch variation would fix this.", "Vocal variety is the fastest delivery improvement available for this response."],
+    ["The answer sounds recited rather than lived - a deliberate pause before your key result would change that.", "More emphasis at key moments - especially the outcome line - would help the answer feel intentional.", "The flatness in delivery is costing more points than the content quality deserves to lose."],
+    ["Energy level in the Action section needs to increase - you're describing strong work in a flat voice.", "One beat of silence before your best line would create contrast your voice currently lacks.", "The vocal delivery needs to match the quality of what you're describing."],
+  ],
+  "Quiet Achiever": [
+    ["Your delivery energy isn't matching the content quality - project more volume on the Action and Result.", "The answer sounds quieter than it should - that's a delivery gap, not a content one.", "Expressiveness in your voice needs to come up - the story deserves more presence than it's getting."],
+    ["Volume and energy in the closing section would change how confident this reads.", "The content is strong but the delivery is understating it - raise your energy in the final 30 seconds.", "Eye contact and vocal energy need to align with the ownership language you're using."],
+    ["The gap between this and a polished answer is purely delivery energy - the content is already there.", "More vocal projection on your Result would make the close land the way it deserves to.", "Your expressiveness needs to catch up to your confidence in the content."],
+  ],
+  "Scattered Thinker": [
+    ["The structure needs deliberate work - STAR labeling out loud would force the sequence you need.", "Ideas are present but not sequenced - the interviewer is working too hard to follow the through-line.", "A cleaner structure would reveal an answer that is stronger than its current delivery suggests."],
+    ["Starting with one sentence that names the situation would anchor the rest of the answer.", "The through-line is missing - connect each section explicitly to what came before.", "Structure is the highest-leverage fix - the content is workable, the shape isn't."],
+    ["The answer wanders between sections in a way that costs coherence - needs tighter sequencing.", "Write S-T-A-R on paper before your next attempt and label each section as you start it.", "Better organization would immediately raise the perceived quality of this response."],
+  ],
+  "Vague Narrator": [
+    ["One concrete number in the Result would make this story feel real - a percentage, a timeline, or a dollar figure.", "The biggest gap is specificity - the story is plausible but has no proof points.", "A named tool, metric, or outcome would immediately raise the credibility of this response."],
+    ["Adding the actual result - even a rough estimate - would close the most significant scoring gap.", "The answer needs one fact that couldn't be made up - a specific number or named decision.", "Specificity is the fastest fix available here - pick one detail and make it concrete."],
+    ["The outcome is still too vague to score well - name what actually changed or improved.", "The story stops before it reaches its conclusion - add one sentence with a real outcome.", "A measurable result would make the rest of the answer land much harder."],
+  ],
+  "Rusher": [
+    ["Slowing down on the Result section would let the most important part of the answer land properly.", "The pace is outrunning the content - the interviewer is processing before you've finished making your point.", "One deliberate pause before your outcome would change how confident this sounds."],
+    ["The answer needs to breathe - especially in the Action and Result sections.", "A slower pace in the final 20 seconds would raise the perceived confidence level significantly.", "Rushing through your strongest moments is undercutting an otherwise good answer."],
+    ["The delivery pace is the main thing preventing this from landing - the content is there.", "Slow down in the places that matter most - the decision and the result.", "Tempo is the most fixable delivery issue in this response."],
+  ],
+  "Overloader": [
+    ["The Situation section is too long - one sentence should cover it, not four.", "You're burying the lead - get to your action faster, the setup is overloading the interviewer.", "Compress the context to give the action and result the space they deserve."],
+    ["The answer warms up too long before the real content arrives.", "Your first two sentences should complete the Situation and Task - everything else is Action and Result.", "The answer is covering too much ground before getting to what matters."],
+    ["Cut the setup in half and use that time on the Result - that's where the score is.", "The lead is buried under context that would be better as a one-sentence frame.", "Directness is the clearest opportunity here - get to your decision faster."],
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// Persona profiles
+// ---------------------------------------------------------------------------
+
+type PersonaKey = "MARCUS" | "AALIYAH" | "DIEGO" | "SOPHIE" | "JORDAN";
 
 type Persona = {
-  overallStart: number; overallEnd: number;
-  commStart: number;    commEnd: number;
-  confStart: number;    confEnd: number;
-  fillersStart: number; fillersEnd: number;
-  wpmStart: number;     wpmEnd: number;
-  closingStart: number; closingEnd: number;
+  overallStart: number;   overallEnd: number;
+  commStart: number;      commEnd: number;
+  confStart: number;      confEnd: number;
+  fillersStart: number;   fillersEnd: number;
+  wpmStart: number;       wpmEnd: number;
+  closingStart: number;   closingEnd: number;
   volatility: number;
-  monotoneStart: number; monotoneEnd: number;
+  monotoneStart: number;  monotoneEnd: number;
   pitchMeanBase: number;
-  pitchStdStart: number; pitchStdEnd: number;
+  pitchStdStart: number;  pitchStdEnd: number;
   pitchRangeStart: number; pitchRangeEnd: number;
   energyMeanBase: number;
   energyStdStart: number; energyStdEnd: number;
   energyVarStart: number; energyVarEnd: number;
   tempoDynStart: number;  tempoDynEnd: number;
+  // Face metrics
+  eyeContactStart: number;    eyeContactEnd: number;
+  expressivenessStart: number; expressivenessEnd: number;
+  headStabilityStart: number;  headStabilityEnd: number;
+  // ESL mode
+  useEslMode: boolean;
+  // Archetype progression: [threshold_t, archetype][] - first matching t wins
+  archetypeArc: [number, DeliveryArchetype][];
+  // Coaching intervention note for admin (Sophie only, effectively)
+  interventionNote?: string;
 };
 
-// Marcus — post-grad success story (strong improvement arc)
 const MARCUS: Persona = {
-  overallStart: 52, overallEnd: 81,
-  commStart: 5.2,   commEnd: 7.9,
-  confStart: 4.8,   confEnd: 7.7,
+  overallStart: 52,  overallEnd: 81,
+  commStart: 5.2,    commEnd: 7.9,
+  confStart: 4.8,    confEnd: 7.7,
   fillersStart: 5.1, fillersEnd: 1.6,
-  wpmStart: 95,     wpmEnd: 132,
+  wpmStart: 95,      wpmEnd: 132,
   closingStart: 4.9, closingEnd: 7.8,
   volatility: 3.2,
   monotoneStart: 7.6, monotoneEnd: 4.2,
@@ -146,17 +315,25 @@ const MARCUS: Persona = {
   pitchRangeStart: 50, pitchRangeEnd: 140,
   energyMeanBase: 0.10,
   energyStdStart: 0.011, energyStdEnd: 0.040,
-  energyVarStart: 2.2, energyVarEnd: 6.8,
-  tempoDynStart: 2.4, tempoDynEnd: 6.0,
+  energyVarStart: 2.2,   energyVarEnd: 6.8,
+  tempoDynStart: 2.4,    tempoDynEnd: 6.0,
+  eyeContactStart: 0.44,    eyeContactEnd: 0.84,
+  expressivenessStart: 0.38, expressivenessEnd: 0.76,
+  headStabilityStart: 0.58,  headStabilityEnd: 0.88,
+  useEslMode: false,
+  archetypeArc: [
+    [0.30, "Hedger"],
+    [0.58, "Quiet Achiever"],
+    [1.00, "Polished Performer"],
+  ],
 };
 
-// Aaliyah — high performer, natural communicator (consulting track)
 const AALIYAH: Persona = {
-  overallStart: 72, overallEnd: 88,
-  commStart: 7.4,   commEnd: 8.8,
-  confStart: 7.2,   confEnd: 8.6,
+  overallStart: 72,  overallEnd: 88,
+  commStart: 7.4,    commEnd: 8.8,
+  confStart: 7.2,    confEnd: 8.6,
   fillersStart: 1.8, fillersEnd: 0.9,
-  wpmStart: 138,    wpmEnd: 148,
+  wpmStart: 138,     wpmEnd: 148,
   closingStart: 7.0, closingEnd: 8.6,
   volatility: 1.8,
   monotoneStart: 3.2, monotoneEnd: 2.2,
@@ -165,17 +342,24 @@ const AALIYAH: Persona = {
   pitchRangeStart: 155, pitchRangeEnd: 195,
   energyMeanBase: 0.17,
   energyStdStart: 0.048, energyStdEnd: 0.062,
-  energyVarStart: 8.0, energyVarEnd: 9.2,
-  tempoDynStart: 6.8, tempoDynEnd: 7.8,
+  energyVarStart: 8.0,   energyVarEnd: 9.2,
+  tempoDynStart: 6.8,    tempoDynEnd: 7.8,
+  eyeContactStart: 0.80,    eyeContactEnd: 0.93,
+  expressivenessStart: 0.76, expressivenessEnd: 0.91,
+  headStabilityStart: 0.82,  headStabilityEnd: 0.94,
+  useEslMode: false,
+  archetypeArc: [
+    [0.10, "Overloader"],  // early attempts front-load too much detail
+    [1.00, "Polished Performer"],
+  ],
 };
 
-// Diego — CS junior, rapid improver (technical, initially stilted)
 const DIEGO: Persona = {
-  overallStart: 58, overallEnd: 79,
-  commStart: 5.5,   commEnd: 7.5,
-  confStart: 5.0,   confEnd: 7.4,
+  overallStart: 58,  overallEnd: 79,
+  commStart: 5.5,    commEnd: 7.5,
+  confStart: 5.0,    confEnd: 7.4,
   fillersStart: 4.2, fillersEnd: 1.9,
-  wpmStart: 108,    wpmEnd: 134,
+  wpmStart: 108,     wpmEnd: 134,
   closingStart: 5.2, closingEnd: 7.2,
   volatility: 2.8,
   monotoneStart: 6.8, monotoneEnd: 3.8,
@@ -184,17 +368,25 @@ const DIEGO: Persona = {
   pitchRangeStart: 60, pitchRangeEnd: 135,
   energyMeanBase: 0.11,
   energyStdStart: 0.014, energyStdEnd: 0.038,
-  energyVarStart: 2.8, energyVarEnd: 6.2,
-  tempoDynStart: 3.0, tempoDynEnd: 5.6,
+  energyVarStart: 2.8,   energyVarEnd: 6.2,
+  tempoDynStart: 3.0,    tempoDynEnd: 5.6,
+  eyeContactStart: 0.50,    eyeContactEnd: 0.76,
+  expressivenessStart: 0.36, expressivenessEnd: 0.64,
+  headStabilityStart: 0.68,  headStabilityEnd: 0.86,
+  useEslMode: true,  // bilingual - ESL mode active throughout
+  archetypeArc: [
+    [0.40, "Monotone Expert"],
+    [0.80, "Quiet Achiever"],
+    [1.00, "Polished Performer"],
+  ],
 };
 
-// Sophie — plateau (HR/Psych) — coaching intervention needed
 const SOPHIE: Persona = {
-  overallStart: 65, overallEnd: 69,
-  commStart: 6.5,   commEnd: 6.9,
-  confStart: 6.2,   confEnd: 6.6,
+  overallStart: 65,  overallEnd: 69,
+  commStart: 6.5,    commEnd: 6.9,
+  confStart: 6.2,    confEnd: 6.6,
   fillersStart: 2.8, fillersEnd: 2.4,
-  wpmStart: 124,    wpmEnd: 130,
+  wpmStart: 124,     wpmEnd: 130,
   closingStart: 6.2, closingEnd: 6.5,
   volatility: 2.6,
   monotoneStart: 5.4, monotoneEnd: 5.2,
@@ -203,17 +395,25 @@ const SOPHIE: Persona = {
   pitchRangeStart: 90, pitchRangeEnd: 100,
   energyMeanBase: 0.13,
   energyStdStart: 0.024, energyStdEnd: 0.027,
-  energyVarStart: 4.5, energyVarEnd: 4.9,
-  tempoDynStart: 4.2, tempoDynEnd: 4.6,
+  energyVarStart: 4.5,   energyVarEnd: 4.9,
+  tempoDynStart: 4.2,    tempoDynEnd: 4.6,
+  eyeContactStart: 0.64,    eyeContactEnd: 0.73,
+  expressivenessStart: 0.40, expressivenessEnd: 0.46,
+  headStabilityStart: 0.70,  headStabilityEnd: 0.76,
+  useEslMode: false,
+  // Sophie is always a Hedger - this IS her plateau. Occasional Vague Narrator for variety.
+  archetypeArc: [
+    [1.00, "Hedger"],
+  ],
+  interventionNote: "18 sessions with minimal score movement. Archetype has remained Hedger throughout - ownership language is the consistent blocker. Recommend 1:1 coaching session focused on first-person framing.",
 };
 
-// Jordan — first-gen sophomore, early stage (significant growth trajectory)
 const JORDAN: Persona = {
-  overallStart: 44, overallEnd: 62,
-  commStart: 4.2,   commEnd: 6.1,
-  confStart: 3.8,   confEnd: 5.8,
+  overallStart: 44,  overallEnd: 62,
+  commStart: 4.2,    commEnd: 6.1,
+  confStart: 3.8,    confEnd: 5.8,
   fillersStart: 6.4, fillersEnd: 3.2,
-  wpmStart: 85,     wpmEnd: 115,
+  wpmStart: 85,      wpmEnd: 115,
   closingStart: 4.0, closingEnd: 5.8,
   volatility: 4.2,
   monotoneStart: 8.4, monotoneEnd: 6.2,
@@ -222,11 +422,34 @@ const JORDAN: Persona = {
   pitchRangeStart: 35, pitchRangeEnd: 85,
   energyMeanBase: 0.08,
   energyStdStart: 0.008, energyStdEnd: 0.025,
-  energyVarStart: 1.5, energyVarEnd: 4.2,
-  tempoDynStart: 1.8, tempoDynEnd: 4.0,
+  energyVarStart: 1.5,   energyVarEnd: 4.2,
+  tempoDynStart: 1.8,    tempoDynEnd: 4.0,
+  eyeContactStart: 0.26,    eyeContactEnd: 0.56,
+  expressivenessStart: 0.22, expressivenessEnd: 0.52,
+  headStabilityStart: 0.42,  headStabilityEnd: 0.66,
+  useEslMode: false,
+  archetypeArc: [
+    [0.50, "Scattered Thinker"],
+    [1.00, "Vague Narrator"],
+  ],
 };
 
-// ─── Attempt builder ──────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Archetype selection
+// ---------------------------------------------------------------------------
+
+function getArchetype(persona: Persona, t: number): DeliveryArchetype {
+  // Sophie occasionally gets Vague Narrator for realism
+  if (persona === SOPHIE && Math.random() < 0.25) return "Vague Narrator";
+  for (const [threshold, archetype] of persona.archetypeArc) {
+    if (t <= threshold) return archetype;
+  }
+  return persona.archetypeArc[persona.archetypeArc.length - 1][1];
+}
+
+// ---------------------------------------------------------------------------
+// Attempt builder
+// ---------------------------------------------------------------------------
 
 function buildAttempt(
   persona: Persona,
@@ -258,6 +481,36 @@ function buildAttempt(
   const tempoDyn       = round1(clamp(noise(lerp(persona.tempoDynStart, persona.tempoDynEnd, t), v * 0.2), 1.5, 9.5));
   const tempo          = round1(clamp(wpm + random(-6, 8), 80, 180));
 
+  // Face metrics - webcam-derived, improving over time with persona-specific ranges
+  const eyeContact      = round3(clamp(noise(lerp(persona.eyeContactStart, persona.eyeContactEnd, t), 0.06), 0.10, 0.98));
+  const expressiveness  = round3(clamp(noise(lerp(persona.expressivenessStart, persona.expressivenessEnd, t), 0.05), 0.08, 0.96));
+  const headStability   = round3(clamp(noise(lerp(persona.headStabilityStart, persona.headStabilityEnd, t), 0.04), 0.20, 0.98));
+  const framesAnalyzed  = Math.round(random(380, 520)); // 30fps * ~13-17s window
+
+  // Archetype
+  const archetype = getArchetype(persona, t);
+  const { coaching, description } = ARCHETYPE_META[archetype];
+  const primarySignals = ARCHETYPE_PRIMARY_SIGNALS[archetype];
+
+  // Strengths + improvements - pick a consistent variant set based on attempt index
+  const variantIdx = i % 3;
+  const strengths   = STRENGTHS[archetype][variantIdx];
+  const improvements = IMPROVEMENTS[archetype][variantIdx];
+
+  // Confidence explanation tied to delivery state
+  let confidenceExplanation: string;
+  if (confidenceScore >= 7.8) {
+    confidenceExplanation = "Strong ownership language and a controlled close are reading as genuine confidence here.";
+  } else if (fillersPer100 > 4.0 && confidenceScore < 6.5) {
+    confidenceExplanation = "The filler frequency is reducing the confidence signal - the content is stronger than the delivery is suggesting.";
+  } else if (wpm > 158) {
+    confidenceExplanation = "The pace is the main thing translating as low confidence - slowing down on the result would change the read.";
+  } else if (monotoneScore > 6.0) {
+    confidenceExplanation = "A flat vocal delivery is making the answer sound more uncertain than the content warrants.";
+  } else {
+    confidenceExplanation = "Confidence is developing - stronger first-person framing and a deliberate close would raise this meaningfully.";
+  }
+
   return {
     userId,
     tenantId,
@@ -265,7 +518,7 @@ function buildAttempt(
     createdAt: attemptDate,
     question: q.question,
     questionCategory: q.category,
-    evaluationFramework: "STAR",
+    evaluationFramework: "star",
     transcript: q.transcript,
     score: overallScore,
     communicationScore,
@@ -274,21 +527,38 @@ function buildAttempt(
     inputMethod: "spoken",
     feedback: {
       score: round1(overallScore / 10),
-      communication_score: round1(communicationScore),
-      confidence_score: round1(confidenceScore),
-      filler: { per100: fillersPer100 },
+      communication_score: communicationScore,
+      confidence_score: confidenceScore,
+      confidence_explanation: confidenceExplanation,
+      filler: {
+        total: Math.round(fillersPer100 * random(8, 14) / 10),
+        per100: fillersPer100,
+      },
       star: {
         situation: round1(clamp(random(5.5, 8.5) + sl, 1, 10)),
         task:      round1(clamp(random(5.5, 8.5) + sl, 1, 10)),
         action:    round1(clamp(random(6.0, 8.9) + sl, 1, 10)),
-        result:    round1(closingImpact),
+        result:    closingImpact,
       },
+      strengths,
+      improvements,
+      delivery_archetype: archetype,
+      archetype_coaching: coaching,
+      archetype_description: description,
+      archetype_signals: primarySignals,
+      esl_mode_active: persona.useEslMode,
+      ...(persona.useEslMode && confidenceScore < 7 ? {
+        esl_cultural_note: "US interviews reward first-person declarative language as a proxy for leadership potential. 'I led the project' scores differently than 'I was involved in the project' even if the underlying contribution was identical. This is a learnable convention - it's not about changing how you actually work, just how you describe it.",
+      } : {}),
     },
     prosody: {
       monotone: monotoneScore,
+      monotoneScore,
       pitchMean,
       pitchStd,
+      pitchRange,
       energyMean,
+      energyVariation: energyVar,
       fillerRate: round2(fillersPer100 / 100),
       tempoDynamics: tempoDyn,
     },
@@ -306,23 +576,33 @@ function buildAttempt(
         energyVariation: energyVar,
         tempo,
         tempoDynamics: tempoDyn,
+        durationSec: round1(random(55, 130)),
+        sampleRate: 22050,
+      },
+      face: {
+        eyeContact,
+        expressiveness,
+        headStability,
+        framesAnalyzed,
       },
     },
   };
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
 
 async function run() {
   console.log("DATABASE_URL loaded:", !!process.env.DATABASE_URL);
   const { prisma } = await import("../app/lib/prisma");
 
   const tenant = await prisma.tenant.findUnique({ where: { slug: "roosevelt" } });
-  if (tenant) await prisma.tenant.update({ where: { slug: "roosevelt" }, data: { plan: "university" } });
   if (!tenant) {
     console.error("Roosevelt tenant not found. Run setupRoosevelt.ts first.");
     process.exit(1);
   }
+  await prisma.tenant.update({ where: { slug: "roosevelt" }, data: { plan: "university" } });
   const tenantId = tenant.id;
 
   const [marcus, aaliyah, diego, sophie, jordan] = await Promise.all([
@@ -337,14 +617,25 @@ async function run() {
     process.exit(1);
   }
 
-  // Demo anchor date — today's actual seed date
-  const TODAY = new Date("2026-03-30T12:00:00.000Z");
+  const TODAY = new Date();
+  TODAY.setHours(12, 0, 0, 0);
 
-  // ══════════════════════════════════════════════════════════════════════════════
-  // 1. MARCUS JOHNSON — Post-grad success story
-  //    Business/Finance, graduated May 2025, now at Northern Trust
-  //    Arc: 52 → 81 over 38 sessions (6 months of heavy practice)
-  // ══════════════════════════════════════════════════════════════════════════════
+  // ---------------------------------------------------------------------------
+  // Update user profiles
+  // ---------------------------------------------------------------------------
+  await prisma.user.update({ where: { id: marcus.id },  data: { graduationYear: 2025, major: "Finance", targetRole: "Wealth Management Analyst", targetIndustry: "Financial Services" } });
+  await prisma.user.update({ where: { id: aaliyah.id }, data: { graduationYear: 2026, major: "Business Administration", targetRole: "Business Analyst", targetIndustry: "Professional Services" } });
+  await prisma.user.update({ where: { id: diego.id },   data: { graduationYear: 2027, major: "Computer Science", targetRole: "Software Engineer", targetIndustry: "Technology" } });
+  await prisma.user.update({ where: { id: sophie.id },  data: { graduationYear: 2026, major: "Psychology", targetRole: "HR Coordinator", targetIndustry: "Hospitality" } });
+  await prisma.user.update({ where: { id: jordan.id },  data: { graduationYear: 2028, major: "Communications", targetRole: "Marketing Coordinator", targetIndustry: "Media & Entertainment" } });
+  console.log("User profiles updated.");
+
+  // ==========================================================================
+  // 1. MARCUS JOHNSON
+  //    Post-grad success. 38 sessions. Hedger -> Polished Performer.
+  //    Placed at Northern Trust $67k.
+  //    Productivity: excellent - schedules ahead, no missed deadlines.
+  // ==========================================================================
   console.log("\nSeeding Marcus Johnson...");
 
   await prisma.aptitudeResult.deleteMany({ where: { userId: marcus.id } });
@@ -388,12 +679,23 @@ async function run() {
     },
   });
 
+  // Checklist - Marcus is post-grad, all items done, scheduled ahead with completedAt
   await prisma.checklistProgress.deleteMany({ where: { userId: marcus.id } });
-  for (const itemId of ["401k_enrolled", "contribution_set", "benefits_reviewed", "w4_set", "paycheck_review", "emergency_3mo", "renter_insurance", "credit_report"]) {
+  const marcusChecklistItems = [
+    { itemId: "401k_enrolled",    completedDaysAgo: 60, scheduledDaysAgo: 67, dueDaysAgo: 55 },
+    { itemId: "contribution_set", completedDaysAgo: 55, scheduledDaysAgo: 62, dueDaysAgo: 50 },
+    { itemId: "benefits_reviewed",completedDaysAgo: 50, scheduledDaysAgo: 58, dueDaysAgo: 45 },
+    { itemId: "w4_set",           completedDaysAgo: 48, scheduledDaysAgo: 54, dueDaysAgo: 42 },
+    { itemId: "paycheck_review",  completedDaysAgo: 42, scheduledDaysAgo: 50, dueDaysAgo: 38 },
+    { itemId: "emergency_3mo",    completedDaysAgo: 30, scheduledDaysAgo: 38, dueDaysAgo: 25 },
+    { itemId: "renter_insurance", completedDaysAgo: 22, scheduledDaysAgo: 30, dueDaysAgo: 18 },
+    { itemId: "credit_report",    completedDaysAgo: 14, scheduledDaysAgo: 21, dueDaysAgo: 10 },
+  ];
+  for (const item of marcusChecklistItems) {
     await prisma.checklistProgress.upsert({
-      where: { userId_stage_itemId: { userId: marcus.id, stage: "post_college", itemId } },
-      update: { done: true },
-      create: { userId: marcus.id, tenantId, stage: "post_college", itemId, done: true },
+      where: { userId_stage_itemId: { userId: marcus.id, stage: "post_college", itemId: item.itemId } },
+      update: { done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
+      create: { userId: marcus.id, tenantId, stage: "post_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
     });
   }
 
@@ -409,53 +711,33 @@ async function run() {
   await prisma.interviewActivity.deleteMany({ where: { userId: marcus.id } });
   await prisma.interviewActivity.createMany({
     data: [
-      {
-        userId: marcus.id, tenantId,
-        company: "JPMorgan Chase", role: "Financial Analyst", industry: "Financial Services",
-        appliedDate: daysAgo(TODAY, 310), interviewDate: daysAgo(TODAY, 295),
-        stage: "phone_screen", outcome: "rejected",
-        notes: "Rejected after phone screen — feedback cited need for more quantitative depth.",
-      },
-      {
-        userId: marcus.id, tenantId,
-        company: "Morningstar", role: "Investment Research Associate", industry: "Financial Services",
-        appliedDate: daysAgo(TODAY, 280), interviewDate: daysAgo(TODAY, 265),
-        stage: "offer", outcome: "declined",
-        salaryOffered: 61000,
-        notes: "Offer at $61k. Declined — compensation below target and no WFH flexibility.",
-      },
-      {
-        userId: marcus.id, tenantId,
-        company: "Northern Trust", role: "Wealth Management Analyst", industry: "Financial Services",
-        appliedDate: daysAgo(TODAY, 255), interviewDate: daysAgo(TODAY, 238),
-        stage: "accepted", outcome: "accepted",
-        salaryOffered: 67000,
-        notes: "Current role. Strong panel interview — Signal prep made the behavioral round straightforward.",
-      },
+      { userId: marcus.id, tenantId, company: "JPMorgan Chase", role: "Financial Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 310), interviewDate: daysAgo(TODAY, 295), stage: "phone_screen", outcome: "rejected", notes: "Rejected after phone screen - feedback cited need for more quantitative depth." },
+      { userId: marcus.id, tenantId, company: "Morningstar", role: "Investment Research Associate", industry: "Financial Services", appliedDate: daysAgo(TODAY, 280), interviewDate: daysAgo(TODAY, 265), stage: "offer", outcome: "declined", salaryOffered: 61000, notes: "Offer at $61k. Declined - compensation below target and no WFH flexibility." },
+      { userId: marcus.id, tenantId, company: "Northern Trust", role: "Wealth Management Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 255), interviewDate: daysAgo(TODAY, 238), stage: "accepted", outcome: "accepted", salaryOffered: 67000, notes: "Current role. Strong panel interview - Signal prep made the behavioral round straightforward." },
     ],
   });
-  console.log("  Career check-in, checklist, skills, interview activity seeded.");
 
+  // Tasks - Marcus is organized and proactive. All completed on time or early.
   await prisma.task.deleteMany({ where: { userId: marcus.id } });
   await prisma.task.createMany({ data: [
-    { userId: marcus.id, tenantId, title: "Max out 401(k) contribution to 10%", priority: "high", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 3), completedAt: null, createdAt: daysAgo(TODAY, 5) },
-    { userId: marcus.id, tenantId, title: "Schedule 30-day check-in with manager", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 1), completedAt: null, createdAt: daysAgo(TODAY, 4) },
-    { userId: marcus.id, tenantId, title: "Open Roth IRA account", priority: "medium", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 14), completedAt: null, createdAt: daysAgo(TODAY, 6) },
-    { userId: marcus.id, tenantId, title: "Update LinkedIn with Northern Trust role", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 2), completedAt: null, createdAt: daysAgo(TODAY, 3) },
-    { userId: marcus.id, tenantId, title: "Build post-grad monthly budget", priority: "high", category: "Finance", scheduledAt: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate(), 10, 0), dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()), completedAt: null, createdAt: daysAgo(TODAY, 7) },
-    { userId: marcus.id, tenantId, title: "Request renter's insurance quote", priority: "low", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 7), completedAt: null, createdAt: daysAgo(TODAY, 2) },
-    { userId: marcus.id, tenantId, title: "Complete Signal career assessment retake", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 5), completedAt: null, createdAt: daysAgo(TODAY, 1) },
-    { userId: marcus.id, tenantId, title: "Review first pay stub and verify withholdings", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 10) },
-    { userId: marcus.id, tenantId, title: "Enroll in health + dental benefits", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 5), createdAt: daysAgo(TODAY, 14) },
-    { userId: marcus.id, tenantId, title: "Connect with mentor from Roosevelt alumni network", priority: "medium", category: "Career", completedAt: daysAgo(TODAY, 8), createdAt: daysAgo(TODAY, 20) },
+    { userId: marcus.id, tenantId, title: "Max out 401(k) contribution to 10%", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 4), dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 6) },
+    { userId: marcus.id, tenantId, title: "Schedule 30-day check-in with manager", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 5) },
+    { userId: marcus.id, tenantId, title: "Open Roth IRA account", priority: "medium", category: "Finance", scheduledAt: daysAgo(TODAY, 3), dueDate: daysFromNow(TODAY, 14), completedAt: null, createdAt: daysAgo(TODAY, 7) },
+    { userId: marcus.id, tenantId, title: "Update LinkedIn with Northern Trust role", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 1), dueDate: daysFromNow(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: marcus.id, tenantId, title: "Review first pay stub and verify withholdings", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 12), dueDate: daysAgo(TODAY, 3), completedAt: daysAgo(TODAY, 3), createdAt: daysAgo(TODAY, 14) },
+    { userId: marcus.id, tenantId, title: "Enroll in health + dental benefits", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 16), dueDate: daysAgo(TODAY, 5), completedAt: daysAgo(TODAY, 6), createdAt: daysAgo(TODAY, 18) },
+    { userId: marcus.id, tenantId, title: "Connect with mentor from Roosevelt alumni network", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 24), dueDate: daysAgo(TODAY, 10), completedAt: daysAgo(TODAY, 10), createdAt: daysAgo(TODAY, 26) },
+    { userId: marcus.id, tenantId, title: "Build post-grad monthly budget", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 30), dueDate: daysAgo(TODAY, 20), completedAt: daysAgo(TODAY, 21), createdAt: daysAgo(TODAY, 32) },
+    { userId: marcus.id, tenantId, title: "Request renter's insurance quote", priority: "low", category: "Finance", scheduledAt: daysAgo(TODAY, 9), dueDate: daysAgo(TODAY, 2), completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 11) },
   ]});
-  console.log("  Tasks seeded for Marcus.");
+  console.log("  Tasks, checklist, career check-in, skills, interview activity seeded.");
 
-  // ══════════════════════════════════════════════════════════════════════════════
-  // 2. AALIYAH WASHINGTON — High performer, consulting track
-  //    Business/Communications senior, targeting Deloitte & Accenture
-  //    Arc: 72 → 88 over 26 sessions (steady climb)
-  // ══════════════════════════════════════════════════════════════════════════════
+  // ==========================================================================
+  // 2. AALIYAH WASHINGTON
+  //    High performer. 26 sessions. Overloader -> Polished Performer.
+  //    Targeting Deloitte + PwC final rounds.
+  //    Productivity: very good - efficient and on time.
+  // ==========================================================================
   console.log("\nSeeding Aaliyah Washington...");
 
   await prisma.aptitudeResult.deleteMany({ where: { userId: aaliyah.id } });
@@ -480,12 +762,35 @@ async function run() {
   }
   console.log(`  ${aaliyahTotal} attempts seeded.`);
 
+  await prisma.careerCheckIn.deleteMany({ where: { userId: aaliyah.id } });
+  await prisma.careerCheckIn.create({
+    data: {
+      userId: aaliyah.id, tenantId,
+      employmentStatus: "student",
+      industry: "Professional Services",
+      satisfactionScore: 4,
+      graduationYear: 2026,
+      monthsSinceGrad: null,
+    },
+  });
+
   await prisma.checklistProgress.deleteMany({ where: { userId: aaliyah.id } });
-  for (const itemId of ["resume", "linkedin", "internship_apps", "taxes_filed", "fafsa_renewed", "advisor_semester", "career_fair", "rec_letter", "gpa_check"]) {
+  const aaliyahChecklistItems = [
+    { itemId: "resume",           completedDaysAgo: 90, scheduledDaysAgo: 96, dueDaysAgo: 84 },
+    { itemId: "linkedin",         completedDaysAgo: 85, scheduledDaysAgo: 92, dueDaysAgo: 80 },
+    { itemId: "internship_apps",  completedDaysAgo: 70, scheduledDaysAgo: 78, dueDaysAgo: 65 },
+    { itemId: "taxes_filed",      completedDaysAgo: 50, scheduledDaysAgo: 58, dueDaysAgo: 46 },
+    { itemId: "fafsa_renewed",    completedDaysAgo: 40, scheduledDaysAgo: 48, dueDaysAgo: 35 },
+    { itemId: "advisor_semester", completedDaysAgo: 30, scheduledDaysAgo: 36, dueDaysAgo: 26 },
+    { itemId: "career_fair",      completedDaysAgo: 20, scheduledDaysAgo: 28, dueDaysAgo: 16 },
+    { itemId: "rec_letter",       completedDaysAgo: 14, scheduledDaysAgo: 22, dueDaysAgo: 10 },
+    { itemId: "gpa_check",        completedDaysAgo: 8,  scheduledDaysAgo: 14, dueDaysAgo: 4 },
+  ];
+  for (const item of aaliyahChecklistItems) {
     await prisma.checklistProgress.upsert({
-      where: { userId_stage_itemId: { userId: aaliyah.id, stage: "during_college", itemId } },
-      update: { done: true },
-      create: { userId: aaliyah.id, tenantId, stage: "during_college", itemId, done: true },
+      where: { userId_stage_itemId: { userId: aaliyah.id, stage: "during_college", itemId: item.itemId } },
+      update: { done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
+      create: { userId: aaliyah.id, tenantId, stage: "during_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
     });
   }
 
@@ -501,36 +806,29 @@ async function run() {
   await prisma.interviewActivity.deleteMany({ where: { userId: aaliyah.id } });
   await prisma.interviewActivity.createMany({
     data: [
-      {
-        userId: aaliyah.id, tenantId,
-        company: "PwC", role: "Advisory Associate", industry: "Professional Services",
-        appliedDate: daysAgo(TODAY, 95), interviewDate: daysAgo(TODAY, 78),
-        stage: "offer", outcome: "pending",
-        notes: "Offer pending decision. Great cultural fit, case round went very well.",
-      },
-      {
-        userId: aaliyah.id, tenantId,
-        company: "Deloitte", role: "Business Analyst", industry: "Professional Services",
-        appliedDate: daysAgo(TODAY, 80), interviewDate: daysAgo(TODAY, 58),
-        stage: "final_round", outcome: "pending",
-        notes: "Final round scheduled next week. Strong first-round case performance.",
-      },
-      {
-        userId: aaliyah.id, tenantId,
-        company: "Accenture", role: "Technology Analyst", industry: "Professional Services",
-        appliedDate: daysAgo(TODAY, 65),
-        stage: "applied", outcome: "pending",
-        notes: "Applied to Chicago office. Network connection made at Roosevelt career fair.",
-      },
+      { userId: aaliyah.id, tenantId, company: "PwC", role: "Advisory Associate", industry: "Professional Services", appliedDate: daysAgo(TODAY, 95), interviewDate: daysAgo(TODAY, 78), stage: "offer", outcome: "pending", notes: "Offer pending decision. Great cultural fit, case round went very well." },
+      { userId: aaliyah.id, tenantId, company: "Deloitte", role: "Business Analyst", industry: "Professional Services", appliedDate: daysAgo(TODAY, 80), interviewDate: daysAgo(TODAY, 58), stage: "final_round", outcome: "pending", notes: "Final round scheduled next week. Strong first-round case performance." },
+      { userId: aaliyah.id, tenantId, company: "Accenture", role: "Technology Analyst", industry: "Professional Services", appliedDate: daysAgo(TODAY, 65), stage: "applied", outcome: "pending", notes: "Applied to Chicago office. Network connection made at Roosevelt career fair." },
     ],
   });
-  console.log("  Checklist, skills, interview activity seeded.");
 
-  // ══════════════════════════════════════════════════════════════════════════════
-  // 3. DIEGO REYES — CS Junior, rapid improver
-  //    Computer Science, targeting Motorola Solutions / Outcome Health
-  //    Arc: 58 → 79 over 20 sessions (accelerating in last 6 weeks)
-  // ══════════════════════════════════════════════════════════════════════════════
+  await prisma.task.deleteMany({ where: { userId: aaliyah.id } });
+  await prisma.task.createMany({ data: [
+    { userId: aaliyah.id, tenantId, title: "Prep Deloitte final round case framework", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 3), dueDate: daysFromNow(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 5) },
+    { userId: aaliyah.id, tenantId, title: "Write thank-you note to PwC interviewer", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: aaliyah.id, tenantId, title: "Research Deloitte Chicago - industry clients", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 4), dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 6) },
+    { userId: aaliyah.id, tenantId, title: "Complete senior capstone presentation draft", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 15), dueDate: daysAgo(TODAY, 4), completedAt: daysAgo(TODAY, 5), createdAt: daysAgo(TODAY, 18) },
+    { userId: aaliyah.id, tenantId, title: "Submit internship experience to LinkedIn", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 22), dueDate: daysAgo(TODAY, 12), completedAt: daysAgo(TODAY, 13), createdAt: daysAgo(TODAY, 25) },
+    { userId: aaliyah.id, tenantId, title: "Request rec letter from Professor Adams", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 28), dueDate: daysAgo(TODAY, 18), completedAt: daysAgo(TODAY, 18), createdAt: daysAgo(TODAY, 30) },
+  ]});
+  console.log("  Tasks, checklist, career check-in, skills, interview activity seeded.");
+
+  // ==========================================================================
+  // 3. DIEGO REYES
+  //    CS junior, ESL mode on. 20 sessions. Monotone Expert -> Quiet Achiever.
+  //    Some missed deadlines - got rejected from Motorola, planning gaps visible.
+  //    Productivity: decent but 2 missed deadlines.
+  // ==========================================================================
   console.log("\nSeeding Diego Reyes...");
 
   await prisma.aptitudeResult.deleteMany({ where: { userId: diego.id } });
@@ -555,12 +853,31 @@ async function run() {
   }
   console.log(`  ${diegoTotal} attempts seeded.`);
 
+  await prisma.careerCheckIn.deleteMany({ where: { userId: diego.id } });
+  await prisma.careerCheckIn.create({
+    data: {
+      userId: diego.id, tenantId,
+      employmentStatus: "student",
+      industry: "Technology",
+      satisfactionScore: 3,
+      graduationYear: 2027,
+      monthsSinceGrad: null,
+    },
+  });
+
   await prisma.checklistProgress.deleteMany({ where: { userId: diego.id } });
-  for (const itemId of ["resume", "linkedin", "internship_apps", "advisor_semester", "gpa_check"]) {
+  const diegoChecklistItems = [
+    { itemId: "resume",          completedDaysAgo: 75, scheduledDaysAgo: 78, dueDaysAgo: 70, late: false },
+    { itemId: "linkedin",        completedDaysAgo: 68, scheduledDaysAgo: 72, dueDaysAgo: 64, late: false },
+    { itemId: "internship_apps", completedDaysAgo: 52, scheduledDaysAgo: 56, dueDaysAgo: 45, late: true },  // completed 7 days after due - missed
+    { itemId: "advisor_semester",completedDaysAgo: 35, scheduledDaysAgo: 38, dueDaysAgo: 28, late: false },
+    { itemId: "gpa_check",       completedDaysAgo: 18, scheduledDaysAgo: 20, dueDaysAgo: 10, late: true },  // completed 8 days after due - missed
+  ];
+  for (const item of diegoChecklistItems) {
     await prisma.checklistProgress.upsert({
-      where: { userId_stage_itemId: { userId: diego.id, stage: "during_college", itemId } },
-      update: { done: true },
-      create: { userId: diego.id, tenantId, stage: "during_college", itemId, done: true },
+      where: { userId_stage_itemId: { userId: diego.id, stage: "during_college", itemId: item.itemId } },
+      update: { done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
+      create: { userId: diego.id, tenantId, stage: "during_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
     });
   }
 
@@ -576,51 +893,31 @@ async function run() {
   await prisma.interviewActivity.deleteMany({ where: { userId: diego.id } });
   await prisma.interviewActivity.createMany({
     data: [
-      {
-        userId: diego.id, tenantId,
-        company: "Motorola Solutions", role: "Software Engineer Intern", industry: "Technology",
-        appliedDate: daysAgo(TODAY, 72), interviewDate: daysAgo(TODAY, 55),
-        stage: "phone_screen", outcome: "rejected",
-        notes: "Good technical screen, rejected on behavioral round — communication cited as feedback area.",
-      },
-      {
-        userId: diego.id, tenantId,
-        company: "Outcome Health", role: "Junior Software Engineer", industry: "Health Tech",
-        appliedDate: daysAgo(TODAY, 45), interviewDate: daysAgo(TODAY, 28),
-        stage: "final_round", outcome: "pending",
-        notes: "Final round scheduled. Noticeably more confident in mock sessions leading up.",
-      },
-      {
-        userId: diego.id, tenantId,
-        company: "Relativity", role: "Software Engineer Intern", industry: "Technology",
-        appliedDate: daysAgo(TODAY, 20),
-        stage: "applied", outcome: "pending",
-        notes: "Chicago-based legaltech — strong cultural mission fit.",
-      },
+      { userId: diego.id, tenantId, company: "Motorola Solutions", role: "Software Engineer Intern", industry: "Technology", appliedDate: daysAgo(TODAY, 72), interviewDate: daysAgo(TODAY, 55), stage: "phone_screen", outcome: "rejected", notes: "Good technical screen, rejected on behavioral round - communication cited as feedback area." },
+      { userId: diego.id, tenantId, company: "Outcome Health", role: "Junior Software Engineer", industry: "Health Tech", appliedDate: daysAgo(TODAY, 45), interviewDate: daysAgo(TODAY, 28), stage: "final_round", outcome: "pending", notes: "Final round scheduled. Noticeably more confident in mock sessions leading up." },
+      { userId: diego.id, tenantId, company: "Relativity", role: "Software Engineer Intern", industry: "Technology", appliedDate: daysAgo(TODAY, 20), stage: "applied", outcome: "pending", notes: "Chicago-based legaltech - strong cultural mission fit." },
     ],
   });
+
   await prisma.task.deleteMany({ where: { userId: diego.id } });
   await prisma.task.createMany({ data: [
-    { userId: diego.id, tenantId, title: "LeetCode medium: binary trees (3 problems)", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate()), scheduledAt: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate(), 9, 0), completedAt: null, createdAt: daysAgo(TODAY, 2) },
-    { userId: diego.id, tenantId, title: "Prep behavioral stories for Outcome Health final round", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 1), completedAt: null, createdAt: daysAgo(TODAY, 3) },
-    { userId: diego.id, tenantId, title: "Polish GitHub — pin 3 best projects with READMEs", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 3), completedAt: null, createdAt: daysAgo(TODAY, 4) },
-    { userId: diego.id, tenantId, title: "Apply to 2 more Chicago tech internships", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 5), completedAt: null, createdAt: daysAgo(TODAY, 1) },
-    { userId: diego.id, tenantId, title: "Email CS advisor about spring registration", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 2), completedAt: null, createdAt: daysAgo(TODAY, 2) },
-    { userId: diego.id, tenantId, title: "Build personal portfolio site", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 14), completedAt: null, createdAt: daysAgo(TODAY, 5) },
-    { userId: diego.id, tenantId, title: "Research Relativity — prep company-specific questions", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 4), completedAt: null, createdAt: daysAgo(TODAY, 1) },
-    { userId: diego.id, tenantId, title: "Complete Signal mock interview session", priority: "high", category: "Career", completedAt: daysAgo(TODAY, 1), createdAt: daysAgo(TODAY, 3) },
-    { userId: diego.id, tenantId, title: "Submit FAFSA renewal", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 6), createdAt: daysAgo(TODAY, 10) },
-    { userId: diego.id, tenantId, title: "Ask Professor Kim for recommendation letter", priority: "medium", category: "Career", completedAt: daysAgo(TODAY, 4), createdAt: daysAgo(TODAY, 8) },
+    { userId: diego.id, tenantId, title: "LeetCode medium: binary trees (3 problems)", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 1), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 3) },
+    { userId: diego.id, tenantId, title: "Prep behavioral stories for Outcome Health final round", priority: "high", category: "Career", dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 3) }, // not scheduled - planning gap
+    { userId: diego.id, tenantId, title: "Polish GitHub - pin 3 best projects with READMEs", priority: "medium", category: "Career", dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 4) }, // not scheduled
+    { userId: diego.id, tenantId, title: "Apply to 2 more Chicago tech internships", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 5), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: diego.id, tenantId, title: "Complete Signal mock interview session", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 4), dueDate: daysAgo(TODAY, 1), completedAt: daysAgo(TODAY, 1), createdAt: daysAgo(TODAY, 5) },
+    { userId: diego.id, tenantId, title: "Submit FAFSA renewal", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 12), dueDate: daysAgo(TODAY, 6), completedAt: daysAgo(TODAY, 6), createdAt: daysAgo(TODAY, 14) },
+    { userId: diego.id, tenantId, title: "Ask Professor Kim for recommendation letter", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 10), dueDate: daysAgo(TODAY, 4), completedAt: daysAgo(TODAY, 4), createdAt: daysAgo(TODAY, 12) },
+    // Missed deadline: prep for Motorola - submitted late
+    { userId: diego.id, tenantId, title: "Research Motorola Solutions product lines for interview", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 60), dueDate: daysAgo(TODAY, 56), completedAt: daysAgo(TODAY, 52), createdAt: daysAgo(TODAY, 64) },
   ]});
-  console.log("  Tasks seeded for Diego.");
+  console.log("  Tasks, checklist, career check-in, skills, interview activity seeded.");
 
-  console.log("  Checklist, skills, interview activity seeded.");
-
-  // ══════════════════════════════════════════════════════════════════════════════
-  // 4. SOPHIE PARK — Plateau case, coaching intervention needed
-  //    Psychology/HR senior, targeting Hyatt & United Airlines
-  //    Arc: 65 → 69 over 18 sessions (flat line — demonstration of coaching need)
-  // ══════════════════════════════════════════════════════════════════════════════
+  // ==========================================================================
+  // 4. SOPHIE PARK
+  //    Plateau case. 18 sessions. Hedger throughout - coaching intervention needed.
+  //    Productivity: poor - has time but not following through. Multiple missed deadlines.
+  // ==========================================================================
   console.log("\nSeeding Sophie Park...");
 
   await prisma.aptitudeResult.deleteMany({ where: { userId: sophie.id } });
@@ -645,12 +942,33 @@ async function run() {
   }
   console.log(`  ${sophieTotal} attempts seeded.`);
 
+  await prisma.careerCheckIn.deleteMany({ where: { userId: sophie.id } });
+  await prisma.careerCheckIn.create({
+    data: {
+      userId: sophie.id, tenantId,
+      employmentStatus: "student",
+      industry: "Hospitality",
+      satisfactionScore: 2,
+      graduationYear: 2026,
+      monthsSinceGrad: null,
+    },
+  });
+
   await prisma.checklistProgress.deleteMany({ where: { userId: sophie.id } });
-  for (const itemId of ["resume", "linkedin", "internship_apps", "advisor_semester", "career_fair"]) {
+  // Sophie - scheduled late, some missed, completedAt is after due
+  const sophieChecklistItems = [
+    { itemId: "resume",          completedDaysAgo: 65, scheduledDaysAgo: 68, dueDaysAgo: 70, late: false }, // on time
+    { itemId: "linkedin",        completedDaysAgo: 55, scheduledDaysAgo: 58, dueDaysAgo: 60, late: false }, // on time
+    { itemId: "internship_apps", completedDaysAgo: 30, scheduledDaysAgo: 35, dueDaysAgo: 45, late: true },  // late - 15 days after due
+    { itemId: "advisor_semester",completedDaysAgo: 18, scheduledDaysAgo: 20, dueDaysAgo: 25, late: false }, // on time
+    { itemId: "career_fair",     completedDaysAgo: 8,  scheduledDaysAgo: 10, dueDaysAgo: 14, late: false }, // on time
+    // rec_letter and gpa_check: not done yet - these are the missing items
+  ];
+  for (const item of sophieChecklistItems) {
     await prisma.checklistProgress.upsert({
-      where: { userId_stage_itemId: { userId: sophie.id, stage: "during_college", itemId } },
-      update: { done: true },
-      create: { userId: sophie.id, tenantId, stage: "during_college", itemId, done: true },
+      where: { userId_stage_itemId: { userId: sophie.id, stage: "during_college", itemId: item.itemId } },
+      update: { done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
+      create: { userId: sophie.id, tenantId, stage: "during_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
     });
   }
 
@@ -665,29 +983,28 @@ async function run() {
   await prisma.interviewActivity.deleteMany({ where: { userId: sophie.id } });
   await prisma.interviewActivity.createMany({
     data: [
-      {
-        userId: sophie.id, tenantId,
-        company: "Hyatt Hotels", role: "HR Coordinator", industry: "Hospitality",
-        appliedDate: daysAgo(TODAY, 60), interviewDate: daysAgo(TODAY, 45),
-        stage: "phone_screen", outcome: "rejected",
-        notes: "Passed recruiter screen, rejected after hiring manager call. Needs stronger behavioral stories.",
-      },
-      {
-        userId: sophie.id, tenantId,
-        company: "United Airlines", role: "People & Culture Associate", industry: "Aviation",
-        appliedDate: daysAgo(TODAY, 30),
-        stage: "applied", outcome: "pending",
-        notes: "Strong mission alignment. Following up next week.",
-      },
+      { userId: sophie.id, tenantId, company: "Hyatt Hotels", role: "HR Coordinator", industry: "Hospitality", appliedDate: daysAgo(TODAY, 60), interviewDate: daysAgo(TODAY, 45), stage: "phone_screen", outcome: "rejected", notes: "Passed recruiter screen, rejected after hiring manager call. Needs stronger behavioral stories with clear personal ownership." },
+      { userId: sophie.id, tenantId, company: "United Airlines", role: "People & Culture Associate", industry: "Aviation", appliedDate: daysAgo(TODAY, 30), stage: "applied", outcome: "pending", notes: "Strong mission alignment. Following up next week." },
     ],
   });
-  console.log("  Checklist, skills, interview activity seeded.");
 
-  // ══════════════════════════════════════════════════════════════════════════════
-  // 5. JORDAN TAYLOR — First-gen sophomore, early stage
-  //    Communications, exploring career paths, big improvement arc ahead
-  //    Arc: 44 → 62 over 12 sessions (just getting started)
-  // ══════════════════════════════════════════════════════════════════════════════
+  // Sophie tasks - creates tasks but doesn't schedule them, misses deadlines
+  await prisma.task.deleteMany({ where: { userId: sophie.id } });
+  await prisma.task.createMany({ data: [
+    { userId: sophie.id, tenantId, title: "Prep 3 behavioral stories with STAR structure", priority: "high", category: "Career", dueDate: daysAgo(TODAY, 5), completedAt: null, createdAt: daysAgo(TODAY, 14) }, // MISSED - past due, not done
+    { userId: sophie.id, tenantId, title: "Follow up with United Airlines recruiter", priority: "high", category: "Career", dueDate: daysAgo(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 8) }, // MISSED - past due, not done
+    { userId: sophie.id, tenantId, title: "Request rec letter from Professor Chen", priority: "medium", category: "Career", dueDate: daysFromNow(TODAY, 5), completedAt: null, createdAt: daysAgo(TODAY, 6) }, // coming up, not scheduled
+    { userId: sophie.id, tenantId, title: "Practice salary negotiation response", priority: "medium", category: "Career", dueDate: daysFromNow(TODAY, 10), completedAt: null, createdAt: daysAgo(TODAY, 3) }, // not scheduled
+    { userId: sophie.id, tenantId, title: "Submit FAFSA renewal", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 32), dueDate: daysAgo(TODAY, 28), completedAt: daysAgo(TODAY, 22), createdAt: daysAgo(TODAY, 35) }, // completed 6 days LATE
+    { userId: sophie.id, tenantId, title: "Meet with career advisor", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 20), dueDate: daysAgo(TODAY, 15), completedAt: daysAgo(TODAY, 15), createdAt: daysAgo(TODAY, 22) }, // on time
+  ]});
+  console.log("  Tasks, checklist, career check-in, skills, interview activity seeded.");
+
+  // ==========================================================================
+  // 5. JORDAN TAYLOR
+  //    First-gen sophomore, early stage. 12 sessions. Scattered Thinker -> Vague Narrator.
+  //    Productivity: minimal scheduling, just starting to use the system.
+  // ==========================================================================
   console.log("\nSeeding Jordan Taylor...");
 
   await prisma.aptitudeResult.deleteMany({ where: { userId: jordan.id } });
@@ -712,13 +1029,18 @@ async function run() {
   }
   console.log(`  ${jordanTotal} attempts seeded.`);
 
-  // Jordan only just started — partial checklist
+  // Jordan - partial checklist, minimal scheduling, just starting out
   await prisma.checklistProgress.deleteMany({ where: { userId: jordan.id } });
-  for (const itemId of ["fafsa_done", "email_setup", "linkedin_setup"]) {
+  const jordanChecklistItems = [
+    { itemId: "fafsa_done",    completedDaysAgo: 20, scheduledDaysAgo: null as null, dueDaysAgo: null as null }, // completed but no planning
+    { itemId: "email_setup",   completedDaysAgo: 14, scheduledDaysAgo: null,         dueDaysAgo: null },
+    { itemId: "linkedin_setup",completedDaysAgo: 8,  scheduledDaysAgo: 10,           dueDaysAgo: 5 },  // completed 3 days after due
+  ];
+  for (const item of jordanChecklistItems) {
     await prisma.checklistProgress.upsert({
-      where: { userId_stage_itemId: { userId: jordan.id, stage: "pre_college", itemId } },
-      update: { done: true },
-      create: { userId: jordan.id, tenantId, stage: "pre_college", itemId, done: true },
+      where: { userId_stage_itemId: { userId: jordan.id, stage: "pre_college", itemId: item.itemId } },
+      update: { done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: item.scheduledDaysAgo ? daysAgo(TODAY, item.scheduledDaysAgo) : null, dueDate: item.dueDaysAgo ? daysAgo(TODAY, item.dueDaysAgo) : null },
+      create: { userId: jordan.id, tenantId, stage: "pre_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: item.scheduledDaysAgo ? daysAgo(TODAY, item.scheduledDaysAgo) : null, dueDate: item.dueDaysAgo ? daysAgo(TODAY, item.dueDaysAgo) : null },
     });
   }
 
@@ -730,26 +1052,27 @@ async function run() {
     await prisma.studentSkill.create({ data: { userId: jordan.id, tenantId, skill, category, confidence: round2(random(0.55, 0.78)), source: "ai_extracted" } });
   }
 
+  // Jordan tasks - mostly not scheduled, one missed deadline
   await prisma.task.deleteMany({ where: { userId: jordan.id } });
   await prisma.task.createMany({ data: [
-    { userId: jordan.id, tenantId, title: "Submit housing application by deadline", priority: "high", category: "Personal", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 4), scheduledAt: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate(), 14, 0), completedAt: null, createdAt: daysAgo(TODAY, 2) },
-    { userId: jordan.id, tenantId, title: "Set up Roosevelt student email and portal", priority: "high", category: "Personal", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 1), completedAt: null, createdAt: daysAgo(TODAY, 3) },
-    { userId: jordan.id, tenantId, title: "Register for orientation", priority: "high", category: "Personal", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 7), completedAt: null, createdAt: daysAgo(TODAY, 1) },
-    { userId: jordan.id, tenantId, title: "Build first college budget — tuition, housing, books", priority: "medium", category: "Finance", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 6), completedAt: null, createdAt: daysAgo(TODAY, 2) },
-    { userId: jordan.id, tenantId, title: "Schedule meeting with academic advisor", priority: "medium", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 10), completedAt: null, createdAt: daysAgo(TODAY, 1) },
-    { userId: jordan.id, tenantId, title: "Add headshot and major to LinkedIn profile", priority: "low", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 8), completedAt: null, createdAt: daysAgo(TODAY, 2) },
-    { userId: jordan.id, tenantId, title: "Complete Signal career assessment", priority: "high", category: "Career", dueDate: new Date(TODAY.getFullYear(), TODAY.getMonth(), TODAY.getDate() + 2), completedAt: null, createdAt: daysAgo(TODAY, 1) },
-    { userId: jordan.id, tenantId, title: "Complete FAFSA application", priority: "high", category: "Finance", completedAt: daysAgo(TODAY, 5), createdAt: daysAgo(TODAY, 12) },
-    { userId: jordan.id, tenantId, title: "Set up student email", priority: "high", category: "Personal", completedAt: daysAgo(TODAY, 3), createdAt: daysAgo(TODAY, 8) },
+    { userId: jordan.id, tenantId, title: "Submit housing application by deadline", priority: "high", category: "Personal", scheduledAt: daysAgo(TODAY, 1), dueDate: daysFromNow(TODAY, 4), completedAt: null, createdAt: daysAgo(TODAY, 3) },
+    { userId: jordan.id, tenantId, title: "Register for orientation", priority: "high", category: "Personal", dueDate: daysFromNow(TODAY, 7), completedAt: null, createdAt: daysAgo(TODAY, 2) }, // not scheduled
+    { userId: jordan.id, tenantId, title: "Build first college budget", priority: "medium", category: "Finance", dueDate: daysFromNow(TODAY, 6), completedAt: null, createdAt: daysAgo(TODAY, 2) }, // not scheduled
+    { userId: jordan.id, tenantId, title: "Schedule meeting with academic advisor", priority: "medium", category: "Career", dueDate: daysFromNow(TODAY, 10), completedAt: null, createdAt: daysAgo(TODAY, 1) }, // not scheduled
+    { userId: jordan.id, tenantId, title: "Complete Signal career assessment", priority: "high", category: "Career", dueDate: daysAgo(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 8) }, // MISSED - past due, not done
+    { userId: jordan.id, tenantId, title: "Complete FAFSA application", priority: "high", category: "Finance", dueDate: daysAgo(TODAY, 20), completedAt: daysAgo(TODAY, 20), createdAt: daysAgo(TODAY, 25) }, // done, no scheduling
+    { userId: jordan.id, tenantId, title: "Set up student email", priority: "high", category: "Personal", dueDate: daysAgo(TODAY, 14), completedAt: daysAgo(TODAY, 14), createdAt: daysAgo(TODAY, 18) }, // done
   ]});
-  console.log("  Tasks seeded for Jordan.");
+  console.log("  Tasks, checklist, skills seeded. No interview activity yet (sophomore).");
 
-  console.log("  Checklist and skills seeded. No interview activity yet (sophomore).");
+  const totalAttempts = marcusTotal + aaliyahTotal + diegoTotal + sophieTotal + jordanTotal;
+  console.log(`\nRoosevelt University reseed complete.`);
+  console.log(`  ${totalAttempts} total attempts across 5 students.`);
+  console.log(`  All attempts include: face metrics, delivery archetypes, strengths/improvements.`);
+  console.log(`  Diego: ESL mode active throughout.`);
+  console.log(`  Sophie: Hedger archetype throughout - coaching intervention data visible.`);
+  console.log(`\nAdmin login: careers@roosevelt.edu / RooseveltAdmin2026!`);
 
-  // ══════════════════════════════════════════════════════════════════════════════
-  console.log("\n✓ Roosevelt University seed complete.");
-  console.log("  5 students seeded across 3 stages with", marcusTotal + aaliyahTotal + diegoTotal + sophieTotal + jordanTotal, "total attempts.");
-  console.log("\nAdmin login: careers@roosevelt.edu / RooseveltAdmin2026!");
   await prisma.$disconnect();
 }
 

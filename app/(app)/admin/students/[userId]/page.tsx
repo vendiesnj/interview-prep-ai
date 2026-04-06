@@ -12,6 +12,7 @@ import {
   avgTenPoint,
 } from "@/app/lib/scoreScale";
 import StageSetterClient from "./StageSetterClient";
+import { ARCHETYPE_COLOR } from "@/app/lib/feedback/archetypes";
 
 
 function num(v: any): number | null {
@@ -331,6 +332,25 @@ const trendLabel =
   const strongestRole =
     attempts.find((a) => a.jobProfileTitle)?.jobProfileTitle ?? "No role data yet";
 
+  // Archetype progression - chronological (oldest first)
+  const archetypeTimeline = [...attempts]
+    .reverse()
+    .map((a, i) => ({
+      idx: i + 1,
+      archetype: (feedbackObj(a) as any)?.delivery_archetype as string | null,
+      coaching: (feedbackObj(a) as any)?.archetype_coaching as string | null,
+      signals: ((feedbackObj(a) as any)?.archetype_signals ?? []) as string[],
+      score: asOverall100((a.score as number | null) ?? (feedbackObj(a) as any)?.score),
+      ts: a.ts,
+    }))
+    .filter((entry) => entry.archetype !== null);
+
+  // Detect transitions: flag entries where archetype changed from previous
+  for (let i = 1; i < archetypeTimeline.length; i++) {
+    (archetypeTimeline[i] as any).changed = archetypeTimeline[i].archetype !== archetypeTimeline[i - 1].archetype;
+  }
+  if (archetypeTimeline.length > 0) (archetypeTimeline[0] as any).changed = false;
+
   return (
     <PremiumShell
       title="Student Drilldown"
@@ -559,6 +579,84 @@ const trendLabel =
           );
         })()}
 
+        {/* Archetype Journey */}
+        {archetypeTimeline.length > 0 && (() => {
+          const latestEntry = archetypeTimeline[archetypeTimeline.length - 1];
+          const latestColor = latestEntry.archetype
+            ? (ARCHETYPE_COLOR[latestEntry.archetype as keyof typeof ARCHETYPE_COLOR] ?? "#6B7280")
+            : "#6B7280";
+
+          return (
+            <div style={{
+              borderRadius: 22,
+              padding: 22,
+              background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+              border: "1px solid var(--card-border-soft)",
+              boxShadow: "var(--shadow-card-soft)",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
+                Delivery Archetype
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                <div style={{ fontSize: 22, fontWeight: 950, letterSpacing: -0.3, color: latestColor }}>
+                  {latestEntry.archetype}
+                </div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>current</div>
+              </div>
+              {latestEntry.coaching && (
+                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, marginBottom: 16, maxWidth: 600 }}>
+                  {latestEntry.coaching}
+                </div>
+              )}
+              {latestEntry.signals.length > 0 && (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
+                  <span style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, alignSelf: "center" }}>signals:</span>
+                  {latestEntry.signals.map((sig) => (
+                    <span key={sig} style={{
+                      padding: "2px 7px", borderRadius: 999, fontSize: 10, fontWeight: 700,
+                      color: latestColor, background: `${latestColor}15`, border: `1px solid ${latestColor}35`,
+                    }}>
+                      {sig.replace(/_/g, " ")}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Timeline */}
+              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
+                Progression across {archetypeTimeline.length} attempt{archetypeTimeline.length !== 1 ? "s" : ""}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
+                {archetypeTimeline.map((entry, i) => {
+                  const color = entry.archetype
+                    ? (ARCHETYPE_COLOR[entry.archetype as keyof typeof ARCHETYPE_COLOR] ?? "#6B7280")
+                    : "#6B7280";
+                  const changed = (entry as any).changed;
+                  return (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      {i > 0 && (
+                        <span style={{ color: changed ? "var(--accent)" : "var(--card-border)", fontSize: 12, fontWeight: changed ? 900 : 400 }}>
+                          {changed ? "→" : "·"}
+                        </span>
+                      )}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                        <span style={{
+                          padding: "2px 7px", borderRadius: 999, fontSize: 10, fontWeight: 900,
+                          color, background: `${color}15`, border: `1px solid ${color}${changed ? "60" : "30"}`,
+                          whiteSpace: "nowrap",
+                        }}>
+                          {entry.archetype}
+                        </span>
+                        <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700 }}>#{entry.idx}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })()}
+
         <div
           style={{
             display: "grid",
@@ -728,7 +826,7 @@ const trendLabel =
         <div
   style={{
     display: "grid",
-    gridTemplateColumns: "1.8fr 100px 100px 100px 100px 100px 120px",
+    gridTemplateColumns: "1.8fr 100px 100px 100px 100px 100px 120px 130px",
     gap: 12,
     alignItems: "center",
     padding: "0 14px 8px 14px",
@@ -746,6 +844,7 @@ const trendLabel =
   <div>Fillers</div>
   <div>Monotone</div>
   <div>Date</div>
+  <div>Archetype</div>
 </div>
             {attempts.length > 0 ? (
               attempts.slice(0, 12).map((attempt) => (
@@ -753,7 +852,7 @@ const trendLabel =
                   key={attempt.id}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1.8fr 100px 100px 100px 100px 100px 120px",
+                    gridTemplateColumns: "1.8fr 100px 100px 100px 100px 100px 120px 130px",
                     gap: 12,
                     alignItems: "center",
                     padding: "12px 14px",
@@ -817,6 +916,21 @@ const trendLabel =
                   <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 800 }}>
                     {attempt.ts ? new Date(attempt.ts).toLocaleDateString() : " - "}
                   </div>
+                  {(() => {
+                    const arch = (feedbackObj(attempt) as any)?.delivery_archetype as string | null;
+                    if (!arch) return <div style={{ fontSize: 11, color: "var(--text-muted)" }}> - </div>;
+                    const archColor = ARCHETYPE_COLOR[arch as keyof typeof ARCHETYPE_COLOR] ?? "#6B7280";
+                    return (
+                      <div style={{
+                        padding: "3px 8px", borderRadius: 999, fontSize: 10, fontWeight: 900,
+                        color: archColor, background: `${archColor}15`, border: `1px solid ${archColor}40`,
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        display: "inline-block", maxWidth: "100%",
+                      }}>
+                        {arch}
+                      </div>
+                    );
+                  })()}
                 </div>
               ))
             ) : (
