@@ -230,7 +230,7 @@ export async function GET() {
     resumeAnalyses,
     instinctSessions,
   ] = await Promise.all([
-    // 1. Attempts — all non-deleted
+    // 1. Attempts - all non-deleted
     prisma.attempt.findMany({
       where: { userId, deletedAt: null },
       select: {
@@ -287,25 +287,25 @@ export async function GET() {
       },
     }),
 
-    // 4. Checklist progress — all records
+    // 4. Checklist progress - all records
     prisma.checklistProgress.findMany({
       where: { userId },
       select: { stage: true, itemId: true, done: true },
     }),
 
-    // 5. Interview activities — all, ordered by createdAt desc
+    // 5. Interview activities - all, ordered by createdAt desc
     prisma.interviewActivity.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
     }),
 
-    // 6. Student skills — all, ordered by confidence desc
+    // 6. Student skills - all, ordered by confidence desc
     prisma.studentSkill.findMany({
       where: { userId },
       orderBy: { confidence: "desc" },
     }),
 
-    // 7. Resume analyses — last 10
+    // 7. Resume analyses - last 10
     prisma.resumeAnalysis.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -323,7 +323,7 @@ export async function GET() {
       },
     }),
 
-    // 8. Instinct sessions — last 10
+    // 8. Instinct sessions - last 10
     prisma.instinctSession.findMany({
       where: { userId },
       orderBy: { createdAt: "desc" },
@@ -502,7 +502,7 @@ export async function GET() {
   const nextAction = lowestNace ? { ...ACTION_MAP[lowestNace.key], naceKey: lowestNace.key, currentScore: lowestNace.score } : null;
 
   // ── Financial Readiness Score ─────────────────────────────────────────────
-  // Computed entirely from real DB fields — no made-up numbers.
+  // Computed entirely from real DB fields - no made-up numbers.
   // Max 100: finlit modules (up to 50) + career check-in data (up to 50)
   const finlitTotal = 40;
   const finReadiness = (() => {

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TopNav from "../components/TopNav";
 import OnboardingOverlay from "../components/OnboardingOverlay";
+import UserStorageGuard from "../components/UserStorageGuard";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -27,6 +28,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       {!isAdmin && <OnboardingOverlay />}
+      <UserStorageGuard />
     </div>
   );
 }

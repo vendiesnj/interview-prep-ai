@@ -363,7 +363,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
                   {taskCount} task{taskCount !== 1 ? "s" : ""}
                 </div>
               ) : (
-                <div style={{ marginTop: 4, fontSize: 10, color: "var(--text-muted)" }}>—</div>
+                <div style={{ marginTop: 4, fontSize: 10, color: "var(--text-muted)" }}>-</div>
               )}
             </button>
           );

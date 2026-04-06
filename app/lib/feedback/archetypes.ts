@@ -29,35 +29,35 @@ const ARCHETYPE_DATA: Record<
   { coaching: string; description: string }
 > = {
   "Polished Performer": {
-    description: "Your fundamentals are solid — clean delivery, clear structure, and ownership language working together.",
+    description: "Your fundamentals are solid - clean delivery, clear structure, and ownership language working together.",
     coaching: "You're executing well. The next level is one specific metric or dollar figure in your Result to separate you from other strong candidates.",
   },
   Rusher: {
-    description: "Your pace is outrunning your content — the interviewer is processing before you finish landing your points.",
+    description: "Your pace is outrunning your content - the interviewer is processing before you finish landing your points.",
     coaching: "Slow down the first sentence of your Result section. That's the moment interviewers decide if they understood you.",
   },
   Hedger: {
-    description: "Your content is there but your ownership language is softening it — too much 'we' and conditional phrasing.",
-    coaching: "Start your next answer with 'I decided…' or 'I drove…' — first-person ownership in the opening line immediately shifts the confidence signal.",
+    description: "Your content is there but your ownership language is softening it - too much 'we' and conditional phrasing.",
+    coaching: "Start your next answer with 'I decided…' or 'I drove…' - first-person ownership in the opening line immediately shifts the confidence signal.",
   },
   "Vague Narrator": {
-    description: "The story is plausible but not grounded — no numbers, named tools, or concrete proof points.",
-    coaching: "Add one concrete number to your Result — a percentage, timeline, or dollar figure. Even a rough estimate makes the story credible.",
+    description: "The story is plausible but not grounded - no numbers, named tools, or concrete proof points.",
+    coaching: "Add one concrete number to your Result - a percentage, timeline, or dollar figure. Even a rough estimate makes the story credible.",
   },
   "Monotone Expert": {
-    description: "Your content is solid but the delivery is acoustically flat — the answer sounds recited rather than lived.",
+    description: "Your content is solid but the delivery is acoustically flat - the answer sounds recited rather than lived.",
     coaching: "When you reach your Result, raise your pitch slightly and pause one beat before saying the outcome. That contrast will carry the whole answer.",
   },
   "Scattered Thinker": {
-    description: "Your ideas are present but not sequenced — the interviewer has to work to track your through-line.",
+    description: "Your ideas are present but not sequenced - the interviewer has to work to track your through-line.",
     coaching: "Write S-T-A-R on paper before your next attempt and say 'Situation:' out loud before you start. The label forces structure.",
   },
   "Quiet Achiever": {
     description: "Your content and ownership are strong but your delivery energy isn't matching the quality of what you're saying.",
-    coaching: "The story is there — project 15% more volume on your Action and Result sections and the answer will land the way it deserves to.",
+    coaching: "The story is there - project 15% more volume on your Action and Result sections and the answer will land the way it deserves to.",
   },
   Overloader: {
-    description: "Strong depth and detail, but you're burying the lead — the setup is longer than the answer can justify.",
+    description: "Strong depth and detail, but you're burying the lead - the setup is longer than the answer can justify.",
     coaching: "Cut the first 20 seconds of your answer. Move directly to your action and let the context emerge from the specifics.",
   },
 };
@@ -96,7 +96,7 @@ type Signals = {
 export function computeArchetype(signals: Signals): ArchetypeResult {
   const s = signals;
 
-  // Polished Performer — all green across the board
+  // Polished Performer - all green across the board
   if (
     s.fluency === "clean" &&
     s.vocalDynamics !== "flat" &&
@@ -108,7 +108,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Polished Performer", ["structure", "ownership", "fluency"]);
   }
 
-  // Rusher — pace is the dominant issue
+  // Rusher - pace is the dominant issue
   if (
     s.pace === "rushed" &&
     (s.cadenceStability === "erratic" || s.fluency !== "clean" || s.structure !== "strong")
@@ -116,7 +116,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Rusher", ["pace", "cadenceStability", "fluency"]);
   }
 
-  // Scattered Thinker — structural chaos
+  // Scattered Thinker - structural chaos
   if (
     s.structure === "weak" &&
     s.directness === "wandering" &&
@@ -125,7 +125,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Scattered Thinker", ["structure", "directness", "completeness"]);
   }
 
-  // Hedger — ownership and confidence are the anchor
+  // Hedger - ownership and confidence are the anchor
   if (
     s.ownership === "soft" &&
     s.confidence <= 6.2 &&
@@ -136,7 +136,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Hedger", hedgerSignals.slice(0, 3));
   }
 
-  // Monotone Expert — flat delivery, decent content
+  // Monotone Expert - flat delivery, decent content
   if (
     s.vocalDynamics === "flat" &&
     (s.pitchRange !== null ? s.pitchRange < 85 : true) &&
@@ -146,7 +146,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Monotone Expert", ["vocalDynamics", "pitchRange", "monotoneScore"]);
   }
 
-  // Quiet Achiever — strong content, low energy/presence
+  // Quiet Achiever - strong content, low energy/presence
   if (
     s.ownership === "strong" &&
     s.outcomeStrength !== "weak" &&
@@ -155,7 +155,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Quiet Achiever", ["ownership", "energyProfile", "presenceSignal"]);
   }
 
-  // Overloader — verbose and deep but buries the lead
+  // Overloader - verbose and deep but buries the lead
   if (
     (s.depthMode === "deep" || s.specificity === "specific") &&
     s.directness === "wandering" &&
@@ -164,7 +164,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Overloader", ["depthMode", "directness", "wordCount"]);
   }
 
-  // Vague Narrator — the default for low-specificity answers
+  // Vague Narrator - the default for low-specificity answers
   if (
     s.specificity === "generalized" &&
     s.evidenceMode === "generalized"
@@ -172,7 +172,7 @@ export function computeArchetype(signals: Signals): ArchetypeResult {
     return make("Vague Narrator", ["specificity", "evidenceMode", "depthMode"]);
   }
 
-  // Default fallback — assign based on weakest signal
+  // Default fallback - assign based on weakest signal
   if (s.structure === "weak") return make("Scattered Thinker", ["structure"]);
   if (s.ownership === "soft") return make("Hedger", ["ownership"]);
   if (s.vocalDynamics === "flat") return make("Monotone Expert", ["vocalDynamics"]);

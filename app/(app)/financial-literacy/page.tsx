@@ -28,10 +28,10 @@ const MODULES: Module[] = [
     color: "#10B981",
     summary: "The 50/30/20 rule is the simplest starting point: 50% needs, 30% wants, 20% savings and debt. Most people overspend on wants and underinvest in savings without a system.",
     keyPoints: [
-      "Track every dollar for one full month before building a budget — surprises are common.",
+      "Track every dollar for one full month before building a budget - surprises are common.",
       "Fixed expenses (rent, insurance, subscriptions) should be your first line items.",
       "Automate savings on payday so it disappears before you can spend it.",
-      "A budget isn't a restriction — it's a permission slip for guilt-free spending.",
+      "A budget isn't a restriction - it's a permission slip for guilt-free spending.",
     ],
     steps: [
       { id: "list_income", text: "List all monthly income sources (after tax)" },
@@ -50,9 +50,9 @@ const MODULES: Module[] = [
     summary: "An emergency fund is the most impactful financial move for someone starting out. Without it, every unexpected expense becomes debt. With it, most short-term crises are manageable.",
     keyPoints: [
       "Start with $500–$1,000 as a starter fund. Full fund = 3–6 months of expenses.",
-      "Keep it in a high-yield savings account (HYSA) — 4–5% APY beats checking accounts.",
+      "Keep it in a high-yield savings account (HYSA) - 4–5% APY beats checking accounts.",
       "This fund is not for sales, vacations, or 'almost emergencies.' Guard it.",
-      "Replenish immediately after using it — treat that as a bill.",
+      "Replenish immediately after using it - treat that as a bill.",
     ],
     steps: [
       { id: "open_hysa", text: "Open a high-yield savings account (separate from checking)" },
@@ -70,7 +70,7 @@ const MODULES: Module[] = [
     color: "#8B5CF6",
     summary: "Student loans are the single largest financial decision most graduates make without financial education. Understanding repayment options can save tens of thousands of dollars.",
     keyPoints: [
-      "Federal loans offer income-driven repayment (IDR) — monthly payment caps at 5–10% of discretionary income.",
+      "Federal loans offer income-driven repayment (IDR) - monthly payment caps at 5–10% of discretionary income.",
       "PSLF forgives federal loans after 10 years of public sector payments. Non-negotiable to know if you work for government or nonprofit.",
       "Refinancing federal loans to private = losing IDR and forgiveness options permanently.",
       "Pay more than the minimum on high-interest private loans first (avalanche method).",
@@ -92,10 +92,10 @@ const MODULES: Module[] = [
     color: "#F59E0B",
     summary: "Your credit score determines your mortgage rate, apartment approvals, and sometimes job offers. Building it early and intentionally takes less effort than most people think.",
     keyPoints: [
-      "Payment history is 35% of your FICO score — one missed payment can drop it 50–100 points.",
-      "Credit utilization is 30% — keep balances below 30% of your limit (below 10% is ideal).",
-      "Length of history matters — don't close your oldest card even if you don't use it.",
-      "Check your free credit report annually at AnnualCreditReport.com — errors are common.",
+      "Payment history is 35% of your FICO score - one missed payment can drop it 50–100 points.",
+      "Credit utilization is 30% - keep balances below 30% of your limit (below 10% is ideal).",
+      "Length of history matters - don't close your oldest card even if you don't use it.",
+      "Check your free credit report annually at AnnualCreditReport.com - errors are common.",
     ],
     steps: [
       { id: "check_report", text: "Pull your free credit report at AnnualCreditReport.com" },
@@ -113,7 +113,7 @@ const MODULES: Module[] = [
     color: "#2563EB",
     summary: "Compound interest rewards people who start early more than people who invest more later. The math is dramatic: $200/mo at 22 beats $500/mo starting at 32.",
     keyPoints: [
-      "Always contribute enough to get your full employer 401k match — it's an instant 50–100% return.",
+      "Always contribute enough to get your full employer 401k match - it's an instant 50–100% return.",
       "Roth IRA is tax-free growth. Contribute after-tax dollars now, pay no tax on withdrawal in retirement.",
       "Index funds (S&P 500) outperform actively managed funds over 90% of the time at lower fees.",
       "Don't try to time the market. Time in market > timing the market.",
@@ -152,12 +152,12 @@ const MODULES: Module[] = [
     title: "Tax Basics",
     eyebrow: "Compliance & Optimization",
     color: "#6B7280",
-    summary: "Most people overpay taxes simply by not knowing what they're entitled to deduct. Taxes are the largest single expense in most people's lives — understanding them is worth the effort.",
+    summary: "Most people overpay taxes simply by not knowing what they're entitled to deduct. Taxes are the largest single expense in most people's lives - understanding them is worth the effort.",
     keyPoints: [
       "W-4 withholding: if you owe a large amount or get a large refund, adjust your W-4 for the next year.",
       "Student loan interest is deductible (up to $2,500) even if you don't itemize.",
-      "401k and HSA contributions reduce your taxable income — contribute pre-tax where possible.",
-      "File by April 15 or request an extension — penalties for late filing are steep.",
+      "401k and HSA contributions reduce your taxable income - contribute pre-tax where possible.",
+      "File by April 15 or request an extension - penalties for late filing are steep.",
     ],
     steps: [
       { id: "understand_w4", text: "Review and update your W-4 withholding" },
@@ -177,7 +177,7 @@ const MODULES: Module[] = [
     summary: "Most people leave $5,000–$20,000 on the table by not negotiating. The data is clear: employers expect negotiation and the worst realistic outcome is that they say no.",
     keyPoints: [
       "Research market rate at Levels.fyi, Glassdoor, LinkedIn Salary, and Bureau of Labor Statistics before any negotiation.",
-      "The first number anchors the conversation — never give a number first if you can avoid it.",
+      "The first number anchors the conversation - never give a number first if you can avoid it.",
       "Benefits have real dollar value: PTO, remote work, signing bonus, equity, 401k match. Negotiate the full package.",
       "A 5% salary increase at 25 compounds to $80K+ in additional lifetime earnings.",
     ],
@@ -238,7 +238,7 @@ export default function FinancialLiteracyPage() {
   return (
     <PremiumShell
       title="Financial Literacy"
-      subtitle="8 essential money modules. Work through them at your own pace — each one builds on the last."
+      subtitle="8 essential money modules. Work through them at your own pace - each one builds on the last."
     >
       <div style={{ maxWidth: 860 }}>
 

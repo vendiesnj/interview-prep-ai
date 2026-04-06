@@ -59,7 +59,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                   color: s.score !== null ? qualityColor : "var(--text-muted)",
                 }}
               >
-                {s.score !== null ? s.score : "—"}
+                {s.score !== null ? s.score : "-"}
               </div>
 
               {/* Label + bar */}

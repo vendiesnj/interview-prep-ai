@@ -210,7 +210,7 @@ const PUZZLES: ConnectionsPuzzle[] = [
       { color: "purple", category: "___ review",                 items: ["PERFORMANCE", "PEER", "ANNUAL", "ANNUAL"] },
     ],
   },
-  // Puzzle 17 — fix duplicate
+  // Puzzle 17 - fix duplicate
   {
     groups: [
       { color: "yellow", category: "Annual salary milestones",   items: ["FIFTY K", "SEVENTY FIVE K", "SIX FIGURES", "COMP PACKAGE"] },
@@ -375,7 +375,7 @@ export default function ConnectionsPage() {
         showToast("Found " + matchGroup.category + "! 🎉");
       }
     } else {
-      // Wrong — check "one away"
+      // Wrong - check "one away"
       const oneAway = puzzle.groups.some(g => {
         const overlap = g.items.filter(item => selected.has(item)).length;
         return overlap === 3;

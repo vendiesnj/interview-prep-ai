@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   const [progress, content] = await Promise.all([
     prisma.checklistProgress.findMany({
       where: { userId: user.id, stage },
-      select: { itemId: true, done: true, scheduledDate: true },
+      select: { itemId: true, done: true, scheduledDate: true, completedAt: true, dueDate: true },
     }),
     user.tenantId
       ? prisma.checklistItemContent.findMany({
@@ -34,6 +34,7 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/checklist  { stage, itemId, done, scheduledDate? }
+// Used for toggling done state - writes completedAt when checking, clears when unchecking
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,16 +51,31 @@ export async function POST(req: NextRequest) {
 
   const parsedDate = scheduledDate ? new Date(scheduledDate) : undefined;
 
+  // Set completedAt when checking; clear it when unchecking
+  const completedAt = done ? new Date() : null;
+
   await prisma.checklistProgress.upsert({
     where: { userId_stage_itemId: { userId: user.id, stage, itemId } },
-    create: { userId: user.id, tenantId: user.tenantId, stage, itemId, done, scheduledDate: parsedDate },
-    update: { done, ...(parsedDate !== undefined ? { scheduledDate: parsedDate } : {}) },
+    create: {
+      userId: user.id,
+      tenantId: user.tenantId,
+      stage,
+      itemId,
+      done,
+      scheduledDate: parsedDate,
+      completedAt,
+    },
+    update: {
+      done,
+      completedAt,
+      ...(parsedDate !== undefined ? { scheduledDate: parsedDate } : {}),
+    },
   });
 
   return NextResponse.json({ ok: true });
 }
 
-// PATCH /api/checklist  { stage, itemId, scheduledDate } — schedule only, no done change
+// PATCH /api/checklist  { stage, itemId, scheduledDate } - schedule only, no done change
 export async function PATCH(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -77,7 +93,14 @@ export async function PATCH(req: NextRequest) {
 
   await prisma.checklistProgress.upsert({
     where: { userId_stage_itemId: { userId: user.id, stage, itemId } },
-    create: { userId: user.id, tenantId: user.tenantId, stage, itemId, done: false, scheduledDate: parsedDate ?? undefined },
+    create: {
+      userId: user.id,
+      tenantId: user.tenantId,
+      stage,
+      itemId,
+      done: false,
+      scheduledDate: parsedDate ?? undefined,
+    },
     update: { scheduledDate: parsedDate },
   });
 

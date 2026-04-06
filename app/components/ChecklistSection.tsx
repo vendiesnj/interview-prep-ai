@@ -30,7 +30,7 @@ type Props = {
   accentColor?: string;
   /** If true, show inline edit controls (admin mode) */
   adminMode?: boolean;
-  /** Called when progress loads or changes — lets parent wire calendar */
+  /** Called when progress loads or changes - lets parent wire calendar */
   onProgressChange?: (entries: ChecklistProgressEntry[]) => void;
 };
 

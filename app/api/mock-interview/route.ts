@@ -109,7 +109,7 @@ async function handleFollowup(body: {
     });
   }
 
-  // STAR complete (or no missing components) — generate next behavioral question
+  // STAR complete (or no missing components) - generate next behavioral question
   if (questionIndex >= 4) {
     return NextResponse.json({ done: true });
   }

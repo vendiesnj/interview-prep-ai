@@ -3,10 +3,10 @@
  *
  * Official competency definitions sourced directly from:
  * NACE (National Association of Colleges and Employers)
- * "Career Readiness Competencies" — https://www.naceweb.org/career-readiness/competencies/
+ * "Career Readiness Competencies" - https://www.naceweb.org/career-readiness/competencies/
  * Revised 2021.
  *
- * IMPORTANT — Data integrity:
+ * IMPORTANT - Data integrity:
  * Not every competency is assessable from interview practice data alone.
  * Each competency below has an explicit `assessable` field indicating the
  * signal confidence level and the specific behavioral indicators we can observe.
@@ -99,7 +99,7 @@ export const NACE_META: Record<
     ],
     assessability: "moderate",
     assessabilityNote:
-      "STAR structure quality — particularly how well a student frames a situation and connects actions to outcomes — is a reasonable proxy for critical thinking in an oral context. Not a complete measure.",
+      "STAR structure quality - particularly how well a student frames a situation and connects actions to outcomes - is a reasonable proxy for critical thinking in an oral context. Not a complete measure.",
   },
 
   professionalism: {
@@ -139,7 +139,7 @@ export const NACE_META: Record<
     ],
     assessability: "moderate",
     assessabilityNote:
-      "Leadership is partially observable when students describe past situations. STAR action quality and ownership language are indirect indicators. This is inherently limited — speaking about leadership is not the same as demonstrating it.",
+      "Leadership is partially observable when students describe past situations. STAR action quality and ownership language are indirect indicators. This is inherently limited - speaking about leadership is not the same as demonstrating it.",
   },
 
   teamwork: {
@@ -277,7 +277,7 @@ function clamp(v: number, lo = 0, hi = 100): number {
 }
 
 /**
- * Data confidence multiplier — scores start near 0 and build as evidence accumulates.
+ * Data confidence multiplier - scores start near 0 and build as evidence accumulates.
  * Prior is 0 (not 50), so a student with minimal data sees near-zero scores.
  * This is intentional: this is a 4–6 year data-building app.
  *
@@ -302,7 +302,7 @@ function to100(v: number | null): number | null {
   return clamp(v * 10);
 }
 
-/** WPM quality — NACE communication indicator: "appropriate pace aids comprehension" */
+/** WPM quality - NACE communication indicator: "appropriate pace aids comprehension" */
 function wpmScore(wpm: number): number {
   // 115–145 wpm = optimal conversational interview pace
   const ideal = 130;
@@ -310,12 +310,12 @@ function wpmScore(wpm: number): number {
   return clamp(100 - dev * 1.2);
 }
 
-/** Filler rate — NACE communication indicator: "controls disruptive speech habits" */
+/** Filler rate - NACE communication indicator: "controls disruptive speech habits" */
 function fillerScore(per100: number): number {
   return clamp(100 - per100 * 16.7);
 }
 
-/** Monotone — NACE communication indicator: "adjusts tone to aid comprehension" */
+/** Monotone - NACE communication indicator: "adjusts tone to aid comprehension" */
 function monotoneScore(score: number): number {
   return clamp(100 - score * 10);
 }
@@ -426,12 +426,12 @@ export function computeNaceForAttempt(a: NaceAttemptInput): Partial<Record<NaceK
   }
 
   // ── Leadership (MODERATE confidence) ────────────────────────────────────
-  // Observable indicator: STAR action quality — describes initiative and decision-making
+  // Observable indicator: STAR action quality - describes initiative and decision-making
   {
     if (star?.action != null) {
       out.leadership = clamp((n(star.action) ?? 0) * 10);
     }
-    // No action component: no score — don't infer from overall
+    // No action component: no score - don't infer from overall
   }
 
   // ── Teamwork (LOW confidence) ────────────────────────────────────────────
@@ -440,7 +440,7 @@ export function computeNaceForAttempt(a: NaceAttemptInput): Partial<Record<NaceK
     if (isTeamCategory(a) && overall !== null) {
       out.teamwork = clamp(overall);
     }
-    // No teamwork question: no score — don't infer from generic STAR
+    // No teamwork question: no score - don't infer from generic STAR
   }
 
   // ── Technology (LOW confidence) ──────────────────────────────────────────
@@ -461,7 +461,7 @@ export function computeNaceForAttempt(a: NaceAttemptInput): Partial<Record<NaceK
     // No STAR result: no attempt-level score
   }
 
-  // equity_inclusion: NOT scored at attempt level — no observable speech signal
+  // equity_inclusion: NOT scored at attempt level - no observable speech signal
 
   return out;
 }
@@ -510,32 +510,32 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     const inst = instinctDimensions;
     const scale = (v: number | undefined) => (typeof v === "number" ? clamp(v * 100) : null);
 
-    // Teamwork — instinct is primary signal here (speaking alone is weak)
+    // Teamwork - instinct is primary signal here (speaking alone is weak)
     const instTeam = scale(inst.teamwork);
     if (instTeam !== null) buckets.teamwork.push(instTeam, instTeam); // double-weight vs single speaking attempt
 
-    // Leadership — instinct complements STAR action signal
+    // Leadership - instinct complements STAR action signal
     const instLead = scale(inst.leadership);
     if (instLead !== null) buckets.leadership.push(instLead, instLead);
 
-    // Professionalism — instinct reinforces speaking-based signal
+    // Professionalism - instinct reinforces speaking-based signal
     const instProf = scale(inst.professionalism);
     if (instProf !== null) buckets.professionalism.push(instProf);
 
-    // Critical Thinking — instinct adds scenario-based reasoning signal
+    // Critical Thinking - instinct adds scenario-based reasoning signal
     const instCrit = scale(inst.criticalThinking);
     if (instCrit !== null) buckets.critical_thinking.push(instCrit);
 
-    // Communication — instinct gives scenario-based signal (lower weight —
+    // Communication - instinct gives scenario-based signal (lower weight -
     // speaking quality is a stronger direct indicator)
     const instComm = scale(inst.communication);
     if (instComm !== null) buckets.communication.push(instComm);
 
-    // Career & Self-Dev — adaptability dimension maps to growth mindset
+    // Career & Self-Dev - adaptability dimension maps to growth mindset
     const instAdapt = scale(inst.adaptability);
     if (instAdapt !== null) buckets.career_dev.push(instAdapt);
 
-    // Equity & Inclusion — instinct is the primary (and only) measurable signal
+    // Equity & Inclusion - instinct is the primary (and only) measurable signal
     // Only score if the student actually played E&I scenarios (equityInclusion > 0)
     const instEI = scale(inst.equityInclusion);
     if (instEI !== null && inst.equityInclusion > 0) {
@@ -551,17 +551,17 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     const expressiveness = visualScores.expressiveness != null ? clamp(visualScores.expressiveness * 10) : null;
     const headStability = visualScores.headStability != null ? clamp(visualScores.headStability * 10) : null;
 
-    // Eye contact improves communication score (weighted lower than audio — secondary signal)
+    // Eye contact improves communication score (weighted lower than audio - secondary signal)
     if (eyeContact !== null) buckets.communication.push(eyeContact);
     // Expressiveness adds to communication (vocal variety complement)
     if (expressiveness !== null) buckets.communication.push(expressiveness);
-    // Head stability reflects composure — a professionalism indicator
+    // Head stability reflects composure - a professionalism indicator
     if (headStability !== null) buckets.professionalism.push(headStability);
   }
 
   // ── 4. Profile completion → Career & Self-Development ────────────────────
   // NACE indicators: "identify areas for growth", "commit to lifelong learning"
-  // Values are intentionally tiny — these are starting signals, not achievements.
+  // Values are intentionally tiny - these are starting signals, not achievements.
   // Combined with the data confidence multiplier, completing only the aptitude
   // quiz produces a career_dev score of ~1%. Scores must be earned over years.
   if (hasCompletedAptitude)      buckets.career_dev.push(20);
@@ -582,7 +582,7 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
 
   // ── 4. Technical skills → Technology ─────────────────────────────────────
   // Resume/session skill extraction gives us concrete tech competency signal
-  // Values are small — listing skills ≠ demonstrated proficiency
+  // Values are small - listing skills ≠ demonstrated proficiency
   if (technicalSkillsCount >= 8)       buckets.technology.push(35);
   else if (technicalSkillsCount >= 5)  buckets.technology.push(25);
   else if (technicalSkillsCount >= 2)  buckets.technology.push(15);
@@ -602,7 +602,7 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
   return keys.map((key) => {
     const meta = NACE_META[key];
 
-    // equity_inclusion is never scored — it has no observable signal in this product
+    // equity_inclusion is never scored - it has no observable signal in this product
     if (key === "equity_inclusion") {
       return {
         key,
@@ -623,14 +623,14 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
     // Apply data confidence penalty: scores regress toward 50 when based on sparse data.
     // Different competencies require more evidence to achieve reliable scores.
     const priorWeights: Record<NaceKey, number> = {
-      communication:     25, // HIGH assessability — still requires many sessions to build
+      communication:     25, // HIGH assessability - still requires many sessions to build
       critical_thinking: 25,
       professionalism:   25,
-      leadership:        30, // LOW–MODERATE — STAR action alone is weak
-      teamwork:          30, // LOW — only scored on teamwork questions
-      career_dev:        30, // LOW — requires sustained engagement over years
-      technology:        30, // LOW — limited direct signal
-      equity_inclusion:   0, // never scored — handled above
+      leadership:        30, // LOW–MODERATE - STAR action alone is weak
+      teamwork:          30, // LOW - only scored on teamwork questions
+      career_dev:        30, // LOW - requires sustained engagement over years
+      technology:        30, // LOW - limited direct signal
+      equity_inclusion:   0, // never scored - handled above
     };
     const score = rawAvg !== null
       ? withDataConfidence(rawAvg, vals.length, priorWeights[key])
@@ -702,7 +702,7 @@ export function naceScoreColor(score: number | null): string {
 
 /** Label for a NACE score */
 export function naceScoreLabel(score: number | null): string {
-  if (score === null) return "—";
+  if (score === null) return "-";
   if (score >= 80) return "Strong";
   if (score >= 65) return "Developing";
   if (score >= 50) return "Emerging";

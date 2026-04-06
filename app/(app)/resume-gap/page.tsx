@@ -215,7 +215,7 @@ export default function ResumeGapPage() {
           </div>
           <div>
             <label style={{ display: "block", fontSize: 12, fontWeight: 800, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.6 }}>
-              Job Description <span style={{ fontWeight: 600, textTransform: "none", fontSize: 11 }}>(optional — improves accuracy)</span>
+              Job Description <span style={{ fontWeight: 600, textTransform: "none", fontSize: 11 }}>(optional - improves accuracy)</span>
             </label>
             <textarea
               value={jobDescription}

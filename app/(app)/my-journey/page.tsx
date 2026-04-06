@@ -169,7 +169,7 @@ function scoreColor(score: number | null): string {
 }
 
 function scoreLabel(score: number | null): string {
-  if (score === null) return "—";
+  if (score === null) return "-";
   if (score >= 85) return "Excellent";
   if (score >= 75) return "Strong";
   if (score >= 65) return "Good";
@@ -190,7 +190,7 @@ function truncate(str: string, maxLen: number): string {
 }
 
 function salaryRangeLabel(range: string | null): string {
-  if (!range) return "—";
+  if (!range) return "-";
   const map: Record<string, string> = {
     under_40k: "Under $40K",
     "40_50k": "$40–50K",
@@ -709,7 +709,7 @@ function SpeakingCard({
                           flexShrink: 0,
                         }}
                       >
-                        {sc !== null ? sc : "—"}
+                        {sc !== null ? sc : "-"}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div
@@ -993,7 +993,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
   const naceFootnotes: Record<string, { short: string; detail: string }> = {
     communication: {
       short: "From oral clarity, WPM, filler rate, and vocal monotone",
-      detail: "Scored from speaking session audio signals: communication clarity score (50%), pace in words-per-minute (20%), filler word rate (15%), and vocal monotone (15%). Builds session by session — 30+ sessions needed to reach reliable scores.",
+      detail: "Scored from speaking session audio signals: communication clarity score (50%), pace in words-per-minute (20%), filler word rate (15%), and vocal monotone (15%). Builds session by session - 30+ sessions needed to reach reliable scores.",
     },
     critical_thinking: {
       short: "From STAR situation/task framing and answer quality",
@@ -1004,8 +1004,8 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
       detail: "Reflects ownership language, preparation, and composure. Confidence/ownership score (60%), filler rate (25%), and pace (15%). Webcam sessions also contribute head stability as a composure signal.",
     },
     leadership: {
-      short: "From STAR action sections — initiative and decision-making",
-      detail: "Scored only when your STAR answers contain strong Action sections describing initiative-taking and decision ownership. Speaking about leadership is not the same as demonstrating it — this is a partial signal only.",
+      short: "From STAR action sections - initiative and decision-making",
+      detail: "Scored only when your STAR answers contain strong Action sections describing initiative-taking and decision ownership. Speaking about leadership is not the same as demonstrating it - this is a partial signal only.",
     },
     teamwork: {
       short: "From teamwork and collaboration question answers only",
@@ -1013,11 +1013,11 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
     },
     career_dev: {
       short: "From sustained engagement: practice volume, check-in, Career Assessment, checklist",
-      detail: "Combines STAR result quality (growth mindset signals), Career Assessment completion, career check-in, resume analysis, checklist progress, and total practice sessions. This is the slowest-building score — it reflects genuine long-term investment, not one-time actions.",
+      detail: "Combines STAR result quality (growth mindset signals), Career Assessment completion, career check-in, resume analysis, checklist progress, and total practice sessions. This is the slowest-building score - it reflects genuine long-term investment, not one-time actions.",
     },
     technology: {
       short: "From technical question answers and skills extracted from resume",
-      detail: "Scored from performance on technical-category questions, plus skills extracted from your resume. Listing skills contributes weakly — demonstrated performance in technical sessions is the stronger signal.",
+      detail: "Scored from performance on technical-category questions, plus skills extracted from your resume. Listing skills contributes weakly - demonstrated performance in technical sessions is the stronger signal.",
     },
   };
 
@@ -1058,7 +1058,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
             </span>
           </div>
           <div style={{ fontSize: 52, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
-            {signalScore ?? "—"}
+            {signalScore ?? "-"}
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: signalColor }}>{signalLabel}</div>
           {aptitude && (
@@ -1365,7 +1365,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{ns.label}</span>
                         <span style={{ fontSize: 13, fontWeight: 950, color: barColor, marginLeft: 12, flexShrink: 0 }}>
-                          {ns.score !== null ? ns.score : "—"}
+                          {ns.score !== null ? ns.score : "-"}
                         </span>
                       </div>
                       <MiniBar pct={scoreNum} color={barColor} height={4} />
@@ -1454,7 +1454,7 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
                       {labels[key]}
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
-                      {val !== null && val !== undefined ? val : "—"}
+                      {val !== null && val !== undefined ? val : "-"}
                       {key === "avgWpm" && val !== null ? <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}> wpm</span> : null}
                       {(key === "avgComm" || key === "avgConf") && val !== null ? <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>/10</span> : null}
                     </div>
@@ -2283,7 +2283,7 @@ function NaceTab({ data }: { data: ProfilePayload }) {
             About NACE Career Competencies
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
-            The National Association of Colleges and Employers (NACE) defines 8 career readiness competencies that employers consistently rank as most critical for new graduates. Your scores are calculated from your speaking sessions, resume data, and profile activity — they build up over time as you practice.
+            The National Association of Colleges and Employers (NACE) defines 8 career readiness competencies that employers consistently rank as most critical for new graduates. Your scores are calculated from your speaking sessions, resume data, and profile activity - they build up over time as you practice.
           </p>
         </div>
         {data.signalScore !== null && (
@@ -2384,7 +2384,7 @@ export default function MyJourneyPage() {
       await fetch("/api/skills/extract", { method: "POST" });
       await fetchData();
     } catch {
-      // silently fail — refresh will show whatever was extracted
+      // silently fail - refresh will show whatever was extracted
     } finally {
       setExtracting(false);
     }
@@ -2404,7 +2404,7 @@ export default function MyJourneyPage() {
   return (
     <PremiumShell
       title="My Journey"
-      subtitle="Your complete career readiness profile — speaking, financial health, skills, and real-world pipeline."
+      subtitle="Your complete career readiness profile - speaking, financial health, skills, and real-world pipeline."
     >
       {/* Tab bar */}
       <SegmentedTabBar tabs={tabs} activeTab={activeTab} onSelect={setActiveTab} />

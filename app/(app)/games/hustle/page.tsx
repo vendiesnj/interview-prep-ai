@@ -56,7 +56,7 @@ const ANSWER_WORDS: string[] = [
   "VIEWS", "VIRAL", "VOICE", "WASTE", "WATCH", "WORDS", "WRITE", "YIELD",
   "ZONES", "LOBBY", "PROXY", "REMIT", "DEBIT", "ASSET", "BONDS", "SHARE",
   "CHURN", "QUOTE", "MARCH", "SUITE", "STACK", "PROTO",
-  // General everyday English — common satisfying Wordle-style answers
+  // General everyday English - common satisfying Wordle-style answers
   "ABOUT", "ABOVE", "ABUSE", "ACTOR", "ACUTE", "ADMIT", "ADOPT", "ADULT",
   "AFTER", "AGAIN", "AGENT", "AGREE", "AHEAD", "ALARM", "ALBUM", "ALERT",
   "ALIGN", "ALIKE", "ALIVE", "ALONE", "ALONG", "ALTER", "ANGEL", "ANGRY",
@@ -225,8 +225,8 @@ const VALID_GUESSES = new Set([...ANSWER_WORDS, ...EXTRA_VALID.filter(w => w.len
 
 const FUN_FACTS: Record<string, string> = {
   RAISE: "The average salary raise in the US is 3–4% annually. Negotiating proactively can yield 10–20% increases.",
-  BONUS: "Performance bonuses average 5–10% of base salary in corporate roles. Signing bonuses are negotiable — always ask.",
-  PIVOT: "Career pivots are more common than ever — 52% of workers consider changing careers at some point.",
+  BONUS: "Performance bonuses average 5–10% of base salary in corporate roles. Signing bonuses are negotiable - always ask.",
+  PIVOT: "Career pivots are more common than ever - 52% of workers consider changing careers at some point.",
   AUDIT: "Internal auditors are among the most AI-resilient finance roles, with low automation risk due to judgment requirements.",
   STOCK: "RSUs (Restricted Stock Units) often vest over 4 years with a 1-year cliff. Know your vesting schedule before accepting.",
   PITCH: "The average investor pitch is 20 slides. Entrepreneurs who practice their pitch 50+ times raise more capital.",
@@ -234,23 +234,23 @@ const FUN_FACTS: Record<string, string> = {
   OFFER: "72% of job seekers who negotiate their offer receive more than the initial offer. Always negotiate.",
   LABOR: "Labor unions still represent about 10% of US workers and typically earn 10–15% higher wages than non-union peers.",
   QUOTA: "Sales professionals who exceed quota earn 30–50% more in commissions. Track your pipeline metrics weekly.",
-  COACH: "Executive coaching has a 788% ROI according to some studies — the most effective leaders have coaches.",
+  COACH: "Executive coaching has a 788% ROI according to some studies - the most effective leaders have coaches.",
   BRAND: "Personal branding on LinkedIn can result in 7x more recruiter views when your profile is complete.",
   SKILL: "Upskilling in a new technical skill can increase earning potential by 15–25% within 2 years.",
   TRADE: "Trade careers like electricians and plumbers earn $55–115K/year with much lower student debt than degree paths.",
   LEADS: "Top sales reps follow up with leads 5+ times; 80% of sales require at least 5 follow-up contacts.",
-  GRIND: "Hustle culture is shifting — research shows overworking past 55 hours/week reduces productivity significantly.",
+  GRIND: "Hustle culture is shifting - research shows overworking past 55 hours/week reduces productivity significantly.",
   TREND: "AI automation will displace some roles but creates 97 million new jobs by 2025 according to WEF projections.",
   TRUST: "Trust is the #1 predictor of team performance according to Google's Project Aristotle on effective teams.",
   MONEY: "Salary transparency laws now exist in 20+ states. You have the right to ask about pay ranges.",
   VALUE: "Quantifying your impact with numbers (revenue, % improvements) makes your resume 40% more compelling.",
-  SCALE: "Scalable income — products, courses, content — is how most wealth above $1M is built.",
+  SCALE: "Scalable income - products, courses, content - is how most wealth above $1M is built.",
   TEAMS: "Psychological safety is the key to high-performing teams. Teams that share mistakes outperform those that don't.",
-  START: "Most successful entrepreneurs started their business while still employed — reducing financial risk.",
+  START: "Most successful entrepreneurs started their business while still employed - reducing financial risk.",
   MERGE: "70% of successful startups pivoted from their original idea. Flexibility is a career superpower.",
   EXCEL: "Excel/spreadsheet skills are cited in 63% of job postings across industries. It's never a bad skill to have.",
   DRAFT: "The average resume gets 7 seconds of review time. Tailor each draft to the specific job description.",
-  FOCUS: "Deep work — focused, uninterrupted work — is increasingly rare and increasingly valuable.",
+  FOCUS: "Deep work - focused, uninterrupted work - is increasingly rare and increasingly valuable.",
 };
 
 // ── Keyboard rows ─────────────────────────────────────────────────────────────

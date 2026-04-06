@@ -71,7 +71,7 @@ function buildSteps(data: SignalData): Step[] {
     {
       id: "career_checkin",
       title: "Career Check-In",
-      description: "Tell us where you are — student, employed, job hunting. This unlocks financial readiness tracking.",
+      description: "Tell us where you are - student, employed, job hunting. This unlocks financial readiness tracking.",
       href: "/career-checkin",
       done: !!data.careerCheckIn,
       metric: data.careerCheckIn?.employmentStatus
@@ -196,7 +196,7 @@ export default function JourneySidebar({
             display: "flex", alignItems: "center", gap: 12,
           }}>
             <div style={{ fontSize: 28, fontWeight: 950, color: data.signalScore !== null ? ACCENT : "var(--text-muted)", lineHeight: 1 }}>
-              {data.signalScore ?? "—"}
+              {data.signalScore ?? "-"}
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Signal Score</div>

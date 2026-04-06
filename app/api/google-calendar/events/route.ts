@@ -12,7 +12,7 @@ async function getUser(email: string) {
   return prisma.user.findUnique({ where: { email }, select: { id: true } });
 }
 
-// GET /api/google-calendar/events — fetch upcoming events
+// GET /api/google-calendar/events - fetch upcoming events
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -27,7 +27,7 @@ export async function GET() {
   return NextResponse.json({ connected: true, events });
 }
 
-// POST /api/google-calendar/events — create an event
+// POST /api/google-calendar/events - create an event
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   if (!summary || !dateKey) return NextResponse.json({ error: "summary and dateKey required" }, { status: 400 });
 
   const result = await createCalendarEvent(user.id, summary, dateKey, description);
-  if (!result) return NextResponse.json({ error: "Failed to create event — calendar not connected" }, { status: 400 });
+  if (!result) return NextResponse.json({ error: "Failed to create event - calendar not connected" }, { status: 400 });
 
   return NextResponse.json(result);
 }

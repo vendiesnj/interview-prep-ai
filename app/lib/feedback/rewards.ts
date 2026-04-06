@@ -14,7 +14,7 @@ export type RewardUnlock = {
   direction: "up" | "down"; // "down" is good for fillers/pace
 };
 
-// Thresholds — improvement must exceed these to count as a real unlock
+// Thresholds - improvement must exceed these to count as a real unlock
 const THRESHOLDS: Record<string, number> = {
   score:          4,     // points on 0–100 scale
   communication:  0.6,   // points on 0–10
@@ -23,20 +23,20 @@ const THRESHOLDS: Record<string, number> = {
   filler_rate:    1.5,   // fillers per 100 words (lower = better)
   pitch_range:    10,    // Hz
   monotone:       0.8,   // monotoneScore (lower = better)
-  wpm:            0,     // special case — reward for entering 130–165 range
+  wpm:            0,     // special case - reward for entering 130–165 range
   eye_contact:    0.15,  // 0–1
 };
 
 const CELEBRATION: Record<string, (delta: string, curr: string) => string> = {
-  score:          (d) => `Overall score up ${d} points — a clear step forward.`,
-  communication:  (d) => `Communication +${d} — cleaner structure and easier to follow.`,
-  confidence:     (d) => `Confidence +${d} — stronger ownership language coming through.`,
-  star_result:    (d) => `Closing impact improved ${d} pts — your Result section is landing harder.`,
-  filler_rate:    (d, curr) => `Filler rate down ${d}/100 words (now ${curr}) — noticeably cleaner delivery.`,
-  pitch_range:    (d) => `Vocal variety up ${d} Hz — less monotone, more dynamic presence.`,
-  monotone:       (d) => `Monotone score down ${d} — more pitch variation detected this attempt.`,
-  wpm:            (_d, curr) => `Pace dialed in at ${curr} wpm — in the ideal 130–165 range now.`,
-  eye_contact:    (d) => `Eye contact up ${d} — stronger camera presence detected.`,
+  score:          (d) => `Overall score up ${d} points - a clear step forward.`,
+  communication:  (d) => `Communication +${d} - cleaner structure and easier to follow.`,
+  confidence:     (d) => `Confidence +${d} - stronger ownership language coming through.`,
+  star_result:    (d) => `Closing impact improved ${d} pts - your Result section is landing harder.`,
+  filler_rate:    (d, curr) => `Filler rate down ${d}/100 words (now ${curr}) - noticeably cleaner delivery.`,
+  pitch_range:    (d) => `Vocal variety up ${d} Hz - less monotone, more dynamic presence.`,
+  monotone:       (d) => `Monotone score down ${d} - more pitch variation detected this attempt.`,
+  wpm:            (_d, curr) => `Pace dialed in at ${curr} wpm - in the ideal 130–165 range now.`,
+  eye_contact:    (d) => `Eye contact up ${d} - stronger camera presence detected.`,
 };
 
 function fmt(n: number, decimals = 1) {
@@ -57,7 +57,7 @@ export function computeRewards(
 
   const unlocks: RewardUnlock[] = [];
 
-  // Helper — push only if improvement exceeds threshold
+  // Helper - push only if improvement exceeds threshold
   function check(
     key: string,
     label: string,
@@ -108,7 +108,7 @@ export function computeRewards(
     ?? null;
   check("filler_rate", "Filler Rate", prevFiller, currFillersPer100, "down");
 
-  // Vocal variety — pitchRange (higher is better)
+  // Vocal variety - pitchRange (higher is better)
   const prevPitchRange = prevEntry.prosody?.pitchRange
     ?? prevEntry.deliveryMetrics?.acoustics?.pitchRange
     ?? null;
@@ -126,7 +126,7 @@ export function computeRewards(
     ?? null;
   check("monotone", "Vocal Dynamics", prevMonotone, currMonotone, "down");
 
-  // Pace — reward for moving INTO the ideal range (not just any change)
+  // Pace - reward for moving INTO the ideal range (not just any change)
   const prevWpm = prevEntry.wpm ?? prevEntry.deliveryMetrics?.wpm ?? null;
   if (
     currWpm !== null && prevWpm !== null &&
@@ -151,7 +151,7 @@ export function computeRewards(
     ?? null;
   check("eye_contact", "Eye Contact", prevEye, currEye, "up");
 
-  // Cap at 3 — prioritize the highest-impact metrics
+  // Cap at 3 - prioritize the highest-impact metrics
   const PRIORITY = ["score", "star_result", "filler_rate", "communication", "confidence", "pitch_range", "monotone", "wpm", "eye_contact"];
   unlocks.sort((a, b) => PRIORITY.indexOf(a.metricKey) - PRIORITY.indexOf(b.metricKey));
 

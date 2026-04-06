@@ -34,7 +34,7 @@ const RESOURCES = [
   {
     Icon: Briefcase,
     label: "Landing Your First Internship",
-    desc: "Before you start, first two weeks, mid-internship, and how to get a return offer — full checklist.",
+    desc: "Before you start, first two weeks, mid-internship, and how to get a return offer - full checklist.",
     href: "/career-guide/first-year?from=during-college",
     tag: "Career",
   },
@@ -76,7 +76,7 @@ const RESOURCES = [
   {
     Icon: BarChart,
     label: "Peer Salary & Career Benchmarks",
-    desc: "See how your cohort is doing — employment rate, salary distribution, industry breakdown.",
+    desc: "See how your cohort is doing - employment rate, salary distribution, industry breakdown.",
     href: "/career-guide/benchmarks?from=during-college",
     tag: "Career",
   },
@@ -116,7 +116,7 @@ export default function DuringCollegePage() {
             Build skills that land opportunities.
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 600 }}>
-            College is the time to practice, explore, and build the foundation your career sits on. Schedule tasks on your calendar, stay ahead — not just in class, but in the real world.
+            College is the time to practice, explore, and build the foundation your career sits on. Schedule tasks on your calendar, stay ahead - not just in class, but in the real world.
           </p>
         </div>
 

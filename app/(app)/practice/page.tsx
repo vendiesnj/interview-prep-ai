@@ -626,6 +626,8 @@ async function clearHistory() {
   const [analysisStage, setAnalysisStage] = useState<string>("Preparing analysis…");
   const progressTimerRef = useRef<number | null>(null);
   const [feedback, setFeedback] = useState<any>(null);
+  const [rewardUnlocks, setRewardUnlocks] = useState<RewardUnlock[]>([]);
+  const [rewardDismissed, setRewardDismissed] = useState(false);
   const [history, setHistory] = useState<any[]>([]);
   const [durationSeconds, setDurationSeconds] = useState<number | null>(null);
   const lastTranscribedRef = useRef<string>("");
@@ -2190,6 +2192,7 @@ const res = await fetch("/api/feedback", {
     faceMetrics: faceMetricsRef.current ?? null,
     prevScore: history[0]?.score ?? null,
     prevAttemptCount: history.length,
+    eslMode,
   }),
 });
 
@@ -2206,7 +2209,7 @@ if (!res.ok) {
     data?.error === "NOT_AN_ANSWER"
       ? (data.message ?? "This recording doesn't appear to be a response to the question. Make sure you're speaking into the mic and answering the question shown.")
       : data?.error === "RESPONSE_TOO_SHORT"
-      ? (data.message ?? "Response too short to score. Record a full answer — aim for at least 30 seconds.")
+      ? (data.message ?? "Response too short to score. Record a full answer - aim for at least 30 seconds.")
       : data?.error === "TRANSCRIPT_TOO_LONG"
       ? "Response is too long to analyze. Try a shorter answer."
       : data?.error ?? "Feedback failed.";
@@ -2216,6 +2219,14 @@ if (!res.ok) {
 }
 
 setFeedback(data);
+// Compute rewards by comparing to the most recent history entry
+{
+  const prevEntry = history[0] ?? null;
+  const currFillersPer100 = data?.filler?.per100 ?? 0;
+  const currWpmForReward = inputMethod === "spoken" ? (typeof wpm === "number" ? wpm : null) : null;
+  setRewardUnlocks(computeRewards(prevEntry, data, currFillersPer100, currWpmForReward));
+  setRewardDismissed(false);
+}
 const activeProfileId = activeJobProfile?.id ?? null;
 const activeProfileTitle = activeJobProfile?.title ?? null;
 const activeProfileCompany = activeJobProfile?.company ?? null;
@@ -3502,6 +3513,46 @@ e.currentTarget.style.borderColor = "var(--card-border)";
       </button>
     ) : null}
   </div>
+
+  {/* ESL / International Mode Toggle */}
+  <div
+    style={{
+      marginTop: 14,
+      paddingTop: 12,
+      borderTop: "1px solid var(--card-border-soft)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: 12,
+    }}
+  >
+    <div>
+      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>
+        International / ESL Mode
+      </div>
+      <div style={{ marginTop: 2, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>
+        Adjusts filler & pace thresholds for non-native English speakers.
+      </div>
+    </div>
+    <button
+      type="button"
+      onClick={toggleEslMode}
+      style={{
+        padding: "6px 14px",
+        borderRadius: 999,
+        border: eslMode ? "1px solid var(--accent-strong)" : "1px solid var(--card-border)",
+        background: eslMode ? "var(--accent-soft)" : "transparent",
+        color: eslMode ? "var(--accent)" : "var(--text-muted)",
+        fontSize: 12,
+        fontWeight: 600,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        flex: "0 0 auto",
+      }}
+    >
+      {eslMode ? "On" : "Off"}
+    </button>
+  </div>
 </CollapsibleNoteCard>
 
 {wavUrlRef.current && (
@@ -3598,7 +3649,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
       <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
         {webcamEnabled
           ? "Eye contact, expressiveness & head stability will be added to your results."
-          : "Adds visual delivery metrics — eye contact, expressiveness, head stability — to your results."}
+          : "Adds visual delivery metrics - eye contact, expressiveness, head stability - to your results."}
       </div>
     </div>
   </div>
@@ -4246,71 +4297,320 @@ onMouseLeave={(e) =>
   
 
   {/* Feedback */}
-  { feedback && (
-    <div
-  style={{
-    padding: "14px 0",
-    color: "var(--text-primary)",
-  }}
->
-     <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0, color: "var(--text-primary)" }}>
-  Feedback (Score: {displayOverall100(feedback?.score)})
-</h3>
+  {feedback && (
+    <div style={{ padding: "14px 0", color: "var(--text-primary)" }}>
 
+      {/* ── Archetype Hero Block ─────────────────────────────────── */}
+      {(() => {
+        const archetype = feedback?.delivery_archetype as string | undefined;
+        const archetypeColor = archetype ? (ARCHETYPE_COLOR[archetype] ?? "var(--accent)") : "var(--accent)";
+        const pct = Math.max(0, Math.min(1, overallScore100 / 100));
+        const deg = Math.round(pct * 360);
+        return (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 16,
+              padding: "14px 16px",
+              borderRadius: 16,
+              border: "1px solid var(--card-border-soft)",
+              background: "var(--card-bg)",
+              marginBottom: 14,
+            }}
+          >
+            {/* Score Ring */}
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 999,
+                background: `conic-gradient(${archetypeColor} ${deg}deg, var(--card-border) 0deg)`,
+                display: "grid",
+                placeItems: "center",
+                flex: "0 0 auto",
+              }}
+            >
+              <div
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: 999,
+                  background: "var(--card-bg-strong)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: "var(--text-primary)",
+                }}
+              >
+                {overallScore100}
+              </div>
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    color: "var(--text-primary)",
+                  }}
+                >
+                  {archetype ?? "Analysis Complete"}
+                </span>
+                {archetype && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      background: `${archetypeColor}22`,
+                      color: archetypeColor,
+                      border: `1px solid ${archetypeColor}44`,
+                    }}
+                  >
+                    Archetype
+                  </span>
+                )}
+                {feedback?.esl_mode_active && (
+                  <span
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: "2px 8px",
+                      borderRadius: 999,
+                      background: "#7C3AED18",
+                      color: "#7C3AED",
+                      border: "1px solid #7C3AED33",
+                    }}
+                  >
+                    ESL calibrated
+                  </span>
+                )}
+              </div>
+              {feedback?.archetype_description && (
+                <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                  {feedback.archetype_description}
+                </div>
+              )}
+              {feedback?.archetype_coaching && (
+                <div
+                  style={{
+                    marginTop: 8,
+                    fontSize: 12,
+                    color: "var(--text-primary)",
+                    fontWeight: 500,
+                    lineHeight: 1.5,
+                    borderLeft: `2px solid ${archetypeColor}`,
+                    paddingLeft: 8,
+                  }}
+                >
+                  {feedback.archetype_coaching}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Reward Unlocks Banner ─────────────────────────────────── */}
+      {rewardUnlocks.length > 0 && !rewardDismissed && (
+        <div
+          style={{
+            marginBottom: 14,
+            padding: "12px 14px",
+            borderRadius: 14,
+            border: "1px solid #10B98144",
+            background: "#10B98110",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#10B981" }}>
+              Improvement unlocked
+            </span>
+            <button
+              type="button"
+              onClick={() => setRewardDismissed(true)}
+              style={{
+                background: "transparent",
+                border: "none",
+                color: "var(--text-muted)",
+                cursor: "pointer",
+                fontSize: 12,
+                padding: "2px 6px",
+              }}
+            >
+              Dismiss
+            </button>
+          </div>
+          {rewardUnlocks.map((r) => (
+            <div
+              key={r.metricKey}
+              style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}
+            >
+              • {r.celebrationLine}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── ESL Cultural Note ────────────────────────────────────── */}
+      {feedback?.esl_cultural_note && (
+        <div
+          style={{
+            marginBottom: 14,
+            padding: "12px 14px",
+            borderRadius: 14,
+            border: "1px solid #7C3AED33",
+            background: "#7C3AED08",
+          }}
+        >
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#7C3AED", marginBottom: 5 }}>
+            US interview context
+          </div>
+          <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}>
+            {feedback.esl_cultural_note}
+          </div>
+        </div>
+      )}
+
+      {/* ── Gauge Grid ───────────────────────────────────────────── */}
       <div
         style={{
-          marginTop: 14,
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: 12,
         }}
       >
-        <GaugeTile title="Overall" value={overallScore100} max={100}>
-  <MetricBar label="Overall Score" value={overallScore100} max={100} />
-  {wpm !== null && (
-            <div style={{ marginTop: 10 }}>
-              <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Pace</div>
-              <div style={{ marginTop: 6, color: "var(--text-primary)", fontWeight: 700 }}>{wpm} wpm</div>
-            </div>
-          )}
-        </GaugeTile>
-
-        <GaugeTile title="Communication" value={feedback?.communication_score ?? 0} max={10}>
-          <MetricBar label="Communication" value={feedback?.communication_score ?? 0} max={10} />
-          {feedback?.filler && (
-            <div style={{ marginTop: 10, fontSize: 12, color: "var(--text-muted)" }}>
-              Fillers: {feedback?.filler.total} ({feedback?.filler.per100}/100 words)
-            </div>
-          )}
-        </GaugeTile>
-
+        {/* Delivery tile - comm + conf merged */}
         <GaugeTile
-          title="Confidence"
-          value={feedback?.confidence_score ?? 0}
-          max={10}
-          subtitle={feedback?.confidence_explanation}
+          title="Delivery"
+          value={Math.round(((feedback?.communication_score ?? 0) + (feedback?.confidence_score ?? 0)) / 2 * 10)}
+          max={100}
+          subtitle="Communication · Confidence"
         >
+          <MetricBar label="Communication" value={feedback?.communication_score ?? 0} max={10} />
           <MetricBar label="Confidence" value={feedback?.confidence_score ?? 0} max={10} />
+          {feedback?.filler && (
+            <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
+              Fillers: {feedback.filler.total} ({feedback.filler.per100}/100 words)
+            </div>
+          )}
+          {wpm !== null && (
+            <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>
+              Pace: <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{wpm} wpm</span>
+            </div>
+          )}
+          {feedback?.confidence_explanation && (
+            <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
+              {feedback.confidence_explanation}
+            </div>
+          )}
         </GaugeTile>
 
-        {feedback?.star && (
+        {/* Content Quality tile */}
+        {feedback?.star ? (
           <GaugeTile
-            title="Star"
+            title="Content Quality"
             value={Math.round(
-              ((feedback?.star?.situation ?? 0) +
-                (feedback?.star?.task ?? 0) +
-                (feedback?.star?.action ?? 0) +
-                (feedback?.star?.result ?? 0)) / 4
+              ((feedback.star.situation ?? 0) +
+                (feedback.star.task ?? 0) +
+                (feedback.star.action ?? 0) +
+                (feedback.star.result ?? 0)) / 4 * 10
             )}
-            max={10}
+            max={100}
+            subtitle="STAR Framework"
           >
-            <MetricBar label="Situation" value={feedback?.star?.situation ?? 0} max={10} />
-            <MetricBar label="Task" value={feedback?.star?.task ?? 0} max={10} />
-            <MetricBar label="Action" value={feedback?.star?.action ?? 0} max={10} />
-            <MetricBar label="Result" value={feedback?.star?.result ?? 0} max={10} />
+            <MetricBar label="Situation" value={feedback.star.situation ?? 0} max={10} />
+            <MetricBar label="Task" value={feedback.star.task ?? 0} max={10} />
+            <MetricBar label="Action" value={feedback.star.action ?? 0} max={10} />
+            <MetricBar label="Result" value={feedback.star.result ?? 0} max={10} />
+          </GaugeTile>
+        ) : (
+          <GaugeTile
+            title="Content Quality"
+            value={overallScore100}
+            max={100}
+            subtitle="Overall answer quality"
+          >
+            <MetricBar label="Overall Score" value={overallScore100} max={100} />
           </GaugeTile>
         )}
       </div>
+
+      {/* ── What Worked ──────────────────────────────────────────── */}
+      {Array.isArray(feedback?.strengths) && feedback.strengths.length > 0 && (
+        <details
+          style={{
+            marginTop: 12,
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+            padding: 12,
+          }}
+        >
+          <summary
+            style={{
+              listStyle: "none",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--text-primary)",
+            }}
+          >
+            What Worked ▾
+          </summary>
+          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+            {(feedback.strengths as string[]).map((s, i) => (
+              <div key={i} style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                <span style={{ color: "#10B981", fontWeight: 700, marginRight: 6 }}>✓</span>{s}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
+      {/* ── Where to Improve ─────────────────────────────────────── */}
+      {Array.isArray(feedback?.improvements) && feedback.improvements.length > 0 && (
+        <details
+          style={{
+            marginTop: 8,
+            borderRadius: 14,
+            border: "1px solid var(--card-border-soft)",
+            background: "var(--card-bg)",
+            padding: 12,
+          }}
+        >
+          <summary
+            style={{
+              listStyle: "none",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--text-primary)",
+            }}
+          >
+            Where to Improve ▾
+          </summary>
+          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+            {(feedback.improvements as string[]).map((s, i) => (
+              <div key={i} style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                <span style={{ color: "var(--accent)", fontWeight: 700, marginRight: 6 }}>→</span>{s}
+              </div>
+            ))}
+          </div>
+        </details>
+      )}
+
     </div>
   )}
   

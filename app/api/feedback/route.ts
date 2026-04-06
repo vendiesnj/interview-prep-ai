@@ -543,7 +543,7 @@ Evidence rules:
 Webcam presence rules (when presence_signals is provided):
 - Factor eye_contact and expressiveness into confidence_score. Strong eye contact (>= "strong") supports higher confidence scores. Weak eye contact ("weak") should lower the confidence_score by 0.3–0.8 relative to verbal content alone.
 - If eye_contact is weak, include one confidence_evidence item noting the camera disengagement and its effect on perceived confidence.
-- Do not mention webcam or eye contact in strengths/improvements/better_answer unless presence_signals shows a clear signal worth naming — if it's strong, it can appear as a strength; if weak, as an improvement.
+- Do not mention webcam or eye contact in strengths/improvements/better_answer unless presence_signals shows a clear signal worth naming - if it's strong, it can appear as a strength; if weak, as an improvement.
 
 Output rules:
 - Return exactly one JSON object
@@ -552,14 +552,14 @@ Output rules:
 - Do not use code fences
 - Do not omit required keys
 - Only generate feedback if the transcript is a genuine attempt to answer the question
-- Evidence, strengths, and improvements must be grounded in actual content from the transcript — never invented
+- Evidence, strengths, and improvements must be grounded in actual content from the transcript - never invented
 `.trim();
 
   const eslBlock = `
 
 ESL / International speaker mode is ACTIVE. Apply these adjustments:
 - Do NOT penalize non-native accent, regional dialect, or minor grammatical variation.
-- Evaluate idea clarity and professional communication quality — not linguistic polish.
+- Evaluate idea clarity and professional communication quality - not linguistic polish.
 - Filler thresholds are 25% more lenient: treat fillers_per_100_words < 6.5 as acceptable.
 - Do NOT include language-level corrections in improvements unless comprehension is clearly impaired.
 - Confidence scoring should not penalize hedging phrases that reflect cultural communication norms.
@@ -1557,7 +1557,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Minimum word count — ambient audio / accidental phrases shouldn't be scored
+    // Minimum word count - ambient audio / accidental phrases shouldn't be scored
     const wordCount = transcript.trim().split(/\s+/).filter(Boolean).length;
     if (wordCount < 15) {
       return new Response(
@@ -1717,7 +1717,7 @@ export async function POST(req: Request) {
         );
       }
     } catch {
-      // If the relevance check itself fails, allow through — don't block the user
+      // If the relevance check itself fails, allow through - don't block the user
     }
 
     const modelResult = await callFeedbackModel({

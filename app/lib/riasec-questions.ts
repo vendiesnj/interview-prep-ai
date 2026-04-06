@@ -33,7 +33,7 @@ export interface RiasecQuestion {
   dimension?: RiasecDimension; // for scale type
 }
 
-// ── Section 1: Activities — Would you enjoy doing this? ──────────────────────
+// ── Section 1: Activities - Would you enjoy doing this? ──────────────────────
 // Format: yes/no styled as scale (1=Strongly dislike, 5=Strongly enjoy)
 
 export const ACTIVITY_QUESTIONS: RiasecQuestion[] = [
@@ -59,7 +59,7 @@ export const ACTIVITY_QUESTIONS: RiasecQuestion[] = [
   { id: "act_A3", section: "activities", type: "scale", dimension: "A", prompt: "Create a short film, video, or photo series" },
   { id: "act_A4", section: "activities", type: "scale", dimension: "A", prompt: "Design the layout or user experience of a website or app" },
   { id: "act_A5", section: "activities", type: "scale", dimension: "A", prompt: "Perform or create music, theater, or dance" },
-  { id: "act_A6", section: "activities", type: "scale", dimension: "A", prompt: "Redesign a space — a room, a garden, a storefront — from scratch" },
+  { id: "act_A6", section: "activities", type: "scale", dimension: "A", prompt: "Redesign a space - a room, a garden, a storefront - from scratch" },
 
   // Social
   { id: "act_S1", section: "activities", type: "scale", dimension: "S", prompt: "Tutor or coach someone struggling with a difficult concept" },
@@ -137,12 +137,12 @@ export const SCENARIO_QUESTIONS: RiasecQuestion[] = [
     type: "choice",
     prompt: "Which description sounds most like your ideal work day?",
     options: [
-      { label: "Active and physical — on a job site, in a workshop, or in the field", dimension: "R" },
-      { label: "Focused and analytical — deep research, experiments, or complex problem-solving", dimension: "I" },
-      { label: "Creative and generative — designing, writing, or making something new", dimension: "A" },
-      { label: "Relational and impactful — coaching, counseling, or directly helping people", dimension: "S" },
-      { label: "Strategic and high-stakes — leading, pitching, or driving results", dimension: "E" },
-      { label: "Structured and organized — managing data, processes, and systems with precision", dimension: "C" },
+      { label: "Active and physical - on a job site, in a workshop, or in the field", dimension: "R" },
+      { label: "Focused and analytical - deep research, experiments, or complex problem-solving", dimension: "I" },
+      { label: "Creative and generative - designing, writing, or making something new", dimension: "A" },
+      { label: "Relational and impactful - coaching, counseling, or directly helping people", dimension: "S" },
+      { label: "Strategic and high-stakes - leading, pitching, or driving results", dimension: "E" },
+      { label: "Structured and organized - managing data, processes, and systems with precision", dimension: "C" },
     ],
   },
   {
@@ -153,7 +153,7 @@ export const SCENARIO_QUESTIONS: RiasecQuestion[] = [
     options: [
       { label: "Designing and overseeing the construction of a new facility", dimension: "R" },
       { label: "Running a study to determine why customer retention is dropping", dimension: "I" },
-      { label: "Rebranding the entire company — name, logo, voice, and messaging", dimension: "A" },
+      { label: "Rebranding the entire company - name, logo, voice, and messaging", dimension: "A" },
       { label: "Building a mental health and wellness program for employees", dimension: "S" },
       { label: "Launching the company into a new market and hitting revenue targets", dimension: "E" },
       { label: "Implementing a new financial reporting and compliance system", dimension: "C" },
@@ -181,7 +181,7 @@ export const SCENARIO_QUESTIONS: RiasecQuestion[] = [
     options: [
       { label: "Using tools, equipment, or my hands to solve a physical problem", dimension: "R" },
       { label: "Researching, analyzing, or learning something complex", dimension: "I" },
-      { label: "Making something — writing, designing, performing, or building creatively", dimension: "A" },
+      { label: "Making something - writing, designing, performing, or building creatively", dimension: "A" },
       { label: "Listening, coaching, or helping someone figure something out", dimension: "S" },
       { label: "Selling, pitching, leading, or driving a team forward", dimension: "E" },
       { label: "Organizing, planning, or building a system that makes things run better", dimension: "C" },

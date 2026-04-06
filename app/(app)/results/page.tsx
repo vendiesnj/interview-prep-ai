@@ -1792,7 +1792,7 @@ const deliveryProfile = useMemo(() => {
                   </div>
                 </div>
 
-              {/* Webcam / Visual Delivery — always visible on Overview */}
+              {/* Webcam / Visual Delivery - always visible on Overview */}
               {(() => {
                 const face = (dm as any)?.face;
                 const hasData = face && typeof face.eyeContact === "number";
@@ -1836,7 +1836,7 @@ const deliveryProfile = useMemo(() => {
                             <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, opacity: 0.4 }}>
                               <span style={{ fontSize: 14 }}>{icon}</span>
                               <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{label}</span>
-                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>—</span>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>-</span>
                             </div>
                           ))}
                         </div>
@@ -2537,7 +2537,7 @@ const deliveryProfile = useMemo(() => {
                                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
                                     <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{icon} {label}</span>
                                     <span style={{ fontSize: 13, fontWeight: 700, color: pct !== null ? barColor : "var(--text-muted)" }}>
-                                      {pct !== null ? `${pct}%` : "—"}
+                                      {pct !== null ? `${pct}%` : "-"}
                                     </span>
                                   </div>
                                   <div style={{ height: 5, borderRadius: 999, background: "var(--card-border)", overflow: "hidden" }}>

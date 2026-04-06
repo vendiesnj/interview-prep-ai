@@ -1,4 +1,4 @@
-// Signal waveform logo — SVG component
+// Signal waveform logo - SVG component
 // Renders a stylized audio waveform (7 bars, tallest in center)
 // inside a rounded rectangle with a blue gradient.
 

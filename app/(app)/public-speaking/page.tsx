@@ -566,7 +566,7 @@ export default function PublicSpeakingPage() {
                       <div key={label} style={{ marginBottom: 14, opacity: hasData ? 1 : 0.5 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{icon} {label}</span>
-                          <span style={{ fontSize: 13, fontWeight: 900, color: pct !== null ? color : "var(--text-muted)" }}>{pct !== null ? `${pct}%` : "—"}</span>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: pct !== null ? color : "var(--text-muted)" }}>{pct !== null ? `${pct}%` : "-"}</span>
                         </div>
                         <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
                           <div style={{ height: "100%", width: pct !== null ? `${pct}%` : "0%", borderRadius: 99, background: color, transition: "width 600ms ease" }} />

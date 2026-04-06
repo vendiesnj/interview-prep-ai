@@ -19,12 +19,12 @@ interface CotdStorage {
 // ── RIASEC descriptions ───────────────────────────────────────────────────────
 
 const RIASEC_DESCRIPTIONS: Record<string, { label: string; desc: string; color: string }> = {
-  R: { label: "Realistic", desc: "Hands-on, physical, mechanical — loves building and fixing things", color: "#10B981" },
-  I: { label: "Investigative", desc: "Analytical, research-oriented — loves solving complex problems", color: "#2563EB" },
-  A: { label: "Artistic", desc: "Creative, expressive, original — thrives with imagination and design", color: "#8B5CF6" },
-  S: { label: "Social", desc: "Helping, teaching, healing — driven by working with and for people", color: "#EC4899" },
-  E: { label: "Enterprising", desc: "Leading, persuading, selling — energized by goals and influence", color: "#F59E0B" },
-  C: { label: "Conventional", desc: "Organized, detail-oriented, systematic — loves structure and accuracy", color: "#6366F1" },
+  R: { label: "Realistic", desc: "Hands-on, physical, mechanical - loves building and fixing things", color: "#10B981" },
+  I: { label: "Investigative", desc: "Analytical, research-oriented - loves solving complex problems", color: "#2563EB" },
+  A: { label: "Artistic", desc: "Creative, expressive, original - thrives with imagination and design", color: "#8B5CF6" },
+  S: { label: "Social", desc: "Helping, teaching, healing - driven by working with and for people", color: "#EC4899" },
+  E: { label: "Enterprising", desc: "Leading, persuading, selling - energized by goals and influence", color: "#F59E0B" },
+  C: { label: "Conventional", desc: "Organized, detail-oriented, systematic - loves structure and accuracy", color: "#6366F1" },
 };
 
 const CATEGORY_COLORS: Record<string, string> = {

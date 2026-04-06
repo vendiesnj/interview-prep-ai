@@ -12,7 +12,7 @@ function escapeIcs(s: string): string {
   return s.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
 }
 
-// GET /api/checklist/ics?stage=pre_college  — returns .ics file with all scheduled items
+// GET /api/checklist/ics?stage=pre_college  - returns .ics file with all scheduled items
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) return new NextResponse("Unauthorized", { status: 401 });
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
       `DTSTART;VALUE=DATE:${start}`,
       `DTEND;VALUE=DATE:${end}`,
       `SUMMARY:${escapeIcs(item.itemId.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()))}`,
-      `DESCRIPTION:${escapeIcs(`Career Readiness checklist — ${stageLabel}`)}`,
+      `DESCRIPTION:${escapeIcs(`Career Readiness checklist - ${stageLabel}`)}`,
       `CATEGORIES:${escapeIcs(stageLabel)}`,
       "END:VEVENT",
     ].join("\r\n");

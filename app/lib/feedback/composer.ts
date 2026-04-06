@@ -65,7 +65,7 @@ function extractSignals(args: ComposeArgs) {
   const exp = (normalized.experience_depth ?? {}) as any;
   const star = (normalized.star ?? {}) as any;
 
-  // Face metrics — prefer top-level faceMetrics arg, fall back to delivery.face if present
+  // Face metrics - prefer top-level faceMetrics arg, fall back to delivery.face if present
   const face = (args.faceMetrics ?? delivery.face ?? {}) as any;
 
   const transcript = normalizeText(args.transcript ?? "");
@@ -122,7 +122,7 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
   const hesitantPauseMs       = eslMode ? 1400 : 1100;
   const rushedWpm             = eslMode ? 178  : 168;
 
-  // Pace — use wpm primarily; fall back to tempo (syllables/sec * ~1.4 ≈ wpm estimate)
+  // Pace - use wpm primarily; fall back to tempo (syllables/sec * ~1.4 ≈ wpm estimate)
   let pace: "slow" | "controlled" | "fast" | "rushed" = "controlled";
   const effectiveWpm = s.wpm ?? (s.tempo !== null ? s.tempo * 1.4 * 60 / 4 : null); // rough estimate
   if (effectiveWpm !== null && effectiveWpm >= rushedWpm) pace = "rushed";
@@ -135,13 +135,13 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
   else if (s.fillersPer100 >= fillerSlightThreshold) fluency = "slightly_disfluent";
   if (s.avgPauseMs !== null && s.avgPauseMs > 1500 && s.fillersPer100 >= fillerSlightThreshold) fluency = "fragmented";
 
-  // Pausing — incorporate longPauseCount: 3+ long pauses signals hesitation regardless of avg
+  // Pausing - incorporate longPauseCount: 3+ long pauses signals hesitation regardless of avg
   let pausing: "controlled" | "hesitant" | "compressed" | "over_paused" = "controlled";
   if (s.avgPauseMs !== null && s.avgPauseMs > 1500) pausing = "over_paused";
   else if ((s.avgPauseMs !== null && s.avgPauseMs > hesitantPauseMs) || (s.longPauseCount !== null && s.longPauseCount >= 3)) pausing = "hesitant";
   else if (s.avgPauseMs !== null && s.avgPauseMs < 380) pausing = "compressed";
 
-  // Vocal dynamics — pitchMean refines: very low mean (<110 Hz) + flat range = stronger flat signal
+  // Vocal dynamics - pitchMean refines: very low mean (<110 Hz) + flat range = stronger flat signal
   const pitchMeanFlat = s.pitchMean !== null && s.pitchMean < 110;
   let vocalDynamics: "flat" | "moderate" | "dynamic" | "erratic" = "moderate";
   if ((s.monotoneScore !== null && s.monotoneScore >= 6.2) || (s.pitchRange !== null && s.pitchRange < 70) || pitchMeanFlat) {
@@ -152,7 +152,7 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
     vocalDynamics = "dynamic";
   }
 
-  // Energy profile — energyMean adds an absolute volume floor (quiet speaker = low regardless of variation)
+  // Energy profile - energyMean adds an absolute volume floor (quiet speaker = low regardless of variation)
   const quietSpeaker = s.energyMean !== null && s.energyMean < 0.018;
   let energyProfile: "low" | "steady" | "engaging" | "inconsistent" = "steady";
   if ((s.energyVariation !== null && s.energyVariation < 0.35) || vocalDynamics === "flat" || quietSpeaker) energyProfile = "low";
@@ -167,7 +167,7 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
   if (pace === "rushed" && fluency !== "clean") cadenceStability = "erratic";
   else if (pausing === "hesitant" || pausing === "compressed" || vocalDynamics === "erratic") cadenceStability = "slightly_uneven";
 
-  // Presence signal — incorporates headStability alongside eyeContact and expressiveness
+  // Presence signal - incorporates headStability alongside eyeContact and expressiveness
   let presenceSignal: "strong" | "moderate" | "low" | null = null;
   if (s.eyeContact !== null && s.expressiveness !== null) {
     const stabilityBonus = s.headStability !== null ? (s.headStability - 0.6) * 0.15 : 0;
@@ -181,7 +181,7 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
 }
 
 function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeArgs) {
-  // Structure — use techStructure for technical framework when available
+  // Structure - use techStructure for technical framework when available
   let structure: "strong" | "moderate" | "weak" = "moderate";
   const structureSignal = args.framework === "technical_explanation" && s.techStructure !== null
     ? s.techStructure
@@ -205,7 +205,7 @@ function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeA
   if ((outcomeSignal ?? 6.5) >= 7.8) outcomeStrength = "strong";
   else if ((outcomeSignal ?? 6.5) <= 6.2) outcomeStrength = "weak";
 
-  // Specificity — expExampleQuality sharpens this for experience answers
+  // Specificity - expExampleQuality sharpens this for experience answers
   let specificity: "specific" | "mixed" | "generalized" = "mixed";
   const hasMetrics = /\b\d+%|\b\d+\b|\$|\bpercent\b|\bmetric\b|\bkpi\b/.test(s.transcript);
   const specificityScore = args.framework === "experience_depth" && s.expExampleQuality !== null
@@ -219,7 +219,7 @@ function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeA
   else if (/\bfor example\b|\bfor instance\b|\bone time\b|\bin one project\b/.test(s.transcript)) evidenceMode = "example_forward";
   else if (/\bfirst\b|\bthen\b|\bafter\b|\bprocess\b|\bworkflow\b|\bmethod\b/.test(s.transcript)) evidenceMode = "process_forward";
 
-  // Depth — techClarity refines for technical answers; expExampleQuality for experience
+  // Depth - techClarity refines for technical answers; expExampleQuality for experience
   let depthMode: "deep" | "adequate" | "thin" = "adequate";
   let depthSignal: number;
   if (args.framework === "technical_explanation") {
@@ -909,6 +909,55 @@ const CONFIDENCE_DEFAULT = [
 ];
 
 // ---------------------------------------------------------------------------
+// ESL / INTERNATIONAL MODE - copy pools that replace generic versions
+// when eslMode is active. Framed around cultural context, not correction.
+// ---------------------------------------------------------------------------
+
+// These replace the generic CONFIDENCE_PAUSES pool when eslMode is on and
+// pausing is hesitant - reframes processing pauses as a fixable convention issue
+const ESL_CONFIDENCE_PAUSES = [
+  "Pausing to process is normal when you're working in a second language. The fix is replacing the gap with a brief silent pause rather than a filler - silence actually reads as more composed to the interviewer.",
+  "The hesitation here likely reflects real-time processing effort, not uncertainty about the content. Practicing the transition phrases out loud - 'As a result,' 'Because of this,' 'What that meant was' - reduces the cognitive load at the moment you need to connect ideas.",
+  "In a second language, longer pauses between ideas are expected and natural. The issue isn't the pause itself - it's finishing each sentence cleanly before pausing, rather than pausing mid-clause.",
+  "Processing time in a second language shows up as delivery hesitation - that's not a confidence problem, it's a fluency convention. Recording yourself and practicing the specific answer (not just the topic) closes this gap faster than anything else.",
+  "The confidence signal here is lower than the content deserves, mainly because of the hesitation pattern. For non-native speakers, this is often the last thing to smooth out - and it smooths out quickly once the answer is practiced out loud three or four times.",
+];
+
+// ESL-specific improvement copy for themes where the framing differs substantially
+const ESL_IMPROVEMENT_POOLS: Record<string, string[]> = {
+  ownership: [
+    "In US interview culture, first-person ownership language reads as directness and confidence, not arrogance. Saying 'I decided' or 'I led this' for collaborative work is expected - interviewers are specifically trying to isolate your judgment, and 'we' makes that harder.",
+    "The team-language instinct here is natural in many professional cultures, but US interviewers score individual contribution, not group effort. Try starting your next answer with 'I was responsible for...' or 'My decision was...' even when the work was shared.",
+    "Using 'we' is a politeness convention in many cultures - but in this context it actively lowers your score because interviewers can't identify what you specifically drove. Switch 'we decided' to 'I recommended' and 'we built' to 'I built' throughout.",
+    "Ownership language is a learnable US interview convention, not a personality type. Interviewers here are trained to credit first-person verbs - 'I drove,' 'I built,' 'I designed' - and to treat team language as a signal that you may not have been central to the work.",
+    "The answer would read more confidently with clearer individual ownership. This isn't about taking credit away from the team - it's that the interviewer can only evaluate you, and they need to hear your specific role named directly.",
+    "First-person framing is the fastest fix available here. Even one change - 'I was responsible for the outcome' at the close - shifts the read on the whole answer because it signals that you know the interviewer is evaluating you, not the group.",
+  ],
+  delivery_control: [
+    "Filler words often increase when you're processing in a second language - that's normal and expected. The fix isn't fewer thoughts, it's replacing the filler with a silent pause, which sounds noticeably more confident to US interviewers.",
+    "For non-native speakers, verbal fillers usually reflect real-time translation effort rather than verbal habit. Practicing the specific transition phrases - 'As a result,' 'That meant,' 'Because of this' - reduces the cognitive gap at exactly the moments where fillers appear.",
+    "The filler pattern here is most likely a processing-time artifact, not a content problem. Recording yourself giving this answer three times in a row and focusing only on the transitions will cut filler density substantially without requiring you to slow down your thinking.",
+    "Verbal fillers between ideas are a common non-native speaker pattern in high-stakes settings - the anxiety of the context increases them. A deliberate one-beat pause at transitions sounds far more polished than 'um' or 'like,' and it's a quick switch to make consciously.",
+    "The delivery issue here is mostly about transitions between ideas, which is the hardest moment for second-language speakers. Preparing a small set of connector phrases and using them deliberately reduces filler without requiring you to think in real time.",
+    "Clean delivery in a second language takes slightly longer to develop than content quality - that's expected. The most targeted practice is recording yourself specifically on the transition moments: the pause between Situation and Task, between Action and Result.",
+  ],
+  structure: [
+    "Different languages and cultures sequence stories differently - US interview culture follows STAR very specifically, and deviating from it costs more points here than in most other professional settings. Labeling the sections out loud ('The situation was... / My role was... / What I did was... / The result was...') helps the interviewer track the story.",
+    "The structure here may reflect a different storytelling convention. In US interview culture, the result comes last and gets its own full sentence - the action alone isn't the payoff. Practicing the STAR order explicitly, out loud, is the fastest fix.",
+    "Story structure expectations vary significantly across cultures, and US interviews are unusually rigid about STAR sequencing. The good news is it's a formula - once you've practiced telling three or four stories in explicit STAR order, the pattern becomes automatic.",
+    "The sequencing in this answer reflects a narrative approach that works in many contexts but not in US behavioral interviews specifically. Interviewers here are trained to listen for STAR explicitly, and answers that don't follow that order get lower structure scores even when the content is strong.",
+  ],
+};
+
+// Cultural framing note - surfaced when eslMode is on and confidence is low
+// Explains why assertiveness reads differently in US interviews
+const ESL_CULTURAL_NOTES = [
+  "US interviews reward a specific type of assertiveness that can feel overstated in other professional cultures. Hedging phrases like 'I think I contributed' or 'we sort of managed to' read as low confidence here even when they're natural politeness in your context. The adjustment is deliberate, not permanent - practice saying your strongest lines as direct statements.",
+  "Confidence signals work differently in US interview culture. Phrases that demonstrate appropriate humility in many professional environments - 'I tried to,' 'I helped with,' 'we worked on' - read as uncertainty to US interviewers. The most effective shift is using declarative language for your decisions and results: 'I decided,' 'I built,' 'The outcome was X.'",
+  "One thing worth knowing: US interviewers are specifically trained to listen for first-person declarative language as a proxy for leadership potential. 'I led the project' scores differently than 'I was involved in the project' even if the underlying contribution was identical. This is a learnable convention - it's not about changing how you actually work, just how you describe it.",
+];
+
+// ---------------------------------------------------------------------------
 // BETTER ANSWER PREFIXES - varied, non-generic
 // ---------------------------------------------------------------------------
 
@@ -959,29 +1008,29 @@ const BETTER_ANSWER_PREFIXES: Record<string, string[]> = {
 
 // presence pool injected separately - used when webcam data shows strong/weak eye contact
 const PRESENCE_STRENGTH_POOL = [
-  "Strong eye contact throughout the session signals confidence and genuine engagement — that's a real differentiator on video interviews.",
+  "Strong eye contact throughout the session signals confidence and genuine engagement - that's a real differentiator on video interviews.",
   "Your camera presence is working for you: sustained eye contact communicates that you're composed and present, not reading notes.",
-  "The facial expressiveness here adds energy to your delivery — interviewers notice when a candidate looks genuinely invested.",
+  "The facial expressiveness here adds energy to your delivery - interviewers notice when a candidate looks genuinely invested.",
   "Eye contact at this level is rare in practice sessions and it shows in the overall confidence signal.",
-  "Your on-camera composure is a real asset — steady eye contact and expressive delivery make the content land harder.",
+  "Your on-camera composure is a real asset - steady eye contact and expressive delivery make the content land harder.",
   "The presence you're projecting on camera is above average: natural, engaged, and not visibly nervous.",
-  "Strong eye contact signals directness and conviction — two things interviewers weight heavily in final-round decisions.",
+  "Strong eye contact signals directness and conviction - two things interviewers weight heavily in final-round decisions.",
   "Your facial expressiveness matches the energy of the content, which makes the delivery feel coherent rather than flat.",
-  "Camera confidence is coachable, but you're already there — sustained eye contact under pressure is a legitimate strength.",
+  "Camera confidence is coachable, but you're already there - sustained eye contact under pressure is a legitimate strength.",
   "The physical delivery here supports the verbal one: you look like someone who believes what they're saying.",
 ];
 
 const PRESENCE_IMPROVEMENT_POOL = [
-  "Eye contact dropped noticeably during parts of this answer — on video, looking away reads as uncertainty or distraction to the interviewer.",
-  "The delivery loses some conviction because your gaze shifts away from the camera at key moments — where eye contact drops, confidence scoring follows.",
+  "Eye contact dropped noticeably during parts of this answer - on video, looking away reads as uncertainty or distraction to the interviewer.",
+  "The delivery loses some conviction because your gaze shifts away from the camera at key moments - where eye contact drops, confidence scoring follows.",
   "More consistent camera engagement would raise the perceived confidence in this response significantly.",
-  "Looking down or away during the hardest parts of the answer undermines the verbal content — eye contact at those moments matters most.",
-  "The expressiveness is flatter than the content deserves — on camera, facial engagement directly shapes how confident you appear.",
+  "Looking down or away during the hardest parts of the answer undermines the verbal content - eye contact at those moments matters most.",
+  "The expressiveness is flatter than the content deserves - on camera, facial engagement directly shapes how confident you appear.",
   "Sustained eye contact through the result statement is one of the highest-leverage fixes available in this answer.",
   "The presence signal here is mixed: the content is workable but the camera engagement isn't reinforcing it.",
-  "When eye contact breaks early in a sentence, it softens even a strong answer — that's the main delivery issue in this response.",
+  "When eye contact breaks early in a sentence, it softens even a strong answer - that's the main delivery issue in this response.",
   "More expressive delivery would help the interviewer feel your investment in the story, not just hear it.",
-  "The camera is reading a mismatch between your answer quality and your visible confidence — eye contact consistency would close that gap.",
+  "The camera is reading a mismatch between your answer quality and your visible confidence - eye contact consistency would close that gap.",
 ];
 
 // ---------------------------------------------------------------------------
@@ -1031,8 +1080,8 @@ const MO_DATA: Record<string, { labels: string[]; whys: string[]; sentences: str
   },
   presence: {
     labels: ["Hold eye contact through the result", "Stay on camera at the hardest moments", "Match your facial energy to your content", "Don't break eye contact when you're uncertain", "Let your face show your conviction"],
-    whys: ["Eye contact drops at exactly the moments that matter most for confidence scoring.", "Looking away during the result or key claim sends an uncertainty signal the interviewer will pick up.", "The verbal answer is stronger than the physical delivery is currently suggesting.", "On video, where your eyes go shapes how confident you appear — even when your words are strong.", "Facial expressiveness is a measurable component of perceived confidence in video interviews."],
-    sentences: ["Hold eye contact directly through the result sentence — that's the moment where it counts most.", "On the next attempt, commit to the camera at every key claim — no looking down.", "Let your expression shift slightly when you deliver the outcome: let the energy show.", "The fix is simple but high-impact: don't look away when the answer gets difficult.", "Match the weight of what you're saying with how your face delivers it — engagement is visible."],
+    whys: ["Eye contact drops at exactly the moments that matter most for confidence scoring.", "Looking away during the result or key claim sends an uncertainty signal the interviewer will pick up.", "The verbal answer is stronger than the physical delivery is currently suggesting.", "On video, where your eyes go shapes how confident you appear - even when your words are strong.", "Facial expressiveness is a measurable component of perceived confidence in video interviews."],
+    sentences: ["Hold eye contact directly through the result sentence - that's the moment where it counts most.", "On the next attempt, commit to the camera at every key claim - no looking down.", "Let your expression shift slightly when you deliver the outcome: let the energy show.", "The fix is simple but high-impact: don't look away when the answer gets difficult.", "Match the weight of what you're saying with how your face delivers it - engagement is visible."],
   },
 };
 
@@ -1066,7 +1115,9 @@ function buildImprovementCopy(args: ComposeArgs, diagnosis: ReturnType<typeof bu
     } else if (key === "presence") {
       lines.push(pickDeterministic(PRESENCE_IMPROVEMENT_POOL, seed, "improve-presence"));
     } else {
-      const pool = IMPROVEMENT_POOLS[key];
+      // In ESL mode, prefer the ESL-specific pool for themes that have cultural context
+      const eslPool = args.eslMode ? ESL_IMPROVEMENT_POOLS[key] : undefined;
+      const pool = eslPool ?? IMPROVEMENT_POOLS[key];
       if (pool?.length) lines.push(pickDeterministic(pool, seed, `improve-${key}`));
     }
   }
@@ -1103,7 +1154,10 @@ function buildConfidenceExplanation(args: ComposeArgs, diagnosis: ReturnType<typ
   if (s.confidence >= 7.8 && a.ownership === "strong") return CONFIDENCE_HIGH[seedNum % CONFIDENCE_HIGH.length];
   if (a.ownership === "soft" && d.fluency !== "clean") return CONFIDENCE_SOFT_FLUENCY[seedNum % CONFIDENCE_SOFT_FLUENCY.length];
   if (d.pace === "rushed") return CONFIDENCE_RUSHED[seedNum % CONFIDENCE_RUSHED.length];
-  if (d.pausing === "hesitant" || d.pausing === "over_paused") return CONFIDENCE_PAUSES[seedNum % CONFIDENCE_PAUSES.length];
+  if (d.pausing === "hesitant" || d.pausing === "over_paused") {
+    const pool = args.eslMode ? ESL_CONFIDENCE_PAUSES : CONFIDENCE_PAUSES;
+    return pool[seedNum % pool.length];
+  }
   return CONFIDENCE_DEFAULT[seedNum % CONFIDENCE_DEFAULT.length];
 }
 
@@ -1228,7 +1282,7 @@ export function composeRichFeedback(args: ComposeArgs) {
 
   next.milestone_note = buildMilestoneNote(args.prevAttemptCount ?? null);
 
-  // Archetype — computed from full signal set, guides next-attempt focus
+  // Archetype - computed from full signal set, guides next-attempt focus
   const archetypeResult = computeArchetype({
     overall: diagnosis.signals.overall,
     communication: diagnosis.signals.communication,
@@ -1259,6 +1313,13 @@ export function composeRichFeedback(args: ComposeArgs) {
   next.archetype_coaching = archetypeResult.archetypeCoaching;
   next.archetype_description = archetypeResult.archetypeDescription;
   next.archetype_signals = archetypeResult.primarySignals;
+
+  // ESL mode metadata - flags whether analysis was calibrated for non-native speakers
+  // and surfaces cultural framing note when confidence is low
+  next.esl_mode_active = args.eslMode ?? false;
+  if (args.eslMode && diagnosis.signals.confidence < 7) {
+    next.esl_cultural_note = ESL_CULTURAL_NOTES[seedNum % ESL_CULTURAL_NOTES.length];
+  }
 
   return next;
 }

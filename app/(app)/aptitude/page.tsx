@@ -55,17 +55,17 @@ const SECTION_INTROS = [
   {
     title: "Activities",
     subtitle: "How much would you enjoy doing each of these things?",
-    desc: "Rate each activity honestly — there are no right or wrong answers. Think about how you actually feel, not what sounds impressive.",
+    desc: "Rate each activity honestly - there are no right or wrong answers. Think about how you actually feel, not what sounds impressive.",
   },
   {
     title: "Scenarios",
     subtitle: "Which option sounds most like you?",
-    desc: "For each scenario, pick the one choice that genuinely resonates. Go with your gut — your first instinct is usually the most accurate.",
+    desc: "For each scenario, pick the one choice that genuinely resonates. Go with your gut - your first instinct is usually the most accurate.",
   },
   {
     title: "Work Values",
     subtitle: "What actually matters to you in a career?",
-    desc: "Four quick questions about what drives you. Be honest — this shapes which careers will actually make you happy long-term.",
+    desc: "Four quick questions about what drives you. Be honest - this shapes which careers will actually make you happy long-term.",
   },
   {
     title: "Entrepreneurship",
@@ -269,11 +269,11 @@ function Results({ answers }: { answers: Answers }) {
 
   const VALUE_EXPLANATIONS: Record<WorkValue, string> = {
     achievement: "You want to grow, master things, and be genuinely excellent at what you do. Look for roles with a steep learning curve and real intellectual challenge.",
-    independence: "You need autonomy. Micromanagement will drain you fast. Aim for roles where you own your work — or consider building something yourself.",
+    independence: "You need autonomy. Micromanagement will drain you fast. Aim for roles where you own your work - or consider building something yourself.",
     recognition: "You're motivated by visibility and advancement. High-growth companies, client-facing roles, and meritocratic environments will bring out your best.",
     relationships: "You thrive when surrounded by people you respect and care about. Team culture and collaboration matter as much as the work itself.",
     support: "Meaning is non-negotiable for you. You need to know your work is making a positive difference in people's lives.",
-    conditions: "You value stability, predictability, and a life that isn't consumed by work. That's a smart priority — seek roles with strong benefits and clear boundaries.",
+    conditions: "You value stability, predictability, and a life that isn't consumed by work. That's a smart priority - seek roles with strong benefits and clear boundaries.",
   };
 
   async function handleSave() {
@@ -314,7 +314,7 @@ function Results({ answers }: { answers: Answers }) {
       <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Your Personality Profile</h3>
         {sorted.slice(0, 3).map(([dim, score]) => (
-          <MiniBar key={dim} label={`${dim} — ${DIMENSION_LABELS[dim as RiasecDimension]}`} value={score} />
+          <MiniBar key={dim} label={`${dim} - ${DIMENSION_LABELS[dim as RiasecDimension]}`} value={score} />
         ))}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 20 }}>
           {[topDimension, secondDimension].map((dim) => (
@@ -549,7 +549,7 @@ export default function AptitudePage() {
         <div>
           <div style={{ marginBottom: 20 }}>
             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Group {s + 1} of {ACTIVITY_PAGES} — {dimNames[dim]}
+              Group {s + 1} of {ACTIVITY_PAGES} - {dimNames[dim]}
             </span>
             <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 4 }}>
               Rate how much you'd enjoy each activity (1 = strongly dislike, 5 = strongly enjoy):

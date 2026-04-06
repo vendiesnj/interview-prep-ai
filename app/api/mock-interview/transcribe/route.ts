@@ -47,7 +47,7 @@ Respond with JSON only:
   "result": true/false
 }
 
-Be generous — a brief mention counts as present.`,
+Be generous - a brief mention counts as present.`,
       },
     ],
     max_tokens: 100,

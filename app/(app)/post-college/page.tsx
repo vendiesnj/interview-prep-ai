@@ -34,7 +34,7 @@ const RESOURCES = [
   {
     Icon: Rocket,
     label: "Your First 90 Days",
-    desc: "Week 1, Month 1, and Month 3 checklist for your first job — benefits enrollment, 401k, building relationships.",
+    desc: "Week 1, Month 1, and Month 3 checklist for your first job - benefits enrollment, 401k, building relationships.",
     href: "/career-guide/first-year?from=post-college",
     tag: "Life",
   },
@@ -48,7 +48,7 @@ const RESOURCES = [
   {
     Icon: CreditCard,
     label: "Monthly Budget Builder",
-    desc: "Interactive 50/30/20 budget tool — see your surplus or deficit in real time and adjust instantly.",
+    desc: "Interactive 50/30/20 budget tool - see your surplus or deficit in real time and adjust instantly.",
     href: "/career-guide/budget",
     tag: "Finance",
   },
@@ -69,14 +69,14 @@ const RESOURCES = [
   {
     Icon: Map,
     label: "Career Progression Paths",
-    desc: "Where do people go from entry-level? Tech, finance, consulting, trades, healthcare — with salary ranges.",
+    desc: "Where do people go from entry-level? Tech, finance, consulting, trades, healthcare - with salary ranges.",
     href: "/career-guide/career-paths?from=post-college",
     tag: "Career",
   },
   {
     Icon: BarChart,
     label: "Peer Salary & Career Benchmarks",
-    desc: "Anonymous, aggregated outcomes from your cohort — employment rate, salary distribution, satisfaction scores.",
+    desc: "Anonymous, aggregated outcomes from your cohort - employment rate, salary distribution, satisfaction scores.",
     href: "/career-guide/benchmarks?from=post-college",
     tag: "Career",
   },

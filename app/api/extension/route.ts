@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   let userId: string | null = null;
 
   if (authHeader?.startsWith("Bearer ")) {
-    // Extension token auth — validate via session token stored in DB
+    // Extension token auth - validate via session token stored in DB
     const token = authHeader.slice(7);
     const dbSession = await prisma.session.findUnique({
       where: { sessionToken: token },

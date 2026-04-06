@@ -22,9 +22,9 @@ import { useIsUniversity } from "@/app/hooks/usePlan";
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
 const PRE_COLLEGE_CHECKLIST = [
-  { id: "fafsa_done",       label: "Complete FAFSA or renewal",                desc: "Priority #1 — opens October 1 each year. File as early as possible. Aid is first-come, first-served at many schools.", linkHref: "https://studentaid.gov/h/apply-for-aid/fafsa", linkLabel: "Apply on StudentAid.gov" },
+  { id: "fafsa_done",       label: "Complete FAFSA or renewal",                desc: "Priority #1 - opens October 1 each year. File as early as possible. Aid is first-come, first-served at many schools.", linkHref: "https://studentaid.gov/h/apply-for-aid/fafsa", linkLabel: "Apply on StudentAid.gov" },
   { id: "aid_letter",       label: "Review your financial aid award letter",   desc: "Your award letter breaks down grants (free), work-study (job program), and loans (repaid with interest).", linkHref: "/career-guide/finances?from=pre-college", linkLabel: "Understanding grants vs. loans" },
-  { id: "orientation",      label: "Sign up for orientation",                  desc: "Many schools require registration and charge a fee. Don't miss the deadline — orientation is how you meet your advisor and get class registration access." },
+  { id: "orientation",      label: "Sign up for orientation",                  desc: "Many schools require registration and charge a fee. Don't miss the deadline - orientation is how you meet your advisor and get class registration access." },
   { id: "housing",          label: "Submit housing application",               desc: "On-campus deadlines are often months before you arrive. Living on campus your first year is strongly recommended.", linkHref: "/career-guide/housing?from=pre-college", linkLabel: "On-campus vs. off-campus guide" },
   { id: "email_setup",      label: "Set up your student email",                desc: "Your .edu address unlocks free software (Microsoft 365, Adobe, Notion), discounts, and campus portals. Check it daily." },
   { id: "budget_first",     label: "Build your first college budget",          desc: "Map out your semester: tuition balance after aid, housing, meal plan, books (~$500–800), transportation.", linkHref: "/financial-literacy", linkLabel: "Financial Literacy tools" },
@@ -37,7 +37,7 @@ const PRE_COLLEGE_CHECKLIST = [
 const DURING_COLLEGE_CHECKLIST = [
   { id: "resume",           label: "Build your first resume",                      desc: "One page, reverse chronological, action verbs, quantified results where possible.", linkHref: "/resume-gap", linkLabel: "Analyze your resume with AI" },
   { id: "linkedin",         label: "Set up or update LinkedIn",                    desc: "Add your university, graduation year, a clean headshot, a 2–3 sentence summary, and any clubs, research, or volunteer work.", linkHref: "https://www.linkedin.com", linkLabel: "Open LinkedIn" },
-  { id: "internship_apps",  label: "Apply to at least 3 internships",             desc: "Start in September for summer internships — many Fortune 500 recruiting cycles close by November.", linkHref: "https://www.linkedin.com/jobs/", linkLabel: "Browse internships on LinkedIn" },
+  { id: "internship_apps",  label: "Apply to at least 3 internships",             desc: "Start in September for summer internships - many Fortune 500 recruiting cycles close by November.", linkHref: "https://www.linkedin.com/jobs/", linkLabel: "Browse internships on LinkedIn" },
   { id: "taxes_filed",      label: "File your taxes (every April)",               desc: "If you earned income from a job, work-study, or freelance work, you need to file by April 15.", linkHref: "https://apps.irs.gov/app/freeFile/", linkLabel: "IRS Free File" },
   { id: "fafsa_renewed",    label: "Renew FAFSA each year",                       desc: "FAFSA does not auto-renew. You must reapply each October 1 for the following academic year.", linkHref: "https://studentaid.gov/h/apply-for-aid/fafsa", linkLabel: "Renew on StudentAid.gov" },
   { id: "advisor_semester", label: "Meet with advisor each semester",             desc: "Before registration each semester, review your degree audit to catch missing requirements early." },
@@ -48,15 +48,15 @@ const DURING_COLLEGE_CHECKLIST = [
 ];
 
 const POST_COLLEGE_CHECKLIST = [
-  { id: "401k_enrolled",    label: "Enroll in your 401(k)",                          desc: "Do this in your first 30 days — you cannot retroactively contribute to months missed. If your employer matches, enroll immediately.", linkHref: "https://investor.gov/financial-tools-calculators/calculators/compound-interest-calculator", linkLabel: "See compound growth calculator" },
-  { id: "contribution_set", label: "Set your 401(k) contribution rate",              desc: "Contribute at minimum whatever percentage your employer matches — that's a 100% instant return.", linkHref: "/career-guide/retirement?from=post-college", linkLabel: "See your retirement projection" },
+  { id: "401k_enrolled",    label: "Enroll in your 401(k)",                          desc: "Do this in your first 30 days - you cannot retroactively contribute to months missed. If your employer matches, enroll immediately.", linkHref: "https://investor.gov/financial-tools-calculators/calculators/compound-interest-calculator", linkLabel: "See compound growth calculator" },
+  { id: "contribution_set", label: "Set your 401(k) contribution rate",              desc: "Contribute at minimum whatever percentage your employer matches - that's a 100% instant return.", linkHref: "/career-guide/retirement?from=post-college", linkLabel: "See your retirement projection" },
   { id: "benefits_reviewed",label: "Review all your benefits (health, dental, FSA)", desc: "You typically have 30 days from your start date to enroll. Compare PPO vs HDHP carefully.", linkHref: "/career-guide/finances?from=post-college", linkLabel: "Benefits 101 guide" },
   { id: "w4_set",           label: "Set up your W-4 correctly",                      desc: "The W-4 tells your employer how much federal tax to withhold. Use the IRS Withholding Estimator to dial it in.", linkHref: "https://apps.irs.gov/app/tax-withholding-estimator", linkLabel: "IRS Withholding Estimator" },
   { id: "paycheck_review",  label: "Understand your first paycheck",                 desc: "Your gross salary ÷ pay periods = gross per check. Build your budget from net (take-home), not gross.", linkHref: "/career-guide/finances?from=post-college", linkLabel: "Understanding your paycheck" },
   { id: "loans_plan",       label: "Set up your student loan repayment plan",        desc: "Log into StudentAid.gov to see your balance. Income-driven repayment plans cap payments at 5–10% of discretionary income.", linkHref: "https://studentaid.gov/manage-loans/repayment", linkLabel: "Explore federal repayment options" },
   { id: "emergency_3mo",    label: "Build a 3-month emergency fund",                 desc: "Before investing beyond your 401k match, build 3 months of essential expenses in a high-yield savings account (4–5% APY)." },
   { id: "renter_insurance", label: "Get renter's insurance",                         desc: "Usually $15–20/month. Covers your belongings if stolen or damaged. Your landlord's insurance only covers the building.", linkHref: "https://www.nerdwallet.com/best/insurance/renters", linkLabel: "Compare renters insurance" },
-  { id: "credit_report",   label: "Check your credit report",                       desc: "One free report per bureau per year at AnnualCreditReport.com. Review for errors — they're more common than you think.", linkHref: "https://www.annualcreditreport.com", linkLabel: "Get your free report" },
+  { id: "credit_report",   label: "Check your credit report",                       desc: "One free report per bureau per year at AnnualCreditReport.com. Review for errors - they're more common than you think.", linkHref: "https://www.annualcreditreport.com", linkLabel: "Get your free report" },
   { id: "budget_post",     label: "Build a post-grad budget (50/30/20 rule)",       desc: "50% needs, 30% wants, 20% savings and extra debt paydown. Build from take-home pay, not salary.", linkHref: "/financial-literacy", linkLabel: "Financial Literacy tools" },
 ];
 
@@ -371,7 +371,7 @@ function WeekView({
         })}
       </div>
 
-      {/* Time grid — scrollable */}
+      {/* Time grid - scrollable */}
       <div style={{ overflowY: "auto", maxHeight: 520 }}>
         {HOURS.map(hour => (
           <div key={hour} style={{ display: "grid", gridTemplateColumns: `56px ${weekDays.map(() => "1fr").join(" ")}`, borderBottom: "1px solid var(--card-border)", minHeight: 52 }}>
@@ -1152,7 +1152,7 @@ export default function DashboardPage() {
     try { const j = JSON.parse(raw); if (j?.type === "checklist") parsed = j; } catch {}
 
     if (parsed) {
-      // Schedule the checklist item itself — don't create a task
+      // Schedule the checklist item itself - don't create a task
       const stage = stageConfig?.stageKey;
       if (!stage) return;
       await fetch("/api/checklist", {
@@ -1251,7 +1251,7 @@ export default function DashboardPage() {
               <RefreshCw size={18} color="#92400E" />
               <div>
                 <div style={{ fontSize: 13, fontWeight: 900, color: "#92400E" }}>Time to retake your Career Assessment</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interests shift over time — see if your profile has evolved.</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interests shift over time - see if your profile has evolved.</div>
               </div>
             </div>
             <Link href="/aptitude" style={{ padding: "7px 16px", borderRadius: 8, background: "#F59E0B", color: "#fff", fontWeight: 900, fontSize: 12, textDecoration: "none", flexShrink: 0 }}>Retake →</Link>
@@ -1262,7 +1262,7 @@ export default function DashboardPage() {
         {!loading && data && !hasAptitude && !hasAnySessions && (
           <div style={{ marginTop: 12, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal — let's get you set up</div>
+              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal - let's get you set up</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
                 {isUniversity ? "Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan." : "Start with an interview practice session to get your first score and personalized feedback."}
               </div>

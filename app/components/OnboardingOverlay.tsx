@@ -16,7 +16,7 @@ import {
 const STORAGE_KEY = "ipc_onboarded_v1";
 const TOTAL_STEPS = 4;
 
-// ── Step 1 — Welcome ──────────────────────────────────────────────────────────
+// ── Step 1 - Welcome ──────────────────────────────────────────────────────────
 
 function StepWelcome({ onNext }: { onNext: () => void }) {
   return (
@@ -53,7 +53,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
         Welcome to Signal
       </h2>
       <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6, margin: "0 0 28px" }}>
-        Your career readiness platform — built to help you land the right job with the right skills.
+        Your career readiness platform - built to help you land the right job with the right skills.
       </p>
       <button onClick={onNext} style={primaryBtn}>
         Get Started
@@ -62,7 +62,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ── Step 2 — Stage ────────────────────────────────────────────────────────────
+// ── Step 2 - Stage ────────────────────────────────────────────────────────────
 
 const STAGES = [
   {
@@ -144,7 +144,7 @@ function StepStage({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ── Step 3 — Signal Score ─────────────────────────────────────────────────────
+// ── Step 3 - Signal Score ─────────────────────────────────────────────────────
 
 const SCORE_ITEMS = [
   {
@@ -242,7 +242,7 @@ function StepSignalScore({ onNext }: { onNext: () => void }) {
   );
 }
 
-// ── Step 4 — Daily Loop ───────────────────────────────────────────────────────
+// ── Step 4 - Daily Loop ───────────────────────────────────────────────────────
 
 const LOOP_ITEMS = [
   {
@@ -277,7 +277,7 @@ function StepDailyLoop({ onFinish }: { onFinish: () => void }) {
         Come back every day
       </h2>
       <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 20px", lineHeight: 1.5 }}>
-        Your daily loop keeps momentum building — even 15 minutes makes a real difference.
+        Your daily loop keeps momentum building - even 15 minutes makes a real difference.
       </p>
       <div style={{ display: "grid", gap: 10, marginBottom: 16 }}>
         {LOOP_ITEMS.map((item) => (

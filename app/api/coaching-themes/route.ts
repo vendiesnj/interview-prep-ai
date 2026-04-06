@@ -56,7 +56,7 @@ export async function POST(_req: NextRequest) {
     })
     .join("\n\n---\n\n");
 
-  const prompt = `You are a career coach. Analyze these interview feedback summaries and identify the 3-5 most recurring themes — both strengths and areas for improvement.
+  const prompt = `You are a career coach. Analyze these interview feedback summaries and identify the 3-5 most recurring themes - both strengths and areas for improvement.
 
 FEEDBACK SUMMARIES:
 ${feedbackSummaries}

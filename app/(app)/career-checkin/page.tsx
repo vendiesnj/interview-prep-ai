@@ -280,11 +280,11 @@ export default function CareerCheckInPage() {
                     {form.hasHSA === "yes" && (
                       <div style={{ marginBottom: 20 }}>
                         <Field label="Monthly HSA contribution" placeholder="e.g. 150" value={form.hsaMonthly} onChange={(v) => set("hsaMonthly", v.replace(/\D/g, ""))} prefix="$" />
-                        <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>Triple tax advantage — pre-tax in, tax-free growth, tax-free for medical. Rolls over every year.</p>
+                        <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>Triple tax advantage - pre-tax in, tax-free growth, tax-free for medical. Rolls over every year.</p>
                       </div>
                     )}
 
-                    <SectionLabel>Emergency fund — how many months of expenses do you have saved?</SectionLabel>
+                    <SectionLabel>Emergency fund - how many months of expenses do you have saved?</SectionLabel>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 20 }}>
                       {[
                         { value: "none", label: "None yet" },
@@ -299,7 +299,7 @@ export default function CareerCheckInPage() {
                     </div>
 
                     <Field label="Additional monthly savings (brokerage, HYSA, other)" placeholder="e.g. 300" value={form.additionalSavingsMonthly} onChange={(v) => set("additionalSavingsMonthly", v.replace(/\D/g, ""))} prefix="$" />
-                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>Any savings outside your 401k, Roth IRA, or HSA — index funds, high-yield savings, etc.</p>
+                    <p style={{ margin: "4px 0 0", fontSize: 11, color: "var(--text-muted)" }}>Any savings outside your 401k, Roth IRA, or HSA - index funds, high-yield savings, etc.</p>
                   </div>
 
                   <SectionLabel>Current total savings / investments (excluding home equity)</SectionLabel>

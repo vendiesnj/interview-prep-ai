@@ -50,7 +50,7 @@ const TODOS = [
     id: "budget_tool",
     Icon: CreditCard,
     label: "Monthly Budget Builder",
-    desc: "Map out your college costs — tuition gap, meal plan, books, and personal spending — before the semester starts.",
+    desc: "Map out your college costs - tuition gap, meal plan, books, and personal spending - before the semester starts.",
     href: "/career-guide/budget",
     color: "#10B981",
     time: "~5 min",
@@ -171,7 +171,7 @@ export default function PreCollegePage() {
             Get ready for what's next.
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 600 }}>
-            Whether you're heading to college in a few months or just starting to think about it — this is your launchpad. Schedule tasks on your calendar, complete the checklist, and use the guides when you need them.
+            Whether you're heading to college in a few months or just starting to think about it - this is your launchpad. Schedule tasks on your calendar, complete the checklist, and use the guides when you need them.
           </p>
         </div>
 

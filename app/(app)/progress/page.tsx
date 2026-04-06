@@ -2405,10 +2405,10 @@ export default function ProgressPage() {
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {[
-                          { label: "Speaking Pace", value: avgWpm !== null ? `${avgWpm} wpm` : "—", bar: avgWpm, max: 200, color: scoreColor(avgWpm, 120), hint: avgWpm && avgWpm >= 120 && avgWpm <= 160 ? "Ideal range" : avgWpm && avgWpm < 120 ? "A bit slow" : "A bit fast" },
-                          { label: "Energy Variation", value: avgEnergy !== null ? `${avgEnergy}/10` : "—", bar: avgEnergy, max: 10, color: scoreColor(avgEnergy, 4), hint: avgEnergy && avgEnergy >= 4 ? "Good variety" : "Try varying your tone" },
-                          { label: "Pitch Range", value: avgPitch !== null ? `${avgPitch} Hz` : "—", bar: avgPitch, max: 60, color: scoreColor(avgPitch, 20), hint: avgPitch && avgPitch >= 20 ? "Expressive range" : "Sounds flat" },
-                          { label: "Filler Words", value: avgFiller !== null ? `${avgFiller}/session` : "—", bar: avgFiller !== null ? Math.max(0, 10 - avgFiller) : null, max: 10, color: avgFiller !== null && avgFiller <= 3 ? "#10B981" : "#EF4444", hint: avgFiller !== null && avgFiller <= 3 ? "Very clean" : "Work on fillers" },
+                          { label: "Speaking Pace", value: avgWpm !== null ? `${avgWpm} wpm` : "-", bar: avgWpm, max: 200, color: scoreColor(avgWpm, 120), hint: avgWpm && avgWpm >= 120 && avgWpm <= 160 ? "Ideal range" : avgWpm && avgWpm < 120 ? "A bit slow" : "A bit fast" },
+                          { label: "Energy Variation", value: avgEnergy !== null ? `${avgEnergy}/10` : "-", bar: avgEnergy, max: 10, color: scoreColor(avgEnergy, 4), hint: avgEnergy && avgEnergy >= 4 ? "Good variety" : "Try varying your tone" },
+                          { label: "Pitch Range", value: avgPitch !== null ? `${avgPitch} Hz` : "-", bar: avgPitch, max: 60, color: scoreColor(avgPitch, 20), hint: avgPitch && avgPitch >= 20 ? "Expressive range" : "Sounds flat" },
+                          { label: "Filler Words", value: avgFiller !== null ? `${avgFiller}/session` : "-", bar: avgFiller !== null ? Math.max(0, 10 - avgFiller) : null, max: 10, color: avgFiller !== null && avgFiller <= 3 ? "#10B981" : "#EF4444", hint: avgFiller !== null && avgFiller <= 3 ? "Very clean" : "Work on fillers" },
                         ].map(row => (
                           <div key={row.label}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
@@ -2435,9 +2435,9 @@ export default function ProgressPage() {
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {[
-                          { label: "Eye Contact", value: avgEye !== null ? `${Math.round(avgEye)}%` : "—", bar: avgEye, max: 100, color: scoreColor(avgEye, 65), hint: avgEye && avgEye >= 65 ? "Strong" : "Look toward camera more" },
-                          { label: "Expressiveness", value: avgExpr !== null ? `${Math.round(avgExpr)}%` : "—", bar: avgExpr, max: 100, color: scoreColor(avgExpr, 55), hint: avgExpr && avgExpr >= 55 ? "Engaging" : "Show more expression" },
-                          { label: "Head Stability", value: avgHead !== null ? `${Math.round(avgHead)}%` : "—", bar: avgHead, max: 100, color: scoreColor(avgHead, 60), hint: avgHead && avgHead >= 60 ? "Steady" : "Reduce movement" },
+                          { label: "Eye Contact", value: avgEye !== null ? `${Math.round(avgEye)}%` : "-", bar: avgEye, max: 100, color: scoreColor(avgEye, 65), hint: avgEye && avgEye >= 65 ? "Strong" : "Look toward camera more" },
+                          { label: "Expressiveness", value: avgExpr !== null ? `${Math.round(avgExpr)}%` : "-", bar: avgExpr, max: 100, color: scoreColor(avgExpr, 55), hint: avgExpr && avgExpr >= 55 ? "Engaging" : "Show more expression" },
+                          { label: "Head Stability", value: avgHead !== null ? `${Math.round(avgHead)}%` : "-", bar: avgHead, max: 100, color: scoreColor(avgHead, 60), hint: avgHead && avgHead >= 60 ? "Steady" : "Reduce movement" },
                         ].map(row => (
                           <div key={row.label}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
@@ -2479,7 +2479,7 @@ export default function ProgressPage() {
                       return (
                         <Link key={r.id} href="/resume-gap" style={{ textDecoration: "none" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 16px", borderRadius: 12, border: "1px solid var(--card-border)", background: i === 0 ? "var(--card-bg-strong)" : "var(--card-bg)", transition: "border-color 120ms" }}>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: sc, minWidth: 44, textAlign: "center", lineHeight: 1 }}>{r.overallScore ?? "—"}</div>
+                            <div style={{ fontSize: 28, fontWeight: 900, color: sc, minWidth: 44, textAlign: "center", lineHeight: 1 }}>{r.overallScore ?? "-"}</div>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
                                 <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{r.overallLabel ?? "Resume Analysis"}</span>

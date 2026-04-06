@@ -130,7 +130,7 @@ function SetupScreen({ onStart }: { onStart: (role: string, industry: string) =>
       }}>
         <span style={{ fontSize: 16 }}>{camAllowed === null ? "⏳" : camAllowed ? "📷" : "⚠️"}</span>
         <span style={{ fontSize: 13, fontWeight: 700, color: camAllowed === false ? "#EF4444" : "var(--text-primary)" }}>
-          {camAllowed === null ? "Requesting camera access…" : camAllowed ? "Camera & microphone ready" : "Camera access denied — interview will be audio-only"}
+          {camAllowed === null ? "Requesting camera access…" : camAllowed ? "Camera & microphone ready" : "Camera access denied - interview will be audio-only"}
         </span>
       </div>
 
@@ -462,7 +462,7 @@ function ResultsScreen({ history, score }: { history: HistoryEntry[]; score: Sco
     strong: "#10B981", ready: "#2563EB", developing: "#F59E0B", not_ready: "#EF4444",
   };
   const readinessLabels: Record<string, string> = {
-    strong: "Interview Ready — Strong", ready: "Interview Ready", developing: "Still Developing", not_ready: "Needs More Practice",
+    strong: "Interview Ready - Strong", ready: "Interview Ready", developing: "Still Developing", not_ready: "Needs More Practice",
   };
 
   const color = readinessColors[score.readinessLevel] ?? "#2563EB";

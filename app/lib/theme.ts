@@ -386,7 +386,7 @@ export const ipcBlueTheme: AppTheme = {
   },
 };
 
-// Roosevelt University — Forest green (#1E6B2E) + dark green secondary
+// Roosevelt University - Forest green (#1E6B2E) + dark green secondary
 export const rooseveltTheme: AppTheme = {
   ...lightTheme,
   name: "roosevelt",

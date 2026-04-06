@@ -228,11 +228,11 @@ const PRE_COLLEGE_SECTIONS = [
     content: [
       {
         heading: "Do you need to file?",
-        body: "If you earned more than $13,850 in 2023 from a job, you're required to file. Even below that, file if taxes were withheld — you'll likely get a refund. Scholarship money used for room and board (not tuition) is taxable income.",
+        body: "If you earned more than $13,850 in 2023 from a job, you're required to file. Even below that, file if taxes were withheld - you'll likely get a refund. Scholarship money used for room and board (not tuition) is taxable income.",
       },
       {
         heading: "Forms you'll see",
-        body: "W-2 from any employer (wages + withholding), 1098-T from your school (tuition paid — used for education tax credits), 1099 if you did any gig or freelance work.",
+        body: "W-2 from any employer (wages + withholding), 1098-T from your school (tuition paid - used for education tax credits), 1099 if you did any gig or freelance work.",
       },
       {
         heading: "Free filing options for students",
@@ -240,7 +240,7 @@ const PRE_COLLEGE_SECTIONS = [
       },
       {
         heading: "Education tax credits",
-        body: "American Opportunity Tax Credit: up to $2,500/year for the first 4 years of college. Lifetime Learning Credit: up to $2,000/year. Coordinate with your parents — only one party can claim the credit per year.",
+        body: "American Opportunity Tax Credit: up to $2,500/year for the first 4 years of college. Lifetime Learning Credit: up to $2,000/year. Coordinate with your parents - only one party can claim the credit per year.",
       },
     ],
   },
@@ -327,7 +327,7 @@ const DURING_COLLEGE_SECTIONS = [
     content: [
       {
         heading: "Why now is the right time",
-        body: "Credit history is measured in years. Opening a responsible card at 19-20 means a 5-6 year history by graduation — when you need it most for apartments, car loans, and eventually a mortgage. Starting later just delays that clock.",
+        body: "Credit history is measured in years. Opening a responsible card at 19-20 means a 5-6 year history by graduation - when you need it most for apartments, car loans, and eventually a mortgage. Starting later just delays that clock.",
       },
       {
         heading: "Best student credit cards",
@@ -335,11 +335,11 @@ const DURING_COLLEGE_SECTIONS = [
       },
       {
         heading: "What actually moves your score",
-        body: "Payment history (35%) — pay on time, every time. Utilization (30%) — keep spending below 30% of your limit. Length of history (15%) — don't close cards. New inquiries (10%) — don't apply for multiple cards at once.",
+        body: "Payment history (35%) - pay on time, every time. Utilization (30%) - keep spending below 30% of your limit. Length of history (15%) - don't close cards. New inquiries (10%) - don't apply for multiple cards at once.",
       },
       {
         heading: "Monitoring your credit for free",
-        body: "Check your credit report free at annualcreditreport.com (once per bureau per year). Use Credit Karma or your bank's free credit monitoring for ongoing tracking. Dispute errors immediately — they're more common than you think.",
+        body: "Check your credit report free at annualcreditreport.com (once per bureau per year). Use Credit Karma or your bank's free credit monitoring for ongoing tracking. Dispute errors immediately - they're more common than you think.",
       },
     ],
   },

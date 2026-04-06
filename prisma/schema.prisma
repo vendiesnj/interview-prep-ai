@@ -43,6 +43,7 @@ model User {
   interviewActivities  InterviewActivity[]
   studentSkills        StudentSkill[]
   resumeAnalyses       ResumeAnalysis[]
+  productivityScores   ProductivityScore[]
   instinctSessions     InstinctSession[]
   browserSessions      BrowserSession[]   @relation("BrowserSessions")
   tasks                Task[]
@@ -328,13 +329,38 @@ model ChecklistProgress {
   stage         String    // "pre_college" | "during_college" | "post_college"
   itemId        String    // matches hardcoded checklist item id
   done          Boolean   @default(true)
-  scheduledDate DateTime? // user-chosen target date
+  scheduledDate DateTime? // user-chosen target date (drag to calendar)
+  dueDate       DateTime? // externally assigned due date (Canvas/Blackboard future integration)
+  completedAt   DateTime? // when the user checked the item as done
   updatedAt     DateTime  @updatedAt
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, stage, itemId])
   @@index([userId, stage])
   @@index([tenantId, stage])
+  @@index([userId, completedAt])
+}
+
+model ProductivityScore {
+  id                String   @id @default(cuid())
+  userId            String
+  tenantId          String?
+  weekStart         DateTime // Monday 00:00:00 UTC of the scored week
+  score             Float    // 0–100 composite
+  schedulingRate    Float    // % of tasks/items that got scheduled
+  completionRate    Float    // % of scheduled that got completed
+  onTimeRate        Float    // % of completions before or on dueDate/scheduledAt
+  streak            Int      // consecutive days with at least one completion
+  tasksScheduled    Int
+  tasksCompleted    Int
+  checklistDone     Int
+  checklistScheduled Int
+  computedAt        DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, weekStart])
+  @@index([tenantId, weekStart])
+  @@index([userId, weekStart])
 }
 
 model ChecklistItemContent {

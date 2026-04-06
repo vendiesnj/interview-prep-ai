@@ -12,13 +12,13 @@ function backNav(from?: string) {
 const PRE_COLLEGE_CONTENT = [
   {
     id: "honest-truth",
-    title: "The honest truth about majors — and trades",
-    body: "Most majors don't lock you into one career. English majors become product managers. Biology majors go to law school. Chemistry majors become consultants. Your major signals interest and teaches a way of thinking — it's not a life sentence. And a four-year degree isn't the only path: apprenticeships, two-year programs, and trade certifications lead to excellent careers that often pay more than many bachelor's degrees — without the debt.",
+    title: "The honest truth about majors - and trades",
+    body: "Most majors don't lock you into one career. English majors become product managers. Biology majors go to law school. Chemistry majors become consultants. Your major signals interest and teaches a way of thinking - it's not a life sentence. And a four-year degree isn't the only path: apprenticeships, two-year programs, and trade certifications lead to excellent careers that often pay more than many bachelor's degrees - without the debt.",
   },
   {
     id: "high-roi",
-    title: "High-ROI paths — degrees and trades",
-    body: "STEM (Engineering, CS, Math): high starting salaries, strong demand. Health Sciences (Nursing, Pre-Med): high demand, clear licensing path. Business (Finance, Accounting, Marketing): flexible and widely understood by employers. Skilled Trades (Electrician, Plumber, HVAC, Welder): earn while you learn through apprenticeships, no tuition debt, recession-resistant demand, strong six-figure ceiling. Humanities: lower entry salaries but strong critical thinking — grad school often unlocks higher earning. Creative (Design, Film, Architecture): competitive; portfolio matters more than GPA.",
+    title: "High-ROI paths - degrees and trades",
+    body: "STEM (Engineering, CS, Math): high starting salaries, strong demand. Health Sciences (Nursing, Pre-Med): high demand, clear licensing path. Business (Finance, Accounting, Marketing): flexible and widely understood by employers. Skilled Trades (Electrician, Plumber, HVAC, Welder): earn while you learn through apprenticeships, no tuition debt, recession-resistant demand, strong six-figure ceiling. Humanities: lower entry salaries but strong critical thinking - grad school often unlocks higher earning. Creative (Design, Film, Architecture): competitive; portfolio matters more than GPA.",
   },
   {
     id: "questions-before-declaring",
@@ -27,13 +27,13 @@ const PRE_COLLEGE_CONTENT = [
   },
   {
     id: "double-majors",
-    title: "Double majors and minors — worth it?",
+    title: "Double majors and minors - worth it?",
     body: "A double major signals range, but only if both are strong. More often, a strong major + relevant internships + a minor beats a diluted double major. Minors worth pairing: CS minor with almost anything, Statistics minor with social sciences, Business minor with STEM, Psychology minor with pre-law or HR tracks.",
   },
   {
     id: "explore-before-committing",
     title: "How to explore before committing",
-    body: "Take intro courses in 2-3 areas before declaring. Talk to seniors in the major — ask what they wish they knew. Visit the career center — ask which employers recruit from each major. Look up recent graduates on LinkedIn — see where they actually ended up.",
+    body: "Take intro courses in 2-3 areas before declaring. Talk to seniors in the major - ask what they wish they knew. Visit the career center - ask which employers recruit from each major. Look up recent graduates on LinkedIn - see where they actually ended up.",
   },
 ];
 
@@ -41,27 +41,27 @@ const DURING_COLLEGE_CONTENT = [
   {
     id: "switch-majors",
     title: "Should you switch majors?",
-    body: "Yes, if: the work feels meaningless to you, your grades reflect disengagement not effort, you've shadowed someone in the field and couldn't see yourself there. No, if: it's just hard — hard ≠ wrong fit. The average student spends $30-50k in extra time switching majors impulsively. Talk to your advisor and a career counselor before deciding.",
+    body: "Yes, if: the work feels meaningless to you, your grades reflect disengagement not effort, you've shadowed someone in the field and couldn't see yourself there. No, if: it's just hard - hard ≠ wrong fit. The average student spends $30-50k in extra time switching majors impulsively. Talk to your advisor and a career counselor before deciding.",
   },
   {
     id: "specializing",
     title: "Specializing within your major",
-    body: "CS: web dev, data science, ML, systems, security — recruiters care which one. Business: finance, marketing, operations, consulting — generalist resumes get passed over. Psychology: clinical, I/O (industrial-organizational), research, school counseling — very different paths. Pick a direction by junior year and build internships, projects, and coursework around it.",
+    body: "CS: web dev, data science, ML, systems, security - recruiters care which one. Business: finance, marketing, operations, consulting - generalist resumes get passed over. Psychology: clinical, I/O (industrial-organizational), research, school counseling - very different paths. Pick a direction by junior year and build internships, projects, and coursework around it.",
   },
   {
     id: "grad-vs-work",
     title: "Grad school vs. work after graduation",
-    body: "Go to grad school if: your career requires it (medicine, law, academia), you want to specialize deeply, or you have a funded offer. Don't go if: you're avoiding the job market or have no clear reason. An unfunded master's in a humanities field is usually a poor ROI. Professional programs (MBA, JD, MD) are different — they have clear career outcomes.",
+    body: "Go to grad school if: your career requires it (medicine, law, academia), you want to specialize deeply, or you have a funded offer. Don't go if: you're avoiding the job market or have no clear reason. An unfunded master's in a humanities field is usually a poor ROI. Professional programs (MBA, JD, MD) are different - they have clear career outcomes.",
   },
   {
     id: "internship-pipeline",
     title: "The internship-to-offer pipeline",
-    body: "Most full-time hiring at top companies flows from internship programs. Recruiting for junior-year summer internships starts in September-October of junior year. Fall recruiting is for consulting, banking, and tech. If you miss the structured recruiting cycle, reach out directly — most hiring managers respond to thoughtful cold outreach from students.",
+    body: "Most full-time hiring at top companies flows from internship programs. Recruiting for junior-year summer internships starts in September-October of junior year. Fall recruiting is for consulting, banking, and tech. If you miss the structured recruiting cycle, reach out directly - most hiring managers respond to thoughtful cold outreach from students.",
   },
   {
     id: "portfolio-vs-resume",
     title: "Building a portfolio vs. a resume",
-    body: "For design, CS, data, and creative roles: your portfolio matters as much as your resume. Start building early. Every class project, internship output, and side project is portfolio material. GitHub, Behance, personal website, or a simple PDF case study — pick the format your industry expects.",
+    body: "For design, CS, data, and creative roles: your portfolio matters as much as your resume. Start building early. Every class project, internship output, and side project is portfolio material. GitHub, Behance, personal website, or a simple PDF case study - pick the format your industry expects.",
   },
 ];
 
@@ -167,7 +167,7 @@ const PATHS = [
         steps: ["Journeyman Electrician (4–5 yr apprenticeship)", "Master Electrician (2+ yrs + exam)", "Electrical Contractor / Business Owner"],
         pivot: "Solar / renewable energy, industrial automation, electrical inspector",
         salaryRange: "$45k–$65k journeyman; $80k–$120k+ master; $100k–$200k+ as contractor",
-        notes: "Apprenticeships are earn-while-you-learn — no tuition debt. Master Electricians who run their own shop frequently earn more than most white-collar professionals. Demand is nationwide and recession-resistant.",
+        notes: "Apprenticeships are earn-while-you-learn - no tuition debt. Master Electricians who run their own shop frequently earn more than most white-collar professionals. Demand is nationwide and recession-resistant.",
       },
       {
         start: "HVAC/R Helper / Apprentice",
@@ -181,14 +181,14 @@ const PATHS = [
         steps: ["Certified Welder (AWS certification)", "Pipe Welder / Structural Welder (3–5 yrs)", "Welding Inspector (CWI) or Supervisor"],
         pivot: "Underwater welding, aerospace fabrication, robotics/automation welding, business owner",
         salaryRange: "$40k–$55k entry; $70k–$100k certified; $80k–$180k+ specialized (underwater/pipeline)",
-        notes: "Welding has enormous range — from sheet metal shops at $50k to underwater welding at $150k+. AWS certification opens doors nationally. Pipeline welding requires travel but pays exceptionally well.",
+        notes: "Welding has enormous range - from sheet metal shops at $50k to underwater welding at $150k+. AWS certification opens doors nationally. Pipeline welding requires travel but pays exceptionally well.",
       },
       {
         start: "Automotive / Diesel Technician Apprentice",
         steps: ["ASE-Certified Tech (1–3 yrs)", "Master Tech (5–8 yrs, all 8 ASE certs)", "Shop Owner / Fleet Manager"],
         pivot: "Heavy equipment, EV/hybrid specialist, OEM dealership management, military vehicle tech",
         salaryRange: "$38k–$55k entry; $65k–$90k master tech; $100k+ dealership master tech or owner",
-        notes: "EVs are reshaping the field — high-voltage EV certification is a significant differentiator right now. Diesel technicians who work on commercial trucks and heavy equipment often earn more than passenger car techs.",
+        notes: "EVs are reshaping the field - high-voltage EV certification is a significant differentiator right now. Diesel technicians who work on commercial trucks and heavy equipment often earn more than passenger car techs.",
       },
       {
         start: "Plumbing / Pipefitting Apprentice",

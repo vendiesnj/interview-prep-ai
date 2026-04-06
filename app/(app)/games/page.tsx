@@ -205,7 +205,7 @@ export default function GamesPage() {
     {
       icon: Briefcase,
       name: "Career of the Day",
-      description: "Explore a new career every day — salary, education, AI risk, and more.",
+      description: "Explore a new career every day - salary, education, AI risk, and more.",
       href: "/games/career-of-the-day",
       status: statuses.cotd,
       color: "#2563EB",
@@ -259,7 +259,7 @@ export default function GamesPage() {
               <div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 2 }}>Career Connections</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                  16 career terms are hidden in 4 groups of 4. Select 4 tiles and submit — if they all belong to the same category, you&apos;ve found a group! 4 mistakes allowed. Categories get trickier: Yellow → Green → Blue → Purple.
+                  16 career terms are hidden in 4 groups of 4. Select 4 tiles and submit - if they all belong to the same category, you&apos;ve found a group! 4 mistakes allowed. Categories get trickier: Yellow → Green → Blue → Purple.
                 </div>
               </div>
             </div>

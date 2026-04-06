@@ -44,9 +44,9 @@ const STORAGE_KEY = "ipc_budget_v1";
 // ── Category config ────────────────────────────────────────────────────────────
 
 const CAT: Record<Category, { label: string; color: string; ideal: number; icon: string; desc: string }> = {
-  needs:   { label: "Needs",   color: "#2563EB", ideal: 50, icon: "🏠", desc: "Essentials — rent, food, transport, insurance, loan minimums" },
-  wants:   { label: "Wants",   color: "#F59E0B", ideal: 30, icon: "🎉", desc: "Lifestyle — dining out, entertainment, subscriptions, shopping" },
-  savings: { label: "Savings", color: "#10B981", ideal: 20, icon: "📈", desc: "Future — emergency fund, 401k, Roth IRA, goals" },
+  needs:   { label: "Needs",   color: "#2563EB", ideal: 50, icon: "🏠", desc: "Essentials - rent, food, transport, insurance, loan minimums" },
+  wants:   { label: "Wants",   color: "#F59E0B", ideal: 30, icon: "🎉", desc: "Lifestyle - dining out, entertainment, subscriptions, shopping" },
+  savings: { label: "Savings", color: "#10B981", ideal: 20, icon: "📈", desc: "Future - emergency fund, 401k, Roth IRA, goals" },
 };
 
 function fmt(n: number) {
@@ -162,7 +162,7 @@ export default function BudgetPage() {
   const catTotals: Record<Category, number> = { needs: totalNeeds, wants: totalWants, savings: totalSavings };
 
   return (
-    <PremiumShell title="Monthly Budget Builder" subtitle="See where your money goes — and where it should">
+    <PremiumShell title="Monthly Budget Builder" subtitle="See where your money goes - and where it should">
       <div style={{ maxWidth: 900, margin: "0 auto", paddingBottom: 60 }}>
 
         <div style={{ marginBottom: 20 }}>
@@ -341,11 +341,11 @@ export default function BudgetPage() {
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
                 {remaining > 0
-                  ? `${fmt(remaining * 12)} extra per year — put it toward debt payoff or investing.`
+                  ? `${fmt(remaining * 12)} extra per year - put it toward debt payoff or investing.`
                   : remaining < 0
                   ? `You're over budget. Look for cuts in Wants first.`
                   : income > 0
-                  ? "Exactly balanced — consider adding to savings."
+                  ? "Exactly balanced - consider adding to savings."
                   : "Enter your income above to see your budget breakdown."}
               </div>
             </div>
@@ -409,8 +409,8 @@ export default function BudgetPage() {
             {[
               { title: "Budget from take-home, not salary", body: "Your gross salary minus taxes, 401k, and insurance is your real number. Budgeting from gross is why people always run short." },
               { title: "Automate savings on payday", body: "Set up automatic transfers to savings and investment accounts the day you get paid. If it never hits your checking account, you won't spend it." },
-              { title: "The wants category is your leverage", body: "Most people can't cut needs. Savings targets are fixed. Wants is where you have real flexibility — and where small cuts have the biggest impact." },
-              { title: "Review your budget quarterly", body: "Rent changes, subscriptions pile up, income grows. A budget that's 6 months stale isn't a budget — it's a wish. Review it every 3 months and adjust." },
+              { title: "The wants category is your leverage", body: "Most people can't cut needs. Savings targets are fixed. Wants is where you have real flexibility - and where small cuts have the biggest impact." },
+              { title: "Review your budget quarterly", body: "Rent changes, subscriptions pile up, income grows. A budget that's 6 months stale isn't a budget - it's a wish. Review it every 3 months and adjust." },
             ].map(({ title, body }) => (
               <div key={title} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
                 <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{title}</div>

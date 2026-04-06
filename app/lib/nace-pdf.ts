@@ -122,7 +122,7 @@ export async function downloadNacePdf(opts: {
 
   for (const ns of scores) {
     const [r, g, b] = scoreRGB(ns.score);
-    const scoreDisplay = ns.score !== null ? ns.score : "—";
+    const scoreDisplay = ns.score !== null ? ns.score : "-";
     const label = naceScoreLabel(ns.score);
     const pct = ns.score !== null ? ns.score / 100 : 0;
 
@@ -169,7 +169,7 @@ export async function downloadNacePdf(opts: {
     doc.setTextColor(80, 80, 80);
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
-    doc.text(ns.score !== null ? `${ns.score}%` : "—", barX + barW + 8, y + 15);
+    doc.text(ns.score !== null ? `${ns.score}%` : "-", barX + barW + 8, y + 15);
 
     y += rowHeight;
   }

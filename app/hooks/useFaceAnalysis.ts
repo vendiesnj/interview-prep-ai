@@ -56,8 +56,8 @@ async function getFaceLandmarker() {
  */
 function estimateGazeScore(landmarks: any[]): number {
   try {
-    // Left eye corners: 33 (outer), 133 (inner) — iris center: 468
-    // Right eye corners: 362 (inner), 263 (outer) — iris center: 473
+    // Left eye corners: 33 (outer), 133 (inner) - iris center: 468
+    // Right eye corners: 362 (inner), 263 (outer) - iris center: 473
     const leftInner = landmarks[133];
     const leftOuter = landmarks[33];
     const leftIris = landmarks[468];
@@ -143,7 +143,7 @@ export function useFaceAnalysis() {
   useEffect(() => {
     getFaceLandmarker().then((lm) => { landmarkerRef.current = lm; }).catch(() => {});
     return () => {
-      // Directly stop stream on unmount — don't rely on stopAnalysis callback
+      // Directly stop stream on unmount - don't rely on stopAnalysis callback
       // to avoid any stale closure issues during page navigation
       isRunningRef.current = false;
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -204,7 +204,7 @@ export function useFaceAnalysis() {
         noseTipsRef.current.push(getNoseTip(landmarks));
       }
     } catch {
-      // frame skip — ok
+      // frame skip - ok
     }
 
     animFrameRef.current = requestAnimationFrame(analyzeLoop);

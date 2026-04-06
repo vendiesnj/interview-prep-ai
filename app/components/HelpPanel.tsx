@@ -48,7 +48,7 @@ const SECTIONS: HelpSection[] = [
       {
         icon: <Sparkles size={15} />,
         title: "What is Signal?",
-        body: "Signal is your career readiness platform — built to help you land the right job with the right skills. It tracks your interview practice, career clarity, and financial health in one place, then gives you a single score to show how ready you are.",
+        body: "Signal is your career readiness platform - built to help you land the right job with the right skills. It tracks your interview practice, career clarity, and financial health in one place, then gives you a single score to show how ready you are.",
       },
       {
         icon: <User size={15} />,
@@ -67,12 +67,12 @@ const SECTIONS: HelpSection[] = [
     items: [
       {
         icon: <LayoutDashboard size={15} />,
-        title: "Signal Score — what it means",
-        body: "Your Signal Score (0–100) combines Interview Readiness, Financial Health, and Career Clarity. It updates as you practice, complete assessments, and check off tasks. Think of it as your career fitness level — not a grade, but a direction.",
+        title: "Signal Score - what it means",
+        body: "Your Signal Score (0–100) combines Interview Readiness, Financial Health, and Career Clarity. It updates as you practice, complete assessments, and check off tasks. Think of it as your career fitness level - not a grade, but a direction.",
       },
       {
         icon: <CheckSquare size={15} />,
-        title: "The checklist — stage-specific tasks",
+        title: "The checklist - stage-specific tasks",
         body: "The checklist shows the highest-impact actions for your current stage. Items are grouped by priority, and completing them moves your Signal Score. It refreshes as you progress and unlock new milestones.",
       },
       {
@@ -87,18 +87,18 @@ const SECTIONS: HelpSection[] = [
     items: [
       {
         icon: <Mic size={15} />,
-        title: "Mock Interviews — how scoring works",
-        body: "Record or type your answer to a behavioral question. You get a STAR breakdown (Situation / Task / Action / Result), a Communication score, a Confidence score, and a rewritten stronger answer. Scores improve with practice — most people jump 10–15 points by attempt three.",
+        title: "Mock Interviews - how scoring works",
+        body: "Record or type your answer to a behavioral question. You get a STAR breakdown (Situation / Task / Action / Result), a Communication score, a Confidence score, and a rewritten stronger answer. Scores improve with practice - most people jump 10–15 points by attempt three.",
       },
       {
         icon: <Activity size={15} />,
-        title: "Vocal Analysis — what the signals mean",
-        body: "After a spoken answer, Signal analyzes your pace (WPM), filler word rate, vocal energy, and monotone risk. Aim for 130–160 WPM, a filler rate under 5%, and a monotone risk below 5/10. These signals show how your delivery lands — not just what you said.",
+        title: "Vocal Analysis - what the signals mean",
+        body: "After a spoken answer, Signal analyzes your pace (WPM), filler word rate, vocal energy, and monotone risk. Aim for 130–160 WPM, a filler rate under 5%, and a monotone risk below 5/10. These signals show how your delivery lands - not just what you said.",
       },
       {
         icon: <Zap size={15} />,
-        title: "Career Assessment — RIASEC explained",
-        body: "RIASEC stands for Realistic, Investigative, Artistic, Social, Enterprising, Conventional — six personality types that map to career families. Your top two or three types are used to surface matching career paths, job profiles, and learning priorities in your career guide.",
+        title: "Career Assessment - RIASEC explained",
+        body: "RIASEC stands for Realistic, Investigative, Artistic, Social, Enterprising, Conventional - six personality types that map to career families. Your top two or three types are used to surface matching career paths, job profiles, and learning priorities in your career guide.",
       },
     ],
   },
@@ -107,7 +107,7 @@ const SECTIONS: HelpSection[] = [
     items: [
       {
         icon: <Calendar size={15} />,
-        title: "Planner — Today, Habits, Goals tabs",
+        title: "Planner - Today, Habits, Goals tabs",
         body: "The Planner has three layers: Today (tasks due now), Habits (recurring actions like daily practice), and Goals (long-term milestones). Completing daily tasks builds your streak and keeps your Signal Score moving.",
       },
       {
@@ -133,11 +133,11 @@ const SECTIONS: HelpSection[] = [
       {
         icon: <Sunrise size={15} />,
         title: "Career of the Day",
-        body: "Every day a new career is featured with a short profile — what the job involves, typical salary, required skills, and growth outlook. It's a quick way to stumble onto paths you might not have considered.",
+        body: "Every day a new career is featured with a short profile - what the job involves, typical salary, required skills, and growth outlook. It's a quick way to stumble onto paths you might not have considered.",
       },
       {
         icon: <TrendingUp size={15} />,
-        title: "My Journey — tracking progress",
+        title: "My Journey - tracking progress",
         body: "My Journey is your personal history log. It shows your practice sessions over time, score trends, streaks, and milestones. Use it to see how far you've come and identify which areas still need work.",
       },
     ],
@@ -147,18 +147,18 @@ const SECTIONS: HelpSection[] = [
     items: [
       {
         icon: <Gamepad2 size={15} />,
-        title: "Hustle (Wordle) — daily word game",
+        title: "Hustle (Wordle) - daily word game",
         body: "Hustle is a career-themed word game in the style of Wordle. One new puzzle per day. It takes about two minutes and keeps your vocabulary sharp. Your streak is tracked on the Games dashboard.",
       },
       {
         icon: <Layers size={15} />,
-        title: "Career Connections — group the tiles",
-        body: "Career Connections challenges you to find the hidden groupings among 16 career-related tiles. It's inspired by the NYT Connections format. One puzzle per day — harder groups are worth more to your streak.",
+        title: "Career Connections - group the tiles",
+        body: "Career Connections challenges you to find the hidden groupings among 16 career-related tiles. It's inspired by the NYT Connections format. One puzzle per day - harder groups are worth more to your streak.",
       },
       {
         icon: <Sunrise size={15} />,
         title: "Career of the Day",
-        body: "Find the Career of the Day in the Daily Games section as well as the Career Guide. It's the same featured career — a bite-sized career exploration that takes under a minute to read.",
+        body: "Find the Career of the Day in the Daily Games section as well as the Career Guide. It's the same featured career - a bite-sized career exploration that takes under a minute to read.",
       },
     ],
   },
@@ -168,7 +168,7 @@ const SECTIONS: HelpSection[] = [
       {
         icon: <Monitor size={15} />,
         title: "Tracked browser sessions explained",
-        body: "Workspace lets you open a monitored browser window for job searching or career research. Sessions are timestamped and logged to My Journey so you can track how much time you're investing in your search — without any content being recorded.",
+        body: "Workspace lets you open a monitored browser window for job searching or career research. Sessions are timestamped and logged to My Journey so you can track how much time you're investing in your search - without any content being recorded.",
       },
     ],
   },
@@ -178,7 +178,7 @@ const SECTIONS: HelpSection[] = [
       {
         icon: <Settings size={15} />,
         title: "Changing your stage",
-        body: "Your career stage (Pre-College, During College, Post-College) controls which checklist items, career guide sections, and Signal Score weights apply to you. Change it anytime in Settings — your history is preserved and your checklist will update immediately.",
+        body: "Your career stage (Pre-College, During College, Post-College) controls which checklist items, career guide sections, and Signal Score weights apply to you. Change it anytime in Settings - your history is preserved and your checklist will update immediately.",
       },
       {
         icon: <Lock size={15} />,

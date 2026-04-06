@@ -46,8 +46,8 @@ export default function StreakBanner() {
             {current === 0
               ? "Start your streak today"
               : current === 1
-              ? "1-day streak — come back tomorrow!"
-              : `${current}-day streak — keep it going!`}
+              ? "1-day streak - come back tomorrow!"
+              : `${current}-day streak - keep it going!`}
           </div>
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>
             {current === 0

@@ -31,6 +31,7 @@ import {
   naceScoreLabel,
   type NaceKey,
 } from "@/app/lib/nace";
+import { computeProductivity, productivityGrade } from "@/app/lib/productivity";
 
 
 type AttemptRow = {
@@ -917,8 +918,8 @@ export default async function AdminPage({
     take: 1000,
   });
 
-  // Profile completeness data: aptitude, checklist, interview activity, skills
-  const [aptitudeByUser, checklistByUser, interviewActivityByUser, skillsByUser] = await Promise.all([
+  // Profile completeness data: aptitude, checklist, interview activity, skills, tasks
+  const [aptitudeByUser, checklistByUser, interviewActivityByUser, skillsByUser, tasksByUser, checklistProgressForProductivity] = await Promise.all([
     prisma.aptitudeResult.findMany({
       where: { tenantId: currentUser.tenantId ?? null },
       select: { userId: true },
@@ -934,6 +935,15 @@ export default async function AdminPage({
     prisma.studentSkill.findMany({
       where: { tenantId: currentUser.tenantId ?? null },
       select: { userId: true, skill: true, category: true, confidence: true },
+    }),
+    // For productivity scoring
+    prisma.task.findMany({
+      where: { tenantId: currentUser.tenantId ?? null },
+      select: { userId: true, scheduledAt: true, completedAt: true, dueDate: true, createdAt: true },
+    }),
+    prisma.checklistProgress.findMany({
+      where: { tenantId: currentUser.tenantId ?? null },
+      select: { userId: true, scheduledDate: true, dueDate: true, completedAt: true, done: true },
     }),
   ]);
 
@@ -957,6 +967,21 @@ export default async function AdminPage({
 
   const totalStudents = tenantUsers.length;
   const checkInCoverage = totalStudents > 0 ? Math.round((checkInCount / totalStudents) * 100) : null;
+
+  // Build per-user productivity scores from task + checklist data
+  const productivityByUser = new Map<string, ReturnType<typeof computeProductivity>>();
+  const userIdsWithData = new Set([
+    ...tasksByUser.map((t) => t.userId),
+    ...checklistProgressForProductivity.map((c) => c.userId),
+  ]);
+  for (const uid of userIdsWithData) {
+    const userTasks = tasksByUser.filter((t) => t.userId === uid);
+    const userChecklist = checklistProgressForProductivity.filter((c) => c.userId === uid);
+    productivityByUser.set(
+      uid,
+      computeProductivity({ tasks: userTasks, checklist: userChecklist }),
+    );
+  }
 
   const studentsWithStats = tenantUsers.map((user) => {
     const userAttempts = attempts.filter((a) => a.userId === user.id);
@@ -1059,6 +1084,7 @@ export default async function AdminPage({
       psAttemptCount: psAttempts.length,
       topPitchStyle,
       topArchetype,
+      productivity: productivityByUser.get(user.id) ?? null,
     };
   });
 
@@ -2012,7 +2038,7 @@ const activeThisWeek = filteredAttempts.filter(
               {/* Header row */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
+                gridTemplateColumns: "1.6fr 80px 80px 80px 80px 80px 100px 110px 36px",
                 gap: 12,
                 padding: "0 16px 10px 16px",
                 fontSize: 11,
@@ -2028,6 +2054,7 @@ const activeThisWeek = filteredAttempts.filter(
                 <div>Comm</div>
                 <div>Conf</div>
                 <div>Trend</div>
+                <div>Productivity</div>
                 <div>Attempts</div>
                 <div>Last Active</div>
                 <div />
@@ -2068,7 +2095,7 @@ const activeThisWeek = filteredAttempts.filter(
                     <Link key={row.id} href={`/admin/students/${row.id}`} style={{ textDecoration: "none" }}>
                       <div style={{
                         display: "grid",
-                        gridTemplateColumns: "1.6fr 80px 80px 80px 80px 100px 110px 36px",
+                        gridTemplateColumns: "1.6fr 80px 80px 80px 80px 80px 100px 110px 36px",
                         gap: 12,
                         alignItems: "center",
                         padding: "11px 16px",
@@ -2131,6 +2158,19 @@ const activeThisWeek = filteredAttempts.filter(
                             : "→ 0"}
                         </div>
 
+                        {/* Productivity cell */}
+                        {(() => {
+                          const prod = row.productivity;
+                          if (!prod) return <div style={{ fontSize: 11, color: "var(--text-muted)" }}> - </div>;
+                          const grade = productivityGrade(prod.score);
+                          return (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                              <div style={{ fontSize: 12, fontWeight: 900, color: prod.color }}>{grade}</div>
+                              <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{Math.round(prod.score)}</div>
+                            </div>
+                          );
+                        })()}
+
                         <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
                           {row.attempts} rep{row.attempts !== 1 ? "s" : ""}
                         </div>
@@ -2172,6 +2212,57 @@ const activeThisWeek = filteredAttempts.filter(
                         </div>
                       </div>
                     ))}
+                  </div>
+                </Panel>
+              );
+            })()}
+
+            {/* ── Cohort Productivity Panel ─────────────────────────────── */}
+            {(() => {
+              const withProd = filteredStudents.filter((s) => s.productivity !== null);
+              if (withProd.length === 0) return null;
+              const avgScore = Math.round(
+                withProd.reduce((sum, s) => sum + (s.productivity!.score), 0) / withProd.length
+              );
+              const avgScheduling = Math.round(
+                withProd.reduce((sum, s) => sum + s.productivity!.schedulingRate, 0) / withProd.length * 100
+              );
+              const avgCompletion = Math.round(
+                withProd.reduce((sum, s) => sum + s.productivity!.completionRate, 0) / withProd.length * 100
+              );
+              const labelCounts = { "Excellent": 0, "Strong": 0, "Building": 0, "Getting Started": 0 };
+              for (const s of withProd) labelCounts[s.productivity!.label]++;
+              return (
+                <Panel eyebrow="Productivity" title="Cohort Productivity">
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 16 }}>
+                    {[
+                      { label: "Avg Score", value: `${avgScore}` },
+                      { label: "Scheduling Rate", value: `${avgScheduling}%` },
+                      { label: "Completion Rate", value: `${avgCompletion}%` },
+                    ].map((kpi) => (
+                      <div key={kpi.label} style={{ textAlign: "center", padding: "10px 0" }}>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: "var(--text-primary)" }}>{kpi.value}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3, fontWeight: 600 }}>{kpi.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: "grid", gap: 6 }}>
+                    {(["Excellent", "Strong", "Building", "Getting Started"] as const).map((label) => {
+                      const count = labelCounts[label];
+                      const pct = withProd.length > 0 ? Math.round((count / withProd.length) * 100) : 0;
+                      const color = label === "Excellent" ? "#10B981" : label === "Strong" ? "#2563EB" : label === "Building" ? "#F59E0B" : "#6B7280";
+                      return (
+                        <div key={label}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>
+                            <span>{label}</span>
+                            <span style={{ color }}>{count} ({pct}%)</span>
+                          </div>
+                          <div style={{ height: 6, borderRadius: 999, background: "var(--card-border-soft)" }}>
+                            <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: color, transition: "width 0.3s" }} />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </Panel>
               );
@@ -2568,7 +2659,7 @@ const activeThisWeek = filteredAttempts.filter(
             </div>
 
             {/* NACE Competency Cohort Panel */}
-            <Panel eyebrow="NACE Career Readiness" title="Competency Scores — Cohort Average" minHeight={280}>
+            <Panel eyebrow="NACE Career Readiness" title="Competency Scores - Cohort Average" minHeight={280}>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.6 }}>
                 Average student performance across the 8 NACE career readiness competencies, computed from interview, networking, and public speaking sessions.
               </div>
@@ -2585,7 +2676,7 @@ const activeThisWeek = filteredAttempts.filter(
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontSize: 12, fontWeight: 900, color: score !== null ? color : "var(--text-muted)",
                       }}>
-                        {score ?? "—"}
+                        {score ?? "-"}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-primary)", marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -2991,11 +3082,11 @@ const activeThisWeek = filteredAttempts.filter(
                   {/* KPI row */}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12 }}>
                     {[
-                      { label: "Check-ins submitted", value: `${checkInCount}`, sub: `${checkInCoverage ?? "—"}% of cohort`, color: "var(--accent)" },
-                      { label: "Employment rate", value: employmentRate !== null ? `${employmentRate}%` : "—", sub: "full-time", color: "#10B981" },
-                      { label: "6-mo placement", value: earlyPlacementRate !== null ? `${earlyPlacementRate}%` : "—", sub: "within 6 mo of grad", color: "#0EA5E9" },
-                      { label: "Avg starting salary", value: avgSalary ? `$${Math.round(avgSalary / 1000)}K` : "—", sub: "employed students", color: "#F59E0B" },
-                      { label: "Avg satisfaction", value: avgSatisfaction ? `${avgSatisfaction}/5` : "—", sub: "career satisfaction", color: "#8B5CF6" },
+                      { label: "Check-ins submitted", value: `${checkInCount}`, sub: `${checkInCoverage ?? "-"}% of cohort`, color: "var(--accent)" },
+                      { label: "Employment rate", value: employmentRate !== null ? `${employmentRate}%` : "-", sub: "full-time", color: "#10B981" },
+                      { label: "6-mo placement", value: earlyPlacementRate !== null ? `${earlyPlacementRate}%` : "-", sub: "within 6 mo of grad", color: "#0EA5E9" },
+                      { label: "Avg starting salary", value: avgSalary ? `$${Math.round(avgSalary / 1000)}K` : "-", sub: "employed students", color: "#F59E0B" },
+                      { label: "Avg satisfaction", value: avgSatisfaction ? `${avgSatisfaction}/5` : "-", sub: "career satisfaction", color: "#8B5CF6" },
                     ].map((stat) => (
                       <div key={stat.label} style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
                         <div style={{ fontSize: 26, fontWeight: 950, color: stat.color }}>{stat.value}</div>
@@ -3090,7 +3181,7 @@ const activeThisWeek = filteredAttempts.filter(
                   </div>
 
                   <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                    Data is self-reported by students via the Career Guide check-in. {checkInCoverage !== null && checkInCoverage < 60 && `Only ${checkInCoverage}% of students have submitted a check-in — encourage more submissions for accurate cohort data.`}
+                    Data is self-reported by students via the Career Guide check-in. {checkInCoverage !== null && checkInCoverage < 60 && `Only ${checkInCoverage}% of students have submitted a check-in - encourage more submissions for accurate cohort data.`}
                   </div>
                 </div>
               )}

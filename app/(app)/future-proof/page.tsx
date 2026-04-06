@@ -21,7 +21,7 @@ const AI_RESISTANT_SKILLS = [
     title: "Critical Judgment",
     score_key: "critical_thinking",
     desc: "Knowing when the data is wrong, when the plan doesn't account for human behavior, when the \"correct\" answer is actually a mistake.",
-    why: "AI optimizes within given parameters. Setting the right parameters — and knowing when to override them — requires human judgment.",
+    why: "AI optimizes within given parameters. Setting the right parameters - and knowing when to override them - requires human judgment.",
   },
   {
     Icon: Users,
@@ -34,22 +34,22 @@ const AI_RESISTANT_SKILLS = [
     Icon: Wrench,
     title: "Physical Craft & Trades",
     score_key: null,
-    desc: "Wiring buildings, diagnosing engines, welding structural steel — work that requires dexterous hands in unpredictable environments.",
+    desc: "Wiring buildings, diagnosing engines, welding structural steel - work that requires dexterous hands in unpredictable environments.",
     why: "Robots exist in highly controlled environments. A master electrician diagnosing a 100-year-old building is not a robot job.",
   },
   {
     Icon: Lightbulb,
     title: "Original Creativity",
     score_key: null,
-    desc: "Generating ideas that haven't existed before — cultural relevance, emotional resonance, aesthetic taste.",
-    why: "AI remixes the past. True originality — work that changes culture — requires a human perspective and a stake in the outcome.",
+    desc: "Generating ideas that haven't existed before - cultural relevance, emotional resonance, aesthetic taste.",
+    why: "AI remixes the past. True originality - work that changes culture - requires a human perspective and a stake in the outcome.",
   },
   {
     Icon: Repeat,
     title: "Adaptability",
     score_key: null,
     desc: "The ability to learn new domains, pivot careers, and build skills across multiple fields as industries evolve.",
-    why: "The most future-proof attribute isn't one skill — it's the capacity to keep acquiring new ones.",
+    why: "The most future-proof attribute isn't one skill - it's the capacity to keep acquiring new ones.",
   },
 ];
 
@@ -76,11 +76,11 @@ const AI_RISK_TIERS = [
 
 const ADAPTABILITY_ACTIONS = [
   { Icon: BookOpen,   action: "Build a skill in an adjacent field", detail: "If you're in finance, learn data analysis. If you're in healthcare, learn health tech. Adjacent skills create career pivots, not dead ends." },
-  { Icon: Handshake,  action: "Invest in human relationships", detail: "Your professional network is your most AI-proof asset. People hire people they trust — and AI can't build that trust for you." },
+  { Icon: Handshake,  action: "Invest in human relationships", detail: "Your professional network is your most AI-proof asset. People hire people they trust - and AI can't build that trust for you." },
   { Icon: Briefcase,  action: "Develop a consulting or freelance skill", detail: "The ability to sell a skill independently gives you income resilience that no employer restructuring can take away." },
   { Icon: Rocket,     action: "Practice leadership at every level", detail: "Volunteer to lead projects, mentor peers, or run initiatives. Leadership experience is hard to fake and impossible to automate." },
   { Icon: Wrench,     action: "Consider a skilled trade or technical cert", detail: "Trades have some of the lowest AI automation risk in the economy. A side certification could be your most recession-proof move." },
-  { Icon: DollarSign, action: "Build multiple income streams", detail: "A single employer means a single point of failure. Side income — even small — makes you financially resilient when industries shift." },
+  { Icon: DollarSign, action: "Build multiple income streams", detail: "A single employer means a single point of failure. Side income - even small - makes you financially resilient when industries shift." },
 ];
 
 const SCENARIO_PLANNING = [
@@ -94,7 +94,7 @@ const SCENARIO_PLANNING = [
   },
   {
     scenario: "What if your current field shrinks dramatically?",
-    response: "Your transferable skills — communication, analysis, project management, relationship building — are more portable than your job title. Identify which of your skills map to growing industries and lean into those.",
+    response: "Your transferable skills - communication, analysis, project management, relationship building - are more portable than your job title. Identify which of your skills map to growing industries and lean into those.",
   },
 ];
 
@@ -124,10 +124,10 @@ export default function FutureProofPage() {
             Future-proof your career.
           </h1>
           <p style={{ margin: "0 0 20px", fontSize: 16, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 680 }}>
-            AI is changing work — but not in the way most headlines suggest. The careers at risk aren't the hard ones. They're the ones built on repetitive, rule-based tasks. The careers that survive — and thrive — are built on human judgment, craft, creativity, and connection.
+            AI is changing work - but not in the way most headlines suggest. The careers at risk aren't the hard ones. They're the ones built on repetitive, rule-based tasks. The careers that survive - and thrive - are built on human judgment, craft, creativity, and connection.
           </p>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 680 }}>
-            This section helps you understand where you stand, what to build, and how to think about the next 10–20 years of your working life with clarity — not fear.
+            This section helps you understand where you stand, what to build, and how to think about the next 10–20 years of your working life with clarity - not fear.
           </p>
         </div>
 
@@ -159,7 +159,7 @@ export default function FutureProofPage() {
         <section style={{ marginBottom: 48 }}>
           <SectionHeader number="02" title="The skills AI can't replace" />
           <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 680 }}>
-            These aren't soft skills — they're the hardest skills to develop and the most valuable in an automated world. Click each to understand why they're AI-resistant.
+            These aren't soft skills - they're the hardest skills to develop and the most valuable in an automated world. Click each to understand why they're AI-resistant.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
             {AI_RESISTANT_SKILLS.map((skill, i) => {
@@ -195,7 +195,7 @@ export default function FutureProofPage() {
         <section style={{ marginBottom: 48 }}>
           <SectionHeader number="03" title="Careers with the lowest automation risk" />
           <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 680 }}>
-            These occupations score under 22% automation risk — meaning the vast majority of what these professionals do cannot be replicated by current or near-future AI systems.
+            These occupations score under 22% automation risk - meaning the vast majority of what these professionals do cannot be replicated by current or near-future AI systems.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
             {LOW_RISK_SPOTLIGHT.map(occ => {
@@ -242,7 +242,7 @@ export default function FutureProofPage() {
 
         {/* ── Scenario Planning ── */}
         <section style={{ marginBottom: 48 }}>
-          <SectionHeader number="05" title="Scenario planning — thinking through the uncertainty" />
+          <SectionHeader number="05" title="Scenario planning - thinking through the uncertainty" />
           <p style={{ margin: "0 0 24px", fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 680 }}>
             The uncertainty is real. Here's how to think clearly through the scenarios most people are anxious about.
           </p>
@@ -272,14 +272,14 @@ export default function FutureProofPage() {
         <section style={{ marginBottom: 48 }}>
           <SectionHeader number="06" title="Side income & entrepreneurship" />
           <p style={{ margin: "0 0 20px", fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 680 }}>
-            One of the most powerful ways to future-proof your life is to build income that doesn't depend on a single employer. This isn't just for risk mitigation — for many people, the side business becomes the main business.
+            One of the most powerful ways to future-proof your life is to build income that doesn't depend on a single employer. This isn't just for risk mitigation - for many people, the side business becomes the main business.
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div style={{ padding: "22px 24px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
               <div style={{ marginBottom: 10 }}><Briefcase size={22} color="var(--accent)" /></div>
               <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 8 }}>Find your side hustle</div>
               <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
-                Based on your career aptitude profile, we can match side income opportunities that align with your skills and interests — from freelancing to product businesses to trade work.
+                Based on your career aptitude profile, we can match side income opportunities that align with your skills and interests - from freelancing to product businesses to trade work.
               </p>
               <Link href="/aptitude" style={{ display: "inline-block", padding: "9px 18px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>
                 Take Career Assessment →
@@ -302,10 +302,10 @@ export default function FutureProofPage() {
         <div style={{ padding: "24px 28px", borderRadius: 16, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 16, fontWeight: 950, color: "var(--accent)", marginBottom: 4 }}>
-              Build the skills AI can't replace — starting today
+              Build the skills AI can't replace - starting today
             </div>
             <div style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 520 }}>
-              Communication, critical thinking, and leadership are your highest-value investments. Practice them here — interview prep, networking pitches, and public speaking sessions all build your AI-resistant skill stack.
+              Communication, critical thinking, and leadership are your highest-value investments. Practice them here - interview prep, networking pitches, and public speaking sessions all build your AI-resistant skill stack.
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>

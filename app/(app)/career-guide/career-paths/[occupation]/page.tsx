@@ -29,7 +29,7 @@ const RIASEC_COLORS: Record<string, string> = {
 };
 
 const EDU_TIMELINE: Record<string, string> = {
-  no_degree: "Can start now — no formal degree required",
+  no_degree: "Can start now - no formal degree required",
   certificate: "6–18 month program or trade school",
   associate: "2-year degree or apprenticeship (2–5 years)",
   bachelor: "4-year degree",
@@ -118,7 +118,7 @@ export default function OccupationProfilePage({ params }: Props) {
                 {occ.aiRisk < 25
                   ? `${occ.title} has one of the lowest automation risk profiles in the economy. This role requires physical dexterity, complex human judgment, or deep interpersonal skills that current AI systems cannot replicate.`
                   : occ.aiRisk < 45
-                  ? `${occ.title} has moderate automation exposure. Routine analytical tasks may be augmented by AI tools, but the high-value components — judgment, relationships, and creative strategy — remain human-dependent.`
+                  ? `${occ.title} has moderate automation exposure. Routine analytical tasks may be augmented by AI tools, but the high-value components - judgment, relationships, and creative strategy - remain human-dependent.`
                   : `${occ.title} has significant automation exposure. Parts of this role are already being automated. Success in this field increasingly requires focusing on the judgment, leadership, and relationship-intensive components.`}
               </p>
               <Link href="/future-proof" style={{ display: "inline-block", marginTop: 12, fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
@@ -137,7 +137,7 @@ export default function OccupationProfilePage({ params }: Props) {
                 <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.2)" }}>
                   <div style={{ fontSize: 12, fontWeight: 900, color: "#D97706", marginBottom: 4 }}>TRADE / APPRENTICESHIP PATH</div>
                   <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
-                    This occupation is available through trade school or apprenticeship — often faster and less expensive than a 4-year degree, with strong job placement. Many trade workers start earning full wages within 2–4 years.
+                    This occupation is available through trade school or apprenticeship - often faster and less expensive than a 4-year degree, with strong job placement. Many trade workers start earning full wages within 2–4 years.
                   </p>
                 </div>
               )}

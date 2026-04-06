@@ -256,7 +256,7 @@ export default function TopNav() {
         padding: "0 24px", gap: 0,
         boxSizing: "border-box",
       }}>
-        {/* Logo — always links to dashboard */}
+        {/* Logo - always links to dashboard */}
         <Link href="/dashboard" style={{ textDecoration: "none", display: "flex", alignItems: "center", marginRight: tenantName ? 12 : 20, flexShrink: 0 }}>
           <SignalLockup iconSize={28} />
         </Link>
