@@ -4303,7 +4303,7 @@ onMouseLeave={(e) =>
       {/* ── Archetype Hero Block ─────────────────────────────────── */}
       {(() => {
         const archetype = feedback?.delivery_archetype as string | undefined;
-        const archetypeColor = archetype ? (ARCHETYPE_COLOR[archetype] ?? "var(--accent)") : "var(--accent)";
+        const archetypeColor = archetype ? (ARCHETYPE_COLOR[archetype as keyof typeof ARCHETYPE_COLOR] ?? "var(--accent)") : "var(--accent)";
         const pct = Math.max(0, Math.min(1, overallScore100 / 100));
         const deg = Math.round(pct * 360);
         return (
