@@ -24,7 +24,7 @@ export type ArchetypeResult = {
 };
 
 // One coaching action and description per archetype
-const ARCHETYPE_DATA: Record<
+export const ARCHETYPE_DATA: Record<
   DeliveryArchetype,
   { coaching: string; description: string }
 > = {

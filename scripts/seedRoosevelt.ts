@@ -118,6 +118,50 @@ const QUESTIONS: Question[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// STAR evidence excerpts + relevance data per question
+// ---------------------------------------------------------------------------
+
+type StarEvidence = { situation: string[]; task: string[]; action: string[]; result: string[] };
+
+const STAR_EVIDENCE: StarEvidence[] = [
+  // 0: led a team
+  { situation: ["In my campus leadership role I coordinated a five-person team through a compressed timeline"], task: ["for a regional business plan competition with a hard submission deadline"], action: ["I delegated based on each person's strengths and held quick daily check-ins to catch blockers early"], result: ["We finished second in the regional round — our best result in three years"] },
+  // 1: handled conflict
+  { situation: ["Two group members disagreed on our financial model assumptions late in the project"], task: ["I needed to break the impasse without losing momentum toward our deadline"], action: ["I set up a working session where each person walked through their logic, then we aligned on a hybrid projection with documented assumptions"], result: ["The tension dropped immediately and we hit our deadline on time"] },
+  // 2: failed and learned
+  { situation: ["I underestimated how long it would take to build a client-facing report"], task: ["I had committed to a draft deadline I couldn't meet"], action: ["I owned it to my supervisor, communicated early, and created a buffer system for future projects"], result: ["The final version was delivered ahead of the revised schedule"] },
+  // 3: improved a process
+  { situation: ["Our student organization was tracking event sign-ups in a shared spreadsheet that frequently had version conflicts"], task: ["I needed a system that didn't require manual reconciliation after every event"], action: ["I moved us to a form-based system that auto-populated a master sheet with no manual merging"], result: ["Time to reconcile RSVPs dropped from 40 minutes to under five"] },
+  // 4: difficult decision
+  { situation: ["I had to recommend dropping a vendor relationship mid-semester that had a personal connection for a teammate"], task: ["The decision needed to be made on the merits without damaging the team dynamic"], action: ["I laid out the cost data and risk profile objectively and presented it to the team without framing it as a personal judgment"], result: ["The team agreed and we found a better partner within two weeks"] },
+  // 5: prioritize competing deadlines
+  { situation: ["I had a week with three finals and a part-time internship deliverable all due within four days"], task: ["I needed a system that would let me protect focus time without missing anything"], action: ["I ranked tasks by impact and urgency using a two-by-two matrix and communicated proactively when anything had to shift"], result: ["I hit every deadline that week without an all-nighter"] },
+  // 6: technical to non-technical audience
+  { situation: ["I was presenting a cloud migration recommendation to a community nonprofit board with no technical background"], task: ["I needed them to understand the risk and cost tradeoff without getting lost in infrastructure details"], action: ["I led with the outcome in plain terms, gave one analogy, and saved methodology for follow-up questions"], result: ["The board approved the recommendation and the presentation got a standing ovation"] },
+  // 7: used data to influence a decision
+  { situation: ["The tutoring center director was considering adding more evening drop-in hours based on intuition"], task: ["I had two semesters of visit data that told a different story"], action: ["I analyzed the utilization by time slot and showed that Thursday evenings had 40% lower traffic at the same staffing cost"], result: ["The director reallocated those hours to a high-demand Monday slot and saw a 25% increase in weekly sessions"] },
+  // 8: worked as part of a team
+  { situation: ["For a capstone consulting project we had five students across three majors with no shared tooling"], task: ["I needed to create coordination structure so work didn't overlap or fall through the cracks"], action: ["I built a shared Notion workspace, set weekly milestones, and created a role assignment doc"], result: ["We received an A and the client implemented two of our three recommendations"] },
+  // 9: adapted quickly to change
+  { situation: ["My internship project was scoped for eight weeks when a production incident pulled the entire team off for ten days"], task: ["I had to stay productive and re-integrate without creating catch-up chaos"], action: ["I independently reprioritized to documentation and testing, then built a structured handoff to re-onboard the team to my progress"], result: ["The handoff took one meeting and we recovered the timeline within the sprint"] },
+  // 10: greatest strength
+  { situation: ["I'm asked to describe my greatest professional strength"], task: ["The question is looking for a strength that's specific and backed with evidence"], action: ["I instinctively break ambiguous problems into components, assign time to each, and identify the first unknown I need to resolve"], result: ["That approach has kept me ahead on almost every complex project across internships and coursework"] },
+  // 11: five years
+  { situation: ["I'm asked where I see myself in five years"], task: ["The answer should show direction without sounding scripted or generic"], action: ["I'm building domain depth in two to three industries and developing my ability to shape problem framing, not just solutions"], result: ["I want to be managing at least one direct report through a meaningful project within that window"] },
+  // 12: took initiative
+  { situation: ["Our team had no standard onboarding doc and new members kept asking the same three questions"], task: ["No one had been assigned to fix it and it was creating recurring friction"], action: ["I spent two evenings building a one-page reference sheet and posted it to our shared drive unprompted"], result: ["Two semesters later it's still being used by every new project member"] },
+];
+
+const RELEVANCE_MISSED_PARTS = [
+  "The result was not quantified - a specific metric would close this gap.",
+  "The situation was not fully established before moving to action.",
+  "The answer addresses the theme but not the specific question asked.",
+  "The task or goal was not stated explicitly.",
+  "The action taken was described but not differentiated from what anyone would do.",
+  "The result was implied rather than stated directly.",
+];
+
+// ---------------------------------------------------------------------------
 // Archetype definitions
 // ---------------------------------------------------------------------------
 
@@ -461,7 +505,8 @@ function buildAttempt(
 ) {
   const t  = total === 1 ? 1 : i / Math.max(1, total - 1);
   const v  = persona.volatility;
-  const q  = pickRandom(QUESTIONS);
+  const qIdx = Math.floor(random(0, QUESTIONS.length));
+  const q  = QUESTIONS[qIdx];
   const sl = q.category === "technical" ? 0.3 : q.category === "career_dev" ? 0.2 : 0;
 
   const overallScore       = round1(clamp(noise(lerp(persona.overallStart, persona.overallEnd, t), v), 38, 95));
@@ -496,6 +541,33 @@ function buildAttempt(
   const variantIdx = i % 3;
   const strengths   = STRENGTHS[archetype][variantIdx];
   const improvements = IMPROVEMENTS[archetype][variantIdx];
+
+  // Relevance scores - correlate with overall score and archetype
+  const relevanceBase = round1(clamp(noise(lerp(overallScore * 0.095, overallScore * 0.105, t), v * 0.04), 3.5, 9.8));
+  const directnessBase = round1(clamp(noise(relevanceBase, v * 0.08), 3.2, 9.8));
+  const completenessBase = round1(clamp(noise(closingImpact, v * 0.08), 3.5, 9.8));
+  const offTopicScore = round1(clamp(10 - relevanceBase + noise(0, v * 0.06), 0.5, 6.5));
+  const answeredQuestion = relevanceBase >= 5.2;
+
+  // Missed parts - more for weaker answers
+  const missedCount = completenessBase < 6.0 ? (completenessBase < 5.0 ? 2 : 1) : 0;
+  const missedParts: string[] = [];
+  for (let m = 0; m < missedCount; m++) {
+    const candidate = RELEVANCE_MISSED_PARTS[(i + m * 3) % RELEVANCE_MISSED_PARTS.length];
+    if (!missedParts.includes(candidate)) missedParts.push(candidate);
+  }
+
+  const relevanceExplanationPool = [
+    `The answer addresses the question directly with a concrete example and a named outcome.`,
+    `The response is on-topic but the connection to the specific role requirements could be sharper.`,
+    `The example is relevant to the question but the result section doesn't close the loop on what was asked.`,
+    `Strong relevance - the answer maps directly to the core of what was asked.`,
+    `The answer is partially relevant but drifts in the middle before returning to the question.`,
+  ];
+  const relevanceExplanation = relevanceExplanationPool[Math.floor(relevanceBase) % relevanceExplanationPool.length];
+
+  // STAR evidence excerpts - from the pre-mapped pool
+  const baseEvidence = STAR_EVIDENCE[qIdx % STAR_EVIDENCE.length];
 
   // Confidence explanation tied to delivery state
   let confidenceExplanation: string;
@@ -542,6 +614,16 @@ function buildAttempt(
       },
       strengths,
       improvements,
+      relevance: {
+        answered_question: answeredQuestion,
+        relevance_score: relevanceBase,
+        directness_score: directnessBase,
+        completeness_score: completenessBase,
+        off_topic_score: offTopicScore,
+        missed_parts: missedParts,
+        relevance_explanation: relevanceExplanation,
+      },
+      star_evidence: baseEvidence,
       delivery_archetype: archetype,
       archetype_coaching: coaching,
       archetype_description: description,

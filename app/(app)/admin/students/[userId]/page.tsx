@@ -12,7 +12,7 @@ import {
   avgTenPoint,
 } from "@/app/lib/scoreScale";
 import StageSetterClient from "./StageSetterClient";
-import { ARCHETYPE_COLOR } from "@/app/lib/feedback/archetypes";
+import { ARCHETYPE_COLOR, ARCHETYPE_DATA } from "@/app/lib/feedback/archetypes";
 
 
 function num(v: any): number | null {
@@ -132,12 +132,14 @@ function StatCard({
       <div
         style={{
           marginTop: 10,
-          fontSize: 30,
+          fontSize: value.length > 8 ? 18 : 30,
           fontWeight: 950,
           letterSpacing: -0.5,
           color: "var(--text-primary)",
-          lineHeight: 1.08,
+          lineHeight: 1.2,
           marginBottom: 2,
+          wordBreak: "break-word",
+          overflowWrap: "anywhere",
         }}
       >
         {value}
@@ -656,6 +658,50 @@ const trendLabel =
             </div>
           );
         })()}
+
+        {/* Archetype Definitions */}
+        <div style={{
+          borderRadius: 22,
+          padding: 22,
+          background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
+          border: "1px solid var(--card-border-soft)",
+          boxShadow: "var(--shadow-card-soft)",
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
+            Archetype Reference
+          </div>
+          <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.25, marginBottom: 16 }}>
+            What each archetype means
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
+            {(Object.entries(ARCHETYPE_DATA) as [keyof typeof ARCHETYPE_DATA, { description: string; coaching: string }][]).map(([name, data]) => {
+              const color = ARCHETYPE_COLOR[name];
+              return (
+                <div key={name} style={{
+                  padding: "14px 16px",
+                  borderRadius: 14,
+                  border: `1px solid ${color}30`,
+                  background: `${color}08`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                    <span style={{
+                      padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 900,
+                      color, background: `${color}18`, border: `1px solid ${color}40`,
+                    }}>
+                      {name}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 6 }}>
+                    {data.description}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.55, fontStyle: "italic", borderTop: `1px solid ${color}20`, paddingTop: 6 }}>
+                    Coaching: {data.coaching}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         <div
           style={{
