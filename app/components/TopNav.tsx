@@ -232,7 +232,7 @@ export default function TopNav() {
                 </Link>
               ))}
               <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
-                <BillingSidebarButton collapsed={false} />
+                {!isAdmin && !tenantName && <BillingSidebarButton collapsed={false} />}
                 <div style={{ borderRadius: 12, overflow: "hidden" }}><LogoutButton /></div>
               </div>
             </div>
@@ -292,7 +292,7 @@ export default function TopNav() {
 
         {/* Right side */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", flexShrink: 0 }}>
-          <BillingSidebarButton collapsed={true} />
+          {!isAdmin && !tenantName && <BillingSidebarButton collapsed={true} />}
           <Link href="/games" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/games") ? "var(--accent)" : "var(--text-muted)", background: isActive("/games") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
             <Gamepad2 size={14} />
             Games

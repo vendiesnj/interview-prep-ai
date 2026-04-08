@@ -133,6 +133,7 @@ export default function SidebarNav() {
   const { data: session } = useSession();
   const isMobile = useIsMobile();
   const isAdmin = (session?.user as any)?.tenantRole === "tenant_admin";
+  const isTenantUser = !!(session as any)?.tenant;
   const [collapsed, setCollapsed] = React.useState(false);
   const [drawerOpen, setDrawerOpen] = React.useState(false);
 
@@ -282,7 +283,7 @@ export default function SidebarNav() {
 
       {/* Bottom */}
       <div style={{ padding: collapsed ? 8 : 10, display: "grid", gap: 8, borderTop: "1px solid var(--card-border-soft)", paddingTop: 12, marginTop: 4 }}>
-        {!isAdmin && <BillingSidebarButton collapsed={collapsed} />}
+        {!isAdmin && !isTenantUser && <BillingSidebarButton collapsed={collapsed} />}
         {!isAdmin && (
           <NavLink item={{ label: "Settings", href: "/settings", icon: <Settings size={18} /> }} active={isActive("/settings")} collapsed={collapsed} />
         )}
