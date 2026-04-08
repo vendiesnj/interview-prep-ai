@@ -11,16 +11,16 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
-  title: "AI Interview Practice Tool | STAR Feedback & Mock Interview Coaching",
+  title: "Signal HQ | AI Interview Practice & Career Coaching",
   description:
     "Practice interviews with AI-powered feedback. Get STAR breakdown scoring, communication analysis, and personalized improvement tips to ace your next interview.",
-  metadataBase: new URL("https://signal.app"),
+  metadataBase: new URL("https://signalhq.us"),
   openGraph: {
-    title: "AI Interview Practice Tool | Signal",
+    title: "Signal HQ | AI Interview Practice & Career Coaching",
     description:
       "AI-powered mock interview practice with STAR scoring, communication analysis, and personalized feedback.",
-    url: "https://signal.app",
-    siteName: "Signal",
+    url: "https://signalhq.us",
+    siteName: "Signal HQ",
     type: "website",
   },
 };
@@ -84,7 +84,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           {`
             (function () {
               try {
-                var raw = localStorage.getItem("ipc_tenant_theme_v3");
+                var raw = localStorage.getItem("signal_tenant_theme_v1") || localStorage.getItem("ipc_tenant_theme_v3");
                 if (!raw) return;
 
                 var parsed = JSON.parse(raw);

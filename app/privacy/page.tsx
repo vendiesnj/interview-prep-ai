@@ -47,7 +47,7 @@ export default function PrivacyPage() {
 
         <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 22 }}>Contact</h2>
         <p>
-          Email: <b>support@yourdomain.com</b> (replace with your real support email)
+          Email: <b>support@signalhq.us</b>
         </p>
       </section>
     </main>

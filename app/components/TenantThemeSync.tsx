@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { themePresets, type ThemePresetName, pitchTheme } from "@/app/lib/theme";
 
 const FALLBACK_THEME: ThemePresetName = "light";
-const STORAGE_KEY = "ipc_tenant_theme_v3";
+const STORAGE_KEY = "signal_tenant_theme_v1";
 
 export default function TenantThemeSync() {
   const { data: session, status } = useSession();

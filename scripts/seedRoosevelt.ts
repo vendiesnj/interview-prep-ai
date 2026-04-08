@@ -684,7 +684,7 @@ async function run() {
     console.error("Roosevelt tenant not found. Run setupRoosevelt.ts first.");
     process.exit(1);
   }
-  await prisma.tenant.update({ where: { slug: "roosevelt" }, data: { plan: "university" } });
+  await prisma.tenant.update({ where: { slug: "roosevelt" }, data: { plan: "university", themeKey: "roosevelt" } });
   const tenantId = tenant.id;
 
   const [marcus, aaliyah, diego, sophie, jordan] = await Promise.all([

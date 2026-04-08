@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/dashboard", "/practice", "/results", "/admin", "/account", "/progress"],
     },
-    sitemap: "https://interviewperformancecoach.com/sitemap.xml",
+    sitemap: "https://signalhq.us/sitemap.xml",
   };
 }
