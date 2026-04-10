@@ -1,5 +1,6 @@
-import type { ArchetypeResult, DeliveryArchetype } from "./archetypes";
-export type { ArchetypeResult, DeliveryArchetype };
+import type { ArchetypeResult, ArchetypeDetectionResult, DeliveryArchetype } from "./archetypes";
+export type { ArchetypeResult, ArchetypeDetectionResult, DeliveryArchetype };
+export type { DimensionProfile, DimensionScore, DimensionKey, IBMMetrics, QuestionIntent } from "./dimensions";
 
 export type RoleFamily =
   | "finance"

@@ -8,6 +8,7 @@ import PremiumCard from "../../components/PremiumCard";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
 import { computeDeliveryCoach } from "@/app/lib/deliveryCoach";
+import { ARCHETYPE_COLOR } from "@/app/lib/feedback/archetypes";
 import {
   asOverall100,
   asTenPoint,
@@ -185,14 +186,21 @@ function crossSignalInsight(
   monotone: number | null | undefined,
   energyVar: number | null | undefined,
   wpm: number | null | undefined,
-  pitchStd: number | null | undefined
+  pitchStd: number | null | undefined,
+  eyeContact?: number | null,
 ): string | null {
   const m = typeof monotone === "number" ? monotone : null;
   const ev = typeof energyVar === "number" ? energyVar : null;
   const w = typeof wpm === "number" ? wpm : null;
   const ps = typeof pitchStd === "number" ? pitchStd : null;
+  const ec = typeof eyeContact === "number" ? eyeContact : null;
 
   if (m === null && ev === null) return null;
+
+  // Low eye contact + high monotone = double confidence reduction
+  if (ec !== null && ec < 0.4 && m !== null && m >= 6) {
+    return "Flat delivery and low eye contact compound each other — both signal disengagement to an interviewer. Start with the easier fix: add a deliberate pause before your result sentence. That single moment of contrast often resolves both.";
+  }
 
   // High monotone + high energy = pitch flat but volume dynamic
   if (m !== null && m >= 7 && ev !== null && ev >= 6) {
@@ -202,9 +210,13 @@ function crossSignalInsight(
   if (m !== null && m >= 7 && ev !== null && ev < 4) {
     return "Both pitch and energy are flat. This reads as low stakes or low confidence regardless of content. Focus on varying the weight of your ending sentences first.";
   }
-  // High monotone + high WPM = fast and flat
+  // High monotone + high WPM = fast and flat (worst delivery combo)
   if (m !== null && m >= 6 && w !== null && w > 160) {
-    return "Speaking fast with flat delivery creates a particularly compressed impression - interviewers absorb less. Slow your pace on result statements to let important points land.";
+    return "Fast pace and flat pitch together compress the most important signal — your result. Slow your pace specifically on the outcome sentence and add a slight pitch lift. Those two seconds change how the entire answer is remembered.";
+  }
+  // Low eye contact + fast WPM = nervous energy pattern
+  if (ec !== null && ec < 0.45 && w !== null && w > 155) {
+    return "Fast pace and reduced eye contact often appear together under pressure. Camera gaze is a proxy for confidence — trying to hold the camera a beat longer as you land your result statement helps slow pace as a side effect.";
   }
   // Low monotone but low energy variation - different signals
   if (m !== null && m <= 3 && ev !== null && ev < 3) {
@@ -217,6 +229,10 @@ function crossSignalInsight(
   // Low monotone + slow WPM = measured and expressive
   if (m !== null && m <= 3 && w !== null && w < 120) {
     return "Low monotone risk combined with measured pace is a strong signal. This delivery style reads as confident and considered - maintain it on your result and outcome sentences.";
+  }
+  // Good eye contact + flat delivery = almost there
+  if (ec !== null && ec >= 0.65 && m !== null && m >= 6) {
+    return "Strong eye contact is a real positive here — that presence signal is working. The only missing piece is pitch variety. Eye contact gives you the channel; adding expressiveness fills it.";
   }
 
   return null;
@@ -328,36 +344,19 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
   );
 }
 
-type ResultsTab = "overview" | "relevance" | "structure" | "delivery" | "coaching" | "transcript";
-
-function TabButton({
-  label,
-  active,
-  onClick,
-}: {
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}) {
+function DimensionBar({ label, score, isGap, isStrength }: { label: string; score: number; isGap: boolean; isStrength: boolean }) {
+  const pct = Math.max(0, Math.min(100, score * 10));
+  const color = isStrength ? "#10B981" : isGap ? "#EF4444" : "var(--accent)";
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        padding: "10px 12px",
-        borderRadius: "var(--radius-sm)",
-        border: "none",
-        background: active ? "var(--accent-soft)" : "transparent",
-        color: active ? "var(--accent)" : "var(--text-muted)",
-        fontWeight: 600,
-        fontSize: 13,
-        cursor: "pointer",
-        boxShadow: "none",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {label}
-    </button>
+    <div style={{ marginBottom: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+        <span style={{ fontSize: 11, color: isGap ? "#EF4444" : isStrength ? "#10B981" : "var(--text-muted)", fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: isGap ? "#EF4444" : isStrength ? "#10B981" : "var(--text-primary)" }}>{score.toFixed(1)}</span>
+      </div>
+      <div style={{ height: 5, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: color, transition: "width 400ms ease" }} />
+      </div>
+    </div>
   );
 }
 
@@ -739,7 +738,6 @@ export default function ResultsPage() {
 const router = useRouter();
 const [stored, setStored] = useState<StoredResult | null>(null);
 const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
-const [activeTab, setActiveTab] = useState<ResultsTab>("overview");
 const { data: session, status } = useSession();
 
 const [percentile, setPercentile] = useState<number | null>(null);
@@ -1266,1742 +1264,577 @@ const deliveryProfile = useMemo(() => {
 
 
 
+
+
+
+
+  // Dimension scores from new engine
+  const dimensionScores = (feedback as any)?.dimension_scores as Record<string, { label: string; score: number; coaching: string; isStrength: boolean; isGap: boolean; driverSignals: string[] }> | undefined;
+  const ibmMetrics = (feedback as any)?.ibm_metrics;
+  const archetypeColor = feedback?.delivery_archetype
+    ? (ARCHETYPE_COLOR as any)[feedback.delivery_archetype] ?? "var(--accent)"
+    : "var(--accent)";
+
+  const DIM_ORDER = ["narrative_clarity", "evidence_quality", "ownership_agency", "vocal_engagement", "response_control", "cognitive_depth", "presence_confidence"];
+
   return (
     <PremiumShell title="Results" subtitle="Review performance and iterate.">
-     <div
-  style={{
-    marginTop: 24,
-    padding: 18,
-    borderRadius: "var(--radius-xl)",
-    border: "1px solid var(--card-border-soft)",
-    background: `
-      radial-gradient(900px 400px at 20% -10%, var(--accent-2-soft), transparent 60%),
-      var(--card-bg)
-    `,
-  }}
->
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+      <div style={{ marginTop: 16, maxWidth: 1100, margin: "16px auto 0" }}>
+
+        {/* ── Header ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <button
-  onClick={() => {
-    try {
-      sessionStorage.setItem("ipc_force_restore", "1");
-    } catch {}
-    router.back();
-  }}
-  style={{
-    padding: "10px 14px",
-    cursor: "pointer",
-    borderRadius: "var(--radius-sm)",
-    border: "none",
-    background: "var(--card-bg-strong)",
-    color: "var(--text-primary)",
-    fontWeight: 700,
-  }}
->
-  ← Back
-</button>
-
+            onClick={() => { try { sessionStorage.setItem("ipc_force_restore", "1"); } catch {} router.back(); }}
+            style={{ padding: "8px 14px", cursor: "pointer", borderRadius: "var(--radius-sm)", border: "none", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}
+          >
+            ← Back
+          </button>
           <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-  {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : ""}
-</div>
+            {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : ""}
+          </div>
         </div>
 
-        <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <TabButton label="Overview" active={activeTab === "overview"} onClick={() => setActiveTab("overview")} />
-          <TabButton label="Relevance" active={activeTab === "relevance"} onClick={() => setActiveTab("relevance")} />
-          <TabButton label="Structure" active={activeTab === "structure"} onClick={() => setActiveTab("structure")} />
-          <TabButton label="Delivery" active={activeTab === "delivery"} onClick={() => setActiveTab("delivery")} />
-          <TabButton label="Coaching" active={activeTab === "coaching"} onClick={() => setActiveTab("coaching")} />
-          <TabButton label="Transcript" active={activeTab === "transcript"} onClick={() => setActiveTab("transcript")} />
-        </div>
-
-        {stored?.audioId ? (
-          <div style={{ marginTop: 12 }}>
-            {replayUrl ? (
-              <audio controls preload="none" src={replayUrl} style={{ width: "100%" }} />
-            ) : (
-              <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Loading recording…</div>
-            )}
+        {/* ── Audio player ── */}
+        {stored?.audioId && replayUrl ? (
+          <div style={{ marginBottom: 14 }}>
+            <audio controls preload="none" src={replayUrl} style={{ width: "100%", borderRadius: "var(--radius-sm)" }} />
           </div>
         ) : null}
 
-        <div style={{ marginTop: 16 }}>
-  <div
-    style={{
-      fontSize: 32,
-      fontWeight: 700,
-      letterSpacing: -0.5,
-      color: "var(--text-primary)",
-    }}
-  >
-    Results
-  </div>
-  <div style={{ marginTop: 6, color: "var(--text-muted)" }}>
-    {stored?.ts ? `Saved ${new Date(stored.ts).toLocaleString()}` : "No saved result yet."}
-  </div>
-</div>
+        {/* ── Loading / empty state ── */}
+        {loadState === "hydrating" ? (
+          <SectionCard title="Loading results">
+            <div style={{ display: "grid", gap: 10 }}>
+              {[34, 56, 100].map(w => (
+                <div key={w} style={{ height: 14, width: `${w}%`, borderRadius: 999, background: "var(--card-border-soft)" }} />
+              ))}
+            </div>
+          </SectionCard>
+        ) : !stored || !feedback ? (
+          <SectionCard title="No results found">
+            <div style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
+              Go back, record an answer, then click <strong style={{ color: "var(--text-primary)" }}>Analyze My Answer</strong>.
+            </div>
+          </SectionCard>
+        ) : (
+          /* ── Two-column layout ── */
+          <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
 
-        {stored?.jobProfileTitle || stored?.jobProfileCompany || stored?.jobProfileRoleType ? (
-          <div style={{ marginTop: 16 }}>
-            <div
-              style={{
-                padding: 16,
-                borderRadius: "var(--radius-lg)",
-                border: "1px solid var(--accent-strong)",
-                background: "var(--accent-soft)",
-                boxShadow: "var(--shadow-card)",
-                display: "grid",
-                gap: 10,
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: 0.8,
-                  color: "var(--accent)",
-                }}
-              >
-                Interview Context
-              </div>
+            {/* ────────────────────────────────────────────────────────────
+                LEFT STICKY SIDEBAR
+            ──────────────────────────────────────────────────────────── */}
+            <div style={{ width: 272, flexShrink: 0, position: "sticky", top: 20 }}>
+              <div style={{
+                padding: 18,
+                borderRadius: "var(--radius-xl)",
+                border: "1px solid var(--card-border-soft)",
+                background: "var(--card-bg)",
+                display: "flex",
+                flexDirection: "column" as const,
+                gap: 18,
+              }}>
 
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  flexWrap: "wrap",
-                }}
-              >
-                <div style={{ minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    {stored.jobProfileTitle ?? "Target role"}
+                {/* Overall score */}
+                <div style={{ textAlign: "center" as const }}>
+                  <div style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 80, height: 80,
+                    borderRadius: "50%",
+                    border: `3px solid ${overallScore100 !== null && overallScore100 >= 70 ? "#10B981" : overallScore100 !== null && overallScore100 >= 55 ? "#F59E0B" : "#EF4444"}`,
+                    background: "var(--card-bg-strong)",
+                  }}>
+                    <span style={{ fontSize: 26, fontWeight: 800, letterSpacing: -0.5, color: "var(--text-primary)" }}>
+                      {overallScore100 !== null ? Math.round(overallScore100) : "—"}
+                    </span>
                   </div>
-
-                  <div
-                    style={{
-                      marginTop: 8,
-                      display: "flex",
-                      gap: 8,
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                    }}
-                  >
-                    {stored.jobProfileCompany ? (
-                      <span
-                        style={{
-                          padding: "4px 9px",
-                          borderRadius: 999,
-                          border: "1px solid var(--card-border)",
-                          background: "var(--card-bg)",
-                          color: "var(--text-primary)",
-                          fontSize: 12,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {stored.jobProfileCompany}
-                      </span>
-                    ) : null}
-
-                    {stored.jobProfileRoleType ? (
-                      <span
-                        style={{
-                          padding: "4px 9px",
-                          borderRadius: 999,
-                          border: "1px solid var(--card-border)",
-                          background: "var(--card-bg)",
-                          color: "var(--text-muted)",
-                          fontSize: 12,
-                          fontWeight: 500,
-                        }}
-                      >
-                        {stored.jobProfileRoleType}
-                      </span>
-                    ) : null}
-                  </div>
+                  {percentileText && (
+                    <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)" }}>{percentileText}</div>
+                  )}
+                  {stored?.inputMethod === "pasted" && (
+                    <div style={{ marginTop: 4, fontSize: 10, color: "var(--text-muted)", letterSpacing: 0.4 }}>TEXT ONLY</div>
+                  )}
                 </div>
-              </div>
 
-              <div
-                style={{
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                  color: "var(--text-muted)",
-                }}
-              >
-                This attempt is being evaluated in the context of your selected job profile, which will later power role-based trends, strengths, and benchmarking.
+                {/* Archetype card */}
+                {feedback.delivery_archetype && (
+                  <div style={{
+                    padding: "12px 14px",
+                    borderRadius: "var(--radius-lg)",
+                    border: `1px solid ${archetypeColor}33`,
+                    background: `${archetypeColor}0d`,
+                  }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: archetypeColor, marginBottom: 4, textTransform: "uppercase" as const }}>
+                      Delivery Pattern
+                    </div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                      {feedback.delivery_archetype}
+                    </div>
+                    {(feedback as any).archetype_tagline && (
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                        {(feedback as any).archetype_tagline}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Secondary archetype */}
+                {(feedback as any).secondary_archetype && (
+                  <div style={{
+                    padding: "8px 12px",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--card-border-soft)",
+                    background: "var(--card-bg-strong)",
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 3, textTransform: "uppercase" as const }}>
+                      Also shows
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                      {(feedback as any).secondary_archetype}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dimension bars */}
+                {dimensionScores && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>
+                      7 Dimensions
+                    </div>
+                    {DIM_ORDER.map(k => {
+                      const d = dimensionScores[k];
+                      if (!d) return null;
+                      return <DimensionBar key={k} label={d.label} score={d.score} isGap={d.isGap} isStrength={d.isStrength} />;
+                    })}
+                  </div>
+                )}
+
+                {/* Top coaching action */}
+                {feedback.archetype_coaching && (
+                  <div style={{
+                    padding: "10px 12px",
+                    borderRadius: "var(--radius-md)",
+                    border: `1px solid ${archetypeColor}22`,
+                    background: `${archetypeColor}08`,
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: archetypeColor, marginBottom: 4, textTransform: "uppercase" as const }}>
+                      #1 Action
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                      {feedback.archetype_coaching}
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
-          </div>
-        ) : null}
 
-        {loadState === "hydrating" ? (
-  <SectionCard title="Loading results">
-    <div style={{ display: "grid", gap: 10 }}>
-      <div
-        style={{
-          height: 14,
-          width: "34%",
-          borderRadius: 999,
-          background: "var(--card-border-soft)",
-        }}
-      />
-      <div
-        style={{
-          height: 14,
-          width: "56%",
-          borderRadius: 999,
-          background: "var(--card-border-soft)",
-        }}
-      />
-      <div
-        style={{
-          height: 120,
-          width: "100%",
-          borderRadius: "var(--radius-md)",
-          background: "var(--card-border-soft)",
-        }}
-      />
-    </div>
-  </SectionCard>
-) : !stored || !feedback ? (
-  <SectionCard title="No results found">
-    <div style={{ color: "var(--text-muted)", lineHeight: 1.6 }}>
-      Go back, record an answer, then click <strong style={{ color: "var(--text-primary)" }}>Analyze My Answer</strong>.
-    </div>
-  </SectionCard>
-) : (
-          <>
-            {activeTab === "overview" ? (
-              <SectionCard title="Performance Overview">
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 12,
-                    marginBottom: 14,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                    <div
-  style={{
-    padding: "6px 10px",
-    borderRadius: 999,
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg-strong)",
-    color: "var(--text-primary)",
-    fontSize: 12,
-    fontWeight: 500,
-    display: "flex",
-    gap: 8,
-    alignItems: "center",
-  }}
->
-  <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Pace</span>
-                      <span>{typeof stored?.wpm === "number" ? `${stored.wpm} wpm` : " - "}</span>
-                      {typeof stored?.wpm === "number" ? (
-                        <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>· {paceContext(stored.wpm).label}</span>
-                      ) : null}
-                    </div>
+            {/* ────────────────────────────────────────────────────────────
+                RIGHT SCROLLING CONTENT
+            ──────────────────────────────────────────────────────────── */}
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" as const, gap: 14 }}>
+
+              {/* Question */}
+              {stored?.question && (
+                <PremiumCard>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 8 }}>
+                    Question
                   </div>
-                </div>
-
-                {stored?.question ? (
-  <div
-    style={{
-      marginTop: 16,
-      marginBottom: 18,
-      padding: 16,
-      borderRadius: "var(--radius-md)",
-      border: "1px solid var(--card-border-soft)",
-      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-      boxShadow: "var(--shadow-card-soft)",
-      minWidth: 0,
-    }}
-  >
-    <div
-      style={{
-        fontSize: 12,
-        color: "var(--text-muted)",
-        fontWeight: 500,
-        letterSpacing: 0.5,
-      }}
-    >
-      Question
-    </div>
-
-    <div
-      style={{
-        marginTop: 8,
-        fontSize: 14,
-        lineHeight: 1.6,
-        color: "var(--text-primary)",
-      }}
-    >
-      {stored.question}
-    </div>
-
-   {stored.questionCategory || stored.questionSource || stored.evaluationFramework ? (
-  <div
-    style={{
-      marginTop: 10,
-      display: "flex",
-      gap: 8,
-      flexWrap: "wrap",
-      alignItems: "center",
-    }}
-  >
-    {stored.questionCategory ? (
-      <span
-        style={{
-          padding: "4px 9px",
-          borderRadius: 999,
-          border: "1px solid var(--card-border)",
-          background: "var(--card-bg)",
-          color: "var(--text-primary)",
-          fontSize: 12,
-          fontWeight: 500,
-          textTransform: "capitalize",
-        }}
-      >
-        {stored.questionCategory.replace(/_/g, " ")}
-      </span>
-    ) : null}
-
-    {stored.questionSource ? (
-      <span
-        style={{
-          padding: "4px 9px",
-          borderRadius: 999,
-          border: "1px solid var(--card-border)",
-          background: "var(--card-bg)",
-          color: "var(--text-muted)",
-          fontSize: 12,
-          fontWeight: 500,
-          textTransform: "capitalize",
-        }}
-      >
-        {stored.questionSource}
-      </span>
-    ) : null}
-
-   {resolvedFramework ? (
-  <span
-    style={{
-      padding: "4px 9px",
-      borderRadius: 999,
-      border: "1px solid var(--accent-strong)",
-      background: "var(--accent-soft)",
-      color: "var(--accent)",
-      fontSize: 12,
-      fontWeight: 600,
-    }}
-  >
-    {resolvedFramework === "star"
-      ? "Behavioral (STAR)"
-      : resolvedFramework === "technical_explanation"
-      ? "Technical explanation"
-      : resolvedFramework === "experience_depth"
-      ? "Experience depth"
-      : resolvedFramework}
-  </span>
-) : null} 
-
-
-  </div>
-) : null}
-  </div>
-) : null}
-
-                <div style={{ marginTop: 10 }}>
-                  <div
-  style={{
-    padding: 22,
-    borderRadius: "var(--radius-lg)",
-    border: "1px solid var(--card-border)",
-    background: `
-  radial-gradient(900px 420px at 15% -10%, var(--accent-2-soft), transparent 60%),
-  var(--card-bg)
-`,
-    boxShadow: "var(--shadow-card)",
-  }}
->
-                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
-                      <div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500, letterSpacing: 0.5 }}>
-                            Overall
-                          </div>
-                   <div
-  style={{
-    marginTop: 8,
-    fontSize: 44,
-    fontWeight: 700,
-    letterSpacing: -0.8,
-    color: "var(--text-primary)",
-  }}
->
-  {displayOverall100(overallScore100)}
-</div>
-<div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)" }}>
-  {gradeFromScore(overallScoreTen ?? 0).label}
-</div>
-
-                        {percentileText ? (
-                          <div
-                            style={{
-                              marginTop: 8,
-                              fontSize: 13,
-                              fontWeight: 500,
-                              color: "var(--text-muted)",
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            {percentileText}
-                            {typeof percentileSampleSize === "number"
-                              ? ` · ${percentileSampleSize} samples`
-                              : ""}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-
-                    <div style={{ marginTop: 14, height: 8, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                      <div
-                        style={{
-                          width: `${scoreToBarPctFromOverall100(overallScore100)}%`,
-                          height: "100%",
-                          background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
-                          transition: "width 300ms ease",
-                        }}
-                      />
-                    </div>
+                  <div style={{ fontSize: 14, lineHeight: 1.7, color: "var(--text-primary)" }}>
+                    {stored.question}
                   </div>
+                  <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" as const }}>
+                    {stored.questionCategory && (
+                      <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontSize: 11, fontWeight: 600, textTransform: "capitalize" as const }}>
+                        {stored.questionCategory.replace(/_/g, " ")}
+                      </span>
+                    )}
+                    {stored.evaluationFramework && (
+                      <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-muted)", fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const }}>
+                        {stored.evaluationFramework.replace(/_/g, " ")}
+                      </span>
+                    )}
+                    {(ibmMetrics as any)?.questionIntent && (
+                      <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-muted)", fontSize: 11, fontWeight: 500 }}>
+                        {String((ibmMetrics as any).questionIntent)}
+                      </span>
+                    )}
+                  </div>
+                </PremiumCard>
+              )}
 
-                  {(feedback as any).trajectory_note ? (
-                    <div style={{
-                      marginTop: 14,
-                      padding: "11px 14px",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--accent-strong)",
-                      background: "var(--accent-soft)",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "var(--text-primary)",
-                      lineHeight: 1.6,
-                    }}>
-                      {(feedback as any).trajectory_note}
+              {/* Score + quick stats */}
+              <PremiumCard>
+                <div style={{ display: "flex", gap: 16, flexWrap: "wrap" as const, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1, minWidth: 140 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.5, marginBottom: 4, textTransform: "uppercase" as const }}>Overall</div>
+                    <div style={{ fontSize: 38, fontWeight: 800, letterSpacing: -1, color: "var(--text-primary)", lineHeight: 1 }}>
+                      {overallScore100 !== null ? Math.round(overallScore100) : "—"}
+                      <span style={{ fontSize: 16, fontWeight: 500, color: "var(--text-muted)", marginLeft: 2 }}>/100</span>
                     </div>
-                  ) : null}
-
-                  {(feedback as any).milestone_note ? (
-                    <div style={{
-                      marginTop: 8,
-                      padding: "9px 14px",
-                      borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--card-border)",
-                      background: "var(--card-bg-strong)",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: "var(--text-muted)",
-                      fontStyle: "italic",
-                      lineHeight: 1.6,
-                    }}>
-                      {(feedback as any).milestone_note}
-                    </div>
-                  ) : null}
-
-                  <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
-{[
-  {
-    label: "Communication",
-    displayValue: displayTenPointAs100(communicationScoreTen),
-    displaySuffix: "",
-    barPct: scoreToBarPctFromTenPoint(communicationScoreTen),
-    sub: "Clarity + structure",
-  },
-  {
-    label: "Confidence",
-    displayValue: displayTenPointAs100(confidenceScoreTen),
-    displaySuffix: "",
-    barPct: scoreToBarPctFromTenPoint(confidenceScoreTen),
-    sub: "Tone + decisiveness",
-  },
-  {
-    label: "STAR Avg",
-    displayValue: typeof starAvg === "number" ? `${starAvg.toFixed(1)}` : " - ",
-    displaySuffix: typeof starAvg === "number" ? "/10" : "",
-    barPct: scoreToBarPctFromTenPoint(starAvg),
-    sub: "Situation/Task/Action/Result",
-  },
-].map((m) => (
-                      <div
-  key={m.label}
-  style={{
-    padding: 18,
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--card-border-soft)",
-    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-    boxShadow: "var(--shadow-card-soft)",
-    minWidth: 0,
-  }}
->
-                        <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500, letterSpacing: 0.5 }}>
-  {m.label}
-</div>
-
-                        <div style={{ marginTop: 8, fontSize: 28, fontWeight: 700, color: "var(--text-primary)" }}>
-  {m.displayValue}
-  {m.displayValue !== " - " ? m.displaySuffix : ""}
-</div>
-
-                        <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
-  {m.sub}
-</div>
-
-                        <div style={{ marginTop: 10, height: 6, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                          <div
-                            style={{
-                              width: `${m.barPct}%`,
-                              height: "100%",
-                              background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
-                              transition: "width 300ms ease",
-                            }}
-                          />
-                        </div>
+                    {typeof feedback.trajectory_note === "string" && (
+                      <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{feedback.trajectory_note}</div>
+                    )}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, auto)", gap: "6px 16px" }}>
+                    {[
+                      { label: "Communication", val: communicationScoreTen !== null ? `${Math.round(communicationScoreTen * 10)}/100` : "—" },
+                      { label: "Confidence",     val: confidenceScoreTen !== null    ? `${Math.round(confidenceScoreTen * 10)}/100`    : "—" },
+                      { label: "WPM",             val: stored?.wpm != null ? `${Math.round(stored.wpm)} wpm` : "—" },
+                      { label: "Fillers",         val: typeof feedback?.filler?.per100 === "number" ? `${feedback.filler.per100.toFixed(1)}/100w` : "—" },
+                      { label: "Words",           val: typeof deliverySummary?.fillersPer100 === "number" ? "—" : "—" },
+                    ].map(({ label, val }) => (
+                      <div key={label}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.4 }}>{label}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{val}</div>
                       </div>
                     ))}
                   </div>
                 </div>
+                {typeof feedback.milestone_note === "string" && (
+                  <div style={{ marginTop: 12, padding: "8px 12px", borderRadius: "var(--radius-sm)", background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.18)", fontSize: 12, color: "var(--text-muted)" }}>
+                    {feedback.milestone_note}
+                  </div>
+                )}
+              </PremiumCard>
 
-              {/* Webcam / Visual Delivery - always visible on Overview */}
-              {(() => {
-                const face = (dm as any)?.face;
-                const hasData = face && typeof face.eyeContact === "number";
-                const WEBCAM_METRICS = [
-                  { label: "Eye Contact", icon: "👁️", key: "eyeContact", desc: "Camera gaze" },
-                  { label: "Expressiveness", icon: "😊", key: "expressiveness", desc: "Facial engagement" },
-                  { label: "Head Stability", icon: "🎯", key: "headStability", desc: "Positioning" },
-                ];
-                return (
-                  <div style={{ marginTop: 18, padding: "16px 18px", borderRadius: "var(--radius-lg)", border: `1px solid ${hasData ? "rgba(16,185,129,0.3)" : "var(--card-border-soft)"}`, background: hasData ? "rgba(16,185,129,0.04)" : "var(--card-bg-strong)" }}>
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: hasData ? 14 : 10 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 15 }}>📷</span>
-                        <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.5, color: hasData ? "#10B981" : "var(--text-muted)", textTransform: "uppercase" as const }}>Visual Delivery</span>
-                        {hasData && <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 99, background: "rgba(16,185,129,0.15)", color: "#10B981", fontWeight: 700 }}>ANALYZED</span>}
-                      </div>
-                      {hasData && face.framesAnalyzed && (
-                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{face.framesAnalyzed} frames · {face.durationSeconds}s</span>
-                      )}
-                    </div>
-
-                    {hasData ? (
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-                        {WEBCAM_METRICS.map(({ label, icon, key, desc }) => {
-                          const pct = Math.round((face[key] as number) * 100);
-                          const color = pct >= 70 ? "#10B981" : pct >= 45 ? "#F59E0B" : "#EF4444";
-                          return (
-                            <div key={label} style={{ padding: "12px 14px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", textAlign: "center" as const }}>
-                              <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
-                              <div style={{ fontSize: 22, fontWeight: 950, color, lineHeight: 1 }}>{pct}<span style={{ fontSize: 12, fontWeight: 600 }}>%</span></div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", marginTop: 4 }}>{label}</div>
-                              <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{desc}</div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" as const }}>
-                        <div style={{ display: "flex", gap: 16 }}>
-                          {WEBCAM_METRICS.map(({ label, icon }) => (
-                            <div key={label} style={{ display: "flex", alignItems: "center", gap: 5, opacity: 0.4 }}>
-                              <span style={{ fontSize: 14 }}>{icon}</span>
-                              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{label}</span>
-                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>-</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Enable webcam before recording to unlock these metrics →</div>
+              {/* Archetype deep-dive */}
+              {feedback.delivery_archetype && (
+                <PremiumCard>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: archetypeColor, flexShrink: 0 }} />
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{feedback.delivery_archetype}</div>
+                    {(feedback as any).archetype_effort && (feedback as any).archetype_impact && (
+                      <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+                        <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 700, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>
+                          Effort: {(feedback as any).archetype_effort}
+                        </span>
+                        <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.08)", color: "#10B981", border: "1px solid rgba(16,185,129,0.2)" }}>
+                          Impact: {(feedback as any).archetype_impact}
+                        </span>
                       </div>
                     )}
                   </div>
-                );
-              })()}
 
-                <div
-  style={{
-    marginTop: 18,
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 14,
-  }}
->
-  {communicationEvidence.length > 0 ? (
-  <div
-    style={{
-      padding: 16,
-      borderRadius: "var(--radius-lg)",
-      border: "1px solid var(--card-border-soft)",
-      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-      boxShadow: "var(--shadow-card-soft)",
-    }}
-  >
-    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-      Why communication scored this way
-    </div>
-
-    <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-      {communicationEvidence.map((item: string, i: number) => (
-        <li key={i}>{item}</li>
-      ))}
-    </ul>
-  </div>
-  ) : null}
-
-  <div
-    style={{
-      padding: 16,
-      borderRadius: "var(--radius-lg)",
-      border: "1px solid var(--card-border-soft)",
-      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-      boxShadow: "var(--shadow-card-soft)",
-    }}
-  >
-    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-      Why confidence scored this way
-    </div>
-
-    {confidenceEvidence.length > 0 ? (
-  <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-    {confidenceEvidence.map((item: string, i: number) => (
-      <li key={i}>{item}</li>
-    ))}
-  </ul>
-) : (
-      <div style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 13 }}>
-        {feedback.confidence_explanation ?? "Confidence evidence will appear after more analyzed attempts."}
-      </div>
-    )}
-  </div>
-</div>
-
-
-              </SectionCard>
-            ) : null}
-
-            {activeTab === "relevance" && feedback?.relevance ? (
-  <SectionCard title="Question Relevance">
-    <div
-  style={{
-    marginTop: 6,
-    color: "var(--text-muted)",
-    fontSize: 13,
-    lineHeight: 1.6,
-  }}
->
-  This tab measures whether you actually answered the interviewer’s question directly and completely.
-</div>
-
-    <div
-  style={{
-    marginTop: 18,
-    padding: 16,
-    borderRadius: "var(--radius-lg)",
-    border: "1px solid var(--card-border-soft)",
-    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-    boxShadow: "var(--shadow-card-soft)",
-    minWidth: 0,
-  }}
->
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: 14,
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--text-muted)",
-              fontWeight: 500,
-              letterSpacing: 0.5,
-            }}
-          >
-            Relevance score
-          </div>
-
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: 34,
-              fontWeight: 700,
-              letterSpacing: -0.5,
-              color: "var(--text-primary)",
-            }}
-          >
-            {displayTenPointAs100(asTenPoint(feedback.relevance.relevance_score))}
-          </div>
-
-          <div style={{ marginTop: 6, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
-            {feedback.relevance.answered_question
-              ? "Answered the interviewer’s question"
-              : "Did not fully answer the interviewer’s question"}
-          </div>
-        </div>
-
-        <div
-          style={{
-            padding: "7px 12px",
-            borderRadius: 999,
-            border: feedback.relevance.answered_question
-              ? "1px solid rgba(34,197,94,0.30)"
-              : "1px solid rgba(248,113,113,0.30)",
-            background: feedback.relevance.answered_question
-              ? "rgba(34,197,94,0.12)"
-              : "rgba(248,113,113,0.10)",
-            color: feedback.relevance.answered_question
-              ? "rgba(34,197,94,0.95)"
-              : "rgba(248,113,113,0.95)",
-            fontSize: 12,
-            fontWeight: 700,
-          }}
-        >
-          {feedback.relevance.answered_question ? "On question" : "Missed the ask"}
-        </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: 14,
-          height: 8,
-          borderRadius: 999,
-          background: "var(--card-border-soft)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${scoreToBarPctFromTenPoint(feedback.relevance.relevance_score)}%`,
-            height: "100%",
-              background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
-            transition: "width 300ms ease",
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          marginTop: 16,
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gap: 12,
-        }}
-      >
-        {[
-          {
-            label: "Directness",
-            value: feedback.relevance.directness_score,
-            sub: "How quickly you got to the point",
-          },
-          {
-            label: "Completeness",
-            value: feedback.relevance.completeness_score,
-            sub: "How fully you answered all parts",
-          },
-          {
-            label: "On-topic",
-            value: feedback.relevance.off_topic_score,
-            sub: "How well you stayed on the actual ask",
-          },
-        ].map((m) => (
-          <div
-  key={m.label}
-  style={{
-    padding: 16,
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--card-border-soft)",
-    background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-    boxShadow: "var(--shadow-card-soft)",
-    minWidth: 0,
-  }}
->
-            <div
-              style={{
-                fontSize: 12,
-                color: "var(--text-muted)",
-                fontWeight: 500,
-                letterSpacing: 0.5,
-              }}
-            >
-              {m.label}
-            </div>
-
-            <div
-              style={{
-                marginTop: 8,
-                fontSize: 24,
-                fontWeight: 700,
-                color: "var(--text-primary)",
-              }}
-            >
-              {displayTenPointAs100(asTenPoint(m.value))}
-            </div>
-
-            <div
-              style={{
-                marginTop: 6,
-                fontSize: 12,
-                color: "var(--text-muted)",
-                lineHeight: 1.45,
-              }}
-            >
-              {m.sub}
-            </div>
-
-            <div
-              style={{
-                marginTop: 10,
-                height: 6,
-                borderRadius: 999,
-                background: "var(--card-border-soft)",
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: `${scoreToBarPctFromTenPoint(m.value)}%`,
-                  height: "100%",
-                  background:
-                    "linear-gradient(90deg, var(--accent-2), var(--accent))",
-                  transition: "width 300ms ease",
-                }}
-              />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {Array.isArray(feedback.relevance.missed_parts) &&
-      feedback.relevance.missed_parts.length > 0 ? (
-        <div
-  style={{
-    marginTop: 16,
-    padding: 14,
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--card-border-soft)",
-    background: "var(--card-bg)",
-  }}
->
-          <div
-            style={{
-              color: "var(--text-muted)",
-              fontWeight: 500,
-              fontSize: 12,
-              letterSpacing: 0.4,
-            }}
-          >
-            Missed parts of the question
-          </div>
-
-          <ul
-            style={{
-              marginTop: 8,
-              marginBottom: 0,
-              paddingLeft: 18,
-              lineHeight: 1.7,
-              color: "var(--text-primary)",
-            }}
-          >
-            {feedback.relevance.missed_parts.map((part: string, i: number) => (
-              <li key={i}>{part}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      {typeof feedback.relevance.relevance_explanation === "string" &&
-      feedback.relevance.relevance_explanation.trim() ? (
-        <div
-          style={{
-            marginTop: 14,
-            color: "var(--text-muted)",
-            fontSize: 13,
-            lineHeight: 1.7,
-          }}
-        >
-          {feedback.relevance.relevance_explanation}
-        </div>
-      ) : null}
-    </div>
-  </SectionCard>
-) : null}
-
-            {activeTab === "delivery" ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                {!deliveryProfile.hasData ? (
-                  <SectionCard title="Voice Delivery">
-                    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
-                      {stored?.inputMethod === "pasted"
-                        ? "Paste answers don't generate audio signals. Record a spoken answer to unlock delivery coaching - pace, vocal variety, energy, and filler words are analyzed automatically."
-                        : "Record a spoken answer to unlock delivery coaching - pace, filler words, vocal variety, and energy are analyzed automatically."}
+                  {(feedback as any).archetype_what_interviewers_hear && (
+                    <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase" as const }}>What interviewers hear</div>
+                      <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{(feedback as any).archetype_what_interviewers_hear}</div>
                     </div>
-                  </SectionCard>
-                ) : (
-                  <>
-                    {/* Partial data notice for spoken answers missing acoustics */}
-                    {stored?.inputMethod === "spoken" && !acousticsNorm && deliveryProfile.hasData ? (
-                      <div style={{
-                        padding: "10px 14px",
-                        borderRadius: "var(--radius-sm)",
-                        border: "1px solid rgba(251,191,36,0.2)",
-                        background: "rgba(251,191,36,0.05)",
-                        fontSize: 12,
-                        color: "var(--text-muted)",
-                        lineHeight: 1.6,
-                      }}>
-                        <span style={{ fontWeight: 600, color: "rgba(251,191,36,0.9)" }}>Partial data</span>
-                        {" - "}Pace and filler words are measured from your transcript, but vocal variety and energy require audio analysis that wasn't captured for this attempt. Re-record to get the full profile.
-                      </div>
-                    ) : null}
+                  )}
 
-                    {/* Profile card */}
-                    <div style={{
-                      padding: 20,
-                      borderRadius: "var(--radius-xl)",
-                      border: "1px solid var(--card-border-soft)",
-                      background: "var(--card-bg)",
-                    }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 8 }}>
-                        Delivery Profile
-                      </div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.3 }}>
-                        {deliveryProfile.archetypeLabel}
-                      </div>
-                      <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 4 }}>
-                        {deliveryProfile.tagline}
-                      </div>
-                      <div style={{
-                        marginTop: 14,
-                        padding: "12px 14px",
-                        borderRadius: "var(--radius-sm)",
-                        background: "var(--card-bg-strong)",
-                        border: "1px solid var(--card-border-soft)",
-                      }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 6 }}>
-                          What interviewers hear
-                        </div>
-                        <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6, fontStyle: "italic" as const }}>
-                          &ldquo;{deliveryProfile.whatInterviewersHear}&rdquo;
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
-                        {deliveryProfile.patternDetail}
-                      </div>
-                    </div>
+                  {typeof feedback.archetype_description === "string" && (
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 10 }}>{feedback.archetype_description}</div>
+                  )}
 
-                    {/* Primary lever */}
-                    <div style={{
-                      padding: 20,
-                      borderRadius: "var(--radius-xl)",
-                      border: "1px solid rgba(99,102,241,0.2)",
-                      background: "rgba(99,102,241,0.05)",
-                    }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                        <div>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 8 }}>
-                            ↑ Primary lever
-                          </div>
-                          <div style={{ fontSize: 17, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.2 }}>
-                            {deliveryProfile.primaryLever}
-                          </div>
-                        </div>
-                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                          <span style={{ padding: "3px 9px", borderRadius: 999, fontSize: 11, fontWeight: 600, border: "1px solid var(--card-border)", color: "var(--text-muted)" }}>
-                            Effort: {deliveryProfile.effort}
-                          </span>
-                          <span style={{ padding: "3px 9px", borderRadius: 999, fontSize: 11, fontWeight: 600, border: "1px solid var(--card-border)", color: deliveryProfile.impact === "High" ? "var(--accent)" : "var(--text-muted)" }}>
-                            Impact: {deliveryProfile.impact}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ marginTop: 12, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>
-                        {deliveryProfile.primaryLeverDetail}
-                      </div>
-                    </div>
-
-                    {/* Signal grid */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
-                      {([
-                        deliveryProfile.signals.pace,
-                        deliveryProfile.signals.variety,
-                        deliveryProfile.signals.fillers,
-                        deliveryProfile.signals.energy,
-                      ]).map((sig) => {
-                        const isIdeal = sig.rating === "ideal";
-                        const isNeeds = sig.rating === "needs_work";
-                        const isUnavail = sig.rating === "unavailable";
+                  {/* Dimension drivers beneath archetype */}
+                  {dimensionScores && Array.isArray((feedback as any)?.archetype_signals) && (
+                    <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+                      {((feedback as any).archetype_signals as string[]).map((k: string) => {
+                        const d = dimensionScores[k];
+                        if (!d) return null;
                         return (
-                          <div key={sig.label} style={{
-                            padding: "14px 16px",
-                            borderRadius: "var(--radius-lg)",
-                            border: isNeeds
-                              ? "1px solid rgba(248,113,113,0.2)"
-                              : isIdeal
-                              ? "1px solid rgba(34,197,94,0.2)"
-                              : "1px solid var(--card-border-soft)",
-                            background: isNeeds
-                              ? "rgba(248,113,113,0.04)"
-                              : isIdeal
-                              ? "rgba(34,197,94,0.04)"
-                              : "var(--card-bg)",
+                          <span key={k} style={{
+                            padding: "3px 10px",
+                            borderRadius: 999,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            background: d.isGap ? "rgba(239,68,68,0.08)" : d.isStrength ? "rgba(16,185,129,0.08)" : "var(--card-bg-strong)",
+                            color: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--text-muted)",
+                            border: `1px solid ${d.isGap ? "rgba(239,68,68,0.2)" : d.isStrength ? "rgba(16,185,129,0.2)" : "var(--card-border)"}`,
                           }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.4, color: "var(--text-muted)" }}>
-                                {sig.label}
-                              </div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: isNeeds ? "rgba(248,113,113,0.9)" : isIdeal ? "rgba(34,197,94,0.9)" : isUnavail ? "var(--text-soft)" : "var(--text-muted)" }}>
-                                {isIdeal ? "✓" : isNeeds ? "⚠" : isUnavail ? " - " : "·"}
-                              </div>
-                            </div>
-                            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginTop: 6, lineHeight: 1.2 }}>
-                              {sig.value}
-                            </div>
-                            <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6, lineHeight: 1.5 }}>
-                              {sig.coaching}
-                            </div>
-                          </div>
+                            {d.label} {d.score.toFixed(1)}
+                          </span>
                         );
                       })}
                     </div>
+                  )}
 
-                    {/* Composite delivery scores */}
-                    {(() => {
-                      const rows = [
-                        { label: "Overall Engagement", value: deliverySummary?.engagementScore, desc: "Vocal presence + rhythm + pace - how captivating the delivery sounds overall", accent: true },
-                        { label: "Vocal Presence",     value: deliverySummary?.vocalPresenceScore, desc: "Pitch variety, energy dynamics, and expressiveness" },
-                        { label: "Rhythm",             value: deliverySummary?.rhythmScore, desc: "Pause patterns, pacing consistency, and natural flow" },
-                        { label: "Clarity",            value: deliverySummary?.clarityScore, desc: "Filler word control and absence of disruptive pauses" },
-                      ].filter((r) => typeof r.value === "number" && r.value !== null);
-                      if (!rows.length) return null;
-                      return (
-                        <div style={{ padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 16 }}>
-                            Composite Delivery Scores
-                          </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                            {rows.map((row) => {
-                              const pct = Math.round(clamp(row.value as number, 0, 10) * 10);
-                              const barColor = pct >= 70 ? "rgba(34,197,94,0.85)" : pct >= 45 ? "rgba(251,191,36,0.85)" : "rgba(248,113,113,0.85)";
-                              return (
-                                <div key={row.label}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                                    <div style={{ fontSize: 13, fontWeight: row.accent ? 700 : 500, color: "var(--text-primary)" }}>{row.label}</div>
-                                    <div style={{ fontSize: 13, fontWeight: 700, color: barColor }}>{pct}/100</div>
-                                  </div>
-                                  <div style={{ height: 5, borderRadius: 999, background: "var(--card-border)", overflow: "hidden" }}>
-                                    <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 999 }} />
-                                  </div>
-                                  <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{row.desc}</div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })()}
+                  {/* Compound note */}
+                  {typeof (feedback as any)?.compound_note === "string" && (
+                    <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid rgba(249,115,22,0.25)", background: "rgba(249,115,22,0.06)", fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>
+                      <span style={{ fontWeight: 700, color: "rgba(249,115,22,0.9)", marginRight: 6 }}>Key insight:</span>
+                      {(feedback as any).compound_note}
+                    </div>
+                  )}
+                </PremiumCard>
+              )}
 
-                    {/* Content × Delivery insight */}
-                    {deliveryProfile.contentInsight ? (
-                      <div style={{
-                        padding: "14px 16px",
-                        borderRadius: "var(--radius-lg)",
-                        border: "1px solid var(--card-border-soft)",
-                        background: "var(--card-bg-strong)",
+              {/* Dimension coaching — gaps first */}
+              {dimensionScores && (
+                <PremiumCard>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Dimension Analysis</div>
+                  {DIM_ORDER
+                    .map(k => ({ key: k, ...dimensionScores[k] }))
+                    .filter(d => d.label)
+                    .sort((a, b) => {
+                      if (a.isGap && !b.isGap) return -1;
+                      if (!a.isGap && b.isGap) return 1;
+                      if (a.isStrength && !b.isStrength) return 1;
+                      if (!a.isStrength && b.isStrength) return -1;
+                      return a.score - b.score;
+                    })
+                    .map(d => (
+                      <div key={d.key} style={{
+                        marginBottom: 14,
+                        paddingBottom: 14,
+                        borderBottom: "1px solid var(--card-border-soft)",
                       }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 8 }}>
-                          Content × Delivery
-                        </div>
-                        <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>
-                          {deliveryProfile.contentInsight}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Role calibration */}
-                    {deliveryProfile.roleNote ? (
-                      <div style={{
-                        padding: "12px 14px",
-                        borderRadius: "var(--radius-sm)",
-                        border: "1px solid var(--card-border-soft)",
-                        background: "var(--card-bg)",
-                      }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4 }}>
-                          Role calibration
-                        </div>
-                        <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>
-                          {deliveryProfile.roleNote}
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {/* Raw acoustic breakdown */}
-                    {acousticsNorm ? (
-                      <div style={{
-                        padding: "14px 16px",
-                        borderRadius: "var(--radius-lg)",
-                        border: "1px solid var(--card-border-soft)",
-                        background: "var(--card-bg)",
-                      }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 12 }}>
-                          Raw Acoustic Signals
-                        </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 10 }}>
-                          {hasNum(acousticsNorm.monotoneScore) ? (
-                            <MetricBar label="Monotone risk" value={clamp(acousticsNorm.monotoneScore, 0, 10)} max={10} subtext={monotoneContext(acousticsNorm.monotoneScore)} />
-                          ) : null}
-                          {hasNum(acousticsNorm.energyVariation) ? (
-                            <MetricBar label="Energy variation" value={Math.round(clamp(acousticsNorm.energyVariation, 0, 10) * 10) / 10} max={10} subtext={energyVarContext(acousticsNorm.energyVariation)} />
-                          ) : null}
-                          {hasNum(acousticsNorm.tempo) ? (
-                            <MetricBar label="Tempo" value={Math.round(acousticsNorm.tempo)} max={200} subtext={`${tempoContext(acousticsNorm.tempo)} (BPM)`} />
-                          ) : null}
-                          {hasNum(acousticsNorm.tempoDynamics) ? (
-                            <MetricBar label="Tempo dynamics" value={clamp(acousticsNorm.tempoDynamics, 0, 10)} max={10} subtext={tempoDynContext(acousticsNorm.tempoDynamics)} />
-                          ) : null}
-                          {hasNum(acousticsNorm.pitchRange) ? (
-                            <MetricBar label="Pitch range" value={Math.round(acousticsNorm.pitchRange)} max={200} subtext={pitchRangeContext(acousticsNorm.pitchRange)} />
-                          ) : null}
-                          {hasNum(acousticsNorm.pitchStd) ? (
-                            <MetricBar label="Pitch variety" value={Math.round(acousticsNorm.pitchStd)} max={60} subtext={`${pitchStdContext(acousticsNorm.pitchStd)} (std dev Hz)`} />
-                          ) : null}
-                        </div>
-                        {(() => {
-                          const insight = crossSignalInsight(
-                            acousticsNorm.monotoneScore,
-                            acousticsNorm.energyVariation,
-                            stored?.wpm,
-                            acousticsNorm.pitchStd
-                          );
-                          if (!insight) return null;
-                          return (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <div style={{
-                              marginTop: 12,
-                              padding: "10px 14px",
-                              borderRadius: "var(--radius-sm)",
-                              background: "rgba(99,102,241,0.06)",
-                              border: "1px solid rgba(99,102,241,0.15)",
-                            }}>
-                              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "rgba(99,102,241,0.8)", marginBottom: 4 }}>
-                                Signal interpretation
-                              </div>
-                              <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.65 }}>{insight}</div>
-                            </div>
-                          );
-                        })()}
-                        {series ? <SpeakingTimeline series={series} markers={speechMoments} /> : null}
-                      </div>
-                    ) : null}
-
-                    {/* Visual Delivery (webcam face analysis) */}
-                    {(() => {
-                      const face = (dm as any)?.face;
-                      const hasData = face && typeof face.eyeContact === "number";
-                      const METRIC_DEFS = [
-                        { label: "Eye Contact", icon: "👁️", desc: "Gaze directed toward camera during response", key: "eyeContact" as const },
-                        { label: "Expressiveness", icon: "😊", desc: "Facial movement and emotional engagement", key: "expressiveness" as const },
-                        { label: "Head Stability", icon: "🎯", desc: "Consistent positioning, minimal drift", key: "headStability" as const },
-                      ];
-                      return (
-                        <div style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: `1px solid ${hasData ? "var(--card-border-soft)" : "var(--card-border)"}`, background: "var(--card-bg)" }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const }}>
-                              📷 Visual Delivery · Webcam Analysis
-                            </div>
-                            {hasData && face.framesAnalyzed && (
-                              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{face.framesAnalyzed} frames · {face.durationSeconds}s</div>
-                            )}
+                              width: 6, height: 6, borderRadius: "50%",
+                              background: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--text-muted)",
+                              flexShrink: 0,
+                            }} />
+                            <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{d.label}</span>
+                            {d.isGap && <span style={{ fontSize: 10, fontWeight: 700, color: "#EF4444", background: "rgba(239,68,68,0.08)", padding: "1px 6px", borderRadius: 999 }}>Gap</span>}
+                            {d.isStrength && <span style={{ fontSize: 10, fontWeight: 700, color: "#10B981", background: "rgba(16,185,129,0.08)", padding: "1px 6px", borderRadius: 999 }}>Strength</span>}
                           </div>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                            {METRIC_DEFS.map(({ label, icon, desc, key }) => {
-                              const value = hasData ? face[key] as number : null;
-                              const pct = value !== null ? Math.round(value * 100) : null;
-                              const barColor = pct !== null ? (pct >= 70 ? "rgba(34,197,94,0.85)" : pct >= 45 ? "rgba(251,191,36,0.85)" : "rgba(248,113,113,0.85)") : "var(--card-border)";
-                              return (
-                                <div key={label} style={{ opacity: hasData ? 1 : 0.5 }}>
-                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-                                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{icon} {label}</span>
-                                    <span style={{ fontSize: 13, fontWeight: 700, color: pct !== null ? barColor : "var(--text-muted)" }}>
-                                      {pct !== null ? `${pct}%` : "-"}
-                                    </span>
-                                  </div>
-                                  <div style={{ height: 5, borderRadius: 999, background: "var(--card-border)", overflow: "hidden" }}>
-                                    <div style={{ height: "100%", width: pct !== null ? `${pct}%` : "0%", background: barColor, borderRadius: 999 }} />
-                                  </div>
-                                  <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{desc}</div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          {!hasData && (
-                            <div style={{ marginTop: 14, padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                              Enable webcam before your next recording to get eye contact, expressiveness, and head stability scores.
-                            </div>
-                          )}
+                          <span style={{ fontSize: 14, fontWeight: 700, color: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--text-primary)" }}>
+                            {d.score.toFixed(1)}/10
+                          </span>
                         </div>
-                      );
-                    })()}
-                  </>
-                )}
-              </div>
-            ) : null}
+                        <div style={{ height: 4, borderRadius: 999, background: "var(--card-border-soft)", marginBottom: 8, overflow: "hidden" }}>
+                          <div style={{
+                            width: `${Math.max(0, Math.min(100, d.score * 10))}%`,
+                            height: "100%",
+                            borderRadius: 999,
+                            background: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--accent)",
+                            transition: "width 400ms ease",
+                          }} />
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{d.coaching}</div>
+                      </div>
+                    ))
+                  }
+                </PremiumCard>
+              )}
 
-            {activeTab === "coaching" ? (
-              <>
-              {(strengthThemeKeys.length > 0 || improvementThemeKeys.length > 0) ? (
-                <div style={{
-                  padding: "14px 18px",
-                  borderRadius: "var(--radius-xl)",
-                  border: "1px solid var(--card-border-soft)",
-                  background: "var(--card-bg)",
-                  marginBottom: 14,
-                  display: "flex",
-                  flexDirection: "column" as const,
-                  gap: 10,
-                }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const }}>
-                    Answer patterns detected
-                  </div>
-                  {strengthThemeKeys.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: 11, color: "rgba(34,197,94,0.7)", fontWeight: 600, marginBottom: 6 }}>Strengths</div>
-                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
-                        {strengthThemeKeys.map((key: string) => {
-                          const meta = THEME_META[key] ?? { label: key, color: "rgba(34,197,94,0.9)", bg: "rgba(34,197,94,0.07)" };
-                          return (
-                            <span key={key} style={{
-                              padding: "4px 10px",
-                              borderRadius: 999,
-                              fontSize: 11,
-                              fontWeight: 700,
-                              color: meta.color,
-                              background: meta.bg,
-                              border: `1px solid ${meta.color.replace("0.9", "0.2").replace("0.85", "0.2").replace("0.8", "0.2")}`,
-                            }}>
-                              {meta.label}
-                            </span>
-                          );
-                        })}
+              {/* What's working + Focus area */}
+              {(topStrengths.length > 0 || topImprovements.length > 0) && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                  {topStrengths.length > 0 && (
+                    <PremiumCard>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#10B981", marginBottom: 10 }}>What's working</div>
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                        {topStrengths.slice(0, 3).map((s: string, i: number) => (
+                          <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "8px 10px", borderRadius: "var(--radius-sm)", background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
+                            <div style={{ width: 16, height: 16, borderRadius: "50%", background: "rgba(16,185,129,0.12)", color: "#10B981", display: "grid", placeItems: "center", fontSize: 10, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✓</div>
+                            <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    </PremiumCard>
                   )}
-                  {improvementThemeKeys.length > 0 && (
-                    <div>
-                      <div style={{ fontSize: 11, color: "rgba(251,191,36,0.75)", fontWeight: 600, marginBottom: 6 }}>Needs work</div>
-                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
-                        {improvementThemeKeys.map((key: string) => {
-                          const meta = THEME_META[key] ?? { label: key, color: "rgba(251,191,36,0.9)", bg: "rgba(251,191,36,0.07)" };
-                          return (
-                            <span key={key} style={{
-                              padding: "4px 10px",
-                              borderRadius: 999,
-                              fontSize: 11,
-                              fontWeight: 700,
-                              color: "rgba(251,191,36,0.9)",
-                              background: "rgba(251,191,36,0.07)",
-                              border: "1px solid rgba(251,191,36,0.2)",
-                            }}>
-                              {meta.label}
-                            </span>
-                          );
-                        })}
+                  {topImprovements.length > 0 && (
+                    <PremiumCard>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", marginBottom: 10 }}>Focus area</div>
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                        <div style={{ padding: "10px 12px", borderRadius: "var(--radius-sm)", background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.18)" }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.5, marginBottom: 4, textTransform: "uppercase" as const }}>Top priority</div>
+                          <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}>{topImprovements[0]}</div>
+                        </div>
+                        {topImprovements.slice(1, 3).map((s: string, i: number) => (
+                          <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "8px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border-soft)" }}>
+                            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--text-muted)", flexShrink: 0, marginTop: 5 }} />
+                            <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{s}</div>
+                          </div>
+                        ))}
                       </div>
-                    </div>
+                    </PremiumCard>
                   )}
                 </div>
-              ) : null}
-              <SectionCard title="Score breakdown">
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
-                    {isStarFramework && typeof starAvg === "number"
-                      ? <>Behavioral structure drove most of the score (avg <span style={{ fontWeight: 700 }}>{displayTenPointAs100(starAvg)}</span>). Higher scores require strong structure and measurable impact.</>
-                      : isTechnicalFramework
-                      ? "Technical explanation quality drove most of the score. Higher scores require clear reasoning, structure, and credible depth."
-                      : isExperienceFramework
-                      ? "Experience depth drove most of the score. Higher scores require specific examples, tool fluency, and clear business impact."
-                      : "Higher scores require clear, specific, and relevant answers."}
+              )}
+
+              {/* Missed opportunities */}
+              {missedOpportunities.length > 0 && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>Missed opportunities</div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                    {missedOpportunities.map((m: any, i: number) => (
+                      <div key={i} style={{ padding: 12, borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--text-primary)", marginBottom: 4 }}>{m?.label ?? "Opportunity"}</div>
+                        {m?.why && <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{String(m.why)}</div>}
+                        {m?.add_sentence && (
+                          <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                            <span style={{ fontWeight: 600, color: "var(--text-muted)" }}>Add this: </span>
+                            <em>&ldquo;{String(m.add_sentence)}&rdquo;</em>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                  {Array.isArray(feedback?.keywords_missing) && feedback.keywords_missing.length > 0 ? (
-                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Missing role keywords also limited the score — see Structure tab.</div>
-                  ) : null}
-                </div>
-              </SectionCard>
-              </>
-            ) : null}
+                </PremiumCard>
+              )}
 
-
-            <div style={{ marginTop: 32 }} />
-
-            {activeTab === "structure" &&
-isStarFramework &&
-feedback.star ? (
-              <SectionCard title={`STAR Breakdown${starAvg !== null ? ` (avg ${starAvg}/10)` : ""}`}>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 10, marginBottom: 14 }}>
-                  <StarChip letter="S" label="Situation" status={starMissingList.includes("situation") ? "missing" : "detected"} />
-                  <StarChip letter="T" label="Task" status={starMissingList.includes("task") ? "missing" : "detected"} />
-                  <StarChip letter="A" label="Action" status={starMissingList.includes("action") ? "missing" : "detected"} />
-                  <StarChip letter="R" label="Result" status={starMissingList.includes("result") ? "missing" : "detected"} />
-                </div>
-
-                <div
-  style={{
-    borderRadius: "var(--radius-md)",
-    border: "1px solid var(--card-border)",
-    background: "var(--card-bg)",
-    padding: 14,
-    marginBottom: 14,
-  }}
->
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
-                    <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13, letterSpacing: 0.4 }}>Evidence excerpts</div>
-                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Based on your transcript (auto-selected)</div>
+              {/* STAR breakdown */}
+              {isStarFramework && feedback.star && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
+                    STAR Breakdown {starAvg !== null ? <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>(avg {displayTenPointAs100(starAvg)}/100)</span> : null}
                   </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+                    <StarChip letter="S" label="Situation" status={starMissingList.includes("situation") ? "missing" : "detected"} />
+                    <StarChip letter="T" label="Task"      status={starMissingList.includes("task")      ? "missing" : "detected"} />
+                    <StarChip letter="A" label="Action"    status={starMissingList.includes("action")    ? "missing" : "detected"} />
+                    <StarChip letter="R" label="Result"    status={starMissingList.includes("result")    ? "missing" : "detected"} />
+                  </div>
+                  {(["situation", "task", "action", "result"] as const).map(section => {
+                    const val = asTenPoint(feedback.star?.[section]);
+                    if (val === null) return null;
+                    const advice = (feedback as any)?.star_advice?.[section];
+                    return (
+                      <div key={section} style={{ marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "capitalize" as const }}>{section}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{displayTenPointAs100(val)}/100</span>
+                        </div>
+                        <div style={{ height: 4, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                          <div style={{ width: `${val * 10}%`, height: "100%", background: "linear-gradient(90deg, var(--accent-2), var(--accent))", transition: "width 300ms ease" }} />
+                        </div>
+                        {advice && <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{advice}</div>}
+                      </div>
+                    );
+                  })}
+                </PremiumCard>
+              )}
 
-                  <div style={{ marginTop: 10, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    {([
-                      { key: "situation", label: "Situation", q: starEvidence.situation },
-                      { key: "task", label: "Task", q: starEvidence.task },
-                      { key: "action", label: "Action", q: starEvidence.action },
-                      { key: "result", label: "Result", q: starEvidence.result },
-                    ] as const).map((row) => {
-                      const missing = starMissingList.includes(row.key);
-                      const advice = feedback.star_advice?.[row.key];
+              {/* Relevance */}
+              {feedback?.relevance && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Question Relevance</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, flexWrap: "wrap" as const }}>
+                    <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.5, color: "var(--text-primary)" }}>
+                      {displayTenPointAs100(asTenPoint(feedback.relevance.relevance_score))}
+                      <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-muted)", marginLeft: 2 }}>/100</span>
+                    </div>
+                    <span style={{ padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, border: feedback.relevance.answered_question ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(248,113,113,0.3)", background: feedback.relevance.answered_question ? "rgba(16,185,129,0.1)" : "rgba(248,113,113,0.1)", color: feedback.relevance.answered_question ? "#10B981" : "#F87171" }}>
+                      {feedback.relevance.answered_question ? "On question" : "Missed the ask"}
+                    </span>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                    {[
+                      { label: "Directness",   value: feedback.relevance.directness_score },
+                      { label: "Completeness", value: feedback.relevance.completeness_score },
+                      { label: "On-topic",     value: feedback.relevance.off_topic_score },
+                    ].map(m => (
+                      <div key={m.label} style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4 }}>{m.label}</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>{displayTenPointAs100(asTenPoint(m.value))}</div>
+                      </div>
+                    ))}
+                  </div>
+                </PremiumCard>
+              )}
 
-                      const evidenceArr = (feedback as any)?.star_evidence?.[row.key];
-                      const evidenceQuote =
-                        Array.isArray(evidenceArr) && evidenceArr.length > 0 ? String(evidenceArr[0]) : null;
+              {/* Delivery signals */}
+              {(stored?.wpm != null || acousticsNorm?.monotoneScore != null || acousticsNorm?.energyVariation != null) && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Delivery Signals</div>
+                  {series && speechMoments.length > 0 && (
+                    <div style={{ marginBottom: 14 }}>
+                      <SpeakingTimeline series={series} markers={speechMoments} />
+                    </div>
+                  )}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+                    {stored?.wpm != null && (
+                      <div style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Pace</div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{Math.round(stored.wpm)} <span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted)" }}>WPM</span></div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{paceContext(stored.wpm).label}</div>
+                      </div>
+                    )}
+                    {acousticsNorm?.monotoneScore != null && (
+                      <div style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Vocal Variety</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{monotoneContext(acousticsNorm.monotoneScore)}</div>
+                      </div>
+                    )}
+                    {acousticsNorm?.energyVariation != null && (
+                      <div style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Energy Variation</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{energyVarContext(acousticsNorm.energyVariation)}</div>
+                      </div>
+                    )}
+                    {acousticsNorm?.pitchRange != null && (
+                      <div style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Pitch Range</div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{pitchRangeContext(acousticsNorm.pitchRange)}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{Math.round(acousticsNorm.pitchRange)} Hz</div>
+                      </div>
+                    )}
+                  </div>
+                  {(() => {
+                    const insight = crossSignalInsight(acousticsNorm?.monotoneScore, acousticsNorm?.energyVariation, stored?.wpm, acousticsNorm?.pitchStd, (stored as any)?.faceMetrics?.eyeContact ?? null);
+                    if (!insight) return null;
+                    return (
+                      <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
+                        {insight}
+                      </div>
+                    );
+                  })()}
+                </PremiumCard>
+              )}
 
-                      const excerpt = evidenceQuote || row.q;
-
+              {/* IBM metrics panel */}
+              {ibmMetrics && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Language Analytics</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 12, lineHeight: 1.5 }}>
+                    Lexical richness, cognitive complexity, and behavioral indicator signals — the same dimensions enterprise hiring tools measure.
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                    {[
+                      { label: "Lexical Richness",    value: ibmMetrics.lexicalRichnessScore,    hint: "Vocabulary diversity" },
+                      { label: "Cognitive Depth",      value: ibmMetrics.cognitiveComplexityScore, hint: "Tradeoff & nuance markers" },
+                      { label: "Behavioral Language",  value: ibmMetrics.behavioralIndicatorScore, hint: "I-led, I-drove phrases" },
+                      { label: "Hedging Penalty",      value: ibmMetrics.hedgingPenaltyScore,      hint: "10 = no hedging" },
+                      { label: "Fluency",              value: ibmMetrics.fragmentationScore,       hint: "Sentence completion" },
+                      { label: "Length Fit",           value: ibmMetrics.answerLengthScore,        hint: "Ideal for question type" },
+                    ].map(({ label, value, hint }) => {
+                      const score = typeof value === "number" ? value : null;
+                      const isLow = score !== null && score < 5.5;
+                      const isHigh = score !== null && score >= 7.5;
                       return (
-                        <div
-                          key={row.key}
-                          style={{
-  borderRadius: 14,
-  padding: 12,
-  border: missing ? "1px solid rgba(248,113,113,0.18)" : "1px solid var(--card-border-soft)",
-  background: missing ? "rgba(248,113,113,0.06)" : "var(--card-bg)",
-}}
-                        >
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}>{row.label}</div>
-                            <div style={{ color: missing ? "rgba(248,113,113,0.95)" : "var(--text-muted)", fontSize: 12, fontWeight: 500 }}>
-                              {missing ? "Missing" : "Detected"}
-                            </div>
+                        <div key={label} style={{ padding: 12, borderRadius: "var(--radius-md)", background: isLow ? "rgba(239,68,68,0.06)" : isHigh ? "rgba(16,185,129,0.06)" : "var(--card-bg-strong)", border: `1px solid ${isLow ? "rgba(239,68,68,0.2)" : isHigh ? "rgba(16,185,129,0.2)" : "var(--card-border-soft)"}` }}>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", marginBottom: 2 }}>{label}</div>
+                          <div style={{ fontSize: 18, fontWeight: 700, color: isLow ? "#EF4444" : isHigh ? "#10B981" : "var(--text-primary)" }}>
+                            {score !== null ? score.toFixed(1) : "—"}
                           </div>
-
-                          <div style={{ marginTop: 8, color: "var(--text-primary)", fontSize: 13, lineHeight: 1.6 }}>
-                            {excerpt ? (
-                              <div style={{ fontStyle: "italic", opacity: 0.95 }}>&ldquo;{excerpt}&rdquo;</div>
-                            ) : (
-                              <div style={{ color: "var(--text-muted)" }}>
-                                No clear excerpt detected. Add 1 sentence that explicitly states your {row.label.toLowerCase()}.
-                              </div>
-                            )}
-                          </div>
-
-                          {advice ? (
-                            <div style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 12, lineHeight: 1.6 }}>
-                              <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>Fix:</span> {advice}
-                            </div>
-                          ) : null}
+                          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{hint}</div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
+                </PremiumCard>
+              )}
 
-                <MetricBar label="Situation" value={feedback.star.situation} max={10} />
-                <MetricBar label="Task" value={feedback.star.task} max={10} />
-                <MetricBar label="Action" value={feedback.star.action} max={10} />
-                <MetricBar label="Result" value={feedback.star.result} max={10} />
-
-                {Array.isArray(feedback.star_missing) ? (
-                  <div style={{ marginTop: 12, color: "var(--text-muted)", fontSize: 13 }}>
-                    <strong style={{ color: "var(--text-muted)" }}>Missing:</strong> {feedback.star_missing.length ? feedback.star_missing.join(", ") : "None"}
+              {/* Better answer */}
+              {typeof feedback.better_answer === "string" && feedback.better_answer.length > 20 && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>Stronger version</div>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" as const }}>
+                    {feedback.better_answer}
                   </div>
-                ) : null}
-              </SectionCard>
-            ) : null}
+                </PremiumCard>
+              )}
 
-{activeTab === "structure" &&
-isTechnicalFramework ? (
-  <SectionCard title="Technical Explanation Breakdown">
-    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
-      This answer is being evaluated as a technical explanation, so STAR structure is not the primary rubric.
-      Focus is placed on clarity, technical accuracy, structure, depth, and practical reasoning.
-    </div>
+              {/* Transcript */}
+              {stored?.transcript && (
+                <PremiumCard>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 10 }}>Transcript</div>
+                  <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75, whiteSpace: "pre-wrap" as const }}>
+                    {stored.transcript}
+                  </div>
+                </PremiumCard>
+              )}
 
-    {(feedback as any)?.technical_explanation ? (
-      <>
-        <MetricBar
-          label="Technical clarity"
-          value={Number((feedback as any).technical_explanation.technical_clarity ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Technical accuracy"
-          value={Number((feedback as any).technical_explanation.technical_accuracy ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Structure"
-          value={Number((feedback as any).technical_explanation.structure ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Depth"
-          value={Number((feedback as any).technical_explanation.depth ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Practical reasoning"
-          value={Number((feedback as any).technical_explanation.practical_reasoning ?? 0)}
-          max={10}
-        />
-
-        {Array.isArray((feedback as any)?.technical_strengths) &&
-        (feedback as any).technical_strengths.length > 0 ? (
-          <div style={{ marginTop: 14 }}>
-            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}>
-              Technical strengths
-            </div>
-            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-              {(feedback as any).technical_strengths.map((s: string, i: number) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
+            </div>{/* end right panel */}
           </div>
-        ) : null}
-
-        {Array.isArray((feedback as any)?.technical_improvements) &&
-        (feedback as any).technical_improvements.length > 0 ? (
-          <div style={{ marginTop: 14 }}>
-            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}>
-              Technical improvements
-            </div>
-            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-              {(feedback as any).technical_improvements.map((s: string, i: number) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </>
-    ) : (
-      <div style={{ marginTop: 14, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
-        Detailed technical rubric fields were not returned for this attempt yet.
-      </div>
-    )}
-  </SectionCard>
-
-
-) : activeTab === "structure" &&
-  isExperienceFramework ? (
-  <SectionCard title="Experience Depth Breakdown">
-    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
-      This answer is being evaluated for experience depth, so STAR structure is not the primary rubric.
-      Focus is placed on specificity, real examples, tool fluency, and business impact.
-    </div>
-
-    {(feedback as any)?.experience_depth ? (
-      <>
-        <MetricBar
-          label="Experience depth"
-          value={Number((feedback as any).experience_depth.experience_depth ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Specificity"
-          value={Number((feedback as any).experience_depth.specificity ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Tool fluency"
-          value={Number((feedback as any).experience_depth.tool_fluency ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Business impact"
-          value={Number((feedback as any).experience_depth.business_impact ?? 0)}
-          max={10}
-        />
-        <MetricBar
-          label="Example quality"
-          value={Number((feedback as any).experience_depth.example_quality ?? 0)}
-          max={10}
-        />
-
-        {Array.isArray((feedback as any)?.experience_strengths) &&
-        (feedback as any).experience_strengths.length > 0 ? (
-          <div style={{ marginTop: 14 }}>
-            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}>
-              Experience strengths
-            </div>
-            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-              {(feedback as any).experience_strengths.map((s: string, i: number) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        {Array.isArray((feedback as any)?.experience_improvements) &&
-        (feedback as any).experience_improvements.length > 0 ? (
-          <div style={{ marginTop: 14 }}>
-            <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}>
-              Experience improvements
-            </div>
-            <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-              {(feedback as any).experience_improvements.map((s: string, i: number) => (
-                <li key={i}>{s}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </>
-    ) : (
-      <div style={{ marginTop: 14, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
-        Detailed experience rubric fields were not returned for this attempt yet.
-      </div>
-    )}
-  </SectionCard>
-) : activeTab === "structure" &&
-  !isStarFramework ? (
-  <SectionCard title="Evaluation Breakdown">
-    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.7 }}>
-      This answer is using a non-STAR evaluation framework.
-    </div>
-  </SectionCard>
-) : null} 
-
-            {activeTab === "coaching" ? (
-  <SectionCard title="What's working">
-    {topStrengths.length > 0 ? (
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {topStrengths.map((s: string, i: number) => (
-          <div key={i} style={{
-            display: "flex",
-            gap: 10,
-            alignItems: "flex-start",
-            padding: "10px 12px",
-            borderRadius: "var(--radius-sm)",
-            background: "rgba(34,197,94,0.06)",
-            border: "1px solid rgba(34,197,94,0.15)",
-          }}>
-            <div style={{
-              width: 20, height: 20,
-              borderRadius: "50%",
-              background: "rgba(34,197,94,0.12)",
-              color: "rgba(34,197,94,0.9)",
-              display: "grid",
-              placeItems: "center",
-              fontSize: 11,
-              fontWeight: 700,
-              flex: "0 0 auto",
-              marginTop: 1,
-            }}>✓</div>
-            <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No strengths available yet.</div>
-    )}
-  </SectionCard>
-) : null}
-
-            {activeTab === "coaching" ? (
-  <SectionCard title="Focus area">
-    {topImprovements.length > 0 ? (
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{
-          padding: "12px 14px",
-          borderRadius: "var(--radius-sm)",
-          background: "rgba(99,102,241,0.07)",
-          border: "1px solid rgba(99,102,241,0.18)",
-        }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <div style={{
-              fontSize: 16,
-              color: "var(--accent)",
-              flex: "0 0 auto",
-              marginTop: 1,
-            }}>↑</div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.6, marginBottom: 5, textTransform: "uppercase" }}>
-                Top priority
-              </div>
-              <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{topImprovements[0]}</div>
-            </div>
-          </div>
-        </div>
-        {topImprovements.slice(1).map((s: string, i: number) => (
-          <div key={i} style={{
-            display: "flex",
-            gap: 10,
-            alignItems: "flex-start",
-            padding: "10px 12px",
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--card-border-soft)",
-          }}>
-            <div style={{
-              width: 6, height: 6,
-              borderRadius: "50%",
-              background: "var(--text-muted)",
-              flex: "0 0 auto",
-              marginTop: 6,
-            }} />
-            <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{s}</div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>No improvement notes available yet.</div>
-    )}
-  </SectionCard>
-) : null}
-
-            {activeTab === "coaching" &&
-            Array.isArray((feedback as any)?.missed_opportunities) &&
-            (feedback as any).missed_opportunities.length > 0 ? (
-              <SectionCard title="Missed opportunities">
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {(feedback as any).missed_opportunities.slice(0, 4).map((m: any, i: number) => (
-  <div
-    key={i}
-    style={{
-      borderRadius: "var(--radius-sm)",
-      padding: 12,
-      border: "1px solid var(--card-border-soft)",
-      background: "var(--card-bg)",
-    }}
-  >
-                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                        <div style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 13 }}>
-                          {m?.label ? String(m.label) : "Opportunity"}
-                        </div>
-                      </div>
-
-                      {m?.why ? (
-                        <div style={{ marginTop: 6, color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>{String(m.why)}</div>
-                      ) : null}
-
-                      {m?.add_sentence ? (
-                        <div style={{ marginTop: 10, color: "var(--text-primary)", fontSize: 13, lineHeight: 1.7 }}>
-                          <span style={{ color: "var(--text-muted)", fontWeight: 600 }}>Add this sentence:</span>{" "}
-                          <span style={{ fontStyle: "italic" }}>&ldquo;{String(m.add_sentence)}&rdquo;</span>
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </SectionCard>
-            ) : null}
-
-            {activeTab === "coaching" && feedback.better_answer ? (
-              <SectionCard title="Stronger version">
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.75, color: "var(--text-primary)" }}>{feedback.better_answer}</div>
-              </SectionCard>
-            ) : null}
-
-            {activeTab === "structure" && (Array.isArray(feedback.keywords_used) || Array.isArray(feedback.keywords_missing)) ? (
-              <SectionCard title="Keywords">
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {Array.isArray(feedback.keywords_used) && feedback.keywords_used.length > 0 ? (
-                    <div>
-                      <div style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12, letterSpacing: 0.5 }}>Used effectively</div>
-                      <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {feedback.keywords_used.map((k: string) => (
-                          <div
-                            key={k}
-                            style={{
-                              padding: "6px 10px",
-                              borderRadius: 999,
-                              fontSize: 12,
-                              fontWeight: 500,
-                              background: "rgba(34,197,94,0.15)",
-                              border: "1px solid rgba(34,197,94,0.35)",
-                              color: "rgba(34,197,94,0.95)",
-                            }}
-                          >
-                            {k}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {Array.isArray(feedback.keywords_missing) && feedback.keywords_missing.length > 0 ? (
-                    <div>
-                      <div style={{ color: "var(--text-muted)", fontWeight: 500, fontSize: 12, letterSpacing: 0.5 }}>Missing from your answer</div>
-                      <div style={{ marginTop: 8, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                        {feedback.keywords_missing.map((k: string) => (
-                          <div
-                            key={k}
-                            style={{
-                              padding: "6px 10px",
-                              borderRadius: 999,
-                              fontSize: 12,
-                              fontWeight: 500,
-                              background: "rgba(248,113,113,0.10)",
-                              border: "1px solid rgba(248,113,113,0.30)",
-                              color: "rgba(248,113,113,0.95)",
-                            }}
-                          >
-                            {k}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {Array.isArray(feedback.keywords_used) && feedback.keywords_used.length === 0 ? (
-                    <div style={{ color: "var(--text-muted)", fontSize: 13, lineHeight: 1.6 }}>
-                      No strong job-specific keywords detected yet. Try naming the system/tool/process you used (ERP/MRP, schedule adherence, KPIs).
-                    </div>
-                  ) : null}
-                </div>
-              </SectionCard>
-            ) : null}
-
-            {activeTab === "transcript" ? (
-  <SectionCard title="Transcript">
-    <div
-      style={{
-        whiteSpace: "pre-wrap",
-        lineHeight: 1.75,
-        color: "var(--text-primary)",
-      }}
-    >
-      {stored?.transcript ?? "No transcript saved."}
-    </div>
-  </SectionCard>
-) : null}
-          </>
         )}
+
       </div>
     </PremiumShell>
   );

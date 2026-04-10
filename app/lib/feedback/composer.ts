@@ -1,6 +1,7 @@
 import { ROLE_LIBRARY } from "./library";
 import type { ComposeArgs, RoleFamily } from "./types";
-import { computeArchetype } from "./archetypes";
+import { scoreArchetypes, type RawArchetypeSignals } from "./archetypes";
+import { buildDimensionProfile, extractIBMMetrics, detectQuestionIntent, type DimensionInputSignals } from "./dimensions";
 
 function normalizeText(s: string) {
   return (s || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -53,6 +54,30 @@ function inferRoleFamily(jobDesc: string, question: string): RoleFamily {
 function roleLine(roleFamily: RoleFamily, key: keyof (typeof ROLE_LIBRARY)["finance"], seed: string, salt: string) {
   const arr = ROLE_LIBRARY?.[roleFamily]?.[key] ?? [];
   return pickDeterministic(arr, seed, salt);
+}
+
+const HEDGE_RE_C = /\b(i think|i feel like|i guess|i suppose|maybe|perhaps|kind of|sort of|kinda|somewhat|basically|essentially|you know|like,|i mean,|probably|it seems like|i believe|i'm not sure but|i would say)\b/gi;
+const COMPLEXITY_RE_C = /\b(on the other hand|the tradeoff|the trade-off|i considered|however|that said|the risk was|but i decided|weighed|the challenge was|in hindsight|alternatively|despite|although|even though|the downside|the upside|the nuance|it depends on|the key tension|while also)\b/gi;
+const BEHAVIORAL_RE_C = /\b(i led|i drove|i owned|i built|i designed|i created|i launched|i managed|i implemented|i negotiated|i restructured|i identified|i solved|i fixed|i reduced|i increased|i improved|i delivered|i presented|i partnered with|i coordinated|i executed|i deployed)\b/gi;
+const STOP_WORDS_C = new Set(["the","a","an","and","or","but","in","on","at","to","for","of","with","by","from","is","was","are","were","be","been","being","have","has","had","do","does","did","will","would","could","should","may","might","i","we","you","they","it","this","that","these","those","my","our","your","their","its","me","us","him","her","them"]);
+
+function extractIBMSignals(transcript: string) {
+  const words = transcript.toLowerCase().split(/\s+/).filter(Boolean);
+  const total = Math.max(words.length, 1);
+  const contentWords = words.map(w => w.replace(/[^a-z]/g, "")).filter(w => w.length > 0 && !STOP_WORDS_C.has(w));
+  const uniqueContent = new Set(contentWords).size;
+  const lexicalTTR = contentWords.length > 10 ? uniqueContent / contentWords.length : 0.35;
+  const hedgeMatches = (transcript.match(HEDGE_RE_C) || []).length;
+  const hedgingDensity = (hedgeMatches / total) * 100;
+  const complexityMatches = (transcript.match(COMPLEXITY_RE_C) || []).length;
+  const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 8);
+  const cognitiveMarkers = complexityMatches;
+  const behavioralPhraseCount = (transcript.match(BEHAVIORAL_RE_C) || []).length;
+  const fragmented = sentences.filter(s => s.trim().split(/\s+/).length < 5 || /—|\.\.\.|…/.test(s)).length;
+  const fragmentationRatio = sentences.length > 0 ? fragmented / sentences.length : 0;
+  const avgWordLen = contentWords.length > 0 ? contentWords.reduce((a, w) => a + w.length, 0) / contentWords.length : 4;
+  const vocabularySophistication = Math.max(0, Math.min(10, (avgWordLen - 3) / 4 * 10));
+  return { hedgingDensity, fragmentationRatio, lexicalTTR, cognitiveMarkers, behavioralPhraseCount, vocabularySophistication };
 }
 
 function extractSignals(args: ComposeArgs) {
@@ -112,6 +137,9 @@ function extractSignals(args: ComposeArgs) {
     eyeContact: num(face.eyeContact),
     expressiveness: num(face.expressiveness),
     headStability: num(face.headStability),
+
+    // IBM / text-derived signals — computed directly from transcript
+    ...extractIBMSignals(transcript),
   };
 }
 
@@ -264,7 +292,13 @@ function buildStrengthThemes(s: ReturnType<typeof extractSignals>, delivery: Ret
 
 function buildImprovementThemes(s: ReturnType<typeof extractSignals>, delivery: ReturnType<typeof buildDeliveryProfile>, answer: ReturnType<typeof buildAnswerPattern>, roleFamily: RoleFamily) {
   const themes: { key: ThemeKey; weight: number }[] = [];
-  if (answer.outcomeStrength === "weak") themes.push({ key: "outcome_strength", weight: 1.0 });
+  // outcome_strength only leads when the structural/fluency baseline is already solid;
+  // otherwise structure or fluency issues dominate and outcome is secondary.
+  if (answer.outcomeStrength === "weak") {
+    const structureOk = answer.structure !== "weak";
+    const fluencyOk = delivery.fluency === "clean" || delivery.fluency === "slightly_disfluent";
+    themes.push({ key: "outcome_strength", weight: structureOk && fluencyOk ? 1.0 : 0.72 });
+  }
   if (delivery.fluency === "filler_heavy" || delivery.fluency === "fragmented") themes.push({ key: "delivery_control", weight: 0.95 });
   if (answer.directness !== "direct") themes.push({ key: "directness", weight: 0.9 });
   if (answer.structure === "weak") themes.push({ key: "structure", weight: 0.88 });
@@ -296,7 +330,65 @@ function buildDiagnosis(args: ComposeArgs) {
   const answer = buildAnswerPattern(signals, args);
   const strengthThemes = buildStrengthThemes(signals, delivery, answer, roleFamily);
   const improvementThemes = buildImprovementThemes(signals, delivery, answer, roleFamily);
-  return { roleFamily, signals, delivery, answer, strengthThemes, improvementThemes, dominantStrength: strengthThemes[0]?.key ?? "clarity", dominantImprovement: improvementThemes[0]?.key ?? "outcome_strength" };
+
+  // Build dimension profile for score-based archetype detection + UI dimension bars
+  const dimInputSignals: DimensionInputSignals = {
+    overall: signals.overall,
+    communication: signals.communication,
+    confidence: signals.confidence,
+    directness: signals.directness,
+    completeness: signals.completeness,
+    answeredQuestion: signals.answeredQuestion,
+    starResult: signals.starResult,
+    techDepth: signals.techDepth,
+    techClarity: signals.techClarity,
+    expDepth: signals.expDepth,
+    expImpact: signals.expImpact,
+    expSpecificity: signals.expSpecificity,
+    wpm: signals.wpm,
+    fillersPer100: signals.fillersPer100,
+    wordCount: signals.wordCount,
+    avgPauseMs: signals.avgPauseMs,
+    longPauseCount: signals.longPauseCount,
+    monotoneScore: signals.monotoneScore,
+    pitchRange: signals.pitchRange,
+    pitchStd: signals.pitchStd,
+    energyVariation: signals.energyVariation,
+    energyMean: signals.energyMean,
+    tempoDynamics: signals.tempoDynamics,
+    iCount: signals.iCount,
+    weCount: signals.weCount,
+    eyeContact: signals.eyeContact,
+    expressiveness: signals.expressiveness,
+    headStability: signals.headStability,
+    structure: answer.structure,
+    ownership: answer.ownership,
+    directnessLabel: answer.directness,
+    specificity: answer.specificity as "specific" | "mixed" | "generalized",
+    outcomeStrength: answer.outcomeStrength,
+    depthMode: answer.depthMode,
+    completenessLabel: answer.completeness,
+    evidenceMode: answer.evidenceMode,
+    fluency: delivery.fluency,
+    pace: delivery.pace,
+    vocalDynamics: delivery.vocalDynamics,
+    energyProfile: delivery.energyProfile,
+    cadenceStability: delivery.cadenceStability,
+    presenceSignal: delivery.presenceSignal,
+    emphasisControl: delivery.emphasisControl,
+    hedgingDensity: signals.hedgingDensity,
+    fragmentationRatio: signals.fragmentationRatio,
+    lexicalTTR: signals.lexicalTTR,
+    cognitiveMarkers: signals.cognitiveMarkers,
+    behavioralPhraseCount: signals.behavioralPhraseCount,
+    vocabularySophistication: signals.vocabularySophistication,
+    framework: args.framework,
+    question: args.question,
+  };
+  (dimInputSignals as any).transcript = signals.transcript;
+  const dimensionProfile = buildDimensionProfile(dimInputSignals);
+
+  return { roleFamily, signals, delivery, answer, strengthThemes, improvementThemes, dominantStrength: strengthThemes[0]?.key ?? "clarity", dominantImprovement: improvementThemes[0]?.key ?? "outcome_strength", dimensionProfile };
 }
 
 
@@ -1161,6 +1253,67 @@ function buildConfidenceExplanation(args: ComposeArgs, diagnosis: ReturnType<typ
   return CONFIDENCE_DEFAULT[seedNum % CONFIDENCE_DEFAULT.length];
 }
 
+/**
+ * Fires when content and delivery signals pull in opposite directions — the most
+ * useful coaching is the *intersection*, not either signal alone.
+ * Returns a single sentence or null if no notable compound pattern is detected.
+ */
+function buildCompoundNote(
+  diagnosis: ReturnType<typeof buildDiagnosis>,
+  archetype: string,
+): string | null {
+  const a = diagnosis.answer;
+  const d = diagnosis.delivery;
+  const s = diagnosis.signals;
+
+  // Strong content structure + flat vocal delivery — the bottleneck is entirely delivery
+  if (
+    a.structure === "strong" &&
+    a.outcomeStrength !== "weak" &&
+    d.vocalDynamics === "flat" &&
+    archetype !== "Polished Performer"
+  ) {
+    return "Your story structure is interview-ready — the only gap is delivery. Slow down and add a slight pitch lift on your result sentence. The content is already there; you just need to let it land.";
+  }
+
+  // Specific evidence but wandering structure — the data exists but it's buried
+  if (
+    a.specificity === "specific" &&
+    a.evidenceMode === "metrics_forward" &&
+    a.structure === "weak"
+  ) {
+    return "You have the right proof points — numbers and metrics are present — but they're arriving out of order. Lead with your action, then your result, and the specifics will land much harder.";
+  }
+
+  // Strong ownership + weak outcome — committing but not closing
+  if (
+    a.ownership === "strong" &&
+    a.outcomeStrength === "weak" &&
+    a.structure !== "weak"
+  ) {
+    return "The ownership is clear and the structure holds — the gap is the result. One sentence with a concrete number or observable change will complete this answer.";
+  }
+
+  // Rushed pace + weak result — speed is hiding the impact
+  if (
+    d.pace === "rushed" &&
+    a.outcomeStrength === "weak"
+  ) {
+    return "The pace is compressing your result section — the most important part of the answer. Slow specifically at your outcome sentence. That single adjustment will raise the score more than anything else.";
+  }
+
+  // Very high filler rate + strong content — noise masking the signal
+  if (
+    s.fillersPer100 > 4 &&
+    a.structure === "strong" &&
+    a.outcomeStrength !== "weak"
+  ) {
+    return "Strong content is getting obscured by filler words. The story itself is solid — reducing fillers will let the structure and results land the way they deserve to.";
+  }
+
+  return null;
+}
+
 function enrichBetterAnswer(original: string, diagnosis: ReturnType<typeof buildDiagnosis>) {
   if (!original || original.trim().length < 40) return original;
   const key = diagnosis.dominantImprovement in BETTER_ANSWER_PREFIXES ? diagnosis.dominantImprovement : "default";
@@ -1282,37 +1435,65 @@ export function composeRichFeedback(args: ComposeArgs) {
 
   next.milestone_note = buildMilestoneNote(args.prevAttemptCount ?? null);
 
-  // Archetype - computed from full signal set, guides next-attempt focus
-  const archetypeResult = computeArchetype({
-    overall: diagnosis.signals.overall,
-    communication: diagnosis.signals.communication,
-    confidence: diagnosis.signals.confidence,
-    wpm: diagnosis.signals.wpm,
-    fillersPer100: diagnosis.signals.fillersPer100,
-    wordCount: diagnosis.signals.wordCount,
-    iCount: diagnosis.signals.iCount,
-    weCount: diagnosis.signals.weCount,
-    pitchRange: diagnosis.signals.pitchRange,
-    monotoneScore: diagnosis.signals.monotoneScore,
-    energyProfile: diagnosis.delivery.energyProfile,
-    presenceSignal: diagnosis.delivery.presenceSignal,
+  // Archetype — score-based detection from dimension profile
+  const rawForArchetype: RawArchetypeSignals = {
+    ownership: diagnosis.answer.ownership,
+    structure: diagnosis.answer.structure,
+    outcomeStrength: diagnosis.answer.outcomeStrength,
+    evidenceMode: diagnosis.answer.evidenceMode,
     pace: diagnosis.delivery.pace,
     fluency: diagnosis.delivery.fluency,
-    cadenceStability: diagnosis.delivery.cadenceStability,
     vocalDynamics: diagnosis.delivery.vocalDynamics,
-    structure: diagnosis.answer.structure,
-    directness: diagnosis.answer.directness as any,
-    ownership: diagnosis.answer.ownership,
-    specificity: diagnosis.answer.specificity as any,
-    outcomeStrength: diagnosis.answer.outcomeStrength,
-    depthMode: diagnosis.answer.depthMode as any,
-    completeness: diagnosis.answer.completeness,
-    evidenceMode: diagnosis.answer.evidenceMode,
-  });
+    directnessLabel: diagnosis.answer.directness,
+    depthMode: diagnosis.answer.depthMode,
+    specificity: diagnosis.answer.specificity as "specific" | "mixed" | "generalized",
+    iCount: diagnosis.signals.iCount,
+    weCount: diagnosis.signals.weCount,
+    wordCount: diagnosis.signals.wordCount,
+    hedgingDensity: diagnosis.signals.hedgingDensity,
+    cognitiveMarkers: diagnosis.signals.cognitiveMarkers,
+    behavioralPhraseCount: diagnosis.signals.behavioralPhraseCount,
+    fragmentationRatio: diagnosis.signals.fragmentationRatio,
+  };
+  const archetypeDetection = scoreArchetypes(diagnosis.dimensionProfile, rawForArchetype);
+  const archetypeResult = archetypeDetection.primary;
+
   next.delivery_archetype = archetypeResult.archetype;
   next.archetype_coaching = archetypeResult.archetypeCoaching;
   next.archetype_description = archetypeResult.archetypeDescription;
+  next.archetype_tagline = archetypeResult.tagline;
+  next.archetype_what_interviewers_hear = archetypeResult.whatInterviewersHear;
+  next.archetype_effort = archetypeResult.effort;
+  next.archetype_impact = archetypeResult.impact;
   next.archetype_signals = archetypeResult.primarySignals;
+  if (archetypeDetection.secondary) {
+    next.secondary_archetype = archetypeDetection.secondary.archetype;
+    next.secondary_archetype_description = archetypeDetection.secondary.archetypeDescription;
+  }
+
+  // Dimension scores — powering the 7-bar scorecard in the UI
+  next.dimension_scores = Object.fromEntries(
+    Object.entries(diagnosis.dimensionProfile).map(([k, v]) => [k, {
+      label: v.label,
+      score: v.score,
+      coaching: v.coaching,
+      isStrength: v.isStrength,
+      isGap: v.isGap,
+      driverSignals: v.driverSignals,
+    }])
+  );
+
+  // IBM metrics — surfaced in results UI for diagnostic transparency
+  const intent = detectQuestionIntent(args.question);
+  next.ibm_metrics = extractIBMMetrics(
+    args.question + " " + (args.transcript ?? ""),
+    diagnosis.signals.wordCount,
+    intent,
+  );
+
+  // Compound cross-signal coaching note — fires when content and delivery signals
+  // pull in opposite directions, producing a more specific coaching priority.
+  next.compound_note = buildCompoundNote(diagnosis, archetypeResult.archetype);
 
   // ESL mode metadata - flags whether analysis was calibrated for non-native speakers
   // and surfaces cultural framing note when confidence is low
