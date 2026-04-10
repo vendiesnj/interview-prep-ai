@@ -1100,8 +1100,10 @@ export default function LifeBuddyPage() {
         {/* Content */}
         {tab === "planner" && (
           <>
-            <WeekPlanner events={events} onSave={saveEvent} onDelete={deleteEvent} />
             <ProductivityStats events={events} />
+            <div style={{ marginTop: 20 }}>
+              <WeekPlanner events={events} onSave={saveEvent} onDelete={deleteEvent} />
+            </div>
           </>
         )}
         {tab === "budget" && (
