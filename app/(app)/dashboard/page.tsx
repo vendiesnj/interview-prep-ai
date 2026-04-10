@@ -14,7 +14,6 @@ import PremiumShell from "@/app/components/PremiumShell";
 import StreakBanner from "@/app/components/StreakBanner";
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import { matchOccupations } from "@/app/lib/onet-occupations";
-import DailyGamesWidget from "@/app/components/DailyGamesWidget";
 import JourneySidebar from "@/app/components/JourneySidebar";
 import TasksPanel, { type Task as DbTask } from "@/app/components/TasksPanel";
 import { useIsUniversity } from "@/app/hooks/usePlan";
@@ -1202,7 +1201,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            {!loading && signalScore !== null && (
+            {!loading && isUniversity && signalScore !== null && (
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
                 <div style={{ fontSize: 22, fontWeight: 950, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
                 <div>
@@ -1282,7 +1281,6 @@ export default function DashboardPage() {
               { Icon: FileText,  title: "Resume Analysis",      desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",          href: "/resume-gap",          color: "#8B5CF6" },
               { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",              href: "/question-bank",       color: "#F59E0B" },
               { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                         href: "/job-profiles",        color: ACCENT_MINDSET },
-              { Icon: Gamepad2,  title: "Daily Games",          desc: "Build career instincts in minutes with Career Connections and Hustle.",            href: "/games",               color: "#10B981" },
               { Icon: Briefcase, title: "Job Tracker",           desc: "Track applications, monitor your funnel, and stay organized through every stage.", href: "/job-tracker",         color: "#F59E0B" },
               { Icon: Library,  title: "Experience Log",        desc: "Build your library of career stories. Refine the STAR structure and practice until they're fluent.", href: "/experience-log", color: "#8B5CF6" },
             ].map(item => (
@@ -1380,7 +1378,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <JourneySidebar open={journeyOpen} onClose={() => setJourneyOpen(false)} data={data} />
+        <JourneySidebar open={journeyOpen} onClose={() => setJourneyOpen(false)} data={data} isUniversity={isUniversity} />
 
       </div>
 

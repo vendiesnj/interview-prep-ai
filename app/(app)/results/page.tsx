@@ -7,7 +7,6 @@ import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
 import { useSession } from "next-auth/react";
 import { userScopedKey } from "@/app/lib/userStorage";
-import { computeDeliveryCoach } from "@/app/lib/deliveryCoach";
 import { ARCHETYPE_COLOR } from "@/app/lib/feedback/archetypes";
 import {
   asOverall100,
@@ -421,44 +420,6 @@ function splitSentences(text: string) {
   const cleaned = (text || "").trim().replace(/\s+/g, " ");
   if (!cleaned) return [];
   return cleaned.split(/(?<=[.!?])\s+/).filter(Boolean);
-}
-
-function pickFirst(sentences: string[], tests: Array<(s: string) => boolean>) {
-  for (const t of tests) {
-    const hit = sentences.find((s) => t(s));
-    if (hit) return hit.length > 180 ? hit.slice(0, 177) + "..." : hit;
-  }
-  return null;
-}
-
-function extractStarEvidence(transcript: string) {
-  const sents = splitSentences(transcript);
-
-  const situation = pickFirst(sents, [
-    (s) => /\bin my previous role\b|\bat (a|an)\b|\bwhen\b|\bwe were\b|\bthere was\b/i.test(s),
-    (s) => /\bcontext\b|\bbackground\b|\bproblem\b|\bchallenge\b/i.test(s),
-  ]);
-
-  const task = pickFirst(sents, [
-    (s) => /\bmy task\b|\bi was responsible\b|\bi needed to\b|\bmy goal\b/i.test(s),
-    (s) => /\bobjective\b|\bmission\b|\basked to\b/i.test(s),
-  ]);
-
-  const action = pickFirst(sents, [
-    (s) =>
-      /\bi (analyz|audit|built|created|designed|drove|implemented|led|ran|set up|worked|partnered|coordinated)\b/i.test(
-        s
-      ),
-    (s) => /\bthen i\b|\bi started\b|\bi focused\b/i.test(s),
-  ]);
-
-  const result = pickFirst(sents, [
-    (s) => /\bas a result\b|\bresult\b|\boutcome\b|\bimpact\b/i.test(s),
-    (s) => /\b(reduced|improved|increased|decreased|saved|delivered)\b/i.test(s),
-    (s) => /\b\d+\s?%\b|\$\s?\d+|\bweeks?\b|\bmonths?\b/i.test(s),
-  ]);
-
-  return { situation, task, action, result };
 }
 
 function findSentenceIndex(
@@ -881,18 +842,6 @@ const confidenceScoreTen = useMemo(() => {
   );
 }, [feedback]);
 
-const communicationEvidence = useMemo(() => {
-  return Array.isArray(feedback?.communication_evidence)
-    ? feedback.communication_evidence.slice(0, 4).map(String)
-    : [];
-}, [feedback]);
-
-const confidenceEvidence = useMemo(() => {
-  return Array.isArray(feedback?.confidence_evidence)
-    ? feedback.confidence_evidence.slice(0, 4).map(String)
-    : [];
-}, [feedback]);
-
 const topStrengths = useMemo(() => {
   return Array.isArray(feedback?.strengths)
     ? feedback.strengths.slice(0, 4).map(String)
@@ -1213,8 +1162,6 @@ const longPausesPerMin =
 };
   }, [feedback, dm, acousticsNorm, series, acoustics]);
 
-  const starEvidence = useMemo(() => extractStarEvidence(stored?.transcript ?? ""), [stored?.transcript]);
-
   const speechMoments = useMemo(() => {
     const duration =
       series?.t?.length && typeof series.t[series.t.length - 1] === "number"
@@ -1230,36 +1177,6 @@ const longPausesPerMin =
     return raw.map((s) => String(s).toLowerCase());
   }, [feedback]);
 
-  const insightBullets = useMemo(() => {
-    if (!stored || !feedback) return null;
-    const lines: string[] = [];
-    if (typeof feedback.strengths?.[0] === "string") lines.push(feedback.strengths[0]);
-    if (typeof feedback.improvements?.[0] === "string") lines.push(feedback.improvements[0]);
-    if (typeof feedback.trajectory_note === "string") lines.push(feedback.trajectory_note);
-    else if (typeof feedback.confidence_explanation === "string" && lines.length < 2) lines.push(feedback.confidence_explanation);
-    return lines.length > 0 ? lines : null;
-  }, [stored, feedback]);
-
-
-const deliveryProfile = useMemo(() => {
-  return computeDeliveryCoach({
-    wpm: stored?.wpm ?? null,
-    fillersPer100: deliverySummary?.fillersPer100 ?? null,
-    monotoneScore: acousticsNorm?.monotoneScore ?? null,
-    energyVariation: acousticsNorm?.energyVariation ?? null,
-    energyStd: acousticsNorm?.energyStd ?? null,
-    pitchStd: acousticsNorm?.pitchStd ?? null,
-    pitchRange: acousticsNorm?.pitchRange ?? null,
-    longPauseRate: deliverySummary?.longPausesPerMin ?? null,
-    inputMethod: stored?.inputMethod ?? undefined,
-    jobDesc: stored?.jobDesc ?? undefined,
-    question: stored?.question ?? undefined,
-    framework: stored?.evaluationFramework ?? undefined,
-    contentScore: feedback ? (asTenPoint(typeof feedback.score === "number" ? feedback.score : stored?.score ?? null) ?? null) : null,
-    starMissing: Array.isArray(feedback?.star_missing) ? feedback.star_missing : [],
-    hasStrongStructure: isStarFramework && typeof feedback?.star?.action === "number" && feedback.star.action >= 7,
-  });
-}, [stored, deliverySummary, acousticsNorm, feedback, isStarFramework]);
 
 
 

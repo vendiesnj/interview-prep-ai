@@ -56,12 +56,54 @@ type Attempt = {
       action?: number;
       result?: number;
     };
+    dimension_scores?: Record<string, { label: string; score: number; coaching: string; isStrength: boolean; isGap: boolean }> | null;
+    ibm_metrics?: {
+      lexicalRichnessScore?: number;
+      cognitiveComplexityScore?: number;
+      behavioralIndicatorScore?: number;
+      hedgingPenaltyScore?: number;
+      fragmentationScore?: number;
+      answerLengthScore?: number;
+    } | null;
+    archetype?: string | null;
+    archetype_tagline?: string | null;
+    secondary_archetype?: string | null;
   } | null;
 
   inputMethod?: "spoken" | "pasted";
 };
 
-type InsightsTab = "overview" | "performance" | "delivery" | "notes" | "nace" | "visual" | "resume";
+type InsightsTab = "overview" | "performance" | "delivery" | "dimensions" | "notes" | "nace" | "visual" | "resume";
+
+const DIM_ORDER = [
+  "narrative_clarity",
+  "evidence_quality",
+  "ownership_agency",
+  "vocal_engagement",
+  "response_control",
+  "cognitive_depth",
+  "presence_confidence",
+] as const;
+
+const DIM_LABELS: Record<string, string> = {
+  narrative_clarity:    "Narrative Clarity",
+  evidence_quality:     "Evidence Quality",
+  ownership_agency:     "Ownership & Agency",
+  vocal_engagement:     "Vocal Engagement",
+  response_control:     "Response Control",
+  cognitive_depth:      "Cognitive Depth",
+  presence_confidence:  "Presence & Confidence",
+};
+
+const DIM_COACHING: Record<string, { strength: string; gap: string }> = {
+  narrative_clarity:   { strength: "Your answers are well-structured. Keep anchoring each response with a clear headline first.", gap: "Answers lack a clear through-line. Start with the headline, then support it." },
+  evidence_quality:    { strength: "You back claims with specifics and metrics. Keep quantifying outcomes.", gap: "Answers are too general. Add one measurable result to every response." },
+  ownership_agency:    { strength: "You use strong I-language. Interviewers see you as the driver, not a bystander.", gap: "Use 'I' instead of 'we' when describing your own actions and decisions." },
+  vocal_engagement:    { strength: "Your delivery has good energy and pace variation.", gap: "Delivery sounds flat or rushed. Vary your pace and lift slightly on the result." },
+  response_control:    { strength: "Answers stay focused and controlled — no tangents.", gap: "Answers drift. Cut to the core point earlier and resist adding unrelated context." },
+  cognitive_depth:     { strength: "You engage with tradeoffs and complexity well.", gap: "Answers stay surface-level. Add one sentence about a tradeoff, risk, or second-order effect." },
+  presence_confidence: { strength: "You sound credible and assertive. Minimal hedging.", gap: "Hedging language softens your credibility. Cut 'I think' and 'I feel like' from answers." },
+};
 type RoleFamily = "finance" | "operations" | "research" | "consulting" | "general";
 
 function safeJSONParse<T>(raw: string | null, fallback: T): T {
@@ -118,6 +160,21 @@ function getAttemptMonotone(a: Attempt) {
 
 function getAttemptStarResult(a: Attempt) {
   return asTenPoint(n(a.feedback?.star?.result));
+}
+
+function getAttemptDimensions(a: Attempt): Record<string, number> | null {
+  const ds = a.feedback?.dimension_scores;
+  if (!ds || typeof ds !== "object") return null;
+  const out: Record<string, number> = {};
+  for (const key of DIM_ORDER) {
+    const val = ds[key]?.score;
+    if (typeof val === "number") out[key] = val;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+function getAttemptArchetype(a: Attempt): string | null {
+  return a.feedback?.archetype ?? null;
 }
 
 function trendDirection(values: number[]) {
@@ -1386,16 +1443,6 @@ export default function ProgressPage() {
       .sort((a, b) => (b.avgScore ?? -1) - (a.avgScore ?? -1))[0] ?? null;
   }, [categoryStats]);
 
-  const strongestDimension = useMemo(() => {
-    const candidates = [
-      { label: "Communication", value: overview.avgComm },
-      { label: "Confidence", value: overview.avgConf },
-      { label: "Closing Impact", value: overview.avgStarResult },
-    ].filter((x) => x.value !== null) as Array<{ label: string; value: number }>;
-
-    return candidates.sort((a, b) => b.value - a.value)[0] ?? null;
-  }, [overview]);
-
   const recentScoreSeries = useMemo(() => {
     return attemptsOldestFirst
       .map(getAttemptScore)
@@ -1403,7 +1450,75 @@ export default function ProgressPage() {
       .slice(-10);
   }, [attemptsOldestFirst]);
 
+  // ── Dimension aggregation (new 7-dimension engine) ──────────────────────────
+
+  const dimensionStats = useMemo(() => {
+    const sums: Record<string, number> = {};
+    const counts: Record<string, number> = {};
+
+    for (const a of attemptsNewestFirst) {
+      const dims = getAttemptDimensions(a);
+      if (!dims) continue;
+      for (const key of DIM_ORDER) {
+        if (typeof dims[key] === "number") {
+          sums[key] = (sums[key] ?? 0) + dims[key];
+          counts[key] = (counts[key] ?? 0) + 1;
+        }
+      }
+    }
+
+    const result: Array<{ key: string; label: string; avg: number; coaching: { strength: string; gap: string } }> = [];
+    for (const key of DIM_ORDER) {
+      if (counts[key] > 0) {
+        result.push({
+          key,
+          label: DIM_LABELS[key],
+          avg: Math.round((sums[key] / counts[key]) * 10) / 10,
+          coaching: DIM_COACHING[key],
+        });
+      }
+    }
+
+    return result;
+  }, [attemptsNewestFirst]);
+
+  const archetypeStats = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const a of attemptsNewestFirst) {
+      const arch = getAttemptArchetype(a);
+      if (arch) counts.set(arch, (counts.get(arch) ?? 0) + 1);
+    }
+    const sorted = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+    return {
+      dominant: sorted[0]?.[0] ?? null,
+      dominantCount: sorted[0]?.[1] ?? 0,
+      all: sorted.map(([name, count]) => ({ name, count })),
+      totalWithArchetype: Array.from(counts.values()).reduce((a, b) => a + b, 0),
+    };
+  }, [attemptsNewestFirst]);
+
+  const strongestDimension = useMemo(() => {
+    if (dimensionStats.length >= 3) {
+      const sorted = [...dimensionStats].sort((a, b) => b.avg - a.avg);
+      const best = sorted[0];
+      return best ? { label: best.label, value: best.avg } : null;
+    }
+    const candidates = [
+      { label: "Communication", value: overview.avgComm },
+      { label: "Confidence", value: overview.avgConf },
+      { label: "Closing Impact", value: overview.avgStarResult },
+    ].filter((x) => x.value !== null) as Array<{ label: string; value: number }>;
+
+    return candidates.sort((a, b) => b.value - a.value)[0] ?? null;
+  }, [overview, dimensionStats]);
+
   const biggestGap = useMemo(() => {
+    // Prefer 7-dimension data when available
+    if (dimensionStats.length >= 3) {
+      const sorted = [...dimensionStats].sort((a, b) => a.avg - b.avg);
+      const weakest = sorted[0];
+      return weakest ? { label: weakest.label, value: weakest.avg } : null;
+    }
     const candidates = [
       { label: "Communication", value: overview.avgComm },
       { label: "Confidence", value: overview.avgConf },
@@ -1411,7 +1526,7 @@ export default function ProgressPage() {
     ].filter((x) => x.value !== null) as Array<{ label: string; value: number }>;
 
     return candidates.sort((a, b) => a.value - b.value)[0] ?? null;
-  }, [overview]);
+  }, [overview, dimensionStats]);
 
   const strengths = useMemo(() => {
     const items: string[] = [];
@@ -1785,6 +1900,13 @@ export default function ProgressPage() {
                 active={activeTab === "delivery"}
                 onClick={() => setActiveTab("delivery")}
               />
+              {dimensionStats.length > 0 && (
+                <InsightsTabButton
+                  label="Dimensions"
+                  active={activeTab === "dimensions"}
+                  onClick={() => setActiveTab("dimensions")}
+                />
+              )}
               <InsightsTabButton
                 label="Visual"
                 active={activeTab === "visual"}
@@ -2370,6 +2492,95 @@ export default function ProgressPage() {
                   />
                 </div>
               </PremiumCard>
+            )}
+
+            {activeTab === "dimensions" && (
+              <>
+                <PremiumCard>
+                  <SectionTitle
+                    eyebrow="7-Dimension Profile"
+                    title="Your communication dimensions"
+                    subtitle="Each dimension is scored 0–10. Averages below 5 are gaps; above 7 are strengths. Sorted weakest to strongest."
+                  />
+
+                  <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
+                    {[...dimensionStats].sort((a, b) => a.avg - b.avg).map((dim) => {
+                      const pct = Math.min(100, Math.round(dim.avg * 10));
+                      const isGap = dim.avg < 5;
+                      const isStrength = dim.avg >= 7;
+                      const color = isStrength ? "#10B981" : isGap ? "#EF4444" : "var(--accent)";
+                      return (
+                        <div
+                          key={dim.key}
+                          style={{
+                            padding: "14px 16px",
+                            borderRadius: "var(--radius-md)",
+                            border: `1px solid ${isGap ? "rgba(239,68,68,0.2)" : isStrength ? "rgba(16,185,129,0.2)" : "var(--card-border-soft)"}`,
+                            background: isGap ? "rgba(239,68,68,0.04)" : isStrength ? "rgba(16,185,129,0.04)" : "var(--card-bg)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{dim.label}</div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color, flexShrink: 0 }}>{dim.avg.toFixed(1)}/10</div>
+                          </div>
+                          <div style={{ height: 7, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 10 }}>
+                            <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 400ms ease" }} />
+                          </div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55 }}>
+                            {isStrength ? dim.coaching.strength : dim.coaching.gap}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </PremiumCard>
+
+                {archetypeStats.dominant && (
+                  <PremiumCard>
+                    <SectionTitle
+                      eyebrow="Communication Pattern"
+                      title="Your dominant archetype"
+                      subtitle="Based on your scored attempts, this is the communication pattern that shows up most consistently."
+                    />
+
+                    <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
+                      <div style={{
+                        padding: "16px 18px",
+                        borderRadius: "var(--radius-lg)",
+                        background: "linear-gradient(145deg, var(--accent-soft), var(--card-bg))",
+                        border: "1px solid var(--card-border-soft)",
+                      }}>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>
+                          {archetypeStats.dominant}
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                          Detected in {archetypeStats.dominantCount} of {archetypeStats.totalWithArchetype} scored attempt{archetypeStats.totalWithArchetype !== 1 ? "s" : ""}
+                        </div>
+                      </div>
+
+                      {archetypeStats.all.length > 1 && (
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>All detected archetypes</div>
+                          <div style={{ display: "grid", gap: 6 }}>
+                            {archetypeStats.all.map(({ name, count }) => {
+                              const pct = Math.round((count / archetypeStats.totalWithArchetype) * 100);
+                              return (
+                                <div key={name} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--text-primary)", minWidth: 0 }}>{name}</div>
+                                  <div style={{ width: 120, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                    <div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)", borderRadius: 99 }} />
+                                  </div>
+                                  <div style={{ fontSize: 12, color: "var(--text-muted)", width: 28, textAlign: "right", flexShrink: 0 }}>{count}×</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </PremiumCard>
+                )}
+              </>
             )}
 
             {activeTab === "notes" && (

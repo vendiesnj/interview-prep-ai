@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { X, CheckCircle2, Circle, ChevronRight } from "lucide-react";
+import { X, CheckCircle2, ChevronRight } from "lucide-react";
 
 type SignalData = {
   speaking: {
@@ -28,7 +28,7 @@ type Step = {
   metric?: string;
 };
 
-function buildSteps(data: SignalData): Step[] {
+function buildUniversitySteps(data: SignalData): Step[] {
   return [
     {
       id: "aptitude",
@@ -117,18 +117,82 @@ function buildSteps(data: SignalData): Step[] {
   ];
 }
 
+function buildConsumerSteps(data: SignalData): Step[] {
+  const { interview, publicSpeaking } = data.speaking;
+  return [
+    {
+      id: "first_session",
+      title: "Complete your first interview",
+      description: "Record or type your first answer to get a score, archetype, and personalized coaching.",
+      href: "/practice",
+      done: interview.count >= 1,
+      metric: interview.count >= 1 ? "First session done" : undefined,
+    },
+    {
+      id: "five_sessions",
+      title: "Build your baseline — 5 sessions",
+      description: "Five practice sessions establish your communication pattern and unlock trend analysis.",
+      href: "/practice",
+      done: interview.count >= 5,
+      metric: interview.count > 0
+        ? `${interview.count} session${interview.count !== 1 ? "s" : ""}${interview.avgScore !== null ? ` · avg ${Math.round(interview.avgScore)}` : ""}`
+        : undefined,
+    },
+    {
+      id: "resume",
+      title: "Resume Analysis",
+      description: "Upload your resume for ATS scoring, gap analysis, and targeted action items.",
+      href: "/resume-gap",
+      done: data.resumeHistory.length > 0,
+      metric: data.resumeHistory.length > 0
+        ? `${data.resumeHistory.length} analysis${data.resumeHistory.length !== 1 ? "s" : ""}`
+        : undefined,
+    },
+    {
+      id: "job_tracker",
+      title: "Track a job application",
+      description: "Log your first application in the Job Tracker to start monitoring your pipeline.",
+      href: "/job-tracker",
+      done: data.interviewPipeline.total >= 1,
+      metric: data.interviewPipeline.total > 0
+        ? `${data.interviewPipeline.total} application${data.interviewPipeline.total !== 1 ? "s" : ""}`
+        : undefined,
+    },
+    {
+      id: "public_speaking",
+      title: "Public Speaking practice",
+      description: "One public speaking session dramatically improves your on-camera presence and vocal delivery.",
+      href: "/public-speaking",
+      done: publicSpeaking.count >= 1,
+      metric: publicSpeaking.count > 0
+        ? `${publicSpeaking.count} session${publicSpeaking.count !== 1 ? "s" : ""}`
+        : undefined,
+    },
+    {
+      id: "deep_practice",
+      title: "Reach 20 practice sessions",
+      description: "At 20+ sessions your archetype pattern stabilizes and dimension coaching becomes highly specific.",
+      href: "/practice",
+      done: interview.count >= 20,
+      metric: interview.count >= 20 ? `${interview.count} sessions` : interview.count > 0 ? `${interview.count} of 20` : undefined,
+    },
+  ];
+}
+
 export default function JourneySidebar({
   open,
   onClose,
   data,
+  isUniversity = false,
 }: {
   open: boolean;
   onClose: () => void;
   data: SignalData | null;
+  isUniversity?: boolean;
 }) {
   if (!open) return null;
 
-  const steps = data ? buildSteps(data) : [];
+  const steps = data ? (isUniversity ? buildUniversitySteps(data) : buildConsumerSteps(data)) : [];
   const doneCount = steps.filter(s => s.done).length;
   const nextStep = steps.find(s => !s.done);
   const pct = steps.length > 0 ? Math.round((doneCount / steps.length) * 100) : 0;
@@ -185,8 +249,8 @@ export default function JourneySidebar({
           </button>
         </div>
 
-        {/* Signal score summary */}
-        {data && (
+        {/* Signal score summary — university only */}
+        {isUniversity && data && (
           <div style={{
             margin: "16px 16px 0",
             padding: "12px 16px",
@@ -224,7 +288,7 @@ export default function JourneySidebar({
           {steps.map((step, idx) => (
             <Link
               key={step.id}
-              href={step.done ? step.href : step.href}
+              href={step.href}
               style={{ textDecoration: "none" }}
             >
               <div style={{
@@ -233,7 +297,6 @@ export default function JourneySidebar({
                 background: step.done ? `${GREEN}08` : "transparent",
                 border: `1px solid ${step.done ? GREEN + "20" : "var(--card-border-soft)"}`,
                 transition: "background 120ms",
-                opacity: step.done ? 1 : 1,
               }}>
                 {/* Step number / check */}
                 <div style={{
@@ -279,7 +342,9 @@ export default function JourneySidebar({
         </div>
 
         <div style={{ padding: "12px 16px 24px", borderTop: "1px solid var(--card-border)", fontSize: 11, color: "var(--text-muted)", textAlign: "center", lineHeight: 1.5 }}>
-          Each step you complete raises your Signal Score and profile completeness.
+          {isUniversity
+            ? "Each step you complete raises your Signal Score and profile completeness."
+            : "Each milestone sharpens your interview pattern and coaching specificity."}
         </div>
       </div>
     </>

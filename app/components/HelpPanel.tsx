@@ -24,6 +24,10 @@ import {
   Monitor,
   Settings,
   Lock,
+  Briefcase,
+  Library,
+  FileText,
+  BarChart2,
 } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -39,9 +43,9 @@ type HelpSection = {
   items: HelpItem[];
 };
 
-// ── Content ───────────────────────────────────────────────────────────────────
+// ── University content ────────────────────────────────────────────────────────
 
-const SECTIONS: HelpSection[] = [
+const UNIVERSITY_SECTIONS: HelpSection[] = [
   {
     heading: "GETTING STARTED",
     items: [
@@ -189,6 +193,86 @@ const SECTIONS: HelpSection[] = [
   },
 ];
 
+// ── Consumer content ──────────────────────────────────────────────────────────
+
+const CONSUMER_SECTIONS: HelpSection[] = [
+  {
+    heading: "GETTING STARTED",
+    items: [
+      {
+        icon: <Sparkles size={15} />,
+        title: "What is Signal?",
+        body: "Signal is an AI-powered interview coaching platform. It analyzes how you communicate - your structure, delivery, language patterns, and ownership signals - then gives you specific, actionable feedback to help you interview better and land the role.",
+      },
+      {
+        icon: <Mic size={15} />,
+        title: "Your first practice session",
+        body: "Head to Interview Prep to record or type your answer to a behavioral question. You'll get an overall score, a STAR breakdown, a communication archetype, and a stronger rewritten version of your answer. Most people see meaningful score improvement by their third attempt.",
+      },
+    ],
+  },
+  {
+    heading: "INTERVIEW SCORING",
+    items: [
+      {
+        icon: <BarChart2 size={15} />,
+        title: "The 7 dimensions explained",
+        body: "Every answer is scored across seven dimensions: Narrative Clarity (structure), Evidence Quality (specifics & metrics), Ownership & Agency (I-language), Vocal Engagement (pace & energy), Response Control (focus), Cognitive Depth (complexity of thinking), and Presence & Confidence (assertiveness). Your dimension profile is shown on the results page.",
+      },
+      {
+        icon: <Zap size={15} />,
+        title: "Communication archetypes",
+        body: "After enough scored answers, Signal assigns you a communication archetype - a pattern that describes how you interview. Examples include The Rusher (fast but thin on results), The Hedger (good content softened by uncertainty language), and The Polished Performer (strong across all dimensions). Archetypes come with specific coaching to break the pattern.",
+      },
+      {
+        icon: <Activity size={15} />,
+        title: "Vocal Analysis - what the signals mean",
+        body: "Spoken answers also get delivery analysis: pace (WPM), filler word rate, vocal energy variation, and monotone risk. Aim for 130–160 WPM, a filler rate under 5%, and a monotone risk below 5/10. These signals show how your delivery lands - not just what you said.",
+      },
+    ],
+  },
+  {
+    heading: "YOUR TOOLS",
+    items: [
+      {
+        icon: <FileText size={15} />,
+        title: "Resume Analysis",
+        body: "Upload your resume to get an ATS compatibility score, an AI gap analysis comparing your experience to a target role, and a prioritized action list. Use it before applying to make sure your resume clears the first filter.",
+      },
+      {
+        icon: <Library size={15} />,
+        title: "Experience Log",
+        body: "The Experience Log is your personal library of career stories. Add each strong experience you want to be able to reference in interviews - refine the STAR structure, write stronger versions, and practice until the story is fluent under pressure.",
+      },
+      {
+        icon: <Briefcase size={15} />,
+        title: "Job Tracker",
+        body: "Track every application you submit. The Job Tracker shows your pipeline stage, response rate, and offer funnel so you can stay organized and identify where applications are stalling.",
+      },
+      {
+        icon: <TrendingUp size={15} />,
+        title: "My Progress (Insights)",
+        body: "The Insights page shows your performance patterns across question types, job profiles, and delivery metrics. As you practice more, it surfaces your top strengths, biggest gaps, dimension trends, and a pre-interview brief you can review before any real interview.",
+      },
+    ],
+  },
+  {
+    heading: "ACCOUNT & SETTINGS",
+    items: [
+      {
+        icon: <Settings size={15} />,
+        title: "Plan & billing",
+        body: "Free accounts include 3 scored practice sessions to get started. Pro unlocks unlimited practice, full dimension analytics, archetype tracking, and all delivery signals. Manage your plan from the Settings page.",
+      },
+      {
+        icon: <Lock size={15} />,
+        title: "Privacy policy",
+        body: "Audio from practice sessions is processed to generate delivery analytics and is accessible only to you. No interview audio is stored long-term, and nothing is shared with third parties or used for advertising.",
+      },
+    ],
+  },
+];
+
 // ── Accordion item ─────────────────────────────────────────────────────────
 
 function AccordionItem({ item }: { item: HelpItem }) {
@@ -276,9 +360,12 @@ function SectionHeading({ label }: { label: string }) {
 export interface HelpPanelProps {
   open: boolean;
   onClose: () => void;
+  isUniversity?: boolean;
 }
 
-export default function HelpPanel({ open, onClose }: HelpPanelProps) {
+export default function HelpPanel({ open, onClose, isUniversity = false }: HelpPanelProps) {
+  const sections = isUniversity ? UNIVERSITY_SECTIONS : CONSUMER_SECTIONS;
+
   return (
     <>
       {/* Backdrop */}
@@ -338,7 +425,7 @@ export default function HelpPanel({ open, onClose }: HelpPanelProps) {
               Help &amp; Guide
             </div>
             <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginTop: 2 }}>
-              Everything in Signal
+              {isUniversity ? "Everything in Signal" : "How Signal works"}
             </div>
           </div>
           <button
@@ -364,7 +451,7 @@ export default function HelpPanel({ open, onClose }: HelpPanelProps) {
 
         {/* Scrollable content */}
         <div style={{ flex: 1, overflowY: "auto", padding: "4px 18px 32px" }}>
-          {SECTIONS.map((section) => (
+          {sections.map((section) => (
             <div key={section.heading}>
               <SectionHeading label={section.heading} />
               {section.items.map((item) => (

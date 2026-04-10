@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { X, MoreHorizontal, ChevronLeft, Home, Mic, BarChart2, Map, Gamepad2, HelpCircle } from "lucide-react";
+import { X, MoreHorizontal, ChevronLeft, Home, Mic, BarChart2, Map, HelpCircle } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
@@ -100,7 +100,6 @@ const MOBILE_DRAWER_LINKS_UNIVERSITY = [
 ];
 
 const MOBILE_DRAWER_LINKS_CONSUMER = [
-  { label: "Daily Games",          href: "/games" },
   { label: "Question Bank",        href: "/question-bank" },
   { label: "Job Profiles",         href: "/job-profiles" },
   { label: "Sessions",             href: "/sessions" },
@@ -239,7 +238,7 @@ export default function TopNav() {
           </div>
         )}
 
-        <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+        <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} isUniversity={isUniversity} />
       </>
     );
   }
@@ -292,11 +291,6 @@ export default function TopNav() {
 
         {/* Right side */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: "auto", flexShrink: 0 }}>
-          {!isAdmin && !tenantName && <BillingSidebarButton collapsed={true} />}
-          <Link href="/games" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/games") ? "var(--accent)" : "var(--text-muted)", background: isActive("/games") ? "var(--accent-soft)" : "transparent", textDecoration: "none", display: "flex", alignItems: "center", gap: 5 }}>
-            <Gamepad2 size={14} />
-            Games
-          </Link>
           {/* Help button */}
           <button
             onClick={() => setHelpOpen(true)}
@@ -364,7 +358,7 @@ export default function TopNav() {
         </div>
       )}
 
-      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} />
+      <HelpPanel open={helpOpen} onClose={() => setHelpOpen(false)} isUniversity={isUniversity} />
     </>
   );
 }

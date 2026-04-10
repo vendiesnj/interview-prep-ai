@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
 import { getProfile, saveProfile, type UserProfile } from "../../lib/profileStore";
+import type { AttemptEntitlement } from "../../lib/entitlements";
 
 const STAGES = [
   { id: "pre_college",    label: "Pre-College",    icon: "🎓", color: "#10B981", desc: "High school → college prep" },
@@ -126,6 +127,9 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export default function SettingsPage() {
   const { data: session, update } = useSession();
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
+  const [entitlement, setEntitlement] = React.useState<AttemptEntitlement | null>(null);
+  const [billingLoading, setBillingLoading] = React.useState(false);
+  const isTenantUser = !!(session as any)?.tenant;
 
   // Career profile state
   const [careerProfile, setCareerProfile] = React.useState({
@@ -152,6 +156,32 @@ export default function SettingsPage() {
     });
     await update();
     setStageSaving(false);
+  }
+
+  React.useEffect(() => {
+    if (!isTenantUser) {
+      fetch("/api/entitlement", { cache: "no-store" })
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => { if (d) setEntitlement(d); })
+        .catch(() => {});
+    }
+  }, [isTenantUser]);
+
+  async function handleBilling() {
+    if (billingLoading) return;
+    setBillingLoading(true);
+    try {
+      const endpoint = entitlement?.isPro ? "/api/billing/portal" : "/api/billing/checkout";
+      const body = entitlement?.isPro ? undefined : JSON.stringify({ mode: "subscription" });
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body,
+      });
+      const j = await res.json().catch(() => ({}));
+      if (j?.url) window.location.href = j.url;
+    } catch {}
+    setBillingLoading(false);
   }
 
   React.useEffect(() => {
@@ -524,6 +554,45 @@ export default function SettingsPage() {
             )}
           </div>
         </PremiumCard>
+
+        {/* Billing card — only for non-tenant (consumer) users */}
+        {!isTenantUser && (
+          <PremiumCard style={{ padding: 16, borderRadius: "var(--radius-md)" }}>
+            <SectionTitle>Plan</SectionTitle>
+            <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: entitlement?.isPro ? "var(--accent)" : "var(--text-muted)" }}>
+                  {entitlement == null ? "Loading…" : entitlement.isPro ? "Pro" : "Free"}
+                </div>
+                {!entitlement?.isPro && entitlement != null && (
+                  <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)" }}>
+                    {entitlement.remaining != null
+                      ? `${entitlement.remaining} of ${entitlement.cap} free attempts remaining`
+                      : "3 free attempts included"}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={handleBilling}
+                disabled={billingLoading || entitlement == null}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: "var(--radius-sm)",
+                  border: entitlement?.isPro ? "1px solid var(--card-border)" : "none",
+                  background: entitlement?.isPro ? "var(--card-bg-strong)" : "var(--accent)",
+                  color: entitlement?.isPro ? "var(--text-primary)" : "#fff",
+                  fontWeight: 900,
+                  fontSize: 13,
+                  cursor: billingLoading || entitlement == null ? "not-allowed" : "pointer",
+                  opacity: billingLoading ? 0.7 : 1,
+                }}
+              >
+                {billingLoading ? "Opening…" : entitlement?.isPro ? "Manage billing" : "Upgrade to Pro"}
+              </button>
+            </div>
+          </PremiumCard>
+        )}
 
         {/* Scoring card */}
         <PremiumCard

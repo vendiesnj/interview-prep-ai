@@ -219,7 +219,7 @@ export default function SidebarNav() {
               ))}
 
               <div style={{ marginTop: 8, padding: "0 4px", display: "grid", gap: 8 }}>
-                <BillingSidebarButton collapsed={false} />
+                {!isTenantUser && <BillingSidebarButton collapsed={false} />}
                 <div style={{ borderRadius: 12, overflow: "hidden" }}><LogoutButton /></div>
               </div>
             </div>
