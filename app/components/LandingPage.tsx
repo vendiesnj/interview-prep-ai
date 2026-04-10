@@ -139,13 +139,13 @@ export default function LandingPage() {
         <Fade delay={140}>
           <p style={{ fontSize: 17, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
             "Be more confident." "Work on your communication." These are observations, not instructions.
-            You walk out not knowing what actually happened — and the next interview starts the same way.
+            You walk out not knowing what actually happened, and the next interview starts the same way.
           </p>
         </Fade>
         <Fade delay={200}>
           <p style={{ fontSize: 17, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
             The problem isn't your experience. It's that nobody has ever shown you your actual communication
-            pattern — what you say, how you say it, and how those two things are landing at the same time.
+            pattern: what you say, how you say it, and how those two things are landing at the same time.
           </p>
         </Fade>
       </section>
@@ -162,8 +162,8 @@ export default function LandingPage() {
             </Fade>
             <Fade delay={140}>
               <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                Every answer you give is scored across seven communication dimensions —
-                not just "good" or "needs work," but where specifically your signal is breaking down.
+                Every answer you give is scored across seven communication dimensions.
+                Not just "good" or "needs work," but where specifically your signal is breaking down.
               </p>
             </Fade>
             <Fade delay={200}>
@@ -245,7 +245,7 @@ export default function LandingPage() {
             </Fade>
             <Fade delay={140}>
               <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                After enough sessions, Signal identifies your communication archetype — the specific
+                After enough sessions, Signal identifies your communication archetype: the specific
                 pattern that's showing up across your answers. Not a vague category. A named behavior with
                 a concrete coaching action to break it.
               </p>
@@ -263,30 +263,56 @@ export default function LandingPage() {
       {/* ── Vocal ── */}
       <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-          <div style={{ maxWidth: 600, marginBottom: 60 }}>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start", marginBottom: 48 }}>
             <Fade>
               <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
-                Your words and your voice are telling different stories.
+                Your voice has a pattern. Most interviewers can hear it. You can not.
               </h2>
-            </Fade>
-            <Fade delay={140}>
               <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                Spoken answers get a full acoustic read — pace, filler density, vocal energy variation,
-                and monotone risk scored independently. You can have a great answer and still lose the
-                interviewer if the delivery flattens at the wrong moment.
+                Signal runs a full acoustic analysis on every spoken answer. Pitch range in Hz, amplitude variation, long pause detection, filler density, and speaking pace are scored and combined into a delivery archetype with a single targeted fix.
               </p>
+            </Fade>
+
+            {/* Delivery archetype card */}
+            <Fade delay={80}>
+              <div style={{
+                padding: "24px",
+                borderRadius: 16,
+                border: "1px solid rgba(14,165,233,0.25)",
+                background: "rgba(14,165,233,0.06)",
+              }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, color: "#0EA5E9", textTransform: "uppercase", marginBottom: 10 }}>Delivery archetype</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Flat Articulate</div>
+                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 18 }}>Clear words, flat delivery</div>
+                <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 12 }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>What interviewers hear</div>
+                  <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)", fontStyle: "italic" }}>
+                    "Smart candidate, but hard to stay engaged with. Everything sounds the same."
+                  </div>
+                </div>
+                <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, color: "#38BDF8", textTransform: "uppercase", marginBottom: 6 }}>One fix</div>
+                  <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)" }}>
+                    Pick the single most important outcome in your answer and hit it louder, slower, and with a half-second pause before it. Record yourself doing it once.
+                  </div>
+                </div>
+              </div>
             </Fade>
           </div>
 
-          <div ref={vocal.ref} style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}>
+          {/* Metric tiles: 3 columns x 2 rows */}
+          <div ref={vocal.ref} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
             {[
-              { label: "Speaking pace",    value: "148 WPM",    note: "Strong interview range", color: "#10B981", delay: 0 },
-              { label: "Filler rate",       value: "4.2 / 100",  note: "Manageable — tighten transitions", color: "#F59E0B", delay: 80 },
-              { label: "Vocal energy",      value: "6.1 / 10",   note: "Some flattening on key outcomes", color: "#F59E0B", delay: 160 },
-              { label: "Monotone risk",     value: "5.8 / 10",   note: "Add lift when stating the result", color: "#EF4444", delay: 240 },
+              { label: "Speaking pace",       value: "152 WPM",    note: "Controlled range. Slightly fast on outcome sentences.", color: "#10B981", delay: 0   },
+              { label: "Filler density",       value: "6.1 / 100",  note: "Above threshold. 'Kind of' appearing 8 times in 5 min.", color: "#EF4444", delay: 60  },
+              { label: "Pitch range",          value: "82 Hz",      note: "Narrow. Flat delivery is reducing perceived confidence.", color: "#EF4444", delay: 120 },
+              { label: "Amplitude variation",  value: "4.2 / 10",   note: "Low energy contrast. Key points not landing with weight.", color: "#F59E0B", delay: 180 },
+              { label: "Long pause rate",      value: "2.3 / min",  note: "Hesitation detected mid-answer. Breaks answer momentum.",  color: "#F59E0B", delay: 240 },
+              { label: "Eye contact",          value: "71%",        note: "Solid baseline. Drops during structured STAR transitions.", color: "#10B981", delay: 300 },
             ].map((m) => (
               <div key={m.label} style={{
-                padding: "22px 20px",
+                padding: "20px",
                 borderRadius: 14,
                 border: `1px solid ${m.color}25`,
                 background: `${m.color}08`,
@@ -294,9 +320,9 @@ export default function LandingPage() {
                 transform: vocal.visible ? "translateY(0)" : "translateY(20px)",
                 transition: `opacity 0.55s ease ${m.delay}ms, transform 0.55s ease ${m.delay}ms`,
               }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 10 }}>{m.label}</div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: m.color, letterSpacing: -0.4, marginBottom: 8 }}>{m.value}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{m.note}</div>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.7, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", marginBottom: 10 }}>{m.label}</div>
+                <div style={{ fontSize: 26, fontWeight: 800, color: m.color, letterSpacing: -0.3, marginBottom: 8 }}>{m.value}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{m.note}</div>
               </div>
             ))}
           </div>
@@ -315,7 +341,7 @@ export default function LandingPage() {
               </Fade>
               <Fade delay={120}>
                 <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                  Signal runs competitive linguistics analysis on every answer —
+                  Signal runs competitive linguistics analysis on every answer,
                   the same class of signals used by enterprise hiring tools.
                   Hedging density, behavioral ownership language, lexical range, cognitive complexity, answer fragmentation.
                 </p>
@@ -386,7 +412,7 @@ export default function LandingPage() {
                 color: "#10B981",
                 delay: 200,
                 head: "See where applications are stalling.",
-                body: "Track every role from applied to offer. Pipeline stage, response rate, and funnel visibility — so you're not guessing where to push.",
+                body: "Track every role from applied to offer. Pipeline stage, response rate, and funnel visibility so you know exactly where to push.",
               },
             ].map((tool) => (
               <Fade key={tool.label} delay={tool.delay}>
@@ -530,7 +556,7 @@ function HeroContent() {
         transition: "opacity 0.65s ease 200ms, transform 0.65s ease 200ms",
       }}>
         Signal scores your answers across seven dimensions, identifies your communication archetype,
-        and tells you the one thing to fix next — before your next real interview.
+        and tells you the one thing to fix before your next real interview.
       </p>
 
       <div style={{
