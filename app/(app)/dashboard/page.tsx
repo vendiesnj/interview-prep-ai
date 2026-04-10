@@ -1275,27 +1275,83 @@ export default function DashboardPage() {
 
         {/* ── Consumer dashboard: interview-focused tiles ── */}
         {!isUniversity && (
-          <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-            {[
-              { Icon: Mic,       title: "Interview Practice",   desc: "AI-powered mock interviews with real-time scoring, vocal and facial feedback.",                      href: "/practice"       },
-              { Icon: BarChart2, title: "My Progress",          desc: "Track your scores, vocal patterns, eye contact, and improvement over time.",                        href: "/progress"       },
-              { Icon: FileText,  title: "Resume Analysis",      desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",                           href: "/resume-gap"     },
-              { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",                               href: "/question-bank"  },
-              { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                                          href: "/job-profiles"   },
-              { Icon: Briefcase, title: "Job Tracker",          desc: "Track applications, monitor your funnel, and stay organized through every stage.",                  href: "/job-tracker"    },
-              { Icon: Library,   title: "Experience Log",       desc: "Build your library of career stories. Refine the STAR structure and practice until they're fluent.", href: "/experience-log" },
-              { Icon: Home,      title: "Life Buddy",           desc: "Plan your week, track your budget, and project your retirement, all in one place.",                 href: "/life-buddy"     },
-            ].map(item => (
-              <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-                <div style={{ padding: "18px 20px", borderRadius: "var(--radius-md, 10px)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>
-                  <item.Icon size={18} color="var(--text-muted)" />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{item.desc}</div>
+          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+
+            {/* Featured: Interview Practice */}
+            <Link href="/practice" style={{ textDecoration: "none" }}>
+              <div style={{
+                padding: "28px 32px",
+                borderRadius: "var(--radius-lg, 12px)",
+                background: "linear-gradient(135deg, rgba(37,99,235,0.22) 0%, rgba(14,165,233,0.10) 100%)",
+                border: "1px solid rgba(37,99,235,0.30)",
+                boxShadow: "0 4px 24px rgba(37,99,235,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 24, flexWrap: "wrap" as const,
+                cursor: "pointer",
+                position: "relative" as const, overflow: "hidden" as const,
+              }}>
+                <div style={{
+                  position: "absolute", top: -30, right: 60,
+                  width: 200, height: 200, borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(37,99,235,0.20), transparent 70%)",
+                  pointerEvents: "none" as const,
+                }} />
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(37,99,235,0.25)", border: "1px solid rgba(37,99,235,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Mic size={18} color="#93C5FD" />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "#93C5FD", letterSpacing: 0.4 }}>Most popular</span>
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6, letterSpacing: -0.2 }}>Interview Practice</div>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55, maxWidth: 500 }}>
+                    AI-powered mock interviews with real-time scoring across 7 communication dimensions, vocal analysis, and facial feedback.
+                  </div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 14, flexWrap: "wrap" as const }}>
+                    {["7 dimensions", "Vocal analysis", "Eye contact", "Coaching plan"].map(t => (
+                      <span key={t} style={{ padding: "3px 10px", borderRadius: 5, background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", fontSize: 11, color: "var(--text-muted)" }}>{t}</span>
+                    ))}
                   </div>
                 </div>
-              </Link>
-            ))}
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{ padding: "12px 28px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(37,99,235,0.4)", whiteSpace: "nowrap" as const }}>
+                    Start practicing →
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Regular tiles grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
+              {[
+                { Icon: BarChart2, title: "My Progress",    desc: "Track scores, vocal patterns, eye contact, and improvement over time.",                        href: "/progress"       },
+                { Icon: FileText,  title: "Resume Analysis",desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",                      href: "/resume-gap"     },
+                { Icon: BookOpen,  title: "Question Bank",  desc: "Browse and filter hundreds of interview questions by type and role.",                          href: "/question-bank"  },
+                { Icon: Target,    title: "Job Profiles",   desc: "Practice for specific roles with tailored question sets.",                                     href: "/job-profiles"   },
+                { Icon: Briefcase, title: "Job Tracker",    desc: "Track applications, monitor your funnel, and stay organized through every stage.",             href: "/job-tracker"    },
+                { Icon: Library,   title: "Experience Log", desc: "Build your library of career stories. Refine the STAR structure and practice until fluent.",   href: "/experience-log" },
+                { Icon: Home,      title: "Life Buddy",     desc: "Plan your week, track your budget, and project your retirement, all in one place.",            href: "/life-buddy"     },
+              ].map(item => (
+                <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
+                  <div style={{
+                    padding: "18px 20px",
+                    borderRadius: "var(--radius-md, 10px)",
+                    border: "1px solid var(--card-border)",
+                    background: "linear-gradient(145deg, var(--card-bg-strong) 0%, var(--card-bg) 100%)",
+                    boxShadow: "var(--shadow-card)",
+                    display: "flex", flexDirection: "column", gap: 10,
+                    cursor: "pointer",
+                    height: "100%",
+                  }}>
+                    <item.Icon size={18} color="var(--text-muted)" />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{item.desc}</div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 

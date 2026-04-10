@@ -2454,43 +2454,67 @@ return;
 
 return (
   <PremiumShell hideHeader>
-<div style={{ marginTop: 6, marginBottom: 26 }}>
-  <div
-  style={{
-    fontSize: 42,
-    fontWeight: 700,
-    color: "var(--text-primary)",
-    letterSpacing: -0.9,
-    lineHeight: 1.02,
-    maxWidth: 820,
-  }}
->
-  Practice interviews with AI feedback
-</div>
+<div style={{
+  marginTop: 6, marginBottom: 28,
+  padding: "28px 32px",
+  borderRadius: "var(--radius-lg, 12px)",
+  background: "linear-gradient(135deg, rgba(37,99,235,0.14) 0%, rgba(14,165,233,0.07) 100%)",
+  border: "1px solid rgba(37,99,235,0.22)",
+  borderLeft: "3px solid var(--accent)",
+  position: "relative" as const,
+  overflow: "hidden" as const,
+}}>
+  {/* Decorative orb */}
+  <div style={{
+    position: "absolute", top: -40, right: -40,
+    width: 180, height: 180,
+    borderRadius: "50%",
+    background: "radial-gradient(circle, rgba(37,99,235,0.18), transparent 70%)",
+    pointerEvents: "none" as const,
+  }} />
 
-  <div
-  style={{
-    marginTop: 8,
-    fontSize: 16,
-    color: "var(--text-muted)",
-    maxWidth: 760,
-    lineHeight: 1.55,
-  }}
->
-        Record answers, get scoring on communication, confidence, answer structure, fillers, pace, and vocal variety -
-    then follow a game plan for your next attempt.
+  <div style={{
+    display: "inline-flex", alignItems: "center", gap: 6,
+    padding: "3px 10px", borderRadius: 6,
+    background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)",
+    fontSize: 11, fontWeight: 600, color: "#93C5FD", letterSpacing: 0.4,
+    marginBottom: 14,
+  }}>
+    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#3B82F6", display: "inline-block" }} />
+    AI-Powered Analysis
   </div>
 
-  <div
-  style={{
-    marginTop: 12,
-    fontSize: 13,
-    color: "var(--text-muted)",
-    lineHeight: 1.45,
-  }}
->
-  Paste a job description to begin generating tailored interview questions.
-</div>
+  <div style={{
+    fontSize: 32, fontWeight: 700,
+    color: "var(--text-primary)",
+    letterSpacing: -0.6, lineHeight: 1.1,
+    marginBottom: 10,
+  }}>
+    Practice interviews with AI feedback
+  </div>
+
+  <div style={{
+    fontSize: 15, color: "var(--text-muted)", maxWidth: 680, lineHeight: 1.6, marginBottom: 18,
+  }}>
+    Record your answers, get scored across seven communication dimensions, and follow a targeted coaching plan for your next attempt.
+  </div>
+
+  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
+    {[
+      "7 communication dimensions",
+      "15 coaching archetypes",
+      "Vocal & pace analysis",
+      "Eye contact tracking",
+    ].map(chip => (
+      <span key={chip} style={{
+        padding: "4px 12px", borderRadius: 6,
+        background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)",
+        fontSize: 12, fontWeight: 500, color: "var(--text-muted)",
+      }}>
+        {chip}
+      </span>
+    ))}
+  </div>
 </div>
     
 {mode === "answer" ? (
