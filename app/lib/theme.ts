@@ -342,7 +342,25 @@ export const demoCollegeTheme: AppTheme = {
 export const ipcBlueTheme: AppTheme = {
   ...lightTheme,
   name: "ipc-blue",
-  // Inherits all lightTheme values — accent is already #2563EB, radii are already tightened
+  colors: {
+    ...lightTheme.colors,
+    // Crisp white-to-blue page — visible gradient without being garish
+    pageBg: "#F6F9FF",
+    pageBgAccentA: "rgba(37,99,235,0.11)",
+    pageBgAccentB: "rgba(37,99,235,0.06)",
+    // Blue-tinted card borders instead of generic dark gray
+    cardBg: "#FFFFFF",
+    cardBgStrong: "#F8FAFF",
+    cardBorder: "rgba(37,99,235,0.18)",
+    cardBorderSoft: "rgba(37,99,235,0.10)",
+  },
+  shadows: {
+    // Crisp blue-tinted card shadows
+    card: "0 1px 3px rgba(37,99,235,0.07), 0 4px 14px rgba(37,99,235,0.08)",
+    cardSoft: "0 1px 2px rgba(37,99,235,0.05)",
+    glow: "0 6px 20px rgba(37,99,235,0.18)",
+    none: "none",
+  },
 };
 
 // Roosevelt University - Forest green (#1E6B2E) + dark green secondary
