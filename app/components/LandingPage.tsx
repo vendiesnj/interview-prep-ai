@@ -33,8 +33,8 @@ function DimBar({ label, score, delay, visible }: { label: string; score: number
       transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.65)" }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 800, color }}>{score.toFixed(1)}</span>
+        <span style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.55)" }}>{label}</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color }}>{score.toFixed(1)}</span>
       </div>
       <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
         <div style={{
@@ -86,7 +86,7 @@ export default function LandingPage() {
     <div style={{
       background: "#0d1e3a",
       color: "#fff",
-      fontFamily: "var(--font-manrope, system-ui, sans-serif)",
+      fontFamily: "var(--font-inter, ui-sans-serif, system-ui, sans-serif)",
       overflowX: "hidden",
     }}>
 
@@ -133,7 +133,7 @@ export default function LandingPage() {
       {/* ── Problem ── */}
       <section style={{ padding: "100px 24px", maxWidth: 760, margin: "0 auto" }}>
         <Fade>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 24px", color: "#fff" }}>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 24px", color: "#fff" }}>
             Interview feedback is almost always wrong.
           </h2>
         </Fade>
@@ -157,7 +157,7 @@ export default function LandingPage() {
 
           <div>
             <Fade>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
                 Seven dimensions. One honest read.
               </h2>
             </Fade>
@@ -183,8 +183,8 @@ export default function LandingPage() {
             display: "grid", gap: 18,
           }}>
             <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", marginBottom: 2 }}>Sample profile</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>avg. across 8 sessions</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 2 }}>Sample profile</div>
+              <div style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.3)" }}>avg. across 8 sessions</div>
             </div>
             {dimensions.map((d, i) => (
               <DimBar key={d.label} label={d.label} score={d.score} delay={i * 60} visible={dims.visible} />
@@ -207,23 +207,23 @@ export default function LandingPage() {
               transform: arch.visible ? "translateY(0)" : "translateY(24px)",
               transition: "opacity 0.65s ease, transform 0.65s ease",
             }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 12 }}>
+              <div style={{ fontSize: 11, fontWeight: 500, color: "#A78BFA", marginBottom: 12 }}>
                 Communication archetype
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: -0.3 }}>The Hedger</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.45)", marginBottom: 20 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 5, letterSpacing: -0.2 }}>The Hedger</div>
+              <div style={{ fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
                 Sharp thinking, softened delivery
               </div>
 
               <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", marginBottom: 8 }}>What interviewers hear</div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>What interviewers hear</div>
                 <div style={{ fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.6)", fontStyle: "italic" }}>
                   "A well-prepared candidate who seems uncertain whether they deserve the credit."
                 </div>
               </div>
 
               <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "#60A5FA", textTransform: "uppercase", marginBottom: 8 }}>Coaching action</div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: "#93C5FD", marginBottom: 8 }}>Coaching action</div>
                 <div style={{ fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.6)" }}>
                   Replace "I helped with" → "I owned". Replace "we kind of" → "I drove".
                   Say the revised version out loud once before your next attempt.
@@ -240,7 +240,7 @@ export default function LandingPage() {
 
           <div>
             <Fade>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
                 You have a communication pattern. Most people never find out what it is.
               </h2>
             </Fade>
@@ -267,7 +267,7 @@ export default function LandingPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start", marginBottom: 48 }}>
             <Fade>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
                 Your voice has a pattern. Most interviewers can hear it. You can not.
               </h2>
               <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
@@ -283,17 +283,17 @@ export default function LandingPage() {
                 border: "1px solid rgba(14,165,233,0.25)",
                 background: "rgba(14,165,233,0.06)",
               }}>
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, color: "#0EA5E9", textTransform: "uppercase", marginBottom: 10 }}>Delivery archetype</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Flat Articulate</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#93C5FD", marginBottom: 10 }}>Delivery archetype</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Flat Articulate</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 18 }}>Clear words, flat delivery</div>
                 <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 12 }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 6 }}>What interviewers hear</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>What interviewers hear</div>
                   <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)", fontStyle: "italic" }}>
                     "Smart candidate, but hard to stay engaged with. Everything sounds the same."
                   </div>
                 </div>
                 <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.6, color: "#38BDF8", textTransform: "uppercase", marginBottom: 6 }}>One fix</div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#60A5FA", marginBottom: 6 }}>One fix</div>
                   <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)" }}>
                     Pick the single most important outcome in your answer and hit it louder, slower, and with a half-second pause before it. Record yourself doing it once.
                   </div>
@@ -321,7 +321,7 @@ export default function LandingPage() {
                 transform: vocal.visible ? "translateY(0)" : "translateY(20px)",
                 transition: `opacity 0.55s ease ${m.delay}ms, transform 0.55s ease ${m.delay}ms`,
               }}>
-                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.7, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", marginBottom: 10 }}>{m.label}</div>
+                <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{m.label}</div>
                 <div style={{ fontSize: 26, fontWeight: 800, color: m.color, letterSpacing: -0.3, marginBottom: 8 }}>{m.value}</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{m.note}</div>
               </div>
@@ -353,7 +353,7 @@ export default function LandingPage() {
                   transform: visual.visible ? "translateY(0)" : "translateY(16px)",
                   transition: `opacity 0.5s ease ${m.delay}ms, transform 0.5s ease ${m.delay}ms`,
                 }}>
-                  <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>{m.label}</div>
+                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", marginBottom: 8 }}>{m.label}</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: m.color, marginBottom: 6 }}>{m.value}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.5 }}>{m.note}</div>
                 </div>
@@ -362,7 +362,7 @@ export default function LandingPage() {
 
             <div>
               <Fade>
-                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
                   Your face is giving an interview too.
                 </h2>
               </Fade>
@@ -394,7 +394,7 @@ export default function LandingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "60px 80px", alignItems: "start" }}>
             <div>
               <Fade>
-                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
                   What your word choices are signaling.
                 </h2>
               </Fade>
@@ -445,7 +445,7 @@ export default function LandingPage() {
       <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <Fade>
-            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 40px", maxWidth: 560 }}>
+            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 40px", maxWidth: 560 }}>
               Everything you need to run a real job search.
             </h2>
           </Fade>
@@ -485,19 +485,18 @@ export default function LandingPage() {
                 }}>
                   <div style={{
                     display: "inline-block",
-                    padding: "4px 10px",
-                    borderRadius: 6,
-                    background: `${tool.color}15`,
+                    padding: "3px 9px",
+                    borderRadius: 5,
+                    background: `${tool.color}12`,
+                    border: `1px solid ${tool.color}25`,
                     fontSize: 11,
-                    fontWeight: 900,
+                    fontWeight: 500,
                     color: tool.color,
-                    letterSpacing: 0.6,
-                    textTransform: "uppercase",
-                    marginBottom: 18,
+                    marginBottom: 16,
                   }}>
                     {tool.label}
                   </div>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", lineHeight: 1.4, marginBottom: 12 }}>{tool.head}</div>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: "#fff", lineHeight: 1.45, marginBottom: 12 }}>{tool.head}</div>
                   <div style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.45)" }}>{tool.body}</div>
                 </div>
               </Fade>
@@ -509,7 +508,7 @@ export default function LandingPage() {
       {/* ── CTA ── */}
       <section style={{ padding: "120px 24px", textAlign: "center" }}>
         <Fade>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 800, letterSpacing: -0.3, margin: "0 0 16px", lineHeight: 1.2 }}>
+          <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 700, letterSpacing: -0.2, margin: "0 0 16px", lineHeight: 1.25 }}>
             Three sessions free. No card required.
           </h2>
         </Fade>
@@ -570,36 +569,32 @@ function HeroContent() {
   return (
     <div style={{ maxWidth: 760 }}>
       <div style={{
-        display: "inline-flex", alignItems: "center", gap: 8,
-        padding: "6px 14px", borderRadius: 99,
-        border: "1px solid rgba(37,99,235,0.35)",
-        background: "rgba(37,99,235,0.1)",
-        fontSize: 12, fontWeight: 900,
-        color: "#60A5FA", letterSpacing: 0.8,
-        textTransform: "uppercase" as const,
-        marginBottom: 32,
+        display: "inline-flex", alignItems: "center", gap: 7,
+        padding: "5px 12px", borderRadius: 6,
+        border: "1px solid rgba(59,130,246,0.3)",
+        background: "rgba(59,130,246,0.08)",
+        fontSize: 12, fontWeight: 600,
+        color: "#93C5FD", letterSpacing: 0.2,
+        marginBottom: 28,
         opacity: visible ? 1 : 0,
         transition: "opacity 0.6s ease",
       }}>
-        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#60A5FA", boxShadow: "0 0 8px #60A5FA" }} />
-        AI interview coaching
+        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#3B82F6" }} />
+        Interview intelligence
       </div>
 
       <h1 style={{
-        margin: "0 0 24px",
-        fontSize: "clamp(36px, 5.5vw, 60px)",
-        fontWeight: 800,
-        lineHeight: 1.15,
-        letterSpacing: -0.4,
-        color: "#fff",
+        margin: "0 0 22px",
+        fontSize: "clamp(34px, 5vw, 56px)",
+        fontWeight: 700,
+        lineHeight: 1.18,
+        letterSpacing: -0.3,
+        color: "#F1F5F9",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(20px)",
         transition: "opacity 0.65s ease 120ms, transform 0.65s ease 120ms",
       }}>
-        Know exactly how<br />
-        <span style={{ background: "linear-gradient(135deg, #2563EB 20%, #0EA5E9 80%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          you interview.
-        </span>
+        Know exactly how you interview.
       </h1>
 
       <p style={{

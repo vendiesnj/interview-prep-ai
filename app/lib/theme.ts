@@ -57,34 +57,34 @@ export const defaultTheme: AppTheme = {
   name: "ipc-default",
 
   colors: {
-    pageBg: "#0B1020",
-    pageBgAccentA: "rgba(99,102,241,0.16)",
-    pageBgAccentB: "rgba(34,211,238,0.12)",
+    pageBg: "#0F1117",
+    pageBgAccentA: "rgba(37,99,235,0.08)",
+    pageBgAccentB: "rgba(37,99,235,0.04)",
 
     text: "#E5E7EB",
     textMuted: "#9CA3AF",
     textSoft: "#6B7280",
 
-    cardBg: "rgba(255,255,255,0.03)",
-    cardBgStrong: "rgba(255,255,255,0.05)",
-    cardBorder: "rgba(255,255,255,0.10)",
-    cardBorderSoft: "rgba(255,255,255,0.08)",
+    cardBg: "rgba(255,255,255,0.035)",
+    cardBgStrong: "rgba(255,255,255,0.055)",
+    cardBorder: "rgba(255,255,255,0.09)",
+    cardBorderSoft: "rgba(255,255,255,0.065)",
 
-    inputBg: "rgba(17,24,39,0.48)",
-    inputBorder: "rgba(255,255,255,0.08)",
+    inputBg: "rgba(15,17,23,0.6)",
+    inputBorder: "rgba(255,255,255,0.09)",
 
-    accent: "#67E8F9",
-    accentSoft: "rgba(34,211,238,0.10)",
-    accentStrong: "rgba(34,211,238,0.30)",
+    accent: "#3B82F6",
+    accentSoft: "rgba(59,130,246,0.12)",
+    accentStrong: "rgba(59,130,246,0.28)",
 
-    accent2: "#818CF8",
-    accent2Soft: "rgba(99,102,241,0.18)",
+    accent2: "#6366F1",
+    accent2Soft: "rgba(99,102,241,0.14)",
 
-    danger: "#FCA5A5",
-    dangerSoft: "rgba(252,165,165,0.10)",
+    danger: "#F87171",
+    dangerSoft: "rgba(248,113,113,0.10)",
 
-    success: "#86EFAC",
-    successSoft: "rgba(134,239,172,0.12)",
+    success: "#4ADE80",
+    successSoft: "rgba(74,222,128,0.10)",
 
     chartPositive: "#22C55E",
     chartNegative: "#F87171",
@@ -93,17 +93,17 @@ export const defaultTheme: AppTheme = {
   },
 
   radii: {
-    xs: 10,
-    sm: 12,
-    md: 16,
-    lg: 18,
-    xl: 20,
+    xs: 6,
+    sm: 8,
+    md: 10,
+    lg: 12,
+    xl: 16,
   },
 
   shadows: {
-    card: "0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06)",
-    cardSoft: "inset 0 1px 0 rgba(255,255,255,0.04)",
-    glow: "0 12px 28px rgba(34,211,238,0.12)",
+    card: "0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.40)",
+    cardSoft: "0 1px 0 rgba(255,255,255,0.04)",
+    glow: "0 8px 24px rgba(59,130,246,0.18)",
     none: "none",
   },
 };
@@ -235,44 +235,20 @@ export const pitchTheme: AppTheme = {
   name: "pitch",
   colors: {
     ...defaultTheme.colors,
-    pageBg: "#0A1022",
-    pageBgAccentA: "rgba(99,102,241,0.14)",
-    pageBgAccentB: "rgba(34,211,238,0.10)",
+    pageBg: "#0C1221",
+    pageBgAccentA: "rgba(99,102,241,0.09)",
+    pageBgAccentB: "rgba(59,130,246,0.06)",
 
-    text: "#F3F6FB",
-    textMuted: "#A7B0C0",
-    textSoft: "#7F8AA0",
+    text: "#F1F5FB",
+    textMuted: "#A3AEBE",
+    textSoft: "#7A8499",
 
-    cardBg: "rgba(255,255,255,0.04)",
-    cardBgStrong: "rgba(255,255,255,0.06)",
-    cardBorder: "rgba(255,255,255,0.10)",
-    cardBorderSoft: "rgba(255,255,255,0.07)",
-
-    inputBg: "rgba(15,23,42,0.72)",
-    inputBorder: "rgba(255,255,255,0.10)",
-
-    accent: "#6EE7F9",
-    accentSoft: "rgba(110,231,249,0.12)",
-    accentStrong: "rgba(110,231,249,0.30)",
-
-    accent2: "#8B5CF6",
-    accent2Soft: "rgba(139,92,246,0.18)",
-
-    danger: "#FCA5A5",
-    dangerSoft: "rgba(252,165,165,0.10)",
-
-    success: "#86EFAC",
-    successSoft: "rgba(134,239,172,0.12)",
-
-    chartPositive: "#22C55E",
-    chartNegative: "#F87171",
-    chartNeutral: "#F59E0B",
-    chartCritical: "#EF4444",
+    inputBg: "rgba(12,18,33,0.70)",
   },
   shadows: {
-    card: "0 20px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)",
-    cardSoft: "0 10px 30px rgba(0,0,0,0.18)",
-    glow: "0 14px 34px rgba(110,231,249,0.14)",
+    card: "0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.48)",
+    cardSoft: "0 1px 0 rgba(255,255,255,0.04)",
+    glow: "0 8px 24px rgba(99,102,241,0.20)",
     none: "none",
   },
 };
@@ -281,39 +257,39 @@ export const lightTheme: AppTheme = {
   name: "ipc-light",
 
   colors: {
-    // Warm off-white background (PostHog-inspired)
-    pageBg: "#F8F7F5",
-    pageBgAccentA: "rgba(37,99,235,0.04)",
-    pageBgAccentB: "rgba(14,165,233,0.03)",
+    // Cool neutral background — not warm, not white, not gray. Analysis-tool neutral.
+    pageBg: "#F4F6F9",
+    pageBgAccentA: "rgba(37,99,235,0.025)",
+    pageBgAccentB: "rgba(37,99,235,0.015)",
 
-    // Warm near-black typography
-    text: "#1C1917",
-    textMuted: "#78716C",
-    textSoft: "#A8A29E",
+    // Cool near-black typography
+    text: "#111827",
+    textMuted: "#6B7280",
+    textSoft: "#9CA3AF",
 
-    // Cards: white on warm-gray page
+    // White cards on cool-gray page — crisp, defined borders
     cardBg: "#FFFFFF",
-    cardBgStrong: "#FAFAF9",
-    cardBorder: "rgba(28,25,23,0.08)",
-    cardBorderSoft: "rgba(28,25,23,0.05)",
+    cardBgStrong: "#F9FAFB",
+    cardBorder: "rgba(17,24,39,0.09)",
+    cardBorderSoft: "rgba(17,24,39,0.06)",
 
     inputBg: "#FFFFFF",
-    inputBorder: "rgba(28,25,23,0.12)",
+    inputBorder: "rgba(17,24,39,0.12)",
 
-    // Blue as the primary accent
+    // Single precise blue accent — no neon, no teal
     accent: "#2563EB",
-    accentSoft: "rgba(37,99,235,0.08)",
-    accentStrong: "rgba(37,99,235,0.20)",
+    accentSoft: "rgba(37,99,235,0.07)",
+    accentStrong: "rgba(37,99,235,0.16)",
 
-    // Sky blue as the secondary accent
-    accent2: "#0EA5E9",
-    accent2Soft: "rgba(14,165,233,0.09)",
+    // Slate as the secondary (used for tags, secondary actions)
+    accent2: "#475569",
+    accent2Soft: "rgba(71,85,105,0.08)",
 
     danger: "#DC2626",
     dangerSoft: "rgba(220,38,38,0.07)",
 
     success: "#16A34A",
-    successSoft: "rgba(22,163,74,0.08)",
+    successSoft: "rgba(22,163,74,0.07)",
 
     chartPositive: "#16A34A",
     chartNegative: "#DC2626",
@@ -322,17 +298,17 @@ export const lightTheme: AppTheme = {
   },
 
   radii: {
-    xs: 8,
-    sm: 10,
-    md: 14,
-    lg: 16,
-    xl: 20,
+    xs: 6,
+    sm: 8,
+    md: 10,
+    lg: 12,
+    xl: 16,
   },
 
   shadows: {
-    card: "0 1px 2px rgba(28,25,23,0.06), 0 4px 16px rgba(28,25,23,0.06)",
-    cardSoft: "0 1px 2px rgba(28,25,23,0.04), 0 2px 8px rgba(28,25,23,0.03)",
-    glow: "0 8px 24px rgba(37,99,235,0.18)",
+    card: "0 1px 3px rgba(17,24,39,0.07), 0 4px 12px rgba(17,24,39,0.05)",
+    cardSoft: "0 1px 2px rgba(17,24,39,0.04)",
+    glow: "0 6px 20px rgba(37,99,235,0.14)",
     none: "none",
   },
 };
@@ -366,24 +342,7 @@ export const demoCollegeTheme: AppTheme = {
 export const ipcBlueTheme: AppTheme = {
   ...lightTheme,
   name: "ipc-blue",
-  colors: {
-    ...lightTheme.colors,
-    pageBgAccentA: "rgba(29,78,216,0.05)",
-    pageBgAccentB: "rgba(2,132,199,0.04)",
-
-    accent: "#1D4ED8",
-    accentSoft: "rgba(29,78,216,0.08)",
-    accentStrong: "rgba(29,78,216,0.20)",
-
-    accent2: "#0284C7",
-    accent2Soft: "rgba(2,132,199,0.09)",
-  },
-  shadows: {
-    card: "0 1px 2px rgba(28,25,23,0.06), 0 4px 16px rgba(29,78,216,0.07)",
-    cardSoft: "0 1px 2px rgba(28,25,23,0.04), 0 2px 8px rgba(28,25,23,0.03)",
-    glow: "0 8px 24px rgba(29,78,216,0.22)",
-    none: "none",
-  },
+  // Inherits all lightTheme values — accent is already #2563EB, radii are already tightened
 };
 
 // Roosevelt University - Forest green (#1E6B2E) + dark green secondary
