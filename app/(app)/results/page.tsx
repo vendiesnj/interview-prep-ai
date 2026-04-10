@@ -1473,12 +1473,16 @@ const longPausesPerMin =
               )}
 
               {/* Dimension coaching — gaps first */}
-              {dimensionScores && (
+              {(() => {
+                if (!dimensionScores) return null;
+                const dimItems = DIM_ORDER
+                  .map(k => { const d = dimensionScores[k]; return (d && typeof d === "object") ? { key: k, ...d } : null; })
+                  .filter((d): d is NonNullable<typeof d> => !!d && typeof (d as any).score === "number" && !!(d as any).label);
+                if (dimItems.length === 0) return null;
+                return (
                 <PremiumCard>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Dimension Analysis</div>
-                  {DIM_ORDER
-                    .map(k => { const d = dimensionScores[k]; return (d && typeof d === "object") ? { key: k, ...d } : null; })
-                    .filter((d): d is NonNullable<typeof d> => !!d && typeof (d as any).score === "number" && !!(d as any).label)
+                  {dimItems
                     .sort((a, b) => {
                       if (a.isGap && !b.isGap) return -1;
                       if (!a.isGap && b.isGap) return 1;
@@ -1521,7 +1525,8 @@ const longPausesPerMin =
                     ))
                   }
                 </PremiumCard>
-              )}
+                );
+              })()}
 
               {/* What's working + Focus area */}
               {(topStrengths.length > 0 || topImprovements.length > 0) && (
@@ -1641,7 +1646,7 @@ const longPausesPerMin =
               )}
 
               {/* Delivery signals */}
-              {(stored?.wpm != null || acousticsNorm?.monotoneScore != null || acousticsNorm?.energyVariation != null) && (
+              {(stored?.wpm != null || acousticsNorm?.monotoneScore != null || acousticsNorm?.energyVariation != null || (dm as any)?.face?.eyeContact != null) && (
                 <PremiumCard>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Delivery Signals</div>
                   {series && speechMoments.length > 0 && (
@@ -1678,7 +1683,7 @@ const longPausesPerMin =
                     )}
                   </div>
                   {(() => {
-                    const insight = crossSignalInsight(acousticsNorm?.monotoneScore, acousticsNorm?.energyVariation, stored?.wpm, acousticsNorm?.pitchStd, (stored as any)?.faceMetrics?.eyeContact ?? null);
+                    const insight = crossSignalInsight(acousticsNorm?.monotoneScore, acousticsNorm?.energyVariation, stored?.wpm, acousticsNorm?.pitchStd, (stored as any)?.faceMetrics?.eyeContact ?? (dm as any)?.face?.eyeContact ?? null);
                     if (!insight) return null;
                     return (
                       <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
@@ -1691,7 +1696,7 @@ const longPausesPerMin =
 
               {/* Visual presence panel */}
               {(() => {
-                const fm = (stored as any)?.faceMetrics;
+                const fm = (stored as any)?.faceMetrics ?? (dm as any)?.face ?? null;
                 if (!fm || typeof fm.eyeContact !== "number") return null;
                 type VRow = { label: string; raw: number | null; display: string; hint: string; goodHigh: boolean; max: number };
                 const blinkOk = typeof fm.blinkRate === "number" && fm.blinkRate >= 10 && fm.blinkRate <= 25;

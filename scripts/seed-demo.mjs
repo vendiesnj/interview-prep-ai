@@ -171,35 +171,70 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
       fillers_per_100_words: Math.max(0, (10 - score) * 0.9),
       by_type: { "um": Math.floor(Math.max(0, (10 - score))), "like": Math.floor(Math.max(0, (9.5 - score) * 0.8)) },
     },
+    // filler in the format results page expects
+    filler: {
+      total: Math.floor(Math.max(0, (10 - score) * 2.5)),
+      words: 280 + Math.floor(Math.random() * 80),
+      per100: parseFloat(Math.max(0, (10 - score) * 0.9).toFixed(1)),
+      top: [{ word: "um", count: Math.floor(Math.max(0, (10 - score))) }],
+    },
     dimension_scores: (() => {
+      // Give each dimension independent variance so they show clear differentiation
+      const v = () => (Math.random() * 2.4 - 1.2); // ±1.2 range
       const dims = {
-        narrative_clarity:   { label: "Narrative Clarity",    s: Math.min(10, score + (Math.random() * 0.8 - 0.4)) },
-        evidence_quality:    { label: "Evidence Quality",     s: Math.min(10, score - 0.3 + (Math.random() * 0.6)) },
-        ownership_agency:    { label: "Ownership & Agency",   s: Math.min(10, confScore + (Math.random() * 0.4 - 0.2)) },
-        vocal_engagement:    { label: "Vocal Engagement",     s: Math.min(10, commScore + (Math.random() * 0.6 - 0.3)) },
-        response_control:    { label: "Response Control",     s: Math.min(10, score + 0.2 + (Math.random() * 0.4 - 0.2)) },
-        cognitive_depth:     { label: "Cognitive Depth",      s: Math.min(10, score - 0.1 + (Math.random() * 0.5 - 0.25)) },
-        presence_confidence: { label: "Presence & Confidence",s: Math.min(10, confScore - 0.2 + (Math.random() * 0.4)) },
+        narrative_clarity:   { label: "Narrative Clarity",     s: Math.min(10, Math.max(0, score + v())) },
+        evidence_quality:    { label: "Evidence Quality",      s: Math.min(10, Math.max(0, score - 0.8 + v())) },
+        ownership_agency:    { label: "Ownership & Agency",    s: Math.min(10, Math.max(0, confScore + v())) },
+        vocal_engagement:    { label: "Vocal Engagement",      s: Math.min(10, Math.max(0, commScore - 0.5 + v())) },
+        response_control:    { label: "Response Control",      s: Math.min(10, Math.max(0, score + 0.3 + v())) },
+        cognitive_depth:     { label: "Cognitive Depth",       s: Math.min(10, Math.max(0, score - 1.2 + v())) },
+        presence_confidence: { label: "Presence & Confidence", s: Math.min(10, Math.max(0, confScore - 0.4 + v())) },
       };
       const result = {};
       for (const [key, { label, s }] of Object.entries(dims)) {
         const sc = parseFloat(s.toFixed(1));
-        result[key] = { label, score: sc, coaching: sc >= 7.5 ? `Strong ${label.toLowerCase()} — keep this up.` : `Work on ${label.toLowerCase()} to raise your score.`, isStrength: sc >= 7.5, isGap: sc < 5.5, driverSignals: [] };
+        const coaching = sc >= 7.5
+          ? `${label} is a clear strength — maintain this consistency.`
+          : sc >= 5.5
+          ? `${label} is solid but has room to improve. Focus on specificity and ownership.`
+          : `${label} needs work — this is a priority area for your next few attempts.`;
+        result[key] = { label, score: sc, coaching, isStrength: sc >= 7.5, isGap: sc < 5.5, driverSignals: [] };
       }
       return result;
     })(),
   };
 }
 
-function makeDeliveryMetrics(wpm, fillers) {
+function makeDeliveryMetrics(wpm, fillers, score) {
+  const monotone = Math.max(1, Math.min(9, 7 - (score - 6) * 1.2 + (Math.random() * 1.4 - 0.7)));
+  const pitchRange = 80 + Math.floor(score * 8) + Math.floor(Math.random() * 30);
+  const energyVar = Math.max(1, Math.min(9, (score - 5) * 1.5 + (Math.random() * 1.0 - 0.5)));
+  const eyeContact = Math.min(0.95, 0.45 + (score - 5.5) * 0.08 + Math.random() * 0.08);
   return {
     wpm,
     fillers: Array(fillers).fill("um"),
     words: Math.floor(wpm * 1.8),
     duration_seconds: 108,
-    pitch_range_hz: 85 + Math.floor(Math.random() * 40),
-    amplitude_variation: 0.3 + Math.random() * 0.3,
-    pause_rate: 0.04 + Math.random() * 0.06,
+    // acoustics in the format the results page reads (dm?.acoustics)
+    acoustics: {
+      monotoneScore: parseFloat(monotone.toFixed(1)),
+      pitchRange,
+      pitchMean: 150 + Math.floor(Math.random() * 30),
+      pitchStd: 20 + Math.floor(Math.random() * 15),
+      energyVariation: parseFloat(energyVar.toFixed(1)),
+      energyMean: 0.55 + Math.random() * 0.15,
+      energyStd: 0.04 + Math.random() * 0.04,
+    },
+    // face metrics in the format the results page reads (dm?.face or stored.faceMetrics)
+    face: {
+      eyeContact: parseFloat(eyeContact.toFixed(2)),
+      expressiveness: parseFloat(Math.min(0.9, 0.3 + score * 0.05 + Math.random() * 0.1).toFixed(2)),
+      headStability: parseFloat(Math.min(0.98, 0.7 + Math.random() * 0.2).toFixed(2)),
+      smileRate: parseFloat(Math.min(0.5, 0.05 + score * 0.02 + Math.random() * 0.08).toFixed(2)),
+      blinkRate: Math.floor(12 + Math.random() * 8),
+      browEngagement: parseFloat(Math.min(0.4, 0.05 + score * 0.02 + Math.random() * 0.05).toFixed(2)),
+      lookAwayRate: parseFloat(Math.max(0.02, 0.25 - score * 0.02 + Math.random() * 0.05).toFixed(2)),
+    },
   };
 }
 
@@ -260,13 +295,7 @@ for (let i = 0; i < attemptData.length; i++) {
       wpm: d.wpm,
       durationSeconds: 95 + Math.floor(Math.random() * 30),
       feedback: makeFeedback(d.score, d.comm, d.conf, d.arch, q.q),
-      deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers),
-      prosody: {
-        wpm: d.wpm,
-        pitch_mean: 165 + Math.floor(Math.random() * 20),
-        energy_mean: 0.62 + Math.random() * 0.12,
-        pause_count: 4 + Math.floor(Math.random() * 4),
-      },
+      deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers, d.score),
     },
   });
 }

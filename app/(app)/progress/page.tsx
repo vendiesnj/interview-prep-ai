@@ -238,7 +238,6 @@ function getPrimaryDeliveryPriority(input: {
   avgPace: number | null;
   avgFillers: number | null;
   avgMonotone: number | null;
-  avgStarResult: number | null;
 }) {
   const candidates = [
     {
@@ -274,17 +273,6 @@ function getPrimaryDeliveryPriority(input: {
           ? 8
           : input.avgMonotone >= 4.5
           ? 4
-          : 1,
-    },
-    {
-      key: "closing",
-      score:
-        input.avgStarResult === null
-          ? -1
-          : input.avgStarResult <= 6
-          ? 9
-          : input.avgStarResult <= 7
-          ? 5
           : 1,
     },
   ];
@@ -1658,12 +1646,8 @@ export default function ProgressPage() {
       avgPace: overview.avgPace,
       avgFillers: overview.avgFillers,
       avgMonotone: overview.avgMonotone,
-      avgStarResult: overview.avgStarResult,
     });
 
-    if (primaryPriority === "closing") {
-      reminders.push("Your main focus is ending stronger: decide your final result sentence before you start speaking.");
-    }
     if (primaryPriority === "fillers") {
       reminders.push("Your main focus is polish: pause briefly instead of filling silence.");
     }
@@ -1952,7 +1936,7 @@ export default function ProgressPage() {
                     { label: "Pace", value: overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} wpm`, subtext: paceCoaching(overview.avgPace), score: overview.avgPace !== null ? (overview.avgPace >= 115 && overview.avgPace <= 145 ? 9 : overview.avgPace > 165 || overview.avgPace < 100 ? 4 : 7) : null },
                     { label: "Fillers", value: overview.avgFillers === null ? "—" : `${overview.avgFillers}/100w`, subtext: fillerCoaching(overview.avgFillers), score: overview.avgFillers !== null ? (overview.avgFillers <= 1.5 ? 9 : overview.avgFillers < 3 ? 7 : 4) : null },
                     { label: "Vocal variety", value: overview.avgMonotone === null ? "—" : `${overview.avgMonotone?.toFixed(1)}/10`, subtext: monotoneCoaching(overview.avgMonotone), score: overview.avgMonotone !== null ? (overview.avgMonotone <= 4 ? 9 : overview.avgMonotone <= 6 ? 7 : 4) : null },
-                    { label: "Closing impact", value: overview.avgStarResult === null ? "—" : displayTenPointAs100(overview.avgStarResult), subtext: resultCoaching(overview.avgStarResult), score: overview.avgStarResult !== null ? (overview.avgStarResult >= 7.5 ? 9 : overview.avgStarResult >= 6 ? 7 : 4) : null },
+                    { label: "Avg overall score", value: overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall), subtext: scoreLabel(overview.avgOverall), score: overview.avgOverall !== null ? (overview.avgOverall >= 7.5 ? 9 : overview.avgOverall >= 6 ? 7 : 4) : null },
                   ].map(({ label, value, subtext, score }) => {
                     const color = score === null ? "var(--text-muted)" : score >= 8 ? "#10B981" : score >= 6 ? "var(--accent)" : "#EF4444";
                     return (
