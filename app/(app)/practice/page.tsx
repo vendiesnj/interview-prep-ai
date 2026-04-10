@@ -25,6 +25,7 @@ import { userScopedKey } from "@/app/lib/userStorage";
 import type { AttemptEntitlement } from "@/app/lib/entitlements";
 import { posthog } from "@/app/lib/posthog-client";
 import { classifyEvaluationFramework } from "@/app/lib/questionFramework";
+import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
 import {
   asOverall100,
   asTenPoint,
@@ -2192,6 +2193,11 @@ const res = await fetch("/api/feedback", {
     faceMetrics: faceMetricsRef.current ?? null,
     prevScore: history[0]?.score ?? null,
     prevAttemptCount: history.length,
+    prevImprovementThemeKeys: Array.isArray((history[0]?.feedback as any)?.improvement_theme_keys)
+      ? (history[0]?.feedback as any).improvement_theme_keys
+      : null,
+    // Build full coaching profile from ALL history — not just the last few attempts
+    userProfile: history.length > 0 ? buildUserCoachingProfile(history) : null,
     eslMode,
   }),
 });

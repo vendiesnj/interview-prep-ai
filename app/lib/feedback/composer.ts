@@ -1231,9 +1231,6 @@ function buildMissedOpportunities(args: ComposeArgs, diagnosis: ReturnType<typeo
     });
   }
 
-  if (!opportunities.length) {
-    opportunities.push({ label: "Make the final takeaway clearer", why: "The answer is workable, but the ending could be more memorable.", add_sentence: "The main takeaway is that I drove a concrete improvement and can explain exactly how it happened." });
-  }
   return opportunities.slice(0, 2);
 }
 
@@ -1273,7 +1270,7 @@ function buildCompoundNote(
     d.vocalDynamics === "flat" &&
     archetype !== "Polished Performer"
   ) {
-    return "Your story structure is interview-ready — the only gap is delivery. Slow down and add a slight pitch lift on your result sentence. The content is already there; you just need to let it land.";
+    return "Your story structure is interview-ready. The only gap is delivery. Slow down and add a slight pitch lift on your result sentence. The content is already there; you just need to let it land.";
   }
 
   // Specific evidence but wandering structure — the data exists but it's buried
@@ -1282,7 +1279,7 @@ function buildCompoundNote(
     a.evidenceMode === "metrics_forward" &&
     a.structure === "weak"
   ) {
-    return "You have the right proof points — numbers and metrics are present — but they're arriving out of order. Lead with your action, then your result, and the specifics will land much harder.";
+    return "You have the right proof points (numbers and metrics are present) but they are arriving out of order. Lead with your action, then your result, and the specifics will land much harder.";
   }
 
   // Strong ownership + weak outcome — committing but not closing
@@ -1291,7 +1288,7 @@ function buildCompoundNote(
     a.outcomeStrength === "weak" &&
     a.structure !== "weak"
   ) {
-    return "The ownership is clear and the structure holds — the gap is the result. One sentence with a concrete number or observable change will complete this answer.";
+    return "The ownership is clear and the structure holds. The gap is the result. One sentence with a concrete number or observable change will complete this answer.";
   }
 
   // Rushed pace + weak result — speed is hiding the impact
@@ -1299,7 +1296,7 @@ function buildCompoundNote(
     d.pace === "rushed" &&
     a.outcomeStrength === "weak"
   ) {
-    return "The pace is compressing your result section — the most important part of the answer. Slow specifically at your outcome sentence. That single adjustment will raise the score more than anything else.";
+    return "The pace is compressing your result section, which is the most important part of the answer. Slow specifically at your outcome sentence. That single adjustment will raise the score more than anything else.";
   }
 
   // Very high filler rate + strong content — noise masking the signal
@@ -1308,7 +1305,7 @@ function buildCompoundNote(
     a.structure === "strong" &&
     a.outcomeStrength !== "weak"
   ) {
-    return "Strong content is getting obscured by filler words. The story itself is solid — reducing fillers will let the structure and results land the way they deserve to.";
+    return "Strong content is getting obscured by filler words. The story itself is solid. Reducing fillers will let the structure and results land the way they deserve to.";
   }
 
   return null;
@@ -1395,18 +1392,13 @@ export function composeRichFeedback(args: ComposeArgs) {
   const seedNum = hashString(seed);
   const diagnosis = buildDiagnosis(args);
 
-  const strengths = buildStrengthCopy(args, diagnosis, seed);
-  const improvements = buildImprovementCopy(args, diagnosis, seed);
   const missed_opportunities = buildMissedOpportunities(args, diagnosis);
-
-  const roleMismatchLine = diagnosis.improvementThemes.some((t) => t.key === "role_alignment")
-    ? roleLine(diagnosis.roleFamily, "mismatch", seed, "role-mismatch")
-    : undefined;
 
   const next: any = {
     ...args.normalized,
-    strengths: dedupe([...strengths, ...(Array.isArray(args.normalized?.strengths) ? args.normalized.strengths : [])]).slice(0, 3),
-    improvements: dedupe([...improvements, ...(roleMismatchLine ? [roleMismatchLine] : []), ...(Array.isArray(args.normalized?.improvements) ? args.normalized.improvements : [])]).slice(0, 3),
+    // Use only LLM-generated strengths and improvements — no pre-generated copy merged in.
+    strengths: dedupe(Array.isArray(args.normalized?.strengths) ? args.normalized.strengths : []).slice(0, 5),
+    improvements: dedupe(Array.isArray(args.normalized?.improvements) ? args.normalized.improvements : []).slice(0, 4),
     missed_opportunities,
     confidence_explanation: buildConfidenceExplanation(args, diagnosis, seed),
     better_answer: enrichBetterAnswer(typeof args.normalized?.better_answer === "string" ? args.normalized.better_answer : "", diagnosis),

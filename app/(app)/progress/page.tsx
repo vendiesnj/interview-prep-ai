@@ -9,6 +9,7 @@ import { useSession } from "next-auth/react";
 import { useIsUniversity } from "@/app/hooks/usePlan";
 import { userScopedKey } from "@/app/lib/userStorage";
 import { computeNaceProfile } from "@/app/lib/nace";
+import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
 import { downloadNacePdf } from "@/app/lib/nace-pdf";
 import {
   asOverall100,
@@ -1749,9 +1750,15 @@ export default function ProgressPage() {
     })),
   });
 
+  // ── Coaching Profile (full-history, all-signal) ───────────────────────────────
+  const coachingProfile = useMemo(() => {
+    if (history.length < 2) return null;
+    return buildUserCoachingProfile(history);
+  }, [history]);
+
   return (
     <PremiumShell title="Insights">
-      <div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: 6 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 6 }}>
         {loadState === "hydrating" ? (
           <PremiumCard>
             <div style={{ display: "grid", gap: 10 }}>
@@ -1764,276 +1771,432 @@ export default function ProgressPage() {
           <PremiumCard>
             <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>No insights yet</div>
             <div style={{ marginTop: 10, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>
-              Complete a few interview attempts to unlock trends, strengths, weaknesses, role-based performance, and pre-interview notes.
+              Complete a few interview attempts to unlock trends, strengths, weaknesses, role fit, and a personalized coaching profile.
             </div>
           </PremiumCard>
         ) : (
           <>
-
-            {/* ── SECTION 1: Hero stats ─────────────────────────────────────── */}
+            {/* ── THE BRIEF ──────────────────────────────────────────────────────── */}
             <div style={{
-              padding: "22px 24px",
+              padding: "26px 30px",
               borderRadius: "var(--radius-lg)",
-              background: "linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(14,165,233,0.06) 100%)",
-              border: "1px solid rgba(37,99,235,0.20)",
-              borderLeft: "3px solid var(--accent)",
+              background: "linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(14,165,233,0.04) 100%)",
+              border: "1px solid rgba(37,99,235,0.18)",
+              borderLeft: "4px solid var(--accent)",
             }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 16, textTransform: "uppercase" as const }}>
-                Performance at a glance · {overview.totalAttempts} attempt{overview.totalAttempts !== 1 ? "s" : ""}
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 14 }}>
-                <BigMetricCard
-                  label="Avg Overall"
-                  value={overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall)}
-                  subtext={percentiles.overall !== null ? `Top ${100 - percentiles.overall}% of candidates` : scoreLabel(overview.avgOverall)}
-                />
-                <BigMetricCard
-                  label="Top Strength"
-                  value={strongestDimension?.label ?? "—"}
-                  subtext={strongestDimension?.value != null ? `${displayTenPointAs100(strongestDimension.value)} avg` : "Build more history"}
-                />
-                <BigMetricCard
-                  label="Biggest Gap"
-                  value={biggestGap?.label ?? "—"}
-                  subtext={biggestGap?.value != null ? `${displayTenPointAs100(biggestGap.value)} avg` : "Build more history"}
-                />
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, alignItems: "start" }}>
-                <div>
-                  <MiniSparkline values={recentScoreSeries} />
+              <div style={{ display: "grid", gridTemplateColumns: "96px 1fr", gap: 28, alignItems: "start" }}>
+                {/* Score column */}
+                <div style={{ textAlign: "center" as const }}>
+                  <div style={{ fontSize: 54, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
+                    {overview.avgOverall === null ? "—" : Math.round(overview.avgOverall)}
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>/100 avg</div>
+                  <div style={{ marginTop: 10 }}>
+                    {(() => {
+                      const delta = trendSummary.overallDelta ?? 0;
+                      return (
+                    <div style={{
+                      fontSize: 13, fontWeight: 700,
+                      color: delta > 2 ? "#10B981" : delta < -2 ? "#EF4444" : "var(--text-muted)",
+                    }}>
+                      {delta > 2 ? "↑" : delta < -2 ? "↓" : "→"}{" "}
+                      {Math.abs(delta) > 0.5
+                        ? `${delta > 0 ? "+" : ""}${delta} recent`
+                        : "Stable"}
+                    </div>
+                      );
+                    })()}
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                      {overview.totalAttempts} session{overview.totalAttempts !== 1 ? "s" : ""}
+                    </div>
+                  </div>
                 </div>
-                <BigMetricCard
-                  label="Recent Trend"
-                  value={<span style={{ color: trendColor(trendSummary.overallDelta) }}>{formatDelta(trendSummary.overallDelta)}</span>}
-                  subtext="Change across last 5"
-                />
-                <BigMetricCard
-                  label="Avg Pace"
-                  value={overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} wpm`}
-                  subtext={overview.avgPace === null ? "No spoken sessions" : paceLabel(overview.avgPace)}
-                />
-                <BigMetricCard
-                  label="Fillers"
-                  value={overview.avgFillers === null ? "—" : `${overview.avgFillers}/100w`}
-                  subtext={overview.avgFillers === null ? "No filler data" : overview.avgFillers <= 1.5 ? "Controlled" : overview.avgFillers < 3 ? "Manageable" : "Needs work"}
-                />
+
+                {/* Identity + top priority */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 5 }}>
+                    Communication Profile
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.2, marginBottom: 8 }}>
+                    {archetypeStats.dominant ?? "Building your profile..."}
+                  </div>
+                  {archetypeStats.dominant && (
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 10, maxWidth: 500 }}>
+                      {archetypeStats.dominant?.toLowerCase().includes("polished") ? "You're performing across all dimensions. The next level is consistency under pressure and in less familiar question types." :
+                       archetypeStats.dominant?.toLowerCase().includes("hedger") ? "Your main pattern: strong ideas softened by qualifying language. Every 'I think' costs credibility. Replace with direct ownership." :
+                       archetypeStats.dominant?.toLowerCase().includes("rusher") ? "Your main pattern: pace outstrips content. Slowing down after metrics and results lets your strongest points actually land." :
+                       archetypeStats.dominant?.toLowerCase().includes("storyteller") ? "You lead with narrative and that's a real asset. Channel it: make the Result the emotional peak of every story." :
+                       archetypeStats.dominant?.toLowerCase().includes("pauser") ? "Your measured delivery reads as confident and controlled. Protect it — avoid filling your natural silences with filler words." :
+                       archetypeStats.dominant?.toLowerCase().includes("lecturer") ? "You structure answers well but can sound flat. One personal moment or concrete number per answer changes how interviewers remember you." :
+                       archetypeStats.dominant?.toLowerCase().includes("rambler") ? "You bring energy and enthusiasm. The work now is structure: open with your headline and build outward from there." :
+                       "Your communication pattern is emerging. More sessions will reveal your dominant style and specific levers."}
+                    </div>
+                  )}
+                  {coachingProfile?.archetypeEvolution.evolutionNote && (
+                    <div style={{ fontSize: 12, color: "#10B981", fontWeight: 600, marginBottom: 10 }}>
+                      {coachingProfile.archetypeEvolution.evolutionNote}
+                    </div>
+                  )}
+                  {coachingProfile && coachingProfile.topPriorities[0] && (
+                    <div style={{
+                      marginTop: 4, padding: "10px 14px", borderRadius: "var(--radius-md)",
+                      background: coachingProfile.topPriorities[0].urgency === "critical" ? "rgba(239,68,68,0.08)" : "rgba(245,158,11,0.07)",
+                      border: `1px solid ${coachingProfile.topPriorities[0].urgency === "critical" ? "rgba(239,68,68,0.22)" : "rgba(245,158,11,0.22)"}`,
+                      display: "flex", alignItems: "center", gap: 10,
+                    }}>
+                      <div style={{ width: 7, height: 7, borderRadius: 99, background: coachingProfile.topPriorities[0].urgency === "critical" ? "#EF4444" : "#F59E0B", flexShrink: 0 }} />
+                      <div>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" as const }}>
+                          {coachingProfile.topPriorities[0].area}
+                        </span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 8 }}>
+                          {coachingProfile.topPriorities[0].evidence}
+                        </span>
+                      </div>
+                      <div style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, letterSpacing: 0.4, color: coachingProfile.topPriorities[0].urgency === "critical" ? "#EF4444" : "#F59E0B", textTransform: "uppercase" as const }}>
+                        {coachingProfile.topPriorities[0].urgency}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* ── SECTION 2: 7 Dimensions ──────────────────────────────────── */}
-            {dimensionStats.length > 0 && (
-              <PremiumCard>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-                  <div style={{ width: 3, height: 22, borderRadius: 99, background: "var(--accent)", flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>7 Communication Dimensions</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Averaged across all scored sessions. Below 5.5 = gap · Above 7.5 = strength</div>
-                  </div>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  {[...dimensionStats].sort((a, b) => a.avg - b.avg).map((dim) => {
-                    const pct = Math.min(100, Math.round(dim.avg * 10));
-                    const isGap = dim.avg < 5.5;
-                    const isStrength = dim.avg >= 7.5;
-                    const color = isStrength ? "#10B981" : isGap ? "#EF4444" : "var(--accent)";
+            {/* ── WHAT TO WORK ON ────────────────────────────────────────────────── */}
+            <PremiumCard>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                {coachingProfile && coachingProfile.topPriorities.length > 0 ? "What to Work On" : "Next Focus"}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+                {coachingProfile && coachingProfile.topPriorities.length > 0
+                  ? `Patterns identified across all ${coachingProfile.totalAttempts} sessions, ranked by how much fixing them will move your score.`
+                  : "Your single highest-leverage improvement for the next session."}
+              </div>
+
+              {coachingProfile && coachingProfile.topPriorities.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                  {coachingProfile.topPriorities.map((p, i) => {
+                    const urgColor = p.urgency === "critical" ? "#EF4444" : p.urgency === "high" ? "#F59E0B" : "var(--accent)";
+                    const urgBg = p.urgency === "critical" ? "rgba(239,68,68,0.05)" : p.urgency === "high" ? "rgba(245,158,11,0.05)" : "rgba(37,99,235,0.04)";
+                    const action =
+                      p.key === "outcome_strength" ? "End every behavioral answer with one explicit result sentence: what changed, improved, or was measured." :
+                      p.key === "hedging_language" ? "Replace 'I think' / 'kind of' / 'basically' with direct ownership: 'I decided', 'I led', 'I drove'." :
+                      p.key === "evidence_specificity" ? "Attach one number or concrete metric to every claim you make." :
+                      p.key === "directness" ? "Lead with your answer, then support it. Do not build to your point — start with it." :
+                      p.key === "ownership" ? "Use 'I' language throughout. Identify your specific contribution, not just the team effort." :
+                      p.key === "structural_clarity" ? "State your headline first, then use two or three supporting points. Do not ramble to the answer." :
+                      p.type === "delivery" && p.area.toLowerCase().includes("filler") ? "Replace every filler word with a one-beat pause. Silence sounds more confident than 'um'." :
+                      p.type === "delivery" && p.area.toLowerCase().includes("fast") ? "Slow down after every metric, result, or decision so the important part actually lands." :
+                      p.type === "delivery" && p.area.toLowerCase().includes("slow") ? "Cut the setup by two sentences. Get to your main point faster." :
+                      p.type === "star" ? "Do not stop after describing the action. Add one sentence: what changed, what improved, what result came from your work." :
+                      p.type === "dimension" ? `Target ${p.area.toLowerCase()} specifically in your next session — pick questions where this dimension matters most.` :
+                      "Apply this focus deliberately in your next practice session.";
                     return (
-                      <div key={dim.key} style={{
-                        padding: "12px 14px",
-                        borderRadius: "var(--radius-md)",
-                        border: `1px solid ${isGap ? "rgba(239,68,68,0.22)" : isStrength ? "rgba(16,185,129,0.22)" : "var(--card-border-soft)"}`,
-                        background: isGap ? "rgba(239,68,68,0.05)" : isStrength ? "rgba(16,185,129,0.05)" : "var(--card-bg)",
+                      <div key={i} style={{
+                        padding: "14px 16px", borderRadius: "var(--radius-md)",
+                        background: urgBg, border: `1px solid ${urgColor}22`,
+                        display: "grid", gridTemplateColumns: "8px 1fr auto", gap: 14, alignItems: "start",
                       }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
-                          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{dim.label}</span>
-                          <span style={{ fontSize: 13, fontWeight: 700, color }}>{dim.avg.toFixed(1)}<span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted)" }}>/10</span></span>
+                        <div style={{ width: 8, height: 8, borderRadius: 99, background: urgColor, marginTop: 5, flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" as const, marginBottom: 3 }}>{p.area}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 7 }}>{p.evidence}</div>
+                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>{action}</div>
                         </div>
-                        <div style={{ height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 8 }}>
-                          <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 400ms ease" }} />
-                        </div>
-                        <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                          {isStrength ? dim.coaching.strength : dim.coaching.gap}
+                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: urgColor, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const, paddingTop: 2 }}>
+                          {p.urgency}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-              </PremiumCard>
-            )}
+              ) : (
+                <>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>{nextFocusCard.title}</div>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 12 }}>{nextFocusCard.body}</div>
+                  <div style={{ padding: "11px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4 }}>FOR YOUR NEXT ATTEMPT</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>{nextFocusCard.action}</div>
+                  </div>
+                </>
+              )}
+            </PremiumCard>
 
-            {/* ── SECTION 3: Archetype Pattern ─────────────────────────────── */}
-            {archetypeStats.dominant && (
-              <div style={{ display: "grid", gridTemplateColumns: archetypeStats.all.length > 1 ? "1.2fr 1fr" : "1fr", gap: 16 }}>
-                <PremiumCard>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-                    <div style={{ width: 3, height: 22, borderRadius: 99, background: "var(--accent)", flexShrink: 0 }} />
-                    <div>
-                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>Dominant Communication Pattern</div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>The style that appears most consistently in your answers</div>
-                    </div>
+            {/* ── FULL COMMUNICATION SCORECARD ────────────────────────────────────── */}
+            <PremiumCard>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Communication Scorecard</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
+                Content, delivery, and presence — every signal in one view.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+                {/* Left: 7 communication dimensions */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 14 }}>
+                    Communication Dimensions
                   </div>
-                  <div style={{
-                    padding: "18px 20px",
-                    borderRadius: "var(--radius-lg)",
-                    background: "linear-gradient(145deg, var(--accent-soft), var(--card-bg))",
-                    border: "1px solid var(--card-border-soft)",
-                    marginBottom: 12,
-                  }}>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>{archetypeStats.dominant}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
-                      Detected in {archetypeStats.dominantCount} of {archetypeStats.totalWithArchetype} scored session{archetypeStats.totalWithArchetype !== 1 ? "s" : ""}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
-                    {archetypeStats.dominant === "Polished Performer" ? "Your delivery is hitting across all dimensions — maintain this standard under pressure." :
-                     archetypeStats.dominant === "Hedger" || archetypeStats.dominant === "The Hedger" ? "Replace softening phrases with assertive alternatives. Practice: 'I decided...' instead of 'We kind of went with...'" :
-                     archetypeStats.dominant === "Rusher" || archetypeStats.dominant === "The Rusher" ? "Pause after each STAR section. A 1-second pause signals structure and lets your key point land." :
-                     archetypeStats.dominant === "The Storyteller" || archetypeStats.dominant === "Storyteller" ? "Channel narrative strength into the Result — make it the emotional peak of the story." :
-                     archetypeStats.dominant === "The Pauser" || archetypeStats.dominant === "Pauser" ? "Your measured delivery reads as confident — protect it. Avoid filling silences with filler words." :
-                     archetypeStats.dominant === "The Lecturer" || archetypeStats.dominant === "Lecturer" ? "Add one personal moment or emotional beat to each answer to make technical content stick." :
-                     "Focus on varying vocal pitch and pace to maintain listener engagement."}
-                  </div>
-                </PremiumCard>
-                {archetypeStats.all.length > 1 && (
-                  <PremiumCard>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>All detected archetypes</div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                      {archetypeStats.all.map(({ name, count }) => {
-                        const pct = Math.round((count / archetypeStats.totalWithArchetype) * 100);
-                        const isDominant = name === archetypeStats.dominant;
+                  {dimensionStats.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                      {[...dimensionStats].sort((a, b) => a.avg - b.avg).map((dim) => {
+                        const cp = coachingProfile?.dimensionProfile.find(d => d.key === dim.key);
+                        const isGap = dim.avg < 5.5;
+                        const isStrength = dim.avg >= 7.5;
+                        const isPersistentGap = cp?.classification === "persistent_gap";
+                        const isPersistentStrength = cp?.classification === "persistent_strength";
+                        const trend = cp?.trend;
+                        const color = isPersistentGap ? "#EF4444" : isStrength ? "#10B981" : isGap ? "#F59E0B" : "var(--accent)";
                         return (
-                          <div key={name}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
-                              <span style={{ fontSize: 13, fontWeight: isDominant ? 700 : 500, color: isDominant ? "var(--text-primary)" : "var(--text-muted)" }}>{name}</span>
-                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{count}×</span>
+                          <div key={dim.key}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{dim.label}</span>
+                                {trend === "improving" && <span style={{ fontSize: 11, color: "#10B981", fontWeight: 700 }}>↑</span>}
+                                {trend === "declining" && <span style={{ fontSize: 11, color: "#EF4444", fontWeight: 700 }}>↓</span>}
+                                {isPersistentGap && (
+                                  <span style={{ fontSize: 9, fontWeight: 700, color: "#EF4444", letterSpacing: 0.3, background: "rgba(239,68,68,0.10)", padding: "1px 5px", borderRadius: 3 }}>
+                                    PERSISTENT
+                                  </span>
+                                )}
+                                {isPersistentStrength && (
+                                  <span style={{ fontSize: 9, fontWeight: 700, color: "#10B981", letterSpacing: 0.3, background: "rgba(16,185,129,0.10)", padding: "1px 5px", borderRadius: 3 }}>
+                                    CONSISTENT
+                                  </span>
+                                )}
+                              </div>
+                              <span style={{ fontSize: 14, fontWeight: 700, color, marginLeft: 8 }}>{dim.avg.toFixed(1)}</span>
                             </div>
-                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                              <div style={{ width: `${pct}%`, height: "100%", background: isDominant ? "var(--accent)" : "var(--card-border)", borderRadius: 99 }} />
+                            <div style={{ height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 4 }}>
+                              <div style={{ width: `${Math.min(100, Math.round(dim.avg * 10))}%`, height: "100%", background: color, borderRadius: 99, transition: "width 400ms ease" }} />
+                            </div>
+                            <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                              {isStrength ? dim.coaching.strength : dim.coaching.gap}
                             </div>
                           </div>
                         );
                       })}
                     </div>
-                  </PremiumCard>
-                )}
-              </div>
-            )}
-
-            {/* ── SECTION 4: Next Focus + Delivery ─────────────────────────── */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-              <PremiumCard>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 6 }}>Next lever</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3, marginBottom: 10 }}>{nextFocusCard.title}</div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 14 }}>{nextFocusCard.body}</div>
-                <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4 }}>FOR YOUR NEXT ATTEMPT</div>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>{nextFocusCard.action}</div>
+                  ) : (
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                      Dimension scores unlock after your first few sessions.
+                    </div>
+                  )}
                 </div>
-              </PremiumCard>
-              <PremiumCard>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Delivery Signals</div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
-                  {[
-                    { label: "Pace", value: overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} wpm`, subtext: paceCoaching(overview.avgPace), score: overview.avgPace !== null ? (overview.avgPace >= 115 && overview.avgPace <= 145 ? 9 : overview.avgPace > 165 || overview.avgPace < 100 ? 4 : 7) : null },
-                    { label: "Fillers", value: overview.avgFillers === null ? "—" : `${overview.avgFillers}/100w`, subtext: fillerCoaching(overview.avgFillers), score: overview.avgFillers !== null ? (overview.avgFillers <= 1.5 ? 9 : overview.avgFillers < 3 ? 7 : 4) : null },
-                    { label: "Vocal variety", value: overview.avgMonotone === null ? "—" : `${overview.avgMonotone?.toFixed(1)}/10`, subtext: monotoneCoaching(overview.avgMonotone), score: overview.avgMonotone !== null ? (overview.avgMonotone <= 4 ? 9 : overview.avgMonotone <= 6 ? 7 : 4) : null },
-                    { label: "Avg overall score", value: overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall), subtext: scoreLabel(overview.avgOverall), score: overview.avgOverall !== null ? (overview.avgOverall >= 7.5 ? 9 : overview.avgOverall >= 6 ? 7 : 4) : null },
-                  ].map(({ label, value, subtext, score }) => {
-                    const color = score === null ? "var(--text-muted)" : score >= 8 ? "#10B981" : score >= 6 ? "var(--accent)" : "#EF4444";
-                    return (
-                      <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-                            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>{label}</span>
-                            <span style={{ fontSize: 14, fontWeight: 700, color }}>{value}</span>
+
+                {/* Right: delivery + STAR */}
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 14 }}>
+                    Delivery Signals
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                    {[
+                      {
+                        label: "Speaking Pace",
+                        value: overview.avgPace === null ? null : `${Math.round(overview.avgPace)} wpm`,
+                        coaching: paceCoaching(overview.avgPace),
+                        score: overview.avgPace !== null ? (overview.avgPace >= 115 && overview.avgPace <= 145 ? 9 : overview.avgPace > 165 || overview.avgPace < 100 ? 4 : 6) : null,
+                        trend: coachingProfile?.deliveryProfile.wpmTrend,
+                      },
+                      {
+                        label: "Filler Words",
+                        value: overview.avgFillers === null ? null : `${overview.avgFillers}/100w`,
+                        coaching: fillerCoaching(overview.avgFillers),
+                        score: overview.avgFillers !== null ? (overview.avgFillers <= 1.5 ? 9 : overview.avgFillers < 3 ? 6 : 4) : null,
+                        trend: coachingProfile?.deliveryProfile.fillerTrend,
+                      },
+                      {
+                        label: "Vocal Variety",
+                        value: overview.avgMonotone === null ? null : `${overview.avgMonotone?.toFixed(1)}/10 risk`,
+                        coaching: monotoneCoaching(overview.avgMonotone),
+                        score: overview.avgMonotone !== null ? (overview.avgMonotone <= 4 ? 9 : overview.avgMonotone <= 6 ? 6 : 4) : null,
+                        trend: null,
+                      },
+                    ].map(({ label, value, coaching, score, trend }) => {
+                      if (value === null) return null;
+                      const color = score === null ? "var(--text-muted)" : score >= 8 ? "#10B981" : score >= 6 ? "var(--accent)" : "#EF4444";
+                      return (
+                        <div key={label}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+                              {trend === "improving" && <span style={{ fontSize: 11, color: "#10B981", fontWeight: 700 }}>↑</span>}
+                              {trend === "declining" && <span style={{ fontSize: 11, color: "#EF4444", fontWeight: 700 }}>↓</span>}
+                            </div>
+                            <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
                           </div>
-                          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{subtext}</div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{coaching}</div>
                         </div>
+                      );
+                    })}
+                    {overview.avgPace === null && overview.avgFillers === null && (
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                        Delivery signals appear after spoken attempts.
                       </div>
-                    );
-                  })}
-                </div>
-              </PremiumCard>
-            </div>
+                    )}
+                  </div>
 
-            {/* ── SECTION 5: Category & Framework ──────────────────────────── */}
-            {(categoryStats.length > 0 || frameworkStats.length > 0) && (
+                  {/* STAR component breakdown */}
+                  {coachingProfile && coachingProfile.starPattern.behavioralAttemptCount >= 3 && (
+                    <div style={{ marginTop: 24 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 14 }}>
+                        STAR Components ({coachingProfile.starPattern.behavioralAttemptCount} behavioral)
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                        {([
+                          { label: "Situation", value: coachingProfile.starPattern.avgSituation },
+                          { label: "Task", value: coachingProfile.starPattern.avgTask },
+                          { label: "Action", value: coachingProfile.starPattern.avgAction },
+                          { label: "Result", value: coachingProfile.starPattern.avgResult },
+                        ] as Array<{ label: string; value: number | null }>).filter(c => c.value !== null).map(({ label, value }) => {
+                          const v = value as number;
+                          const isWeakest = label.toLowerCase() === coachingProfile.starPattern.weakestComponent;
+                          const barColor = isWeakest ? "#EF4444" : v >= 7.5 ? "#10B981" : "var(--accent)";
+                          return (
+                            <div key={label}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
+                                <span style={{ fontSize: 12, fontWeight: isWeakest ? 700 : 500, color: isWeakest ? "#EF4444" : "var(--text-primary)" }}>
+                                  {label}{isWeakest ? " — weakest" : ""}
+                                </span>
+                                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{v.toFixed(1)}/10</span>
+                              </div>
+                              <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                <div style={{ width: `${Math.round(v * 10)}%`, height: "100%", background: barColor, borderRadius: 99 }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PremiumCard>
+
+            {/* ── WHAT YOU DO WELL + RESOLVED ────────────────────────────────────── */}
+            {coachingProfile && (
+              coachingProfile.strengthPatterns.filter(p => p.consistent && p.allTimeFrequency >= 0.3).length > 0 ||
+              coachingProfile.resolvedWeaknesses.length > 0
+            ) && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                {categoryStats.length > 0 && (
-                  <PremiumCard>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>By Question Category</div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                      {categoryStats.map((row) => (
-                        <div key={row.key}>
-                          <ScoreBarRow label={row.label} count={row.count} avgScore={row.avgScore}
-                            subtitle={row.avgComm !== null && row.avgConf !== null ? `Comm ${displayTenPointAs100(row.avgComm)} · Conf ${displayTenPointAs100(row.avgConf)}` : undefined}
-                          />
+                <PremiumCard>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>What You Do Consistently</div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                    {coachingProfile!.strengthPatterns
+                      .filter(p => p.consistent && p.allTimeFrequency >= 0.3)
+                      .slice(0, 5)
+                      .map((p) => {
+                        const pct = Math.round(p.allTimeFrequency * 100);
+                        return (
+                          <div key={p.key}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", textTransform: "capitalize" as const }}>
+                                {p.key.replace(/_/g, " ")}
+                              </span>
+                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{pct}% of sessions</span>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                              <div style={{ width: `${pct}%`, height: "100%", background: "#10B981", borderRadius: 99 }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    {coachingProfile!.strengthPatterns.filter(p => p.consistent && p.allTimeFrequency >= 0.3).length === 0 && (
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                        Consistent strengths appear after 5+ sessions.
+                      </div>
+                    )}
+                  </div>
+                </PremiumCard>
+                <PremiumCard>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#10B981", marginBottom: 6 }}>Progress Made</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.6 }}>
+                    Issues that were flagged repeatedly and are no longer appearing in recent sessions.
+                  </div>
+                  {coachingProfile!.resolvedWeaknesses.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                      {coachingProfile!.resolvedWeaknesses.map((key) => (
+                        <div key={key} style={{
+                          display: "flex", alignItems: "center", gap: 10,
+                          padding: "9px 12px", borderRadius: "var(--radius-sm)",
+                          background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.20)",
+                        }}>
+                          <span style={{ color: "#10B981", fontWeight: 700, fontSize: 14 }}>✓</span>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: "#10B981", textTransform: "capitalize" as const }}>
+                            {key.replace(/_/g, " ")}
+                          </span>
                         </div>
                       ))}
                     </div>
-                  </PremiumCard>
-                )}
-                {frameworkStats.length > 0 && (
-                  <PremiumCard>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>By Evaluation Framework</div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                      {frameworkStats.map((row) => (
-                        <div key={row.key}>
-                          <ScoreBarRow label={row.label} count={row.count} avgScore={row.avgScore}
-                            subtitle={row.avgComm !== null && row.avgConf !== null ? `Comm ${displayTenPointAs100(row.avgComm)} · Conf ${displayTenPointAs100(row.avgConf)}` : undefined}
-                          />
-                        </div>
-                      ))}
+                  ) : (
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                      Resolved issues appear once you clear a pattern that was previously flagged in multiple sessions.
                     </div>
-                  </PremiumCard>
-                )}
+                  )}
+                </PremiumCard>
               </div>
             )}
 
-            {/* ── SECTION 6: Role Fit ───────────────────────────────────────── */}
-            {roleAptitudeStats.length > 0 && (
+            {/* ── PROGRESS ARC ─────────────────────────────────────────────────────── */}
+            {recentScoreSeries.length >= 2 && (
               <PremiumCard>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-                  <div style={{ width: 3, height: 22, borderRadius: 99, background: "var(--accent)", flexShrink: 0 }} />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 24, alignItems: "start" }}>
                   <div>
-                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>Role Fit Analysis</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Your interview strengths mapped to each target role</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Score Trajectory</div>
+                    <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 12, maxWidth: 380 }}>
+                      {coachingProfile?.overallTrajectory.trend === "improving"
+                        ? `Trending up. Your recent average is ${(coachingProfile.overallTrajectory.recentAvg ?? 0).toFixed(0)} vs. your all-time average of ${(coachingProfile.overallTrajectory.allTimeAvg ?? 0).toFixed(0)}.`
+                        : coachingProfile?.overallTrajectory.trend === "declining"
+                        ? "Recent scores are trending down. Review your priorities above and focus on one thing per session."
+                        : "Your performance is stable. Pick the top priority above and target it specifically to break the plateau."}
+                    </div>
+                    <MiniSparkline values={recentScoreSeries} height={56} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, minWidth: 100 }}>
+                    {[
+                      { label: "All-time avg", value: overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall) },
+                      { label: "Recent avg", value: coachingProfile?.overallTrajectory.recentAvg == null ? "—" : displayOverall100(coachingProfile.overallTrajectory.recentAvg) },
+                      { label: "Peak", value: coachingProfile?.overallTrajectory.peakScore == null ? "—" : displayOverall100(coachingProfile.overallTrajectory.peakScore) },
+                    ].map(({ label, value }) => (
+                      <div key={label}>
+                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const }}>{label}</div>
+                        <div style={{ fontSize: 19, fontWeight: 800, color: "var(--text-primary)", marginTop: 1 }}>{value}</div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
-                  {roleAptitudeStats.map((row) => (
+              </PremiumCard>
+            )}
+
+            {/* ── ROLE READINESS ─────────────────────────────────────────────────── */}
+            {roleAptitudeStats.length > 0 && (
+              <PremiumCard>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Role Readiness</div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+                  Your interview performance benchmarked against each target role.
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                  {roleAptitudeStats.slice(0, 4).map((row) => (
                     <div key={row.key} style={{
-                      padding: 16, borderRadius: "var(--radius-md)",
-                      border: "1px solid var(--card-border-soft)",
-                      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+                      padding: "14px 16px", borderRadius: "var(--radius-md)",
+                      border: "1px solid var(--card-border-soft)", background: "var(--card-bg)",
+                      display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "center",
                     }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
-                        <div>
-                          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{row.label}</div>
-                          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
-                            {[row.company, row.roleType].filter(Boolean).join(" · ") || "Target role"} · {row.count} session{row.count !== 1 ? "s" : ""}
-                          </div>
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>{row.label}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 6 }}>
+                          {[row.company, row.roleType].filter(Boolean).join(" · ") || "Target role"} · {row.count} session{row.count !== 1 ? "s" : ""}
                         </div>
-                        <div style={{
-                          padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" as const,
-                          background: (row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.12)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.1)" : "rgba(239,68,68,0.08)",
-                          color: (row.fitScore ?? 0) >= 7 ? "#10B981" : (row.fitScore ?? 0) >= 6 ? "var(--accent)" : "#EF4444",
-                          border: `1px solid ${(row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.25)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.2)" : "rgba(239,68,68,0.2)"}`,
-                        }}>
-                          {row.fitLabel} · {row.fitScore === null ? "—" : displayTenPointAs100(row.fitScore)}
-                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>{row.narrative}</div>
                       </div>
-                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, marginBottom: 10 }}>{row.narrative}</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
-                        {[
-                          { label: "Score", value: row.avgScore === null ? "—" : `${Math.round(row.avgScore)}/100` },
-                          { label: "Best match", value: row.matched[0] ?? "Still emerging" },
-                          { label: "Main gap", value: row.gaps[0] ?? "No major gap" },
-                        ].map(({ label, value }) => (
-                          <div key={label} style={{ padding: "10px 12px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
-                            <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{label}</div>
-                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>{value}</div>
-                          </div>
-                        ))}
+                      <div style={{ textAlign: "center" as const, minWidth: 82 }}>
+                        <div style={{
+                          padding: "6px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700,
+                          background: (row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.12)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.10)" : "rgba(239,68,68,0.08)",
+                          color: (row.fitScore ?? 0) >= 7 ? "#10B981" : (row.fitScore ?? 0) >= 6 ? "var(--accent)" : "#EF4444",
+                          border: `1px solid ${(row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.25)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.20)" : "rgba(239,68,68,0.20)"}`,
+                          marginBottom: 4, whiteSpace: "nowrap" as const,
+                        }}>
+                          {row.fitLabel}
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{row.fitScore === null ? "—" : displayTenPointAs100(row.fitScore)}</div>
                       </div>
                     </div>
                   ))}
@@ -2041,100 +2204,14 @@ export default function ProgressPage() {
               </PremiumCard>
             )}
 
-            {/* ── SECTION 7: Visual + Vocal ─────────────────────────────────── */}
-            {(facialSessions.length > 0 || vocalSessionsV.length > 0) && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                {vocalSessionsV.length > 0 && (
-                  <PremiumCard>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Vocal Delivery</div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 14 }}>Averaged across {vocalSessionsV.length} session{vocalSessionsV.length !== 1 ? "s" : ""}</div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
-                      {[
-                        { label: "Speaking Pace", v: avgWpmV, unit: "wpm", good: 120, max: 200 },
-                      ].map(({ label, v, unit, good, max }) => {
-                        const pct = v !== null ? Math.min(100, Math.round((v / max) * 100)) : 0;
-                        const color = v === null ? "var(--text-muted)" : v >= good ? "#10B981" : "#F59E0B";
-                        return (
-                          <div key={label}>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
-                              <span style={{ fontSize: 13, fontWeight: 700, color }}>{v !== null ? `${v} ${unit}` : "—"}</span>
-                            </div>
-                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                              <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99 }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </PremiumCard>
-                )}
-                {facialSessions.length > 0 && (
-                  <PremiumCard>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Visual Presence</div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 14 }}>Averaged across {facialSessions.length} webcam session{facialSessions.length !== 1 ? "s" : ""}</div>
-                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
-                      {[
-                        { label: "Eye Contact", v: avgEye, good: 65, max: 100 },
-                      ].map(({ label, v, good, max }) => {
-                        const pct = v !== null ? Math.min(100, Math.round((v / max) * 100)) : 0;
-                        const color = v === null ? "var(--text-muted)" : v >= good ? "#10B981" : "#F59E0B";
-                        return (
-                          <div key={label}>
-                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
-                              <span style={{ fontSize: 13, fontWeight: 700, color }}>{v !== null ? `${Math.round(v)}%` : "—"}</span>
-                            </div>
-                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                              <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99 }} />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </PremiumCard>
-                )}
-              </div>
-            )}
-
-            {/* ── SECTION 8: Resume ─────────────────────────────────────────── */}
-            {resumeHistory.length > 0 && (
-              <PremiumCard>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Resume Scans</div>
-                  <Link href="/resume-gap" style={{ padding: "6px 14px", borderRadius: 8, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none" }}>Analyze again →</Link>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
-                  {resumeHistory.slice(0, 3).map((r: any, i: number) => {
-                    const sc = r.overallScore !== null && r.overallScore >= 70 ? "#10B981" : r.overallScore !== null && r.overallScore >= 45 ? "#F59E0B" : "#EF4444";
-                    return (
-                      <Link key={r.id} href="/resume-gap" style={{ textDecoration: "none" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border-soft)", background: i === 0 ? "var(--card-bg-strong)" : "var(--card-bg)" }}>
-                          <div style={{ fontSize: 24, fontWeight: 800, color: sc, minWidth: 40, textAlign: "center" as const }}>{r.overallScore ?? "—"}</div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-                              {r.overallLabel ?? "Resume Analysis"}
-                              {i === 0 && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "var(--accent)", background: "var(--accent-soft)", padding: "1px 6px", borderRadius: 99 }}>Latest</span>}
-                            </div>
-                            {r.topAction && <div style={{ fontSize: 11, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>Top action: {r.topAction}</div>}
-                          </div>
-                          <div style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>ATS {r.atsScore ?? "—"}</div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </PremiumCard>
-            )}
-
-            {/* ── SECTION 9: Interview Notes ─────────────────────────────────── */}
+            {/* ── PRE-INTERVIEW BRIEF ──────────────────────────────────────────────── */}
             <InterviewNotesCard
               strengths={interviewNotes.leanInto}
               watchouts={interviewNotes.watchouts}
               reminders={interviewNotes.reminders}
             />
 
-            {/* ── SECTION 10: NACE (university only) ───────────────────────── */}
+            {/* ── NACE (university only) ─────────────────────────────────────────── */}
             {isUniversity && (() => {
               const scored = naceScores.filter((s) => s.score !== null);
               return (
@@ -2147,9 +2224,11 @@ export default function ProgressPage() {
                       </div>
                     </div>
                     {scored.length > 0 && (
-                      <button onClick={() => downloadNacePdf({ scores: naceScores, studentName: session?.user?.name ?? session?.user?.email ?? "Student" })}
-                        style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid var(--accent)", background: "transparent", color: "var(--accent)", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" as const }}>
-                        ⬇ Export PDF
+                      <button
+                        onClick={() => downloadNacePdf({ scores: naceScores, studentName: session?.user?.name ?? session?.user?.email ?? "Student" })}
+                        style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid var(--accent)", background: "transparent", color: "var(--accent)", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" as const }}
+                      >
+                        Export PDF
                       </button>
                     )}
                   </div>

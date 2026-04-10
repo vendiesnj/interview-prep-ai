@@ -135,7 +135,7 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
     ],
     improvements: [
       score < 8 ? "Add more specific, quantified results to the Result section" : "Consider adding a brief reflection on what you'd do differently",
-      score < 7.5 ? "Reduce filler words — aim for deliberate pauses instead of 'um' and 'like'" : "Maintain this delivery consistency under pressure",
+      score < 7.5 ? "Reduce filler words. Aim for deliberate pauses instead of 'um' and 'like'" : "Maintain this delivery consistency under pressure",
     ],
     better_answer: `A stronger version would open with the business context, describe your specific role in the decision, quantify the outcome (e.g. 'increased retention by X%'), and close with what you learned or would do differently.`,
     star: score >= 7.5 ? "strong" : score >= 6 ? "partial" : "weak",
@@ -146,7 +146,7 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
       result: score >= 7.5 ? ["Quantified outcome with timeframe and business impact"] : ["Outcome mentioned but not quantified"],
     },
     star_missing: score < 7 ? ["Specific metrics in the Result", "Clear personal ownership vs team effort"] : [],
-    star_advice: score >= 7.5 ? "Your STAR structure is strong — focus on tightening the Result to one crisp sentence." : "Lead with the Result first (RATS order) to immediately signal impact, then walk back through the context.",
+    star_advice: score >= 7.5 ? "Your STAR structure is strong. Focus on tightening the Result to one crisp sentence." : "Lead with the Result first (RATS order) to immediately signal impact, then walk back through the context.",
     public_speaking: {
       hook_impact: Math.min(10, commScore + (Math.random() * 0.4 - 0.2)),
       structure: Math.min(10, score + (Math.random() * 0.6 - 0.3)),
@@ -159,9 +159,9 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
     archetype_coaching: {
       "The Hedger": "Replace softening phrases ('I think maybe', 'kind of') with assertive alternatives. Practice declarative statements: 'I decided...' instead of 'We sort of went with...'",
       "The Rusher": "Pause after each STAR section boundary. A 1-second pause signals structure and lets your key point land before you move on.",
-      "The Storyteller": "Channel your narrative strength into the Result — make it the emotional peak of the story, not just a data point at the end.",
+      "The Storyteller": "Channel your narrative strength into the Result. Make it the emotional peak of the story, not just a data point at the end.",
       "The Lecturer": "Add one personal moment or emotional beat to each answer. 'The hardest part was...' makes the technical content stick.",
-      "The Pauser": "Your measured delivery reads as confident — protect it. Avoid the temptation to fill silences with filler words.",
+      "The Pauser": "Your measured delivery reads as confident. Protect it. Avoid the temptation to fill silences with filler words.",
     }[archetype] ?? "Focus on varying vocal pitch and pace to maintain listener engagement.",
     speaking_strengths: ["Clear articulation", score >= 7 ? "Confident vocal projection" : "Appropriate speaking pace"],
     speaking_improvements: [score < 7.5 ? "Reduce filler word frequency" : "Vary sentence length for rhythm", "Add more vocal emphasis on key metrics"],
@@ -179,8 +179,7 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
       top: [{ word: "um", count: Math.floor(Math.max(0, (10 - score))) }],
     },
     dimension_scores: (() => {
-      // Give each dimension independent variance so they show clear differentiation
-      const v = () => (Math.random() * 2.4 - 1.2); // ±1.2 range
+      const v = () => (Math.random() * 2.4 - 1.2); // wide variance so bars spread out
       const dims = {
         narrative_clarity:   { label: "Narrative Clarity",     s: Math.min(10, Math.max(0, score + v())) },
         evidence_quality:    { label: "Evidence Quality",      s: Math.min(10, Math.max(0, score - 0.8 + v())) },
@@ -190,15 +189,55 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
         cognitive_depth:     { label: "Cognitive Depth",       s: Math.min(10, Math.max(0, score - 1.2 + v())) },
         presence_confidence: { label: "Presence & Confidence", s: Math.min(10, Math.max(0, confScore - 0.4 + v())) },
       };
+      // Per-dimension coaching that is score-tier-aware and non-generic
+      const coachingMap = {
+        narrative_clarity: (sc) => sc >= 7.5
+          ? "Your story has a clear through-line. The interviewer can follow the arc from start to finish without effort."
+          : sc >= 5.5
+          ? "The narrative holds together but needs a tighter opening. Try framing your story in one sentence before you start: 'I did X which led to Y', then build from there."
+          : "The answer needs cleaner structure. Write out S-T-A-R before your next attempt and say 'Situation:' out loud as you start. The ideas are there; they need sequencing.",
+        evidence_quality: (sc) => sc >= 7.5
+          ? "Concrete, specific, and credible. The proof points here would stand out against most candidates."
+          : sc >= 5.5
+          ? "Good specificity overall. Add one more metric or named result in the final section and this becomes a strong answer."
+          : "The story needs harder proof. Name one specific number, tool, or observable outcome. 'Improved efficiency' is generic; 'cut processing time from 4 hours to 40 minutes' is what gets remembered.",
+        ownership_agency: (sc) => sc >= 7.5
+          ? "Strong first-person ownership throughout. The interviewer understands exactly what you personally drove and decided."
+          : sc >= 5.5
+          ? "Personal ownership is present. Watch for 'we' slippage in the result section, which is where credit tends to diffuse unintentionally."
+          : "The answer shares too much credit. Start the next attempt with 'I decided...' or 'I owned...' and maintain that through the action section. Own your contribution explicitly.",
+        vocal_engagement: (sc) => sc >= 7.5
+          ? "Vocal variety and energy are working with the content. The delivery is dynamic and holds attention through the answer."
+          : sc >= 5.5
+          ? "Good vocal variety overall. Add a deliberate pitch lift at the result sentence, which is the moment that deserves the most emphasis."
+          : "The delivery is flat in places. Slow down at your result sentence, pause for a beat before it, then lift your pitch slightly. That one moment changes how the whole answer is remembered.",
+        response_control: (sc) => sc >= 7.5
+          ? "Clean, controlled delivery. Pacing and fluency are working in your favor throughout."
+          : sc >= 5.5
+          ? "Good control overall. Watch for filler clusters at transitions between STAR sections, where most disfluency tends to appear under pressure."
+          : "Filler words are interfering with the content. Replace every 'um' and 'uh' with a one-beat pause. Silence reads as more confident than a filler and gives you a moment to think.",
+        cognitive_depth: (sc) => sc >= 7.5
+          ? "The answer demonstrates sophisticated thinking. Tradeoffs, nuance, and clear reasoning are all present and would register with a senior interviewer."
+          : sc >= 5.5
+          ? "Good analytical depth. One more acknowledged tradeoff or constraint would push this toward senior-level thinking."
+          : "The answer shows competence but not yet depth. Add one line that names a tradeoff you navigated: 'The challenge was X, so I chose Y over Z because...' That single line changes how a senior interviewer reads the answer.",
+        presence_confidence: (sc) => sc >= 7.5
+          ? "Strong on-camera presence. Eye contact and expressiveness are projecting genuine confidence consistently."
+          : sc >= 5.5
+          ? "Good presence overall. Stay on camera during the result sentence specifically, which is the moment eye contact matters most."
+          : "Confidence signals are undermining otherwise good content. On your next attempt, commit to sustained eye contact from your first sentence. It will feel uncomfortable, and that discomfort is the signal improving.",
+      };
       const result = {};
       for (const [key, { label, s }] of Object.entries(dims)) {
         const sc = parseFloat(s.toFixed(1));
-        const coaching = sc >= 7.5
-          ? `${label} is a clear strength — maintain this consistency.`
-          : sc >= 5.5
-          ? `${label} is solid but has room to improve. Focus on specificity and ownership.`
-          : `${label} needs work — this is a priority area for your next few attempts.`;
-        result[key] = { label, score: sc, coaching, isStrength: sc >= 7.5, isGap: sc < 5.5, driverSignals: [] };
+        result[key] = {
+          label,
+          score: sc,
+          coaching: coachingMap[key](sc),
+          isStrength: sc >= 7.5,
+          isGap: sc < 5.5,
+          driverSignals: [],
+        };
       }
       return result;
     })(),
@@ -280,7 +319,7 @@ for (let i = 0; i < attemptData.length; i++) {
       userId,
       ts,
       question: q.q,
-      transcript: `Thank you for that question. ${d.score >= 7.5 ? "I'd like to share a specific example that really shaped how I approach this." : "Sure, let me think about a good example."} In my previous role at a SaaS startup, I was responsible for driving our Q3 retention initiative. The challenge was that we had multiple stakeholders — engineering, marketing, and customer success — all with competing priorities. I had to align them around a single metric: 30-day activation rate. ${d.score >= 7 ? "I set up a weekly sync and created a shared dashboard that made everyone's contribution visible." : "We had some meetings and tried to coordinate."} The result was a ${Math.floor(d.score * 2.5)}% improvement in activation over 8 weeks, which translated to roughly $${Math.floor(d.score * 120)}K in retained ARR. Looking back, I would have involved customer success even earlier in the process.`,
+      transcript: `Thank you for that question. ${d.score >= 7.5 ? "I'd like to share a specific example that really shaped how I approach this." : "Sure, let me think about a good example."} In my previous role at a SaaS startup, I was responsible for driving our Q3 retention initiative. The challenge was that we had multiple stakeholders (engineering, marketing, and customer success) all with competing priorities. I had to align them around a single metric: 30-day activation rate. ${d.score >= 7 ? "I set up a weekly sync and created a shared dashboard that made everyone's contribution visible." : "We had some meetings and tried to coordinate."} The result was a ${Math.floor(d.score * 2.5)}% improvement in activation over 8 weeks, which translated to roughly $${Math.floor(d.score * 120)}K in retained ARR. Looking back, I would have involved customer success even earlier in the process.`,
       inputMethod: "microphone",
       score: d.score,
       communicationScore: d.comm,
@@ -308,11 +347,11 @@ await prisma.resumeAnalysis.create({
     userId,
     overallScore: 74,
     atsScore: 68,
-    overallLabel: "Good — targeted improvements will significantly boost callbacks",
+    overallLabel: "Good. Targeted improvements will significantly boost callbacks",
     summary: "Your resume shows strong product instincts and cross-functional experience. The experience section is well-structured, but several high-impact PM keywords are missing and quantified results could be stronger in 3 of 5 bullet points.",
-    topAction: "Add metrics to your Retention Initiative bullet — change 'improved activation' to 'improved 30-day activation rate by 18%, retaining $340K ARR'",
+    topAction: "Add metrics to your Retention Initiative bullet. Change 'improved activation' to 'improved 30-day activation rate by 18%, retaining $340K ARR'",
     gaps: [
-      { category: "Keywords", issue: "Missing: 'roadmap', 'go-to-market', 'A/B testing', 'OKRs' — all common in PM JDs", fix: "Weave these terms naturally into your experience bullets" },
+      { category: "Keywords", issue: "Missing: 'roadmap', 'go-to-market', 'A/B testing', 'OKRs', all common in PM JDs", fix: "Weave these terms naturally into your experience bullets" },
       { category: "Quantification", issue: "3 of 5 experience bullets lack specific numbers", fix: "Add percentages, dollar amounts, or timeframes to each impact statement" },
       { category: "ATS Format", issue: "Skills section uses a table format that some ATS systems parse incorrectly", fix: "Convert to a simple comma-separated list under 'Core Skills'" },
     ],
@@ -385,7 +424,7 @@ const calendarEvents = [
   { id: uid(), title: "Stripe final round prep", date: dateStr(daysAgo(4)), startHour: 10, startMin: 0, durationMins: 90, color: "#2563EB", completed: true, completedAt: dateStr(daysAgo(4)), originalDate: dateStr(daysAgo(5)), pushCount: 1 },
   { id: uid(), title: "Update resume bullet points", date: dateStr(daysAgo(4)), startHour: 14, startMin: 0, durationMins: 45, color: "#8B5CF6", completed: true, completedAt: dateStr(daysAgo(4)), originalDate: dateStr(daysAgo(4)), pushCount: 0 },
   { id: uid(), title: "Google APM on-site prep", date: dateStr(daysAgo(3)), startHour: 9, startMin: 30, durationMins: 120, color: "#F59E0B", completed: true, completedAt: dateStr(daysAgo(3)), originalDate: dateStr(daysAgo(3)), pushCount: 0 },
-  { id: uid(), title: "Networking coffee chat — Notion PM", date: dateStr(daysAgo(2)), startHour: 11, startMin: 0, durationMins: 45, color: "#10B981", completed: true, completedAt: dateStr(daysAgo(2)), originalDate: dateStr(daysAgo(3)), pushCount: 1 },
+  { id: uid(), title: "Networking coffee chat with Notion PM", date: dateStr(daysAgo(2)), startHour: 11, startMin: 0, durationMins: 45, color: "#10B981", completed: true, completedAt: dateStr(daysAgo(2)), originalDate: dateStr(daysAgo(3)), pushCount: 1 },
   { id: uid(), title: "Review feedback report", date: dateStr(daysAgo(1)), startHour: 8, startMin: 0, durationMins: 30, color: "#2563EB", completed: true, completedAt: dateStr(daysAgo(1)), originalDate: dateStr(daysAgo(1)), pushCount: 0 },
   // ── Today ──
   { id: uid(), title: "Signal practice session", date: today, startHour: 9, startMin: 0, durationMins: 60, color: "#2563EB", completed: false, originalDate: today, pushCount: 0 },

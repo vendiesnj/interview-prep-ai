@@ -5,6 +5,7 @@ import { prisma } from "@/app/lib/prisma";
 import { rateLimitFixedWindow } from "@/app/lib/rateLimit";
 import { logInfo, logError } from "@/app/lib/logger";
 import { composeRichFeedback } from "@/app/lib/feedback/composer";
+import type { UserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
 
 export const runtime = "nodejs";
 
@@ -294,7 +295,7 @@ function validateBaseFeedbackShape(obj: any): boolean {
   if (!Array.isArray(obj.strengths) || obj.strengths.length < 3 || obj.strengths.length > 5) return false;
   if (!obj.strengths.every(isNonEmptyString)) return false;
 
-  if (!Array.isArray(obj.improvements) || obj.improvements.length < 3 || obj.improvements.length > 5) return false;
+  if (!Array.isArray(obj.improvements) || obj.improvements.length < 1 || obj.improvements.length > 4) return false;
   if (!obj.improvements.every(isNonEmptyString)) return false;
 
   if (!Array.isArray(obj.missed_opportunities) || obj.missed_opportunities.length > 4) return false;
@@ -540,6 +541,19 @@ Evidence rules:
 - strengths and improvements must be answer-specific, not generic.
 - better_answer must preserve the same story/topic but improve it.
 
+Improvements discipline:
+- Only list improvements for genuine, observable weaknesses in THIS answer.
+- Do NOT invent improvements to fill a quota. If the answer is strong, 1 improvement is fine.
+- Do NOT suggest improving something that is already a demonstrated strength.
+- Avoid generic advice like "add more examples" or "be more specific" unless specificity is a measurable problem in this transcript.
+- Every improvement must be grounded in specific evidence from the transcript — quote or paraphrase the actual moment that reveals the weakness.
+
+Candidate history (when candidate_history is provided):
+- recurring_weaknesses lists areas the candidate has struggled with across multiple past attempts. Check whether those specific issues appear in THIS transcript. If they do, name them precisely with transcript evidence. If this answer has resolved them, explicitly acknowledge that in trajectory_note and do NOT re-flag them.
+- consistently_weak_dimensions shows dimension areas averaging below 6.0 over recent attempts. If the current answer still shows those weaknesses, your improvements should directly target them.
+- dominant_archetype tells you the candidate's habitual communication pattern. Your coaching should help them break the pattern's specific limitations.
+- Do not repeat advice that was given in prev_improvement_areas unless the same specific problem is clearly visible in THIS transcript.
+
 Webcam presence rules (when presence_signals is provided):
 - Factor eye_contact and expressiveness into confidence_score. Strong eye contact (>= "strong") supports higher confidence scores. Weak eye contact ("weak") should lower the confidence_score by 0.3–0.8 relative to verbal content alone.
 - If eye_contact is weak, include one confidence_evidence item noting the camera disengagement and its effect on perceived confidence.
@@ -641,8 +655,11 @@ function buildUserMessage(args: {
   deliveryMetrics: any;
   faceMetrics: any;
   fillerStats: ReturnType<typeof countFillers>;
+  prevScore?: number | null;
+  prevImprovementThemeKeys?: string[] | null;
+  userProfile?: UserCoachingProfile | null;
 }) {
-  const { framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, fillerStats } = args;
+  const { framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, fillerStats, prevScore, prevImprovementThemeKeys, userProfile } = args;
 
   // Build presence_signals block only when webcam data is available and meaningful
   const presenceSignals = faceMetrics && typeof faceMetrics === "object" && (faceMetrics.framesAnalyzed ?? 1) > 0
@@ -666,6 +683,21 @@ function buildUserMessage(args: {
       }
     : null;
 
+  // Candidate profile context: rich all-history profile takes precedence over shallow prev_score fallback
+  const profileContext = userProfile?.llmContext?.length
+    ? { candidate_coaching_profile: userProfile.llmContext }
+    : prevScore != null
+    ? {
+        candidate_history: {
+          prev_score: prevScore,
+          ...(prevImprovementThemeKeys?.length ? { prev_improvement_areas: prevImprovementThemeKeys } : {}),
+          note: prevImprovementThemeKeys?.length
+            ? "Previously struggled with these areas. Acknowledge improvement if present; do not re-flag if resolved."
+            : "Use trajectory_note to acknowledge whether score improved vs last attempt.",
+        },
+      }
+    : {};
+
   return JSON.stringify(
     {
       framework,
@@ -679,6 +711,7 @@ function buildUserMessage(args: {
       },
       delivery_metrics: deliveryMetrics ?? null,
       ...(presenceSignals ? { presence_signals: presenceSignals } : {}),
+      ...profileContext,
       grading_instructions: {
         score_scale: "All scores are 1.0 to 10.0 with decimals allowed.",
         communication_score_definition:
@@ -694,8 +727,8 @@ function buildUserMessage(args: {
           communication_evidence: "2 to 4 short snippets or concrete paraphrases",
           confidence_evidence: "2 to 4 short snippets or concrete paraphrases",
           strengths: "3 to 5 answer-specific items",
-          improvements: "3 to 5 answer-specific items",
-          missed_opportunities: "2 to 4 answer-specific items",
+          improvements: "1 to 4 answer-specific items. Only list genuine observed weaknesses. Do not invent improvements.",
+          missed_opportunities: "0 to 2 items. Only include if there are concrete gaps worth naming. Leave empty for strong answers.",
         },
         better_answer_target: "120 to 180 words",
       },
@@ -764,8 +797,8 @@ function baseSchema() {
       },
       improvements: {
         type: "array",
-        minItems: 3,
-        maxItems: 5,
+        minItems: 1,
+        maxItems: 4,
         items: { type: "string" },
       },
       missed_opportunities: {
@@ -1408,8 +1441,11 @@ async function callFeedbackModel(args: {
   faceMetrics: any;
   eslMode: boolean;
   fillerStats: ReturnType<typeof countFillers>;
+  prevScore?: number | null;
+  prevImprovementThemeKeys?: string[] | null;
+  userProfile?: UserCoachingProfile | null;
 }) {
-  const { client, framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, eslMode, fillerStats } = args;
+  const { client, framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, eslMode, fillerStats, prevScore, prevImprovementThemeKeys, userProfile } = args;
 
   const schema = buildSchema(framework);
   const system = buildSystemMessage(framework, eslMode);
@@ -1421,6 +1457,9 @@ async function callFeedbackModel(args: {
     deliveryMetrics,
     faceMetrics,
     fillerStats,
+    prevScore,
+    prevImprovementThemeKeys,
+    userProfile,
   });
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
@@ -1521,6 +1560,12 @@ export async function POST(req: Request) {
     const eslMode = body.eslMode === true;
     const prevScore = typeof body.prevScore === "number" ? body.prevScore : null;
     const prevAttemptCount = typeof body.prevAttemptCount === "number" ? body.prevAttemptCount : null;
+    const prevImprovementThemeKeys = Array.isArray(body.prevImprovementThemeKeys) ? body.prevImprovementThemeKeys as string[] : null;
+    // Accept a pre-computed UserCoachingProfile from the client (built from full history)
+    const userProfile: UserCoachingProfile | null =
+      body.userProfile && typeof body.userProfile === "object" && typeof body.userProfile.llmContext === "string"
+        ? (body.userProfile as UserCoachingProfile)
+        : null;
 
     const evaluationFramework: EvaluationFramework =
       body.evaluationFramework === "technical_explanation"
@@ -1742,6 +1787,9 @@ export async function POST(req: Request) {
       faceMetrics,
       eslMode,
       fillerStats,
+      prevScore,
+      prevImprovementThemeKeys,
+      userProfile,
     });
 
     if (!modelResult.parsed) {
