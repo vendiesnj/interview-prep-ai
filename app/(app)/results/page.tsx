@@ -1491,16 +1491,6 @@ const deliveryProfile = useMemo(() => {
                     flexWrap: "wrap",
                   }}
                 >
-                  {insightBullets ? (
-                    <ul style={{ marginTop: 16, marginBottom: 0, paddingLeft: 18, lineHeight: 1.6 }}>
-                      {insightBullets.map((t, i) => (
-                        <li key={i} style={{ marginTop: i === 0 ? 0 : 6, color: "var(--text-muted)", fontSize: 13 }}>
-                          {t}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-
                   <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "flex-end" }}>
                     <div
   style={{
@@ -1904,89 +1894,6 @@ const deliveryProfile = useMemo(() => {
   </div>
 </div>
 
-<div
-  style={{
-    marginTop: 14,
-    display: "grid",
-    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-    gap: 14,
-  }}
->
-  <div
-    style={{
-      padding: 16,
-      borderRadius: "var(--radius-lg)",
-      border: "1px solid var(--card-border-soft)",
-      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-      boxShadow: "var(--shadow-card-soft)",
-    }}
-  >
-    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-      Strongest parts of this answer
-    </div>
-
-    {topStrengths.length > 0 ? (
-      <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-        {topStrengths.map((s: string, i: number) => (
-  <li key={i}>{s}</li>
-))}
-      </ul>
-    ) : (
-      <div style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 13 }}>
-        Strength analysis will appear here.
-      </div>
-    )}
-  </div>
-
-  <div
-    style={{
-      padding: 16,
-      borderRadius: "var(--radius-lg)",
-      border: "1px solid var(--card-border-soft)",
-      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-      boxShadow: "var(--shadow-card-soft)",
-    }}
-  >
-    <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-      Biggest opportunities to improve
-    </div>
-
-    {missedOpportunities.length > 0 ? (
-      <div style={{ marginTop: 10, display: "grid", gap: 10 }}>
-        {missedOpportunities.map((m: any, i: number) => (
-          <div
-            key={i}
-            style={{
-              padding: 12,
-              borderRadius: 12,
-              border: "1px solid var(--card-border)",
-              background: "var(--card-bg)",
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
-              {m?.label ? String(m.label) : "Opportunity"}
-            </div>
-            {m?.why ? (
-              <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                {String(m.why)}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
-    ) : topImprovements.length > 0 ? (
-      <ul style={{ marginTop: 10, marginBottom: 0, paddingLeft: 18, lineHeight: 1.7, color: "var(--text-primary)" }}>
-        {topImprovements.map((s: string, i: number) => (
-  <li key={i}>{s}</li>
-))}
-      </ul>
-    ) : (
-      <div style={{ marginTop: 10, color: "var(--text-muted)", fontSize: 13 }}>
-        Improvement analysis will appear here.
-      </div>
-    )}
-  </div>
-</div>
 
               </SectionCard>
             ) : null}
@@ -2625,46 +2532,20 @@ const deliveryProfile = useMemo(() => {
                   )}
                 </div>
               ) : null}
-              <SectionCard title="Why this score">
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {isStarFramework && typeof starAvg === "number" ? (
-  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
-    Behavioral structure drove most of the score (avg <span style={{ fontWeight: 700 }}>{displayTenPointAs100(starAvg)}</span>).
-  </div>
-) : isTechnicalFramework && (feedback as any)?.technical_explanation ? (
-  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
-    Technical explanation quality drove most of the score.
-  </div>
-) : isExperienceFramework && (feedback as any)?.experience_depth ? (
-  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
-    Experience depth and specificity drove most of the score.
-  </div>
-) : null}
-
-                  {dm && (typeof dm.longPauseCount === "number" || typeof dm.maxPauseMs === "number") ? (
-                    <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                      Delivery penalty applied:{" "}
-                      {typeof dm.longPauseCount === "number" ? `long pauses=${dm.longPauseCount}` : ""}
-                      {typeof dm.longPauseCount === "number" && typeof dm.maxPauseMs === "number" ? ", " : ""}
-                      {typeof dm.maxPauseMs === "number" ? `max pause=${dm.maxPauseMs}ms` : ""}
-                    </div>
-                  ) : null}
-
-                  {typeof stored?.wpm === "number" ? <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Delivery pace detected: {stored.wpm} words per minute</div> : null}
-
+              <SectionCard title="Score breakdown">
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ color: "var(--text-primary)", fontSize: 13 }}>
+                    {isStarFramework && typeof starAvg === "number"
+                      ? <>Behavioral structure drove most of the score (avg <span style={{ fontWeight: 700 }}>{displayTenPointAs100(starAvg)}</span>). Higher scores require strong structure and measurable impact.</>
+                      : isTechnicalFramework
+                      ? "Technical explanation quality drove most of the score. Higher scores require clear reasoning, structure, and credible depth."
+                      : isExperienceFramework
+                      ? "Experience depth drove most of the score. Higher scores require specific examples, tool fluency, and clear business impact."
+                      : "Higher scores require clear, specific, and relevant answers."}
+                  </div>
                   {Array.isArray(feedback?.keywords_missing) && feedback.keywords_missing.length > 0 ? (
-                    <div style={{ color: "var(--text-muted)", fontSize: 13 }}>Missing role keywords also limited the score.</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12 }}>Missing role keywords also limited the score — see Structure tab.</div>
                   ) : null}
-
-                  <div style={{ color: "var(--text-muted)", fontSize: 12 }}>
-  {isStarFramework
-    ? "Higher scores require strong behavioral structure and measurable impact."
-    : isTechnicalFramework
-    ? "Higher scores require clear technical reasoning, structure, and credible depth."
-    : isExperienceFramework
-    ? "Higher scores require specific examples, tool fluency, and clear business impact."
-    : "Higher scores require clear, specific, and relevant answers."}
-</div>
                 </div>
               </SectionCard>
               </>
