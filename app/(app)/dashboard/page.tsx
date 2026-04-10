@@ -1287,7 +1287,7 @@ export default function DashboardPage() {
               { Icon: Home,      title: "Life Buddy",           desc: "Plan your week, track your budget, and project your retirement, all in one place.",                 href: "/life-buddy"     },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-                <div style={{ padding: "18px 20px", borderRadius: "var(--radius-md, 10px)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "inset 0 2px 0 var(--accent), var(--shadow-card)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms, box-shadow 150ms", cursor: "pointer" }}>
+                <div style={{ padding: "18px 20px", borderRadius: "var(--radius-md, 10px)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>
                   <item.Icon size={18} color="var(--text-muted)" />
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>

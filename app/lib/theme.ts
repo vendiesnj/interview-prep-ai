@@ -402,10 +402,45 @@ export const rooseveltTheme: AppTheme = {
   },
 };
 
+// Signal Navy — landing page palette (#0d1e3a) lifted one stop lighter
+export const signalNavyTheme: AppTheme = {
+  ...defaultTheme,
+  name: "signal-navy",
+  colors: {
+    ...defaultTheme.colors,
+    pageBg: "#132645",
+    pageBgAccentA: "rgba(37,99,235,0.18)",
+    pageBgAccentB: "rgba(37,99,235,0.09)",
+
+    text: "#F1F5F9",
+    textMuted: "#94A3B8",
+    textSoft: "#64748B",
+
+    cardBg: "rgba(255,255,255,0.045)",
+    cardBgStrong: "rgba(255,255,255,0.07)",
+    cardBorder: "rgba(255,255,255,0.10)",
+    cardBorderSoft: "rgba(255,255,255,0.065)",
+
+    inputBg: "rgba(13,26,58,0.70)",
+    inputBorder: "rgba(255,255,255,0.10)",
+
+    accent: "#2563EB",
+    accentSoft: "rgba(37,99,235,0.14)",
+    accentStrong: "rgba(37,99,235,0.30)",
+  },
+  shadows: {
+    card: "0 1px 0 rgba(255,255,255,0.06), 0 4px 20px rgba(0,0,0,0.35)",
+    cardSoft: "0 1px 0 rgba(255,255,255,0.04)",
+    glow: "0 8px 24px rgba(37,99,235,0.22)",
+    none: "none",
+  },
+};
+
 export const themePresets = {
   default: defaultTheme,
   light: lightTheme,
   ipcBlue: ipcBlueTheme,
+  signalNavy: signalNavyTheme,
   pitch: pitchTheme,
   rutgers: rutgersTheme,
   michigan: michiganTheme,
@@ -424,5 +459,5 @@ export function getThemeByName(name?: string | null): AppTheme {
   return themePresets[name as ThemePresetName] ?? lightTheme;
 }
 
-export const activeThemeName: ThemePresetName = "ipcBlue";
+export const activeThemeName: ThemePresetName = "signalNavy";
 export const activeTheme = themePresets[activeThemeName];
