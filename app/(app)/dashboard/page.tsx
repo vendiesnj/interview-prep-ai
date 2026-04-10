@@ -1123,7 +1123,8 @@ export default function DashboardPage() {
   const stageConfig = stage ? STAGE_MAP[stage] : null;
 
   const sessionName   = (session as any)?.user?.name as string | undefined;
-  const firstName     = data?.profile?.name?.split(" ")[0] || sessionName?.split(" ")[0] || "";
+  const rawFirst      = data?.profile?.name?.split(" ")[0] || sessionName?.split(" ")[0] || "";
+  const firstName     = rawFirst ? rawFirst.charAt(0).toUpperCase() + rawFirst.slice(1).toLowerCase() : "";
   const totalSessions = data ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count : null;
 
   const signalScore = data?.signalScore ?? null;
@@ -1193,7 +1194,7 @@ export default function DashboardPage() {
         {/* ── Header ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div>
-            <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.4 }}>
+            <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.3 }}>
               {greeting}{firstName ? `, ${firstName}` : ""}.
             </h1>
             <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
@@ -1203,9 +1204,9 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             {!loading && isUniversity && signalScore !== null && (
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <div style={{ fontSize: 22, fontWeight: 950, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Signal Score</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)" }}>Signal Score</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{data?.completeness ?? 0}% complete</div>
                 </div>
               </div>
@@ -1213,7 +1214,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setJourneyOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 12, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
             >
               My Journey →
             </button>
@@ -1276,22 +1277,20 @@ export default function DashboardPage() {
         {!isUniversity && (
           <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
             {[
-              { Icon: Mic,       title: "Interview Practice",   desc: "AI-powered mock interviews with real-time scoring, vocal and facial feedback.",  href: "/practice",            color: ACCENT_CAREER },
-              { Icon: BarChart2, title: "My Progress",          desc: "Track your scores, vocal patterns, eye contact, and improvement over time.",      href: "/progress",            color: "#2563EB" },
-              { Icon: FileText,  title: "Resume Analysis",      desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",          href: "/resume-gap",          color: "#8B5CF6" },
-              { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",              href: "/question-bank",       color: "#F59E0B" },
-              { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                         href: "/job-profiles",        color: ACCENT_MINDSET },
-              { Icon: Briefcase, title: "Job Tracker",           desc: "Track applications, monitor your funnel, and stay organized through every stage.", href: "/job-tracker",         color: "#F59E0B" },
-              { Icon: Library,  title: "Experience Log",        desc: "Build your library of career stories. Refine the STAR structure and practice until they're fluent.", href: "/experience-log", color: "#8B5CF6" },
-              { Icon: Home,     title: "Life Buddy",            desc: "Plan your week, track your budget, and project your retirement — all in one place.",            href: "/life-buddy",      color: "#EC4899" },
+              { Icon: Mic,       title: "Interview Practice",   desc: "AI-powered mock interviews with real-time scoring, vocal and facial feedback.",                      href: "/practice"       },
+              { Icon: BarChart2, title: "My Progress",          desc: "Track your scores, vocal patterns, eye contact, and improvement over time.",                        href: "/progress"       },
+              { Icon: FileText,  title: "Resume Analysis",      desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",                           href: "/resume-gap"     },
+              { Icon: BookOpen,  title: "Question Bank",        desc: "Browse and filter hundreds of interview questions by type and role.",                               href: "/question-bank"  },
+              { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                                          href: "/job-profiles"   },
+              { Icon: Briefcase, title: "Job Tracker",          desc: "Track applications, monitor your funnel, and stay organized through every stage.",                  href: "/job-tracker"    },
+              { Icon: Library,   title: "Experience Log",       desc: "Build your library of career stories. Refine the STAR structure and practice until they're fluent.", href: "/experience-log" },
+              { Icon: Home,      title: "Life Buddy",           desc: "Plan your week, track your budget, and project your retirement, all in one place.",                 href: "/life-buddy"     },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-                <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: item.color + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <item.Icon size={18} color={item.color} />
-                  </div>
+                <div style={{ padding: "18px 20px", borderRadius: "var(--radius-md, 10px)", border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>
+                  <item.Icon size={18} color="var(--text-muted)" />
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)", marginBottom: 4 }}>{item.title}</div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{item.desc}</div>
                   </div>
                 </div>

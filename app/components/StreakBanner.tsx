@@ -22,60 +22,50 @@ export default function StreakBanner() {
   if (!data) return null;
 
   const { current, longest, totalActiveDays } = data;
-  const hasStreak = current >= 2;
-  const isOnFire = current >= 5;
+
+  const statusText = current === 0
+    ? "No active streak yet. Complete a session to start."
+    : current === 1
+    ? "1-day streak. Return tomorrow to keep it going."
+    : `${current}-day streak.`;
 
   return (
     <div style={{
-      marginBottom: 24,
-      padding: "12px 18px",
-      borderRadius: 14,
-      border: `1px solid ${isOnFire ? "rgba(251,146,60,0.4)" : hasStreak ? "rgba(16,185,129,0.3)" : "var(--card-border-soft)"}`,
-      background: isOnFire ? "rgba(251,146,60,0.06)" : hasStreak ? "rgba(16,185,129,0.05)" : "var(--card-bg-strong)",
+      marginBottom: 20,
+      padding: "10px 16px",
+      borderRadius: "var(--radius-sm, 8px)",
+      border: "1px solid var(--card-border)",
+      background: "var(--card-bg)",
       display: "flex",
       alignItems: "center",
-      gap: 16,
+      gap: 20,
       flexWrap: "wrap" as const,
     }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <span style={{ fontSize: 26, lineHeight: 1 }}>
-          {isOnFire ? "🔥" : current >= 2 ? "⚡" : "✨"}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+          {statusText}
         </span>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
-            {current === 0
-              ? "Start your streak today"
-              : current === 1
-              ? "1-day streak - come back tomorrow!"
-              : `${current}-day streak - keep it going!`}
-          </div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>
-            {current === 0
-              ? "Complete any task to begin your streak."
-              : isOnFire
-              ? "You're on fire. Consistency is the secret."
-              : "Every day you show up is progress."}
-          </div>
-        </div>
+        {current === 0 && (
+          <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 8 }}>
+            Any practice session, resume upload, or assessment counts.
+          </span>
+        )}
       </div>
 
-      <div style={{ display: "flex", gap: 16, marginLeft: "auto" }}>
-        <div style={{ textAlign: "center" as const }}>
-          <div style={{ fontSize: 18, fontWeight: 950, color: isOnFire ? "#F97316" : hasStreak ? "#10B981" : "var(--text-primary)" }}>
-            {current}
+      <div style={{ display: "flex", gap: 20, flexShrink: 0 }}>
+        {[
+          { label: "Current", value: current },
+          { label: "Best",    value: longest },
+          { label: "Total",   value: totalActiveDays ?? 0 },
+        ].map(({ label, value }, i) => (
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: i === 0 ? 0 : 0 }}>
+            {i > 0 && <div style={{ width: 1, height: 20, background: "var(--card-border)", marginRight: 20 }} />}
+            <div style={{ textAlign: "center" as const }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{value}</div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{label}</div>
+            </div>
           </div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.4 }}>CURRENT</div>
-        </div>
-        <div style={{ width: 1, background: "var(--card-border-soft)" }} />
-        <div style={{ textAlign: "center" as const }}>
-          <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>{longest}</div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.4 }}>BEST</div>
-        </div>
-        <div style={{ width: 1, background: "var(--card-border-soft)" }} />
-        <div style={{ textAlign: "center" as const }}>
-          <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>{totalActiveDays ?? 0}</div>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.4 }}>TOTAL DAYS</div>
-        </div>
+        ))}
       </div>
     </div>
   );
