@@ -129,6 +129,7 @@ export default function SettingsPage() {
   const [profile, setProfile] = React.useState<UserProfile | null>(null);
   const [entitlement, setEntitlement] = React.useState<AttemptEntitlement | null>(null);
   const [billingLoading, setBillingLoading] = React.useState(false);
+  const [billingError, setBillingError] = React.useState<string | null>(null);
   const isTenantUser = !!(session as any)?.tenant;
 
   // Career profile state
@@ -170,6 +171,7 @@ export default function SettingsPage() {
   async function handleBilling() {
     if (billingLoading) return;
     setBillingLoading(true);
+    setBillingError(null);
     try {
       const endpoint = entitlement?.isPro ? "/api/billing/portal" : "/api/billing/checkout";
       const body = entitlement?.isPro ? undefined : JSON.stringify({ mode: "subscription" });
@@ -179,8 +181,14 @@ export default function SettingsPage() {
         body,
       });
       const j = await res.json().catch(() => ({}));
-      if (j?.url) window.location.href = j.url;
-    } catch {}
+      if (j?.url) {
+        window.location.href = j.url;
+        return;
+      }
+      setBillingError(j?.message ?? "Billing unavailable. Please try again or contact support.");
+    } catch (err: any) {
+      setBillingError(err?.message ?? "Something went wrong.");
+    }
     setBillingLoading(false);
   }
 
@@ -591,6 +599,11 @@ export default function SettingsPage() {
                 {billingLoading ? "Opening…" : entitlement?.isPro ? "Manage billing" : "Upgrade to Pro"}
               </button>
             </div>
+            {billingError && (
+              <div style={{ marginTop: 10, fontSize: 12, color: "#EF4444", lineHeight: 1.5 }}>
+                {billingError}
+              </div>
+            )}
           </PremiumCard>
         )}
 
