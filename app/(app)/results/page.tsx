@@ -1315,7 +1315,7 @@ const longPausesPerMin =
                     </div>
                     {DIM_ORDER.map(k => {
                       const d = dimensionScores[k];
-                      if (!d) return null;
+                      if (!d || typeof d !== "object" || typeof d.score !== "number") return null;
                       return <DimensionBar key={k} label={d.label} score={d.score} isGap={d.isGap} isStrength={d.isStrength} />;
                     })}
                   </div>
@@ -1444,7 +1444,7 @@ const longPausesPerMin =
                     <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
                       {((feedback as any).archetype_signals as string[]).map((k: string) => {
                         const d = dimensionScores[k];
-                        if (!d) return null;
+                        if (!d || typeof d !== "object" || typeof d.score !== "number") return null;
                         return (
                           <span key={k} style={{
                             padding: "3px 10px",
@@ -1477,8 +1477,8 @@ const longPausesPerMin =
                 <PremiumCard>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Dimension Analysis</div>
                   {DIM_ORDER
-                    .map(k => ({ key: k, ...dimensionScores[k] }))
-                    .filter(d => d.label)
+                    .map(k => { const d = dimensionScores[k]; return (d && typeof d === "object") ? { key: k, ...d } : null; })
+                    .filter((d): d is NonNullable<typeof d> => !!d && typeof (d as any).score === "number" && !!(d as any).label)
                     .sort((a, b) => {
                       if (a.isGap && !b.isGap) return -1;
                       if (!a.isGap && b.isGap) return 1;

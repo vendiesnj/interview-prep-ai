@@ -174,7 +174,7 @@ function getAttemptDimensions(a: Attempt): Record<string, number> | null {
 }
 
 function getAttemptArchetype(a: Attempt): string | null {
-  return a.feedback?.archetype ?? null;
+  return a.feedback?.archetype ?? (a.feedback as any)?.delivery_archetype ?? null;
 }
 
 function trendDirection(values: number[]) {
@@ -1745,1065 +1745,442 @@ export default function ProgressPage() {
     };
   }, [overview]);
 
+  // ── Visual/vocal data helpers ────────────────────────────────────────────────
+  const facialSessions = history.filter((a: any) => a.deliveryMetrics?.face && typeof a.deliveryMetrics.face.eyeContact === "number");
+  const vocalSessionsV = history.filter((a: any) => a.deliveryMetrics && typeof a.deliveryMetrics.wpm === "number");
+  const avgArr = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 10) / 10 : null;
+  const avgEye  = avgArr(facialSessions.map((a: any) => a.deliveryMetrics.face.eyeContact * 100));
+  const avgWpmV = avgArr(vocalSessionsV.map((a: any) => a.deliveryMetrics.wpm));
+
+  // ── NACE ─────────────────────────────────────────────────────────────────────
+  const naceScores = computeNaceProfile({
+    attempts: history.map((a) => ({
+      score: n(a.score ?? a.feedback?.score),
+      communicationScore: n(a.communication_score ?? a.feedback?.communication_score),
+      confidenceScore: n(a.confidence_score ?? a.feedback?.confidence_score),
+      wpm: n(a.wpm),
+      feedback: a.feedback,
+      prosody: a.prosody,
+      questionCategory: a.questionCategory,
+    })),
+  });
+
   return (
-    <PremiumShell
-      title="Insights"
-      subtitle="See performance patterns across question types, job profiles, and speaking delivery."
-    >
-      <div style={{ display: "grid", gap: 18 }}>
+    <PremiumShell title="Insights">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20, marginTop: 6 }}>
         {loadState === "hydrating" ? (
           <PremiumCard>
             <div style={{ display: "grid", gap: 10 }}>
-              <div
-                style={{
-                  height: 14,
-                  width: "28%",
-                  borderRadius: 999,
-                  background: "var(--card-border-soft)",
-                }}
-              />
-              <div
-                style={{
-                  height: 18,
-                  width: "52%",
-                  borderRadius: 999,
-                  background: "var(--card-border-soft)",
-                }}
-              />
-              <div
-                style={{
-                  height: 96,
-                  width: "100%",
-                  borderRadius: "var(--radius-md)",
-                  background: "var(--card-border-soft)",
-                }}
-              />
+              {[28, 52, 100].map((w, i) => (
+                <div key={i} style={{ height: i === 2 ? 96 : 14, width: `${w}%`, borderRadius: i === 2 ? "var(--radius-md)" : 999, background: "var(--card-border-soft)" }} />
+              ))}
             </div>
           </PremiumCard>
         ) : history.length === 0 ? (
           <PremiumCard>
-            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
-              No insights yet
-            </div>
-            <div
-              style={{
-                marginTop: 10,
-                color: "var(--text-muted)",
-                lineHeight: 1.7,
-                fontSize: 14,
-              }}
-            >
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>No insights yet</div>
+            <div style={{ marginTop: 10, color: "var(--text-muted)", lineHeight: 1.7, fontSize: 14 }}>
               Complete a few interview attempts to unlock trends, strengths, weaknesses, role-based performance, and pre-interview notes.
             </div>
           </PremiumCard>
         ) : (
           <>
-            <PremiumCard>
-              <SectionTitle
-                eyebrow="Executive Summary"
-                title="Your interview performance at a glance"
-                subtitle="A quick read on where you are strong, where you are leaking points, and how your recent attempts are moving."
-              />
 
-              <div
-                style={{
-                  marginTop: 18,
-                  padding: 16,
-                  borderRadius: "var(--radius-lg)",
-                  background: "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-                }}
-              >
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                    gap: 14,
-                    alignItems: "stretch",
-                  }}
-                >
-                  <BigMetricCard
-                    label="Avg Overall"
-                    value={overview.avgOverall === null ? " - " : displayOverall100(overview.avgOverall)}
-                    subtext={
-                      percentiles.overall !== null
-                        ? `Top ${100 - percentiles.overall}% of candidates`
-                        : scoreLabel(overview.avgOverall)
-                    }
-                  />
-
-                  <BigMetricCard
-                    label="Total Attempts"
-                    value={overview.totalAttempts}
-                    subtext="All saved sessions"
-                  />
-
-                  <BigMetricCard
-                    label="Top Strength"
-                    value={strongestDimension?.label ?? " - "}
-                    subtext={
-                      strongestDimension?.value !== null && strongestDimension?.value !== undefined
-                        ? `${displayTenPointAs100(strongestDimension.value)} average`
-                        : "Build more attempt history"
-                    }
-                  />
-
-                  <BigMetricCard
-                    label="Biggest Gap"
-                    value={biggestGap?.label ?? " - "}
-                    subtext={
-                      biggestGap?.value !== null && biggestGap?.value !== undefined
-                        ? `${displayTenPointAs100(biggestGap.value)} average`
-                        : "Build more attempt history"
-                    }
-                  />
-
-                  <BigMetricCard
-                    label="Top Category"
-                    value={overview.topCategory ? titleCaseLabel(overview.topCategory) : " - "}
-                    subtext="Most-practiced question type"
-                  />
-
-                  <BigMetricCard
-                    label="Recent Trend"
-                    value={
-                      <span style={{ color: trendColor(trendSummary.overallDelta) }}>
-                        {formatDelta(trendSummary.overallDelta)}
-                      </span>
-                    }
-                    subtext="Overall change across last 5 attempts"
-                  />
-                </div>
+            {/* ── SECTION 1: Hero stats ─────────────────────────────────────── */}
+            <div style={{
+              padding: "22px 24px",
+              borderRadius: "var(--radius-lg)",
+              background: "linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(14,165,233,0.06) 100%)",
+              border: "1px solid rgba(37,99,235,0.20)",
+              borderLeft: "3px solid var(--accent)",
+            }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 16, textTransform: "uppercase" as const }}>
+                Performance at a glance · {overview.totalAttempts} attempt{overview.totalAttempts !== 1 ? "s" : ""}
               </div>
-            </PremiumCard>
-
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                marginTop: -2,
-                marginBottom: 10,
-                flexWrap: "wrap",
-              }}
-            >
-              <InsightsTabButton
-                label="Overview"
-                active={activeTab === "overview"}
-                onClick={() => setActiveTab("overview")}
-              />
-              <InsightsTabButton
-                label="Performance"
-                active={activeTab === "performance"}
-                onClick={() => setActiveTab("performance")}
-              />
-              <InsightsTabButton
-                label="Delivery"
-                active={activeTab === "delivery"}
-                onClick={() => setActiveTab("delivery")}
-              />
-              {dimensionStats.length > 0 && (
-                <InsightsTabButton
-                  label="Dimensions"
-                  active={activeTab === "dimensions"}
-                  onClick={() => setActiveTab("dimensions")}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 14 }}>
+                <BigMetricCard
+                  label="Avg Overall"
+                  value={overview.avgOverall === null ? "—" : displayOverall100(overview.avgOverall)}
+                  subtext={percentiles.overall !== null ? `Top ${100 - percentiles.overall}% of candidates` : scoreLabel(overview.avgOverall)}
                 />
-              )}
-              <InsightsTabButton
-                label="Visual"
-                active={activeTab === "visual"}
-                onClick={() => setActiveTab("visual")}
-              />
-              <InsightsTabButton
-                label="Resume"
-                active={activeTab === "resume"}
-                onClick={() => setActiveTab("resume")}
-              />
-              <InsightsTabButton
-                label="Interview Notes"
-                active={activeTab === "notes"}
-                onClick={() => setActiveTab("notes")}
-              />
-              {isUniversity && (
-                <InsightsTabButton
-                  label="NACE Competencies"
-                  active={activeTab === "nace"}
-                  onClick={() => setActiveTab("nace")}
+                <BigMetricCard
+                  label="Top Strength"
+                  value={strongestDimension?.label ?? "—"}
+                  subtext={strongestDimension?.value != null ? `${displayTenPointAs100(strongestDimension.value)} avg` : "Build more history"}
                 />
-              )}
+                <BigMetricCard
+                  label="Biggest Gap"
+                  value={biggestGap?.label ?? "—"}
+                  subtext={biggestGap?.value != null ? `${displayTenPointAs100(biggestGap.value)} avg` : "Build more history"}
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr 1fr 1fr", gap: 14, alignItems: "start" }}>
+                <div>
+                  <MiniSparkline values={recentScoreSeries} />
+                </div>
+                <BigMetricCard
+                  label="Recent Trend"
+                  value={<span style={{ color: trendColor(trendSummary.overallDelta) }}>{formatDelta(trendSummary.overallDelta)}</span>}
+                  subtext="Change across last 5"
+                />
+                <BigMetricCard
+                  label="Avg Pace"
+                  value={overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} wpm`}
+                  subtext={overview.avgPace === null ? "No spoken sessions" : paceLabel(overview.avgPace)}
+                />
+                <BigMetricCard
+                  label="Fillers"
+                  value={overview.avgFillers === null ? "—" : `${overview.avgFillers}/100w`}
+                  subtext={overview.avgFillers === null ? "No filler data" : overview.avgFillers <= 1.5 ? "Controlled" : overview.avgFillers < 3 ? "Manageable" : "Needs work"}
+                />
+              </div>
             </div>
 
-            {activeTab === "overview" && (
-              <>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 14,
-                    alignItems: "stretch",
-                  }}
-                >
-                  <PremiumCard>
-                    <SectionTitle
-                      eyebrow="Score Story"
-                      title="What’s helping your score"
-                      subtitle="The strongest patterns showing up across your recent attempts."
-                    />
-
-                    <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                      <div
-                        style={{
-                          padding: 16,
-                          borderRadius: "var(--radius-md)",
-                          background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-                        }}
-                      >
-                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                          Strongest category
-                        </div>
-                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>
-                          {strongestCategory?.label
-                            ? `${strongestCategory.label} is currently your best-performing question type (${displayOverall100(strongestCategory.avgScore)} average).`
-                            : "Your strongest category will appear once more attempt variety is saved."}
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          padding: 16,
-                          borderRadius: "var(--radius-md)",
-                          background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-                        }}
-                      >
-                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                          Strongest dimension
-                        </div>
-                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>
-                          {strongestDimension?.label && strongestDimension?.value !== null
-                            ? `${strongestDimension.label} is your strongest scoring dimension (${displayTenPointAs100(strongestDimension.value)} average).`
-                            : "Your strongest dimension will appear as more scored attempts are saved."}
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          padding: 16,
-                          borderRadius: "var(--radius-md)",
-                          background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-                        }}
-                      >
-                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                          Interview presence
-                        </div>
-                        <div style={{ marginTop: 10, fontSize: 15, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>
-                          {overview.avgPace !== null && overview.avgPace >= 115 && overview.avgPace <= 145
-                            ? `Your pacing is in a strong interview range (${Math.round(overview.avgPace)} WPM), which helps answers sound controlled.`
-                            : overview.avgFillers !== null && overview.avgFillers <= 1.5
-                            ? `Your filler usage is controlled (${overview.avgFillers}/100 words), which helps you sound more polished.`
-                            : "Your strongest delivery pattern will become clearer with more spoken attempts."}
-                        </div>
-                      </div>
-                    </div>
-                  </PremiumCard>
-
-                  <PremiumCard>
-                    <SectionTitle
-                      eyebrow="Next Lever"
-                      title="What to fix next"
-                      subtitle="The one adjustment most likely to move your score."
-                    />
-
-                    <div
-                      style={{
-                        marginTop: 16,
-                        padding: 18,
-                        borderRadius: "var(--radius-lg)",
-                        background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
-                        display: "grid",
-                        gap: 14,
-                      }}
-                    >
-                      <div>
-                        <div style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                          Priority
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 20, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.35 }}>
-                          {nextFocusCard.title}
-                        </div>
-                      </div>
-
-                      <div
-                        style={{
-                          fontSize: 14,
-                          color: "var(--text-primary)",
-                          lineHeight: 1.75,
-                        }}
-                      >
-                        {nextFocusCard.body}
-                      </div>
-
-                      <div
-                        style={{
-                          padding: 14,
-                          borderRadius: "var(--radius-md)",
-                          border: "1px solid var(--accent-strong)",
-                          background: "rgba(99,102,241,0.08)",
-                        }}
-                      >
-                        <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.6, color: "var(--text-muted)" }}>
-                          Next Attempt
-                        </div>
-                        <div style={{ marginTop: 8, fontSize: 14, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.65 }}>
-                          {nextFocusCard.action}
-                        </div>
-                      </div>
-                    </div>
-                  </PremiumCard>
-                </div>
-
-                <PremiumCard>
-                  <SectionTitle
-                    eyebrow="Momentum"
-                    title="Recent momentum"
-                    subtitle="How your recent attempts are moving, and what you practice most."
-                  />
-
-                  <div
-                    style={{
-                      marginTop: 16,
-                      display: "grid",
-                      gridTemplateColumns: "0.95fr 1.05fr",
-                      gap: 18,
-                      alignItems: "start",
-                    }}
-                  >
-                    <div>
-                      <MiniSparkline values={recentScoreSeries} />
-                    </div>
-
-                    <div
-                      style={{
-                        padding: 16,
-                        borderRadius: "var(--radius-md)",
-                        background: "var(--card-bg)",
-                      }}
-                    >
-                      <ul
-                        style={{
-                          margin: 0,
-                          paddingLeft: 18,
-                          lineHeight: 1.8,
-                          color: "var(--text-primary)",
-                        }}
-                      >
-                        {recentInsights.map((item, i) => (
-                          <li key={i}>{item}</li>
-                        ))}
-                        {improvements.slice(0, 1).map((item, i) => (
-                          <li key={`improvement-${i}`}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                </PremiumCard>
-              </>
-            )}
-
-            {activeTab === "performance" && (
-              <>
-                <PremiumCard>
-                  <SectionTitle
-                    eyebrow="Role Aptitude"
-                    title="How your strengths fit your target roles"
-                    subtitle="This compares your current interview patterns to the kinds of strengths each role tends to reward."
-                  />
-
-                  <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                    {roleAptitudeStats.length === 0 ? (
-                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                        Role-fit insights will appear after attempts are saved with a selected job profile.
-                      </div>
-                    ) : (
-                      roleAptitudeStats.map((row) => (
-                        <div
-                          key={row.key}
-                          style={{
-                            padding: 16,
-                            borderRadius: "var(--radius-md)",
-                            border: "1px solid var(--card-border-soft)",
-                            background: "var(--card-bg)",
-                            display: "grid",
-                            gap: 10,
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "flex-start",
-                              justifyContent: "space-between",
-                              gap: 12,
-                              flexWrap: "wrap",
-                            }}
-                          >
-                            <div>
-                              <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
-                                {row.label}
-                              </div>
-                              <div style={{ marginTop: 4, fontSize: 12, color: "var(--text-muted)" }}>
-                                {[row.company, row.roleType].filter(Boolean).join(" · ") || "Target role"}
-                              </div>
-                            </div>
-
-                            <div
-                              style={{
-                                padding: "6px 10px",
-                                borderRadius: 999,
-                                border: "none",
-                                background: "var(--card-bg-strong)",
-                                fontSize: 12,
-                                fontWeight: 600,
-                                color: "var(--text-primary)",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {row.fitLabel} · {row.fitScore === null ? " - " : displayTenPointAs100(row.fitScore)}
-                            </div>
-                          </div>
-
-                          <div style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.7 }}>
-                            {row.narrative}
-                          </div>
-
-                          <div
-                            style={{
-                              display: "grid",
-                              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                              gap: 10,
-                            }}
-                          >
-                            <div
-                              style={{
-                                padding: 12,
-                                borderRadius: 12,
-                                border: "1px solid var(--card-border-soft)",
-                                background: "var(--card-bg-strong)",
-                              }}
-                            >
-                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                                Overall
-                              </div>
-                              <div style={{ marginTop: 6, fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>
-                                {row.avgScore === null ? " - " : displayOverall100(row.avgScore)}
-                              </div>
-                            </div>
-
-                            <div
-                              style={{
-                                padding: 12,
-                                borderRadius: 12,
-                                border: "1px solid var(--card-border-soft)",
-                                background: "var(--card-bg-strong)",
-                              }}
-                            >
-                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                                Best Match
-                              </div>
-                              <div style={{ marginTop: 6, fontSize: 14, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>
-                                {row.matched[0] ?? "Still emerging"}
-                              </div>
-                            </div>
-
-                            <div
-                              style={{
-                                padding: 12,
-                                borderRadius: 12,
-                                border: "1px solid var(--card-border-soft)",
-                                background: "var(--card-bg-strong)",
-                              }}
-                            >
-                              <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: "var(--text-muted)" }}>
-                                Main Gap
-                              </div>
-                              <div style={{ marginTop: 6, fontSize: 14, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>
-                                {row.gaps[0] ?? "No major gap flagged"}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </PremiumCard>
-
-                <PremiumCard>
-                  <SectionTitle
-                    eyebrow="Question Types"
-                    title="Performance by question category"
-                    subtitle="See where you score best across behavioral, technical, role-specific, and custom questions."
-                  />
-
-                  <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                    {categoryStats.length === 0 ? (
-                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                        Category data will appear after new categorized attempts are saved.
-                      </div>
-                    ) : (
-                      categoryStats.map((row) => (
-                        <div
-                          key={row.key}
-                          style={{
-                            padding: 14,
-                            borderRadius: "var(--radius-md)",
-                            border: "1px solid var(--card-border)",
-                            background: "var(--card-bg)",
-                            display: "grid",
-                            gap: 10,
-                          }}
-                        >
-                          <ScoreBarRow
-                            label={row.label}
-                            count={row.count}
-                            avgScore={row.avgScore}
-                            subtitle={
-                              row.avgComm !== null && row.avgConf !== null
-                                ? `Comm ${displayTenPointAs100(row.avgComm)} · Conf ${displayTenPointAs100(row.avgConf)}`
-                                : undefined
-                            }
-                          />
-
-                          <div
-                            style={{
-                              fontSize: 13,
-                              color: "var(--text-muted)",
-                              lineHeight: 1.6,
-                              paddingLeft: 2,
-                            }}
-                          >
-                            {interpretCategoryRow(row)}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </PremiumCard>
-
-                <PremiumCard>
-                  <SectionTitle
-                    eyebrow="Frameworks"
-                    title="Performance by evaluation framework"
-                    subtitle="Understand whether you perform best in behavioral stories, technical explanations, or experience-depth questions."
-                  />
-
-                  <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                    {frameworkStats.length === 0 ? (
-                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                        Framework data will appear after new attempts are saved.
-                      </div>
-                    ) : (
-                      frameworkStats.map((row) => (
-                        <div
-                          key={row.key}
-                          style={{
-                            padding: 14,
-                            borderRadius: "var(--radius-md)",
-                            border: "1px solid var(--card-border)",
-                            background: "var(--card-bg)",
-                            display: "grid",
-                            gap: 10,
-                          }}
-                        >
-                          <ScoreBarRow
-                            label={row.label}
-                            count={row.count}
-                            avgScore={row.avgScore}
-                            subtitle={
-                              row.avgComm !== null && row.avgConf !== null
-                                ? `Comm ${displayTenPointAs100(row.avgComm)} · Conf ${displayTenPointAs100(row.avgConf)}`
-                                : undefined
-                            }
-                          />
-
-                          <div
-                            style={{
-                              fontSize: 13,
-                              color: "var(--text-muted)",
-                              lineHeight: 1.6,
-                              paddingLeft: 2,
-                            }}
-                          >
-                            {interpretFrameworkRow(row)}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </PremiumCard>
-
-                <PremiumCard>
-                  <SectionTitle
-                    eyebrow="Target Roles"
-                    title="Performance by job profile"
-                    subtitle="Compare how you interview across the roles you are actively targeting."
-                  />
-
-                  <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                    {profileStats.length === 0 ? (
-                      <div style={{ color: "var(--text-muted)", fontSize: 13 }}>
-                        Job-profile insights will appear after attempts are saved with a selected profile.
-                      </div>
-                    ) : (
-                      roleAptitudeStats.map((row) => (
-                        <div
-                          key={row.key}
-                          style={{
-                            padding: 14,
-                            borderRadius: "var(--radius-md)",
-                            border: "1px solid var(--card-border)",
-                            background: "var(--card-bg)",
-                            display: "grid",
-                            gap: 10,
-                          }}
-                        >
-                          <ScoreBarRow
-                            label={row.label}
-                            count={row.count}
-                            avgScore={row.avgScore}
-                            subtitle={[row.company, row.roleType].filter(Boolean).join(" · ") || undefined}
-                          />
-
-                          <div
-                            style={{
-                              fontSize: 13,
-                              color: "var(--text-muted)",
-                              lineHeight: 1.6,
-                              paddingLeft: 2,
-                            }}
-                          >
-                            {row.narrative}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </PremiumCard>
-              </>
-            )}
-
-            {activeTab === "delivery" && (
+            {/* ── SECTION 2: 7 Dimensions ──────────────────────────────────── */}
+            {dimensionStats.length > 0 && (
               <PremiumCard>
-                <SectionTitle
-                  eyebrow="Delivery"
-                  title="Speaking delivery intelligence"
-                  subtitle="This turns your acoustic signals into practical coaching themes you can actually use."
-                />
-
-                <div
-                  style={{
-                    marginTop: 18,
-                    display: "grid",
-                    gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-                    gap: 14,
-                  }}
-                >
-                  <BigMetricCard
-                    label="Pace"
-                    value={overview.avgPace === null ? " - " : `${Math.round(overview.avgPace)} WPM`}
-                    subtext={overview.avgPace === null ? "Average spoken pace" : `${paceLabel(overview.avgPace)} pace`}
-                  />
-
-                  <BigMetricCard
-                    label="Fillers"
-                    value={overview.avgFillers === null ? " - " : `${overview.avgFillers}/100`}
-                    subtext="Average filler rate"
-                  />
-
-                  <BigMetricCard
-                    label="Monotone Risk"
-                    value={overview.avgMonotone === null ? " - " : `${overview.avgMonotone.toFixed(1)}/10`}
-                    subtext="Lower is generally better"
-                  />
-
-                  <BigMetricCard
-                    label="Closing Impact"
-                    value={overview.avgStarResult === null ? " - " : displayTenPointAs100(overview.avgStarResult)}
-                    subtext="Average STAR result quality"
-                  />
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+                  <div style={{ width: 3, height: 22, borderRadius: 99, background: "var(--accent)", flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>7 Communication Dimensions</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Averaged across all scored sessions. Below 5.5 = gap · Above 7.5 = strength</div>
+                  </div>
                 </div>
-
-                <div
-                  style={{
-                    marginTop: 16,
-                    display: "grid",
-                    gridTemplateColumns: "1.2fr 0.9fr 0.9fr",
-                    gap: 14,
-                  }}
-                >
-                  <InsightListCard
-                    title="What your delivery says"
-                    items={[
-                      paceCoaching(overview.avgPace),
-                      fillerCoaching(overview.avgFillers),
-                      monotoneCoaching(overview.avgMonotone),
-                      resultCoaching(overview.avgStarResult),
-                    ]}
-                  />
-
-                  <InsightListCard
-                    title="Most important next fix"
-                    items={[
-                      getPrimaryDeliveryPriority({
-                        avgPace: overview.avgPace,
-                        avgFillers: overview.avgFillers,
-                        avgMonotone: overview.avgMonotone,
-                        avgStarResult: overview.avgStarResult,
-                      }) === "closing"
-                        ? "For the next few attempts, focus on ending with one explicit outcome sentence."
-                        : getPrimaryDeliveryPriority({
-                            avgPace: overview.avgPace,
-                            avgFillers: overview.avgFillers,
-                            avgMonotone: overview.avgMonotone,
-                            avgStarResult: overview.avgStarResult,
-                          }) === "fillers"
-                        ? "Your biggest delivery win is reducing filler words. Let short silence do the work."
-                        : getPrimaryDeliveryPriority({
-                            avgPace: overview.avgPace,
-                            avgFillers: overview.avgFillers,
-                            avgMonotone: overview.avgMonotone,
-                            avgStarResult: overview.avgStarResult,
-                          }) === "pace"
-                        ? "Your biggest delivery win is controlling tempo. Slow slightly after important points."
-                        : getPrimaryDeliveryPriority({
-                            avgPace: overview.avgPace,
-                            avgFillers: overview.avgFillers,
-                            avgMonotone: overview.avgMonotone,
-                            avgStarResult: overview.avgStarResult,
-                          }) === "monotone"
-                        ? "Your biggest delivery win is emphasis. Make the result sound different from the setup."
-                        : "Keep building spoken reps so the system can identify a stronger delivery priority.",
-                      "Do not try to fix everything at once - one clear adjustment is enough for the next attempt.",
-                    ]}
-                  />
-
-                  <InsightListCard
-                    title="Before the interview"
-                    items={[
-                      "Say your first sentence out loud before you start so you enter with confidence.",
-                      "Pause after metrics, numbers, and outcomes so the result lands.",
-                      "Do one spoken rep right before the interview using your strongest question type.",
-                    ]}
-                  />
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {[...dimensionStats].sort((a, b) => a.avg - b.avg).map((dim) => {
+                    const pct = Math.min(100, Math.round(dim.avg * 10));
+                    const isGap = dim.avg < 5.5;
+                    const isStrength = dim.avg >= 7.5;
+                    const color = isStrength ? "#10B981" : isGap ? "#EF4444" : "var(--accent)";
+                    return (
+                      <div key={dim.key} style={{
+                        padding: "12px 14px",
+                        borderRadius: "var(--radius-md)",
+                        border: `1px solid ${isGap ? "rgba(239,68,68,0.22)" : isStrength ? "rgba(16,185,129,0.22)" : "var(--card-border-soft)"}`,
+                        background: isGap ? "rgba(239,68,68,0.05)" : isStrength ? "rgba(16,185,129,0.05)" : "var(--card-bg)",
+                      }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{dim.label}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color }}>{dim.avg.toFixed(1)}<span style={{ fontSize: 11, fontWeight: 500, color: "var(--text-muted)" }}>/10</span></span>
+                        </div>
+                        <div style={{ height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 8 }}>
+                          <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 400ms ease" }} />
+                        </div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                          {isStrength ? dim.coaching.strength : dim.coaching.gap}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </PremiumCard>
             )}
 
-            {activeTab === "dimensions" && (
-              <>
+            {/* ── SECTION 3: Archetype Pattern ─────────────────────────────── */}
+            {archetypeStats.dominant && (
+              <div style={{ display: "grid", gridTemplateColumns: archetypeStats.all.length > 1 ? "1.2fr 1fr" : "1fr", gap: 16 }}>
                 <PremiumCard>
-                  <SectionTitle
-                    eyebrow="7-Dimension Profile"
-                    title="Your communication dimensions"
-                    subtitle="Each dimension is scored 0–10. Averages below 5 are gaps; above 7 are strengths. Sorted weakest to strongest."
-                  />
-
-                  <div style={{ marginTop: 18, display: "grid", gap: 12 }}>
-                    {[...dimensionStats].sort((a, b) => a.avg - b.avg).map((dim) => {
-                      const pct = Math.min(100, Math.round(dim.avg * 10));
-                      const isGap = dim.avg < 5;
-                      const isStrength = dim.avg >= 7;
-                      const color = isStrength ? "#10B981" : isGap ? "#EF4444" : "var(--accent)";
-                      return (
-                        <div
-                          key={dim.key}
-                          style={{
-                            padding: "14px 16px",
-                            borderRadius: "var(--radius-md)",
-                            border: `1px solid ${isGap ? "rgba(239,68,68,0.2)" : isStrength ? "rgba(16,185,129,0.2)" : "var(--card-border-soft)"}`,
-                            background: isGap ? "rgba(239,68,68,0.04)" : isStrength ? "rgba(16,185,129,0.04)" : "var(--card-bg)",
-                          }}
-                        >
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
-                            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{dim.label}</div>
-                            <div style={{ fontSize: 14, fontWeight: 700, color, flexShrink: 0 }}>{dim.avg.toFixed(1)}/10</div>
-                          </div>
-                          <div style={{ height: 7, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 10 }}>
-                            <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 400ms ease" }} />
-                          </div>
-                          <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55 }}>
-                            {isStrength ? dim.coaching.strength : dim.coaching.gap}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                    <div style={{ width: 3, height: 22, borderRadius: 99, background: "var(--accent)", flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>Dominant Communication Pattern</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>The style that appears most consistently in your answers</div>
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: "18px 20px",
+                    borderRadius: "var(--radius-lg)",
+                    background: "linear-gradient(145deg, var(--accent-soft), var(--card-bg))",
+                    border: "1px solid var(--card-border-soft)",
+                    marginBottom: 12,
+                  }}>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>{archetypeStats.dominant}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                      Detected in {archetypeStats.dominantCount} of {archetypeStats.totalWithArchetype} scored session{archetypeStats.totalWithArchetype !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
+                    {archetypeStats.dominant === "Polished Performer" ? "Your delivery is hitting across all dimensions — maintain this standard under pressure." :
+                     archetypeStats.dominant === "Hedger" || archetypeStats.dominant === "The Hedger" ? "Replace softening phrases with assertive alternatives. Practice: 'I decided...' instead of 'We kind of went with...'" :
+                     archetypeStats.dominant === "Rusher" || archetypeStats.dominant === "The Rusher" ? "Pause after each STAR section. A 1-second pause signals structure and lets your key point land." :
+                     archetypeStats.dominant === "The Storyteller" || archetypeStats.dominant === "Storyteller" ? "Channel narrative strength into the Result — make it the emotional peak of the story." :
+                     archetypeStats.dominant === "The Pauser" || archetypeStats.dominant === "Pauser" ? "Your measured delivery reads as confident — protect it. Avoid filling silences with filler words." :
+                     archetypeStats.dominant === "The Lecturer" || archetypeStats.dominant === "Lecturer" ? "Add one personal moment or emotional beat to each answer to make technical content stick." :
+                     "Focus on varying vocal pitch and pace to maintain listener engagement."}
                   </div>
                 </PremiumCard>
-
-                {archetypeStats.dominant && (
+                {archetypeStats.all.length > 1 && (
                   <PremiumCard>
-                    <SectionTitle
-                      eyebrow="Communication Pattern"
-                      title="Your dominant archetype"
-                      subtitle="Based on your scored attempts, this is the communication pattern that shows up most consistently."
-                    />
-
-                    <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-                      <div style={{
-                        padding: "16px 18px",
-                        borderRadius: "var(--radius-lg)",
-                        background: "linear-gradient(145deg, var(--accent-soft), var(--card-bg))",
-                        border: "1px solid var(--card-border-soft)",
-                      }}>
-                        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>
-                          {archetypeStats.dominant}
-                        </div>
-                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                          Detected in {archetypeStats.dominantCount} of {archetypeStats.totalWithArchetype} scored attempt{archetypeStats.totalWithArchetype !== 1 ? "s" : ""}
-                        </div>
-                      </div>
-
-                      {archetypeStats.all.length > 1 && (
-                        <div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>All detected archetypes</div>
-                          <div style={{ display: "grid", gap: 6 }}>
-                            {archetypeStats.all.map(({ name, count }) => {
-                              const pct = Math.round((count / archetypeStats.totalWithArchetype) * 100);
-                              return (
-                                <div key={name} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "var(--text-primary)", minWidth: 0 }}>{name}</div>
-                                  <div style={{ width: 120, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                                    <div style={{ width: `${pct}%`, height: "100%", background: "var(--accent)", borderRadius: 99 }} />
-                                  </div>
-                                  <div style={{ fontSize: 12, color: "var(--text-muted)", width: 28, textAlign: "right", flexShrink: 0 }}>{count}×</div>
-                                </div>
-                              );
-                            })}
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>All detected archetypes</div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                      {archetypeStats.all.map(({ name, count }) => {
+                        const pct = Math.round((count / archetypeStats.totalWithArchetype) * 100);
+                        const isDominant = name === archetypeStats.dominant;
+                        return (
+                          <div key={name}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 5 }}>
+                              <span style={{ fontSize: 13, fontWeight: isDominant ? 700 : 500, color: isDominant ? "var(--text-primary)" : "var(--text-muted)" }}>{name}</span>
+                              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{count}×</span>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                              <div style={{ width: `${pct}%`, height: "100%", background: isDominant ? "var(--accent)" : "var(--card-border)", borderRadius: 99 }} />
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
                   </PremiumCard>
                 )}
-              </>
+              </div>
             )}
 
-            {activeTab === "notes" && (
-              <InterviewNotesCard
-                strengths={interviewNotes.leanInto}
-                watchouts={interviewNotes.watchouts}
-                reminders={interviewNotes.reminders}
-              />
-            )}
-
-            {activeTab === "visual" && (() => {
-              const facialSessions = history.filter((a: any) => a.deliveryMetrics?.face && typeof a.deliveryMetrics.face.eyeContact === "number");
-              const vocalSessions  = history.filter((a: any) => a.deliveryMetrics && typeof a.deliveryMetrics.wpm === "number");
-              const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 10) / 10 : null;
-              const avgEye   = avg(facialSessions.map((a: any) => a.deliveryMetrics.face.eyeContact * 100));
-              const avgExpr  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.expressiveness ?? 0) * 100));
-              const avgHead  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.headStability  ?? 0) * 100));
-              const avgSmile = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.smileRate != null).map((a: any) => a.deliveryMetrics.face.smileRate * 100));
-              const avgBlink = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.blinkRate != null).map((a: any) => a.deliveryMetrics.face.blinkRate));
-              const avgBrow  = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.browEngagement != null).map((a: any) => a.deliveryMetrics.face.browEngagement * 100));
-              const avgLook  = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.lookAwayRate != null).map((a: any) => a.deliveryMetrics.face.lookAwayRate * 100));
-              const avgWpm   = avg(vocalSessions.map((a: any) => a.deliveryMetrics.wpm));
-              const avgEnergy = avg(vocalSessions.map((a: any) => a.deliveryMetrics.energyVariation ?? 0));
-              const avgPitch  = avg(vocalSessions.map((a: any) => a.deliveryMetrics.pitchStd ?? 0));
-              const avgFiller = avg(vocalSessions.map((a: any) => a.deliveryMetrics.fillerCount ?? a.feedback?.filler?.total ?? 0));
-              const scoreColor = (v: number | null, good: number) => v === null ? "var(--text-muted)" : v >= good ? "#10B981" : "#F59E0B";
-              function MiniBar({ value, max, color }: { value: number | null; max: number; color: string }) {
-                const pct = value !== null ? Math.min(100, Math.round((value / max) * 100)) : 0;
-                return <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", flex: 1 }}><div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width 0.5s" }} /></div>;
-              }
-              return (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                  {/* Vocal */}
-                  <PremiumCard><div style={{ marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Vocal Delivery</div>{vocalSessions.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Averaged across {vocalSessions.length} sessions</div>}</div>
-                    {vocalSessions.length === 0 ? (
-                      <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "12px 0" }}>Complete a session to see vocal metrics.</div>
-                    ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {[
-                          { label: "Speaking Pace", value: avgWpm !== null ? `${avgWpm} wpm` : "-", bar: avgWpm, max: 200, color: scoreColor(avgWpm, 120), hint: avgWpm && avgWpm >= 120 && avgWpm <= 160 ? "Ideal range" : avgWpm && avgWpm < 120 ? "A bit slow" : "A bit fast" },
-                          { label: "Energy Variation", value: avgEnergy !== null ? `${avgEnergy}/10` : "-", bar: avgEnergy, max: 10, color: scoreColor(avgEnergy, 4), hint: avgEnergy && avgEnergy >= 4 ? "Good variety" : "Try varying your tone" },
-                          { label: "Pitch Range", value: avgPitch !== null ? `${avgPitch} Hz` : "-", bar: avgPitch, max: 60, color: scoreColor(avgPitch, 20), hint: avgPitch && avgPitch >= 20 ? "Expressive range" : "Sounds flat" },
-                          { label: "Filler Words", value: avgFiller !== null ? `${avgFiller}/session` : "-", bar: avgFiller !== null ? Math.max(0, 10 - avgFiller) : null, max: 10, color: avgFiller !== null && avgFiller <= 3 ? "#10B981" : "#EF4444", hint: avgFiller !== null && avgFiller <= 3 ? "Very clean" : "Work on fillers" },
-                        ].map(row => (
-                          <div key={row.label}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{row.label}</span>
-                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{row.hint}</span>
-                                <span style={{ fontSize: 13, fontWeight: 900, color: row.color, minWidth: 56, textAlign: "right" }}>{row.value}</span>
-                              </div>
-                            </div>
-                            <MiniBar value={row.bar} max={row.max} color={row.color} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </PremiumCard>
-                  {/* Webcam */}
-                  <PremiumCard><div style={{ marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Visual Delivery</div>{facialSessions.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Averaged across {facialSessions.length} webcam sessions</div>}</div>
-                    {facialSessions.length === 0 ? (
-                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, padding: "8px 0" }}>
-                        No webcam data yet. Enable your camera before recording to unlock eye contact, smile rate, blink rate, brow engagement, and more.
-                        <br /><br />
-                        <Link href="/practice" style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Start a session →</Link>
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                        {[
-                          { label: "Eye Contact",     value: avgEye   !== null ? `${Math.round(avgEye)}%`   : "-", bar: avgEye,   max: 100, color: scoreColor(avgEye,   65), hint: avgEye   && avgEye   >= 65 ? "Strong"    : "Look toward camera more" },
-                          { label: "Expressiveness",  value: avgExpr  !== null ? `${Math.round(avgExpr)}%`  : "-", bar: avgExpr,  max: 100, color: scoreColor(avgExpr,  55), hint: avgExpr  && avgExpr  >= 55 ? "Engaging"  : "Show more expression" },
-                          { label: "Head Stability",  value: avgHead  !== null ? `${Math.round(avgHead)}%`  : "-", bar: avgHead,  max: 100, color: scoreColor(avgHead,  60), hint: avgHead  && avgHead  >= 60 ? "Steady"    : "Reduce movement" },
-                          { label: "Smile Rate",      value: avgSmile !== null ? `${Math.round(avgSmile)}%` : "-", bar: avgSmile, max: 100, color: scoreColor(avgSmile, 20), hint: avgSmile && avgSmile >= 20 ? "Warm"      : "Add warmth — let yourself smile" },
-                          { label: "Brow Engagement", value: avgBrow  !== null ? `${Math.round(avgBrow)}%`  : "-", bar: avgBrow,  max: 100, color: scoreColor(avgBrow,  10), hint: avgBrow  && avgBrow  >= 10 ? "Animated"  : "Frozen brows — vary expression" },
-                          { label: "Blink Rate",      value: avgBlink !== null ? `${Math.round(avgBlink)}/min` : "-", bar: avgBlink !== null ? Math.max(0, 30 - Math.abs(avgBlink - 17)) : null, max: 30, color: avgBlink !== null && avgBlink >= 10 && avgBlink <= 25 ? "#10B981" : "#F59E0B", hint: avgBlink && avgBlink > 30 ? "High — may signal nerves" : avgBlink && avgBlink < 8 ? "Low — looks forced" : "Normal range" },
-                          { label: "Look-Away Rate",  value: avgLook  !== null ? `${Math.round(avgLook)}%`  : "-", bar: avgLook !== null ? Math.max(0, 100 - avgLook) : null, max: 100, color: avgLook !== null && avgLook <= 12 ? "#10B981" : avgLook !== null && avgLook <= 30 ? "#F59E0B" : "#EF4444", hint: avgLook && avgLook <= 12 ? "Minimal" : avgLook && avgLook <= 30 ? "Occasional" : "Frequent" },
-                        ].map(row => (
-                          <div key={row.label}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{row.label}</span>
-                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{row.hint}</span>
-                                <span style={{ fontSize: 13, fontWeight: 900, color: row.color, minWidth: 42, textAlign: "right" }}>{row.value}</span>
-                              </div>
-                            </div>
-                            <MiniBar value={row.bar} max={row.max} color={row.color} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </PremiumCard>
+            {/* ── SECTION 4: Next Focus + Delivery ─────────────────────────── */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <PremiumCard>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 6 }}>Next lever</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3, marginBottom: 10 }}>{nextFocusCard.title}</div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 14 }}>{nextFocusCard.body}</div>
+                <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4 }}>FOR YOUR NEXT ATTEMPT</div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>{nextFocusCard.action}</div>
                 </div>
-              );
-            })()}
+              </PremiumCard>
+              <PremiumCard>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Delivery Signals</div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                  {[
+                    { label: "Pace", value: overview.avgPace === null ? "—" : `${Math.round(overview.avgPace)} wpm`, subtext: paceCoaching(overview.avgPace), score: overview.avgPace !== null ? (overview.avgPace >= 115 && overview.avgPace <= 145 ? 9 : overview.avgPace > 165 || overview.avgPace < 100 ? 4 : 7) : null },
+                    { label: "Fillers", value: overview.avgFillers === null ? "—" : `${overview.avgFillers}/100w`, subtext: fillerCoaching(overview.avgFillers), score: overview.avgFillers !== null ? (overview.avgFillers <= 1.5 ? 9 : overview.avgFillers < 3 ? 7 : 4) : null },
+                    { label: "Vocal variety", value: overview.avgMonotone === null ? "—" : `${overview.avgMonotone?.toFixed(1)}/10`, subtext: monotoneCoaching(overview.avgMonotone), score: overview.avgMonotone !== null ? (overview.avgMonotone <= 4 ? 9 : overview.avgMonotone <= 6 ? 7 : 4) : null },
+                    { label: "Closing impact", value: overview.avgStarResult === null ? "—" : displayTenPointAs100(overview.avgStarResult), subtext: resultCoaching(overview.avgStarResult), score: overview.avgStarResult !== null ? (overview.avgStarResult >= 7.5 ? 9 : overview.avgStarResult >= 6 ? 7 : 4) : null },
+                  ].map(({ label, value, subtext, score }) => {
+                    const color = score === null ? "var(--text-muted)" : score >= 8 ? "#10B981" : score >= 6 ? "var(--accent)" : "#EF4444";
+                    return (
+                      <div key={label} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>{label}</span>
+                            <span style={{ fontSize: 14, fontWeight: 700, color }}>{value}</span>
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{subtext}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </PremiumCard>
+            </div>
 
-            {activeTab === "resume" && (() => {
-              const scoreColor = (s: number | null) => s === null ? "var(--text-muted)" : s >= 70 ? "#10B981" : s >= 45 ? "#F59E0B" : "#EF4444";
-              return (
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                      Upload your resume to get an ATS score, keyword gap analysis, and prioritized action items.
+            {/* ── SECTION 5: Category & Framework ──────────────────────────── */}
+            {(categoryStats.length > 0 || frameworkStats.length > 0) && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {categoryStats.length > 0 && (
+                  <PremiumCard>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>By Question Category</div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                      {categoryStats.map((row) => (
+                        <div key={row.key}>
+                          <ScoreBarRow label={row.label} count={row.count} avgScore={row.avgScore}
+                            subtitle={row.avgComm !== null && row.avgConf !== null ? `Comm ${displayTenPointAs100(row.avgComm)} · Conf ${displayTenPointAs100(row.avgConf)}` : undefined}
+                          />
+                        </div>
+                      ))}
                     </div>
-                    <Link href="/resume-gap" style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
-                      {resumeHistory.length > 0 ? "Analyze again →" : "Analyze my resume →"}
-                    </Link>
+                  </PremiumCard>
+                )}
+                {frameworkStats.length > 0 && (
+                  <PremiumCard>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>By Evaluation Framework</div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                      {frameworkStats.map((row) => (
+                        <div key={row.key}>
+                          <ScoreBarRow label={row.label} count={row.count} avgScore={row.avgScore}
+                            subtitle={row.avgComm !== null && row.avgConf !== null ? `Comm ${displayTenPointAs100(row.avgComm)} · Conf ${displayTenPointAs100(row.avgConf)}` : undefined}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </PremiumCard>
+                )}
+              </div>
+            )}
+
+            {/* ── SECTION 6: Role Fit ───────────────────────────────────────── */}
+            {roleAptitudeStats.length > 0 && (
+              <PremiumCard>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                  <div style={{ width: 3, height: 22, borderRadius: 99, background: "var(--accent)", flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>Role Fit Analysis</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>Your interview strengths mapped to each target role</div>
                   </div>
-                  {resumeHistory.length === 0 ? (
-                    <div style={{ padding: "32px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--card-border)", color: "var(--text-muted)", fontSize: 13 }}>
-                      No resume analyses yet. Upload your resume to get started.
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                  {roleAptitudeStats.map((row) => (
+                    <div key={row.key} style={{
+                      padding: 16, borderRadius: "var(--radius-md)",
+                      border: "1px solid var(--card-border-soft)",
+                      background: "linear-gradient(145deg, var(--card-bg-strong), var(--card-bg))",
+                    }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 10 }}>
+                        <div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{row.label}</div>
+                          <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
+                            {[row.company, row.roleType].filter(Boolean).join(" · ") || "Target role"} · {row.count} session{row.count !== 1 ? "s" : ""}
+                          </div>
+                        </div>
+                        <div style={{
+                          padding: "4px 12px", borderRadius: 999, fontSize: 12, fontWeight: 700, whiteSpace: "nowrap" as const,
+                          background: (row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.12)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.1)" : "rgba(239,68,68,0.08)",
+                          color: (row.fitScore ?? 0) >= 7 ? "#10B981" : (row.fitScore ?? 0) >= 6 ? "var(--accent)" : "#EF4444",
+                          border: `1px solid ${(row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.25)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.2)" : "rgba(239,68,68,0.2)"}`,
+                        }}>
+                          {row.fitLabel} · {row.fitScore === null ? "—" : displayTenPointAs100(row.fitScore)}
+                        </div>
+                      </div>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, marginBottom: 10 }}>{row.narrative}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                        {[
+                          { label: "Score", value: row.avgScore === null ? "—" : `${Math.round(row.avgScore)}/100` },
+                          { label: "Best match", value: row.matched[0] ?? "Still emerging" },
+                          { label: "Main gap", value: row.gaps[0] ?? "No major gap" },
+                        ].map(({ label, value }) => (
+                          <div key={label} style={{ padding: "10px 12px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                            <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", marginBottom: 4 }}>{label}</div>
+                            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>{value}</div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ) : (
-                    resumeHistory.map((r: any, i: number) => {
-                      const sc = scoreColor(r.overallScore);
-                      return (
-                        <Link key={r.id} href="/resume-gap" style={{ textDecoration: "none" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 16px", borderRadius: 12, border: "1px solid var(--card-border)", background: i === 0 ? "var(--card-bg-strong)" : "var(--card-bg)", transition: "border-color 120ms" }}>
-                            <div style={{ fontSize: 28, fontWeight: 900, color: sc, minWidth: 44, textAlign: "center", lineHeight: 1 }}>{r.overallScore ?? "-"}</div>
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                                <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{r.overallLabel ?? "Resume Analysis"}</span>
-                                {i === 0 && <span style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", background: "var(--accent-soft)", padding: "1px 7px", borderRadius: 99 }}>Latest</span>}
-                                {r.atsScore !== null && <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: 4 }}>ATS: <strong>{r.atsScore}</strong></span>}
-                              </div>
-                              {r.topAction && <div style={{ fontSize: 12, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>Top action: {r.topAction}</div>}
-                              {r.summary && <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.summary}</div>}
-                              <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{new Date(r.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</div>
+                  ))}
+                </div>
+              </PremiumCard>
+            )}
+
+            {/* ── SECTION 7: Visual + Vocal ─────────────────────────────────── */}
+            {(facialSessions.length > 0 || vocalSessionsV.length > 0) && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                {vocalSessionsV.length > 0 && (
+                  <PremiumCard>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Vocal Delivery</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 14 }}>Averaged across {vocalSessionsV.length} session{vocalSessionsV.length !== 1 ? "s" : ""}</div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                      {[
+                        { label: "Speaking Pace", v: avgWpmV, unit: "wpm", good: 120, max: 200 },
+                      ].map(({ label, v, unit, good, max }) => {
+                        const pct = v !== null ? Math.min(100, Math.round((v / max) * 100)) : 0;
+                        const color = v === null ? "var(--text-muted)" : v >= good ? "#10B981" : "#F59E0B";
+                        return (
+                          <div key={label}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color }}>{v !== null ? `${v} ${unit}` : "—"}</span>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                              <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99 }} />
                             </div>
                           </div>
-                        </Link>
-                      );
-                    })
-                  )}
-                </div>
-              );
-            })()}
+                        );
+                      })}
+                    </div>
+                  </PremiumCard>
+                )}
+                {facialSessions.length > 0 && (
+                  <PremiumCard>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Visual Presence</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 14 }}>Averaged across {facialSessions.length} webcam session{facialSessions.length !== 1 ? "s" : ""}</div>
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                      {[
+                        { label: "Eye Contact", v: avgEye, good: 65, max: 100 },
+                      ].map(({ label, v, good, max }) => {
+                        const pct = v !== null ? Math.min(100, Math.round((v / max) * 100)) : 0;
+                        const color = v === null ? "var(--text-muted)" : v >= good ? "#10B981" : "#F59E0B";
+                        return (
+                          <div key={label}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+                              <span style={{ fontSize: 13, fontWeight: 700, color }}>{v !== null ? `${Math.round(v)}%` : "—"}</span>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                              <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99 }} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </PremiumCard>
+                )}
+              </div>
+            )}
 
-            {activeTab === "nace" && (() => {
-              const naceScores = computeNaceProfile({
-                attempts: history.map((a) => ({
-                  score: n(a.score ?? a.feedback?.score),
-                  communicationScore: n(a.communication_score ?? a.feedback?.communication_score),
-                  confidenceScore: n(a.confidence_score ?? a.feedback?.confidence_score),
-                  wpm: n(a.wpm),
-                  feedback: a.feedback,
-                  prosody: a.prosody,
-                  questionCategory: a.questionCategory,
-                })),
-              });
+            {/* ── SECTION 8: Resume ─────────────────────────────────────────── */}
+            {resumeHistory.length > 0 && (
+              <PremiumCard>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Resume Scans</div>
+                  <Link href="/resume-gap" style={{ padding: "6px 14px", borderRadius: 8, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none" }}>Analyze again →</Link>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                  {resumeHistory.slice(0, 3).map((r: any, i: number) => {
+                    const sc = r.overallScore !== null && r.overallScore >= 70 ? "#10B981" : r.overallScore !== null && r.overallScore >= 45 ? "#F59E0B" : "#EF4444";
+                    return (
+                      <Link key={r.id} href="/resume-gap" style={{ textDecoration: "none" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border-soft)", background: i === 0 ? "var(--card-bg-strong)" : "var(--card-bg)" }}>
+                          <div style={{ fontSize: 24, fontWeight: 800, color: sc, minWidth: 40, textAlign: "center" as const }}>{r.overallScore ?? "—"}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+                              {r.overallLabel ?? "Resume Analysis"}
+                              {i === 0 && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "var(--accent)", background: "var(--accent-soft)", padding: "1px 6px", borderRadius: 99 }}>Latest</span>}
+                            </div>
+                            {r.topAction && <div style={{ fontSize: 11, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>Top action: {r.topAction}</div>}
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>ATS {r.atsScore ?? "—"}</div>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </PremiumCard>
+            )}
+
+            {/* ── SECTION 9: Interview Notes ─────────────────────────────────── */}
+            <InterviewNotesCard
+              strengths={interviewNotes.leanInto}
+              watchouts={interviewNotes.watchouts}
+              reminders={interviewNotes.reminders}
+            />
+
+            {/* ── SECTION 10: NACE (university only) ───────────────────────── */}
+            {isUniversity && (() => {
               const scored = naceScores.filter((s) => s.score !== null);
               return (
-                <div style={{ display: "grid", gap: 18 }}>
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+                <PremiumCard>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 16 }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", marginBottom: 4 }}>
-                        NACE Career Readiness Competencies
-                      </div>
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 560 }}>
-                        The National Association of Colleges and Employers (NACE) defines 8 competencies employers look for in new graduates.
-                        Your scores are computed from your practice session data. Click any competency to see what data contributed.
+                      <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)" }}>NACE Career Readiness</div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4, maxWidth: 500, lineHeight: 1.6 }}>
+                        The 8 competencies employers look for in new graduates, scored from your practice sessions.
                       </div>
                     </div>
                     {scored.length > 0 && (
-                      <button
-                        onClick={() =>
-                          downloadNacePdf({
-                            scores: naceScores,
-                            studentName: session?.user?.name ?? session?.user?.email ?? "Student",
-                          })
-                        }
-                        style={{
-                          flexShrink: 0,
-                          padding: "8px 16px",
-                          borderRadius: 9,
-                          border: "1px solid var(--accent)",
-                          background: "transparent",
-                          color: "var(--accent)",
-                          fontWeight: 800,
-                          fontSize: 12,
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
+                      <button onClick={() => downloadNacePdf({ scores: naceScores, studentName: session?.user?.name ?? session?.user?.email ?? "Student" })}
+                        style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid var(--accent)", background: "transparent", color: "var(--accent)", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" as const }}>
                         ⬇ Export PDF
                       </button>
                     )}
                   </div>
-
-                  {history.length === 0 ? (
-                    <div style={{ padding: "32px 20px", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                      Complete practice sessions to generate your NACE competency profile.
-                    </div>
-                  ) : (
-                    <>
-                      {scored.length > 0 && (
-                        <div style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(4, 1fr)",
-                          gap: 10,
-                        }}>
-                          {naceScores.filter((s) => s.score !== null).map((s) => (
-                            <div key={s.key} style={{
-                              padding: "14px 16px",
-                              borderRadius: 12,
-                              border: "1px solid var(--card-border-soft)",
-                              background: "var(--card-bg)",
-                              textAlign: "center",
-                            }}>
-                              <div style={{ fontSize: 22, fontWeight: 900, color: s.score !== null && s.score >= 65 ? "#10B981" : "#F59E0B" }}>
-                                {s.score}
-                              </div>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginTop: 2 }}>{s.shortLabel}</div>
-                            </div>
-                          ))}
+                  {scored.length > 0 && (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
+                      {scored.map((s) => (
+                        <div key={s.key} style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" as const }}>
+                          <div style={{ fontSize: 22, fontWeight: 800, color: s.score !== null && s.score >= 65 ? "#10B981" : "#F59E0B" }}>{s.score}</div>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", marginTop: 3 }}>{s.shortLabel}</div>
                         </div>
-                      )}
-                      <NaceScoreCard scores={naceScores} />
-                    </>
+                      ))}
+                    </div>
                   )}
-                </div>
+                  <NaceScoreCard scores={naceScores} />
+                </PremiumCard>
               );
             })()}
           </>

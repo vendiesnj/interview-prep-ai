@@ -171,15 +171,23 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
       fillers_per_100_words: Math.max(0, (10 - score) * 0.9),
       by_type: { "um": Math.floor(Math.max(0, (10 - score))), "like": Math.floor(Math.max(0, (9.5 - score) * 0.8)) },
     },
-    dimension_scores: {
-      narrative_clarity: Math.min(10, score + (Math.random() * 0.8 - 0.4)),
-      evidence_quality: Math.min(10, score - 0.3 + (Math.random() * 0.6)),
-      ownership_agency: Math.min(10, confScore + (Math.random() * 0.4 - 0.2)),
-      vocal_engagement: Math.min(10, commScore + (Math.random() * 0.6 - 0.3)),
-      response_control: Math.min(10, score + 0.2 + (Math.random() * 0.4 - 0.2)),
-      cognitive_depth: Math.min(10, score - 0.1 + (Math.random() * 0.5 - 0.25)),
-      presence_confidence: Math.min(10, confScore - 0.2 + (Math.random() * 0.4)),
-    },
+    dimension_scores: (() => {
+      const dims = {
+        narrative_clarity:   { label: "Narrative Clarity",    s: Math.min(10, score + (Math.random() * 0.8 - 0.4)) },
+        evidence_quality:    { label: "Evidence Quality",     s: Math.min(10, score - 0.3 + (Math.random() * 0.6)) },
+        ownership_agency:    { label: "Ownership & Agency",   s: Math.min(10, confScore + (Math.random() * 0.4 - 0.2)) },
+        vocal_engagement:    { label: "Vocal Engagement",     s: Math.min(10, commScore + (Math.random() * 0.6 - 0.3)) },
+        response_control:    { label: "Response Control",     s: Math.min(10, score + 0.2 + (Math.random() * 0.4 - 0.2)) },
+        cognitive_depth:     { label: "Cognitive Depth",      s: Math.min(10, score - 0.1 + (Math.random() * 0.5 - 0.25)) },
+        presence_confidence: { label: "Presence & Confidence",s: Math.min(10, confScore - 0.2 + (Math.random() * 0.4)) },
+      };
+      const result = {};
+      for (const [key, { label, s }] of Object.entries(dims)) {
+        const sc = parseFloat(s.toFixed(1));
+        result[key] = { label, score: sc, coaching: sc >= 7.5 ? `Strong ${label.toLowerCase()} — keep this up.` : `Work on ${label.toLowerCase()} to raise your score.`, isStrength: sc >= 7.5, isGap: sc < 5.5, driverSignals: [] };
+      }
+      return result;
+    })(),
   };
 }
 
