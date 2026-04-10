@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
 import {
   ChevronLeft, ChevronRight, Plus, X, Calendar, DollarSign,
@@ -12,21 +12,27 @@ import {
 type CalEvent = {
   id: string;
   title: string;
-  date: string;       // YYYY-MM-DD
-  startHour: number;  // 0–23
-  startMin: number;   // 0 | 30
-  durationMins: number; // default 60
+  date: string;           // YYYY-MM-DD (current scheduled date)
+  startHour: number;      // 0–23
+  startMin: number;       // 0 | 30
+  durationMins: number;
   color: string;
   allDay?: boolean;
+  completed?: boolean;
+  completedAt?: string;   // YYYY-MM-DD when marked complete
+  originalDate?: string;  // first scheduled date — never changes
+  pushCount?: number;     // times moved to a later date
 };
 
 type BudgetLine = { id: string; label: string; category: "needs" | "wants" | "savings"; amount: number; placeholder: number };
+type OneTimeExpense = { id: string; monthKey: string; label: string; amount: number };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const CAL_KEY    = "lb_calendar_v1";
 const BUDGET_KEY = "lb_budget_v1";
 const RETIRE_KEY = "lb_retire_v1";
+const PROJ_KEY   = "lb_projections_v1";
 
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6); // 6am–10pm
 const HOUR_H = 64; // px per hour slot
@@ -128,12 +134,16 @@ function EventModal({
   const [duration, setDuration]     = useState(isEdit ? state.event!.durationMins : 60);
   const [date, setDate]             = useState(isEdit ? state.event!.date : state.date);
   const [allDay, setAllDay]         = useState(isEdit ? !!state.event!.allDay : false);
+  const [completed, setCompleted]   = useState(isEdit ? !!state.event!.completed : false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setTimeout(() => inputRef.current?.focus(), 50); }, []);
 
   function handleSave() {
     if (!title.trim()) return;
+    const originalDate = isEdit ? (state.event!.originalDate ?? state.event!.date) : date;
+    const prevDate     = isEdit ? state.event!.date : date;
+    const pushed       = isEdit && date > prevDate;
     onSave({
       id:           isEdit ? state.event!.id : uid(),
       title:        title.trim(),
@@ -143,6 +153,10 @@ function EventModal({
       durationMins: duration,
       color,
       allDay,
+      completed,
+      completedAt:  completed ? (isEdit && state.event!.completedAt ? state.event!.completedAt : todayStr()) : undefined,
+      originalDate,
+      pushCount:    pushed ? ((state.event!.pushCount ?? 0) + 1) : (state.event?.pushCount ?? 0),
     });
     onClose();
   }
@@ -217,6 +231,14 @@ function EventModal({
           </div>
         </div>
 
+        {/* Complete toggle */}
+        <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, marginBottom: 14, cursor: "pointer", background: completed ? "rgba(16,185,129,0.08)" : "var(--card-bg)", border: `1px solid ${completed ? "rgba(16,185,129,0.3)" : "var(--card-border)"}`, transition: "all 150ms" }}>
+          <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked)} style={{ accentColor: "#10B981", width: 15, height: 15 }} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: completed ? "#10B981" : "var(--text-muted)" }}>
+            {completed ? "Marked complete ✓" : "Mark as complete"}
+          </span>
+        </label>
+
         <div style={{ display: "flex", gap: 10 }}>
           {isEdit && (
             <button type="button" onClick={() => { onDelete(state.event!.id); onClose(); }}
@@ -229,11 +251,142 @@ function EventModal({
             Cancel
           </button>
           <button type="button" onClick={handleSave}
-            style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "none", background: color, color: "#fff", fontWeight: 800, fontSize: 13, cursor: "pointer" }}>
+            style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "none", background: color, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             {isEdit ? "Save" : "Add event"}
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Productivity Stats ────────────────────────────────────────────────────────
+
+function ProductivityStats({ events }: { events: CalEvent[] }) {
+  const today = todayStr();
+
+  // Last 30 days window for streaks/history; last 7 for rolling stats
+  const last7 = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - 6 + i);
+    return toDateStr(d);
+  });
+  const last30 = Array.from({ length: 30 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() - 29 + i);
+    return toDateStr(d);
+  });
+
+  const pastEvents      = events.filter(e => e.date <= today && !e.allDay);
+  const last7Events     = pastEvents.filter(e => last7.includes(e.date));
+  const completedLast7  = last7Events.filter(e => e.completed);
+  const completionRate  = last7Events.length ? completedLast7.length / last7Events.length : 0;
+
+  // On-time: completed on or before scheduled date
+  const onTime     = completedLast7.filter(e => !e.completedAt || e.completedAt <= e.date).length;
+  const onTimeRate = completedLast7.length ? onTime / completedLast7.length : 0;
+
+  // Push rate: % of scheduled events that were moved at least once
+  const pushed     = last7Events.filter(e => (e.pushCount ?? 0) > 0).length;
+  const pushRate   = last7Events.length ? pushed / last7Events.length : 0;
+
+  // Tasks today
+  const todayTotal     = events.filter(e => e.date === today && !e.allDay).length;
+  const todayDone      = events.filter(e => e.date === today && e.completed).length;
+
+  // Completion streak (consecutive days ending today with ≥1 completed task)
+  let streak = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = toDateStr(d);
+    if (events.some(e => e.completedAt === key || (e.completed && e.date === key))) {
+      streak++;
+    } else if (i > 0) break;
+  }
+
+  // Daily completed count for last 7 days (sparkline)
+  const dailyCounts = last7.map(day =>
+    events.filter(e => e.completedAt === day || (e.completed && e.date === day)).length
+  );
+  const maxDaily = Math.max(...dailyCounts, 1);
+
+  function StatCard({ label, value, sub, color = "var(--accent)", bar }: {
+    label: string; value: string; sub?: string; color?: string; bar?: number;
+  }) {
+    return (
+      <div style={{ background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "16px 18px", boxShadow: "var(--shadow-card-soft)" }}>
+        <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>{label}</div>
+        <div style={{ fontSize: 26, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
+        {sub && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 5 }}>{sub}</div>}
+        {bar !== undefined && (
+          <div style={{ marginTop: 10, height: 4, borderRadius: 2, background: "var(--card-border)", overflow: "hidden" }}>
+            <div style={{ height: "100%", borderRadius: 2, background: color, width: `${Math.min(100, bar * 100)}%`, transition: "width 600ms cubic-bezier(.4,0,.2,1)" }} />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ marginTop: 20 }}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", marginBottom: 12, letterSpacing: -0.1 }}>Productivity — last 7 days</div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+        <StatCard
+          label="Today"
+          value={todayTotal === 0 ? "0 tasks" : `${todayDone}/${todayTotal}`}
+          sub={todayTotal === 0 ? "Nothing scheduled" : todayDone === todayTotal ? "All done ✓" : `${todayTotal - todayDone} remaining`}
+          color={todayDone === todayTotal && todayTotal > 0 ? "#10B981" : "var(--accent)"}
+          bar={todayTotal ? todayDone / todayTotal : 0}
+        />
+        <StatCard
+          label="Completion rate"
+          value={last7Events.length ? `${Math.round(completionRate * 100)}%` : "—"}
+          sub={`${completedLast7.length} of ${last7Events.length} tasks done`}
+          color={completionRate >= 0.8 ? "#10B981" : completionRate >= 0.5 ? "#F59E0B" : "#EF4444"}
+          bar={completionRate}
+        />
+        <StatCard
+          label="On-time rate"
+          value={completedLast7.length ? `${Math.round(onTimeRate * 100)}%` : "—"}
+          sub={`${onTime} completed on schedule`}
+          color={onTimeRate >= 0.8 ? "#10B981" : onTimeRate >= 0.5 ? "#F59E0B" : "#EF4444"}
+          bar={onTimeRate}
+        />
+        <StatCard
+          label="Push frequency"
+          value={last7Events.length ? `${Math.round(pushRate * 100)}%` : "—"}
+          sub={`${pushed} task${pushed !== 1 ? "s" : ""} rescheduled`}
+          color={pushRate <= 0.1 ? "#10B981" : pushRate <= 0.3 ? "#F59E0B" : "#EF4444"}
+          bar={pushRate}
+        />
+        <StatCard
+          label="Streak"
+          value={streak === 0 ? "0 days" : `${streak} day${streak !== 1 ? "s" : ""}`}
+          sub={streak > 0 ? "Consecutive days with completions" : "Complete a task to start"}
+          color={streak >= 7 ? "#10B981" : streak >= 3 ? "#F59E0B" : "var(--accent)"}
+        />
+      </div>
+
+      {/* 7-day sparkline */}
+      {last7Events.length > 0 && (
+        <div style={{ marginTop: 14, background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Completions per day</div>
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 48 }}>
+            {last7.map((day, i) => {
+              const isToday = day === today;
+              const count = dailyCounts[i];
+              const h = count === 0 ? 4 : Math.max(8, (count / maxDaily) * 48);
+              return (
+                <div key={day} style={{ flex: 1, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4 }}>
+                  <div style={{ width: "100%", borderRadius: 3, background: count > 0 ? "#10B981" : "var(--card-border)", height: h, transition: "height 500ms", opacity: isToday ? 1 : 0.75 }} />
+                  <span style={{ fontSize: 9, color: isToday ? "var(--accent)" : "var(--text-muted)", fontWeight: isToday ? 700 : 400 }}>
+                    {DAY_SHORT[new Date(day + "T12:00:00").getDay()]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -333,7 +486,7 @@ function WeekPlanner({ events, onSave, onDelete }: {
         <EventModal state={modal} onSave={onSave} onDelete={onDelete} onClose={() => setModal(null)} />
       )}
 
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 18, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: 18, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-card)" }}>
         {/* Header bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderBottom: "1px solid var(--card-border)", flexShrink: 0 }}>
           <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "6px 9px", display: "flex", alignItems: "center", transition: "background 120ms" }}>
@@ -437,7 +590,9 @@ function WeekPlanner({ events, onSave, onDelete }: {
                             boxShadow: `0 1px 4px ${e.color}50`,
                             transition: "opacity 120ms, box-shadow 120ms",
                           }}>
-                          <div style={{ fontSize: 10, fontWeight: 800, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.title}</div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: e.completed ? 0.65 : 1, textDecoration: e.completed ? "line-through" : "none" }}>
+                            {e.completed ? "✓ " : ""}{e.title}
+                          </div>
                           {e.durationMins >= 45 && (
                             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.8)", marginTop: 1 }}>
                               {fmtTime(e.startHour, e.startMin)} · {e.durationMins}m
@@ -468,18 +623,17 @@ function WeekPlanner({ events, onSave, onDelete }: {
 
 // ── Budget Calculator ─────────────────────────────────────────────────────────
 
-function BudgetCalc() {
-  const [income, setIncome] = useState(0);
-  const [lines, setLines] = useState<BudgetLine[]>(() => {
-    try {
-      const raw = localStorage.getItem(BUDGET_KEY);
-      return raw ? JSON.parse(raw) : DEFAULT_BUDGET;
-    } catch { return DEFAULT_BUDGET; }
+function BudgetCalc({ income, setIncome, lines, setLines, oneTime, setOneTime }: {
+  income: number; setIncome: (v: number) => void;
+  lines: BudgetLine[]; setLines: React.Dispatch<React.SetStateAction<BudgetLine[]>>;
+  oneTime: OneTimeExpense[]; setOneTime: React.Dispatch<React.SetStateAction<OneTimeExpense[]>>;
+}) {
+  const [addLabel, setAddLabel]   = useState("");
+  const [addAmount, setAddAmount] = useState("");
+  const [addMonth, setAddMonth]   = useState(() => {
+    const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
   });
-
-  useEffect(() => {
-    localStorage.setItem(BUDGET_KEY, JSON.stringify(lines));
-  }, [lines]);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   function setAmount(id: string, val: number) {
     setLines(prev => prev.map(l => l.id === id ? { ...l, amount: val } : l));
@@ -487,7 +641,6 @@ function BudgetCalc() {
 
   const totalByCategory = (cat: BudgetLine["category"]) =>
     lines.filter(l => l.category === cat).reduce((s, l) => s + (l.amount || 0), 0);
-
   const totalSpend = lines.reduce((s, l) => s + (l.amount || 0), 0);
   const surplus    = income - totalSpend;
 
@@ -496,16 +649,43 @@ function BudgetCalc() {
     return Math.round((totalByCategory(cat) / income) * 100);
   }
 
+  function addExpense() {
+    if (!addLabel.trim() || !Number(addAmount)) return;
+    setOneTime(prev => [...prev, { id: uid(), monthKey: addMonth, label: addLabel.trim(), amount: Number(addAmount) }]);
+    setAddLabel(""); setAddAmount(""); setShowAddForm(false);
+  }
+
+  function removeExpense(id: string) {
+    setOneTime(prev => prev.filter(e => e.id !== id));
+  }
+
+  // Build 12-month projection
+  const projMonths = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth() + i);
+    const key   = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+    const expenses      = oneTime.filter(e => e.monthKey === key);
+    const oneTimeTotal  = expenses.reduce((s, e) => s + e.amount, 0);
+    const net           = surplus - oneTimeTotal;
+    return { key, label, expenses, oneTimeTotal, net };
+  });
+  let running = 0;
+  const proj = projMonths.map(m => { running += m.net; return { ...m, cumulative: running }; });
+  const maxCumulative = Math.max(...proj.map(p => Math.abs(p.cumulative)), 1);
+
+  // Month options for the add-expense form
+  const monthOptions = proj.map(p => ({ key: p.key, label: p.label }));
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr 280px", gap: 20, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20, alignItems: "start" }}>
       {/* Left: inputs */}
       <div>
         <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", marginBottom: 16 }}>
-          <label style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Monthly take-home income</label>
+          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Monthly take-home income</label>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-            <span style={{ fontSize: 18, fontWeight: 800, color: "var(--text-muted)" }}>$</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: "var(--text-muted)" }}>$</span>
             <input type="number" min={0} value={income || ""} onChange={e => setIncome(Number(e.target.value))} placeholder="4,500"
-              style={{ fontSize: 24, fontWeight: 900, color: "var(--text-primary)", background: "none", border: "none", outline: "none", width: "100%" }} />
+              style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)", background: "none", border: "none", outline: "none", width: "100%" }} />
           </div>
         </div>
 
@@ -517,15 +697,14 @@ function BudgetCalc() {
             <div key={cat} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "16px 20px", marginBottom: 12 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{cfg.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{cfg.label}</span>
                   <span style={{ marginLeft: 8, fontSize: 11, color: "var(--text-muted)" }}>{cfg.desc}</span>
                 </div>
-                <div style={{ textAlign: "right" }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: cfg.color }}>{fmtCurrency(total)}</span>
+                <div style={{ textAlign: "right" as const }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: cfg.color }}>{fmtCurrency(total)}</span>
                   {income > 0 && <span style={{ marginLeft: 6, fontSize: 11, color: "var(--text-muted)" }}>({pct(cat)}% / ideal {cfg.ideal}%)</span>}
                 </div>
               </div>
-              {/* Progress bar */}
               {income > 0 && (
                 <div style={{ height: 5, borderRadius: 3, background: "var(--card-border)", marginBottom: 12, overflow: "hidden" }}>
                   <div style={{ height: "100%", borderRadius: 3, background: cfg.color, width: `${Math.min(100, pct(cat))}%`, transition: "width 400ms cubic-bezier(.4,0,.2,1)" }} />
@@ -534,12 +713,12 @@ function BudgetCalc() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px 16px" }}>
                 {catLines.map(l => (
                   <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ flex: 1, fontSize: 12, color: "var(--text-muted)", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.label}</span>
+                    <span style={{ flex: 1, fontSize: 12, color: "var(--text-muted)", fontWeight: 500, whiteSpace: "nowrap" as const, overflow: "hidden", textOverflow: "ellipsis" }}>{l.label}</span>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <span style={{ fontSize: 12, color: "var(--text-muted)" }}>$</span>
                       <input type="number" min={0} value={l.amount || ""} onChange={e => setAmount(l.id, Number(e.target.value))}
                         placeholder={l.placeholder.toString()}
-                        style={{ width: 70, padding: "4px 6px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12, fontWeight: 600, outline: "none", textAlign: "right" }} />
+                        style={{ width: 70, padding: "4px 6px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12, fontWeight: 600, outline: "none", textAlign: "right" as const }} />
                     </div>
                   </div>
                 ))}
@@ -549,42 +728,118 @@ function BudgetCalc() {
         })}
       </div>
 
-      {/* Right: summary */}
-      <div style={{ position: "sticky", top: 80 }}>
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "20px" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16 }}>50/30/20 Summary</div>
+      {/* Right: 12-month projection sidebar */}
+      <div style={{ position: "sticky", top: 80, display: "flex", flexDirection: "column", gap: 12 }}>
 
+        {/* 50/30/20 summary — compact */}
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "16px 18px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.5, marginBottom: 12 }}>50/30/20 Summary</div>
           {(["needs", "wants", "savings"] as const).map(cat => {
-            const cfg   = CAT_CFG[cat];
-            const total = totalByCategory(cat);
-            const p     = income ? pct(cat) : 0;
-            const onTrack = p <= cfg.ideal + 2;
+            const cfg = CAT_CFG[cat]; const p = income ? pct(cat) : 0;
             return (
-              <div key={cat} style={{ marginBottom: 16 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{cfg.label}</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: cfg.color }}>{p}%</span>
-                    <span style={{ fontSize: 10, color: onTrack ? "#10B981" : "#EF4444", fontWeight: 700 }}>{onTrack ? "✓" : "↑"} {cfg.ideal}%</span>
-                  </div>
+              <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: "var(--text-muted)", width: 52 }}>{cfg.label}</span>
+                <div style={{ flex: 1, height: 5, borderRadius: 3, background: "var(--card-border)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: 3, background: cfg.color, width: `${Math.min(100, p)}%`, transition: "width 400ms" }} />
                 </div>
-                <div style={{ height: 6, borderRadius: 4, background: "var(--card-border)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 4, background: cfg.color, width: `${Math.min(100, p)}%`, transition: "width 400ms" }} />
-                </div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3, textAlign: "right" }}>{fmtCurrency(total)}</div>
+                <span style={{ fontSize: 12, fontWeight: 600, color: cfg.color, width: 36, textAlign: "right" as const }}>{p}%</span>
               </div>
             );
           })}
+          <div style={{ borderTop: "1px solid var(--card-border)", marginTop: 10, paddingTop: 10, display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{surplus >= 0 ? "Monthly surplus" : "Monthly deficit"}</span>
+            <span style={{ fontSize: 13, fontWeight: 700, color: surplus >= 0 ? "#10B981" : "#EF4444" }}>{fmtCurrency(Math.abs(surplus))}</span>
+          </div>
+        </div>
 
-          <div style={{ borderTop: "1px solid var(--card-border)", paddingTop: 14, marginTop: 4 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>Total spend</span>
-              <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{fmtCurrency(totalSpend)}</span>
+        {/* 12-month projection */}
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, overflow: "hidden" }}>
+          <div style={{ padding: "14px 18px 10px", borderBottom: "1px solid var(--card-border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.5 }}>12-Month Projection</div>
+              {income > 0 && (
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>
+                  Base: <span style={{ color: surplus >= 0 ? "#10B981" : "#EF4444", fontWeight: 600 }}>{fmtCurrency(surplus)}/mo</span>
+                </div>
+              )}
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{surplus >= 0 ? "Surplus" : "Deficit"}</span>
-              <span style={{ fontSize: 14, fontWeight: 900, color: surplus >= 0 ? "#10B981" : "#EF4444" }}>{fmtCurrency(Math.abs(surplus))}</span>
+            <button type="button" onClick={() => setShowAddForm(v => !v)}
+              style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 7, border: "1px solid var(--card-border)", background: showAddForm ? "var(--accent)" : "var(--card-bg-strong)", color: showAddForm ? "#fff" : "var(--text-muted)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+              <Plus size={11} /> Add expense
+            </button>
+          </div>
+
+          {/* Add one-time expense form */}
+          {showAddForm && (
+            <div style={{ padding: "12px 18px", borderBottom: "1px solid var(--card-border)", background: "rgba(37,99,235,0.06)" }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8 }}>One-time expense</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+                <select value={addMonth} onChange={e => setAddMonth(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12 }}>
+                  {monthOptions.map(m => <option key={m.key} value={m.key}>{m.label}</option>)}
+                </select>
+                <input placeholder="Label (e.g. Car repair)" value={addLabel} onChange={e => setAddLabel(e.target.value)}
+                  style={{ padding: "6px 8px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12, outline: "none" }} />
+                <div style={{ display: "flex", gap: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", flex: 1, border: "1px solid var(--card-border)", borderRadius: 7, background: "var(--card-bg)", padding: "0 8px" }}>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>$</span>
+                    <input type="number" min={0} placeholder="Amount" value={addAmount} onChange={e => setAddAmount(e.target.value)}
+                      style={{ flex: 1, border: "none", background: "none", color: "var(--text-primary)", fontSize: 12, padding: "6px 4px", outline: "none" }} />
+                  </div>
+                  <button type="button" onClick={addExpense}
+                    style={{ padding: "6px 14px", borderRadius: 7, border: "none", background: "var(--accent)", color: "#fff", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+                    Add
+                  </button>
+                </div>
+              </div>
             </div>
+          )}
+
+          {/* Month rows */}
+          <div style={{ maxHeight: 380, overflowY: "auto" }}>
+            {proj.map((m, i) => (
+              <div key={m.key} style={{ padding: "9px 18px", borderBottom: i < 11 ? "1px solid var(--card-border)" : "none", background: i === 0 ? "rgba(37,99,235,0.05)" : "transparent" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: m.expenses.length ? 5 : 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: i === 0 ? "var(--accent)" : "var(--text-primary)", minWidth: 52 }}>{m.label}</span>
+                    {m.oneTimeTotal > 0 && (
+                      <span style={{ fontSize: 10, color: "#EF4444", fontWeight: 600 }}>-{fmtCurrency(m.oneTimeTotal)}</span>
+                    )}
+                  </div>
+                  <div style={{ textAlign: "right" as const }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: m.net >= 0 ? "#10B981" : "#EF4444" }}>{fmtCurrency(m.net)}</div>
+                    <div style={{ fontSize: 10, color: m.cumulative >= 0 ? "var(--text-muted)" : "#EF4444" }}>
+                      {m.cumulative >= 0 ? "+" : ""}{fmtCurrency(m.cumulative)} total
+                    </div>
+                  </div>
+                </div>
+                {/* Cumulative bar */}
+                {income > 0 && (
+                  <div style={{ height: 3, borderRadius: 2, background: "var(--card-border)", overflow: "hidden", marginTop: 4 }}>
+                    <div style={{ height: "100%", borderRadius: 2, background: m.cumulative >= 0 ? "#10B981" : "#EF4444", width: `${Math.min(100, (Math.abs(m.cumulative) / maxCumulative) * 100)}%`, transition: "width 400ms" }} />
+                  </div>
+                )}
+                {/* One-time expense chips */}
+                {m.expenses.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 4, marginTop: 5 }}>
+                    {m.expenses.map(e => (
+                      <span key={e.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "2px 7px", borderRadius: 4, background: "rgba(239,68,68,0.10)", border: "1px solid rgba(239,68,68,0.2)", fontSize: 10, fontWeight: 500, color: "#EF4444" }}>
+                        {e.label} {fmtCurrency(e.amount)}
+                        <button type="button" onClick={() => removeExpense(e.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#EF4444", padding: 0, lineHeight: 1, fontSize: 11 }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Summary footer */}
+          <div style={{ padding: "12px 18px", borderTop: "1px solid var(--card-border)", background: "rgba(16,185,129,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Saved after 12 months</span>
+            <span style={{ fontSize: 15, fontWeight: 700, color: proj[11]?.cumulative >= 0 ? "#10B981" : "#EF4444" }}>
+              {income > 0 ? fmtCurrency(proj[11]?.cumulative ?? 0) : "—"}
+            </span>
           </div>
         </div>
       </div>
@@ -604,14 +859,10 @@ type RetireState = {
 
 const DEFAULT_RETIRE: RetireState = { age: 25, salary: 60000, contribPct: 6, currentSavings: 0, retireAge: 65 };
 
-function RetireCalc() {
-  const [state, setState] = useState<RetireState>(() => {
-    try { const raw = localStorage.getItem(RETIRE_KEY); return raw ? JSON.parse(raw) : DEFAULT_RETIRE; }
-    catch { return DEFAULT_RETIRE; }
-  });
-
-  useEffect(() => { localStorage.setItem(RETIRE_KEY, JSON.stringify(state)); }, [state]);
-
+function RetireCalc({ state, setState }: {
+  state: RetireState;
+  setState: React.Dispatch<React.SetStateAction<RetireState>>;
+}) {
   function set(k: keyof RetireState, v: number) { setState(prev => ({ ...prev, [k]: v })); }
 
   const yearsToRetire = Math.max(0, state.retireAge - state.age);
@@ -714,6 +965,27 @@ function RetireCalc() {
   );
 }
 
+// ── Shared DB sync hook ───────────────────────────────────────────────────────
+
+function useLifeBuddySync() {
+  const [dbLoaded, setDbLoaded] = useState(false);
+
+  // Debounced save — returns a stable function that delays 1.5s before posting
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveToDb = useCallback((payload: Record<string, unknown>) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      fetch("/api/life-buddy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      }).catch(() => {});
+    }, 1500);
+  }, []);
+
+  return { dbLoaded, setDbLoaded, saveToDb };
+}
+
 // ── Life Buddy Page ───────────────────────────────────────────────────────────
 
 type Tab = "planner" | "budget" | "retirement";
@@ -726,14 +998,70 @@ const TABS: { id: Tab; label: string; Icon: React.ElementType }[] = [
 
 export default function LifeBuddyPage() {
   const [tab, setTab] = useState<Tab>("planner");
+  const { saveToDb } = useLifeBuddySync();
+
+  // ── Calendar state ──
   const [events, setEvents] = useState<CalEvent[]>(() => {
     try { const raw = localStorage.getItem(CAL_KEY); return raw ? JSON.parse(raw) : []; }
     catch { return []; }
   });
 
+  // ── Budget state ──
+  const [income, setIncome] = useState<number>(() => {
+    try { const raw = localStorage.getItem(BUDGET_KEY + "_income"); return raw ? Number(raw) : 0; }
+    catch { return 0; }
+  });
+  const [budgetLines, setBudgetLines] = useState<BudgetLine[]>(() => {
+    try { const raw = localStorage.getItem(BUDGET_KEY); return raw ? JSON.parse(raw) : DEFAULT_BUDGET; }
+    catch { return DEFAULT_BUDGET; }
+  });
+  const [oneTime, setOneTime] = useState<OneTimeExpense[]>(() => {
+    try { const raw = localStorage.getItem(PROJ_KEY); return raw ? JSON.parse(raw) : []; }
+    catch { return []; }
+  });
+
+  // ── Retirement state ──
+  const [retireState, setRetireState] = useState<RetireState>(() => {
+    try { const raw = localStorage.getItem(RETIRE_KEY); return raw ? JSON.parse(raw) : DEFAULT_RETIRE; }
+    catch { return DEFAULT_RETIRE; }
+  });
+
+  // ── Load from DB on mount (overrides localStorage if DB has data) ──
+  useEffect(() => {
+    fetch("/api/life-buddy")
+      .then(r => r.json())
+      .then(d => {
+        if (!d.exists) return;
+        if (Array.isArray(d.calendarEvents)  && d.calendarEvents.length)  setEvents(d.calendarEvents);
+        if (Array.isArray(d.budgetLines)     && d.budgetLines.length)     setBudgetLines(d.budgetLines);
+        if (d.budgetIncome)                                                setIncome(d.budgetIncome);
+        if (Array.isArray(d.oneTimeExpenses))                              setOneTime(d.oneTimeExpenses);
+        if (d.retireState && typeof d.retireState === "object")            setRetireState(d.retireState as RetireState);
+      })
+      .catch(() => {});
+  }, []);
+
+  // ── Persist to localStorage + DB on every change ──
   useEffect(() => {
     localStorage.setItem(CAL_KEY, JSON.stringify(events));
-  }, [events]);
+    saveToDb({ calendarEvents: events });
+  }, [events, saveToDb]);
+
+  useEffect(() => {
+    localStorage.setItem(BUDGET_KEY, JSON.stringify(budgetLines));
+    localStorage.setItem(BUDGET_KEY + "_income", String(income));
+    saveToDb({ budgetLines, budgetIncome: income });
+  }, [budgetLines, income, saveToDb]);
+
+  useEffect(() => {
+    localStorage.setItem(PROJ_KEY, JSON.stringify(oneTime));
+    saveToDb({ oneTimeExpenses: oneTime });
+  }, [oneTime, saveToDb]);
+
+  useEffect(() => {
+    localStorage.setItem(RETIRE_KEY, JSON.stringify(retireState));
+    saveToDb({ retireState });
+  }, [retireState, saveToDb]);
 
   function saveEvent(e: CalEvent) {
     setEvents(prev => {
@@ -747,19 +1075,19 @@ export default function LifeBuddyPage() {
   }
 
   return (
-    <PremiumShell>
+    <PremiumShell hideHeader>
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 20px" }}>
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 900, color: "var(--text-primary)", margin: 0 }}>Life Buddy</h1>
-          <p style={{ fontSize: 14, color: "var(--text-muted)", margin: "4px 0 0" }}>Plan your schedule, track your budget, and project your retirement.</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)", margin: 0, letterSpacing: -0.2 }}>Life Buddy</h1>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "3px 0 0" }}>Plan your schedule, track your budget, and project your savings.</p>
         </div>
 
         {/* Tab bar */}
         <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 4, width: "fit-content" }}>
           {TABS.map(t => (
             <button key={t.id} type="button" onClick={() => setTab(t.id)}
-              style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 18px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 800,
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 18px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,
                 background: tab === t.id ? "var(--accent)" : "transparent",
                 color: tab === t.id ? "#fff" : "var(--text-muted)",
                 transition: "background 150ms, color 150ms" }}>
@@ -771,10 +1099,21 @@ export default function LifeBuddyPage() {
 
         {/* Content */}
         {tab === "planner" && (
-          <WeekPlanner events={events} onSave={saveEvent} onDelete={deleteEvent} />
+          <>
+            <WeekPlanner events={events} onSave={saveEvent} onDelete={deleteEvent} />
+            <ProductivityStats events={events} />
+          </>
         )}
-        {tab === "budget" && <BudgetCalc />}
-        {tab === "retirement" && <RetireCalc />}
+        {tab === "budget" && (
+          <BudgetCalc
+            income={income} setIncome={setIncome}
+            lines={budgetLines} setLines={setBudgetLines}
+            oneTime={oneTime} setOneTime={setOneTime}
+          />
+        )}
+        {tab === "retirement" && (
+          <RetireCalc state={retireState} setState={setRetireState} />
+        )}
       </div>
     </PremiumShell>
   );

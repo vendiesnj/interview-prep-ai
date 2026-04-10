@@ -47,6 +47,7 @@ model User {
   instinctSessions     InstinctSession[]
   browserSessions      BrowserSession[]   @relation("BrowserSessions")
   tasks                Task[]
+  lifeBuddyData        LifeBuddyData?
 
   @@index([stripeCustomerId])
   @@index([stripeSubscriptionId])
@@ -542,4 +543,17 @@ enum MembershipStatus {
   active
   invited
   disabled
+}
+
+model LifeBuddyData {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  calendarEvents  Json     @default("[]")
+  budgetLines     Json     @default("[]")
+  budgetIncome    Float    @default(0)
+  oneTimeExpenses Json     @default("[]")
+  retireState     Json     @default("{}")
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
 }
