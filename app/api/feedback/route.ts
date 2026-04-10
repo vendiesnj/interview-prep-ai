@@ -647,10 +647,22 @@ function buildUserMessage(args: {
   // Build presence_signals block only when webcam data is available and meaningful
   const presenceSignals = faceMetrics && typeof faceMetrics === "object" && (faceMetrics.framesAnalyzed ?? 1) > 0
     ? {
-        eye_contact: labelPresence(faceMetrics.eyeContact, 0.65, 0.35),
-        expressiveness: labelPresence(faceMetrics.expressiveness, 0.5, 0.2),
-        head_stability: labelPresence(faceMetrics.headStability, 0.8, 0.5),
-        note: "Measured from webcam. Strong eye contact and expressiveness should support confidence_score. Weak eye contact should be reflected in confidence_evidence.",
+        eye_contact:     labelPresence(faceMetrics.eyeContact,     0.65, 0.35),
+        expressiveness:  labelPresence(faceMetrics.expressiveness,  0.5,  0.2),
+        head_stability:  labelPresence(faceMetrics.headStability,   0.8,  0.5),
+        smile_rate:      typeof faceMetrics.smileRate === "number"
+          ? (faceMetrics.smileRate > 0.25 ? "warm" : faceMetrics.smileRate > 0.08 ? "neutral" : "flat")
+          : null,
+        blink_rate:      typeof faceMetrics.blinkRate === "number"
+          ? (faceMetrics.blinkRate > 30 ? "nervous (high)" : faceMetrics.blinkRate < 8 ? "suppressed (low)" : "normal")
+          : null,
+        brow_engagement: typeof faceMetrics.browEngagement === "number"
+          ? (faceMetrics.browEngagement > 0.12 ? "animated" : faceMetrics.browEngagement > 0.05 ? "moderate" : "frozen")
+          : null,
+        look_away_rate:  typeof faceMetrics.lookAwayRate === "number"
+          ? (faceMetrics.lookAwayRate > 0.3 ? "frequent" : faceMetrics.lookAwayRate > 0.12 ? "occasional" : "minimal")
+          : null,
+        note: "Measured from webcam. Strong eye contact, warm smile rate, and animated brows support confidence_score and presence. Nervous blink rate or frequent look-aways should lower confidence_score. Brow engagement reflects emotional investment.",
       }
     : null;
 

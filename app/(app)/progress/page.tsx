@@ -2597,7 +2597,11 @@ export default function ProgressPage() {
               const avg = (arr: number[]) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length * 10) / 10 : null;
               const avgEye   = avg(facialSessions.map((a: any) => a.deliveryMetrics.face.eyeContact * 100));
               const avgExpr  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.expressiveness ?? 0) * 100));
-              const avgHead  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.headStability ?? 0) * 100));
+              const avgHead  = avg(facialSessions.map((a: any) => (a.deliveryMetrics.face.headStability  ?? 0) * 100));
+              const avgSmile = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.smileRate != null).map((a: any) => a.deliveryMetrics.face.smileRate * 100));
+              const avgBlink = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.blinkRate != null).map((a: any) => a.deliveryMetrics.face.blinkRate));
+              const avgBrow  = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.browEngagement != null).map((a: any) => a.deliveryMetrics.face.browEngagement * 100));
+              const avgLook  = avg(facialSessions.filter((a: any) => a.deliveryMetrics.face.lookAwayRate != null).map((a: any) => a.deliveryMetrics.face.lookAwayRate * 100));
               const avgWpm   = avg(vocalSessions.map((a: any) => a.deliveryMetrics.wpm));
               const avgEnergy = avg(vocalSessions.map((a: any) => a.deliveryMetrics.energyVariation ?? 0));
               const avgPitch  = avg(vocalSessions.map((a: any) => a.deliveryMetrics.pitchStd ?? 0));
@@ -2639,16 +2643,20 @@ export default function ProgressPage() {
                   <PremiumCard><div style={{ marginBottom: 14 }}><div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Visual Delivery</div>{facialSessions.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Averaged across {facialSessions.length} webcam sessions</div>}</div>
                     {facialSessions.length === 0 ? (
                       <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, padding: "8px 0" }}>
-                        No webcam data yet. Enable your camera before recording to unlock eye contact, expressiveness, and head stability scores.
+                        No webcam data yet. Enable your camera before recording to unlock eye contact, smile rate, blink rate, brow engagement, and more.
                         <br /><br />
                         <Link href="/practice" style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Start a session →</Link>
                       </div>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                         {[
-                          { label: "Eye Contact", value: avgEye !== null ? `${Math.round(avgEye)}%` : "-", bar: avgEye, max: 100, color: scoreColor(avgEye, 65), hint: avgEye && avgEye >= 65 ? "Strong" : "Look toward camera more" },
-                          { label: "Expressiveness", value: avgExpr !== null ? `${Math.round(avgExpr)}%` : "-", bar: avgExpr, max: 100, color: scoreColor(avgExpr, 55), hint: avgExpr && avgExpr >= 55 ? "Engaging" : "Show more expression" },
-                          { label: "Head Stability", value: avgHead !== null ? `${Math.round(avgHead)}%` : "-", bar: avgHead, max: 100, color: scoreColor(avgHead, 60), hint: avgHead && avgHead >= 60 ? "Steady" : "Reduce movement" },
+                          { label: "Eye Contact",     value: avgEye   !== null ? `${Math.round(avgEye)}%`   : "-", bar: avgEye,   max: 100, color: scoreColor(avgEye,   65), hint: avgEye   && avgEye   >= 65 ? "Strong"    : "Look toward camera more" },
+                          { label: "Expressiveness",  value: avgExpr  !== null ? `${Math.round(avgExpr)}%`  : "-", bar: avgExpr,  max: 100, color: scoreColor(avgExpr,  55), hint: avgExpr  && avgExpr  >= 55 ? "Engaging"  : "Show more expression" },
+                          { label: "Head Stability",  value: avgHead  !== null ? `${Math.round(avgHead)}%`  : "-", bar: avgHead,  max: 100, color: scoreColor(avgHead,  60), hint: avgHead  && avgHead  >= 60 ? "Steady"    : "Reduce movement" },
+                          { label: "Smile Rate",      value: avgSmile !== null ? `${Math.round(avgSmile)}%` : "-", bar: avgSmile, max: 100, color: scoreColor(avgSmile, 20), hint: avgSmile && avgSmile >= 20 ? "Warm"      : "Add warmth — let yourself smile" },
+                          { label: "Brow Engagement", value: avgBrow  !== null ? `${Math.round(avgBrow)}%`  : "-", bar: avgBrow,  max: 100, color: scoreColor(avgBrow,  10), hint: avgBrow  && avgBrow  >= 10 ? "Animated"  : "Frozen brows — vary expression" },
+                          { label: "Blink Rate",      value: avgBlink !== null ? `${Math.round(avgBlink)}/min` : "-", bar: avgBlink !== null ? Math.max(0, 30 - Math.abs(avgBlink - 17)) : null, max: 30, color: avgBlink !== null && avgBlink >= 10 && avgBlink <= 25 ? "#10B981" : "#F59E0B", hint: avgBlink && avgBlink > 30 ? "High — may signal nerves" : avgBlink && avgBlink < 8 ? "Low — looks forced" : "Normal range" },
+                          { label: "Look-Away Rate",  value: avgLook  !== null ? `${Math.round(avgLook)}%`  : "-", bar: avgLook !== null ? Math.max(0, 100 - avgLook) : null, max: 100, color: avgLook !== null && avgLook <= 12 ? "#10B981" : avgLook !== null && avgLook <= 30 ? "#F59E0B" : "#EF4444", hint: avgLook && avgLook <= 12 ? "Minimal" : avgLook && avgLook <= 30 ? "Occasional" : "Frequent" },
                         ].map(row => (
                           <div key={row.label}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>

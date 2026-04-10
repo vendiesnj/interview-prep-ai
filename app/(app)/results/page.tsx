@@ -1689,6 +1689,48 @@ const longPausesPerMin =
                 </PremiumCard>
               )}
 
+              {/* Visual presence panel */}
+              {(() => {
+                const fm = (stored as any)?.faceMetrics;
+                if (!fm || typeof fm.eyeContact !== "number") return null;
+                type VRow = { label: string; raw: number | null; display: string; hint: string; goodHigh: boolean; max: number };
+                const blinkOk = typeof fm.blinkRate === "number" && fm.blinkRate >= 10 && fm.blinkRate <= 25;
+                const blinkBad = typeof fm.blinkRate === "number" && (fm.blinkRate > 30 || fm.blinkRate < 8);
+                const rows: VRow[] = [
+                  { label: "Eye Contact",      raw: fm.eyeContact     != null ? fm.eyeContact     * 100 : null, display: fm.eyeContact     != null ? `${Math.round(fm.eyeContact * 100)}%`     : "—", hint: fm.eyeContact >= 0.65 ? "Strong" : fm.eyeContact >= 0.35 ? "Moderate" : "Needs work",     goodHigh: true,  max: 100 },
+                  { label: "Expressiveness",   raw: fm.expressiveness != null ? fm.expressiveness * 100 : null, display: fm.expressiveness != null ? `${Math.round(fm.expressiveness * 100)}%` : "—", hint: fm.expressiveness >= 0.5 ? "Engaging" : fm.expressiveness >= 0.2 ? "Moderate" : "Flat face",  goodHigh: true,  max: 100 },
+                  { label: "Head Stability",   raw: fm.headStability  != null ? fm.headStability  * 100 : null, display: fm.headStability  != null ? `${Math.round(fm.headStability  * 100)}%` : "—", hint: fm.headStability >= 0.8 ? "Steady" : fm.headStability >= 0.5 ? "Some movement" : "Fidgeting",  goodHigh: true,  max: 100 },
+                  { label: "Smile Rate",       raw: fm.smileRate      != null ? fm.smileRate      * 100 : null, display: fm.smileRate      != null ? `${Math.round(fm.smileRate      * 100)}%` : "—", hint: fm.smileRate > 0.25 ? "Warm affect" : fm.smileRate > 0.08 ? "Neutral" : "Flat affect",       goodHigh: true,  max: 100 },
+                  { label: "Blink Rate",       raw: typeof fm.blinkRate === "number" ? Math.min(fm.blinkRate, 40) : null, display: typeof fm.blinkRate === "number" ? `${fm.blinkRate}/min` : "—", hint: blinkOk ? "Normal range" : blinkBad && fm.blinkRate > 30 ? "High — may signal nerves" : blinkBad ? "Low — forced" : "Moderate", goodHigh: false, max: 40 },
+                  { label: "Brow Engagement",  raw: fm.browEngagement != null ? fm.browEngagement * 100 : null, display: fm.browEngagement != null ? `${Math.round(fm.browEngagement * 100)}%` : "—", hint: fm.browEngagement > 0.12 ? "Animated" : fm.browEngagement > 0.05 ? "Moderate" : "Frozen brows",  goodHigh: true,  max: 100 },
+                  { label: "Look-Away Rate",   raw: fm.lookAwayRate   != null ? fm.lookAwayRate   * 100 : null, display: fm.lookAwayRate   != null ? `${Math.round(fm.lookAwayRate   * 100)}%` : "—", hint: fm.lookAwayRate <= 0.12 ? "Minimal" : fm.lookAwayRate <= 0.3 ? "Occasional" : "Frequent",      goodHigh: false, max: 100 },
+                ];
+                return (
+                  <PremiumCard>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Visual Presence</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+                      {rows.map(row => {
+                        const hasVal = row.raw !== null;
+                        const isGood = hasVal && (row.goodHigh ? row.raw! >= (row.max * 0.55) : row.raw! <= (row.max * 0.4));
+                        const isBad  = hasVal && (row.goodHigh ? row.raw! < (row.max * 0.3) : row.raw! > (row.max * 0.65));
+                        const color  = !hasVal ? "var(--text-muted)" : isGood ? "#10B981" : isBad ? "#EF4444" : "#F59E0B";
+                        const barPct = hasVal ? (row.goodHigh ? Math.min(100, row.raw!) : Math.max(0, 100 - row.raw!)) : 0;
+                        return (
+                          <div key={row.label} style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4 }}>{row.label}</div>
+                            <div style={{ fontSize: 18, fontWeight: 700, color, marginBottom: 4 }}>{row.display}</div>
+                            <div style={{ height: 3, borderRadius: 99, background: "var(--card-border)", overflow: "hidden", marginBottom: 4 }}>
+                              <div style={{ height: "100%", width: `${barPct}%`, background: color, borderRadius: 99, transition: "width 0.5s" }} />
+                            </div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{row.hint}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </PremiumCard>
+                );
+              })()}
+
               {/* IBM metrics panel */}
               {ibmMetrics && (
                 <PremiumCard>

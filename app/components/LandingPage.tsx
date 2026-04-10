@@ -69,7 +69,8 @@ function Fade({ children, delay = 0, up = true }: { children: React.ReactNode; d
 export default function LandingPage() {
   const dims = useReveal(0.2);
   const arch = useReveal(0.15);
-  const vocal = useReveal(0.15);
+  const vocal  = useReveal(0.15);
+  const visual = useReveal(0.15);
 
   const dimensions = [
     { label: "Narrative Clarity",    score: 6.4 },
@@ -325,6 +326,64 @@ export default function LandingPage() {
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{m.note}</div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Visual Intelligence ── */}
+      <section style={{ padding: "100px 24px" }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
+
+            <div ref={visual.ref} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {[
+                { label: "Eye Contact",      value: "74%",       note: "Drops to 48% during STAR transitions",   color: "#F59E0B", delay: 0   },
+                { label: "Smile Rate",        value: "18%",       note: "Neutral affect — warmth is below threshold", color: "#EF4444", delay: 60  },
+                { label: "Brow Engagement",   value: "Animated",  note: "Face is actively expressive",             color: "#10B981", delay: 120 },
+                { label: "Head Stability",    value: "91%",       note: "Composed — minimal distracting movement",  color: "#10B981", delay: 180 },
+                { label: "Blink Rate",        value: "22/min",    note: "Slightly elevated — nerves showing",       color: "#F59E0B", delay: 240 },
+                { label: "Look-Away Rate",    value: "21%",       note: "Occasional glances down at notes",         color: "#F59E0B", delay: 300 },
+              ].map(m => (
+                <div key={m.label} style={{
+                  padding: "16px",
+                  borderRadius: 12,
+                  border: `1px solid ${m.color}22`,
+                  background: `${m.color}08`,
+                  opacity: visual.visible ? 1 : 0,
+                  transform: visual.visible ? "translateY(0)" : "translateY(16px)",
+                  transition: `opacity 0.5s ease ${m.delay}ms, transform 0.5s ease ${m.delay}ms`,
+                }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: 0.8, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8 }}>{m.label}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: m.color, marginBottom: 6 }}>{m.value}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.5 }}>{m.note}</div>
+                </div>
+              ))}
+            </div>
+
+            <div>
+              <Fade>
+                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+                  Your face is giving an interview too.
+                </h2>
+              </Fade>
+              <Fade delay={80}>
+                <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
+                  When you enable your webcam, Signal runs real-time facial landmark analysis on every frame. Eye contact drops, frozen brows, high blink rate, low smile affect — these are the signals that shape how interviewers read confidence before you say a word.
+                </p>
+              </Fade>
+              <Fade delay={160}>
+                <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 28px" }}>
+                  Seven visual metrics per session. All scored, trended over time, and factored into your overall presence score alongside your vocal delivery.
+                </p>
+              </Fade>
+              <Fade delay={220}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {["Eye contact %", "Smile rate", "Brow engagement", "Head stability", "Blink rate", "Look-away detection", "Presence score"].map(tag => (
+                    <span key={tag} style={{ padding: "4px 10px", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{tag}</span>
+                  ))}
+                </div>
+              </Fade>
+            </div>
           </div>
         </div>
       </section>
