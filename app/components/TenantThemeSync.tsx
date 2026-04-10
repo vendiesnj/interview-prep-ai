@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { themePresets, type ThemePresetName, pitchTheme } from "@/app/lib/theme";
+import { themePresets, type ThemePresetName, pitchTheme, activeThemeName } from "@/app/lib/theme";
 
-const FALLBACK_THEME: ThemePresetName = "light";
+const FALLBACK_THEME: ThemePresetName = activeThemeName;
 const STORAGE_KEY = "signal_tenant_theme_v1";
 
 export default function TenantThemeSync() {

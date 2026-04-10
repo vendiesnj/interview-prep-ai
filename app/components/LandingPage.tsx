@@ -121,11 +121,18 @@ export default function LandingPage() {
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         padding: "120px 24px 80px",
-        textAlign: "center",
         background: `
-          radial-gradient(ellipse 80% 50% at 50% -10%, rgba(37,99,235,0.18), transparent),
-          radial-gradient(ellipse 60% 40% at 80% 60%, rgba(14,165,233,0.07), transparent)
+          radial-gradient(ellipse 90% 60% at 20% -5%, rgba(37,99,235,0.22), transparent 60%),
+          radial-gradient(ellipse 70% 50% at 85% 20%, rgba(14,165,233,0.12), transparent 55%),
+          radial-gradient(ellipse 50% 40% at 50% 100%, rgba(37,99,235,0.08), transparent 60%)
         `,
+        backgroundImage: `
+          radial-gradient(ellipse 90% 60% at 20% -5%, rgba(37,99,235,0.22), transparent 60%),
+          radial-gradient(ellipse 70% 50% at 85% 20%, rgba(14,165,233,0.12), transparent 55%),
+          radial-gradient(ellipse 50% 40% at 50% 100%, rgba(37,99,235,0.08), transparent 60%),
+          radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)
+        `,
+        backgroundSize: "auto, auto, auto, 32px 32px",
       }}>
         <HeroContent />
       </section>
@@ -559,6 +566,155 @@ export default function LandingPage() {
 
 // ── Hero content (separate to isolate the entrance animation) ─────────────────
 
+function MockInterviewCard({ visible }: { visible: boolean }) {
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    if (!visible) return;
+    const id = setInterval(() => setTick(t => t + 1), 180);
+    return () => clearInterval(id);
+  }, [visible]);
+
+  const bars = [0.3, 0.7, 0.5, 0.9, 0.4, 0.75, 0.55, 0.85, 0.45, 0.65, 0.35, 0.8];
+  const dims = [
+    { label: "Narrative Clarity",    score: 8.2, color: "#10B981" },
+    { label: "Evidence Quality",     score: 4.1, color: "#EF4444" },
+    { label: "Ownership & Agency",   score: 7.8, color: "#10B981" },
+    { label: "Vocal Engagement",     score: 6.4, color: "#2563EB" },
+  ];
+  const secs = 14 + Math.floor(tick * 0.18);
+  const mm = String(Math.floor(secs / 60)).padStart(2, "0");
+  const ss = String(secs % 60).padStart(2, "0");
+
+  return (
+    <div style={{
+      position: "relative",
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0) scale(1)" : "translateY(32px) scale(0.97)",
+      transition: "opacity 0.8s ease 400ms, transform 0.8s ease 400ms",
+    }}>
+      {/* Floating archetype chip */}
+      <div style={{
+        position: "absolute", top: -18, right: -8, zIndex: 2,
+        padding: "6px 14px", borderRadius: 20,
+        background: "linear-gradient(135deg, rgba(139,92,246,0.9), rgba(99,102,241,0.9))",
+        border: "1px solid rgba(139,92,246,0.5)",
+        backdropFilter: "blur(8px)",
+        fontSize: 12, fontWeight: 600, color: "#fff",
+        boxShadow: "0 4px 20px rgba(139,92,246,0.35)",
+        whiteSpace: "nowrap" as const,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.5s ease 900ms",
+      }}>
+        Archetype: The Hedger
+      </div>
+
+      {/* Main card */}
+      <div style={{
+        borderRadius: 16,
+        border: "1px solid rgba(255,255,255,0.10)",
+        background: "rgba(15,28,58,0.85)",
+        backdropFilter: "blur(20px)",
+        overflow: "hidden",
+        boxShadow: "0 8px 48px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.07)",
+        width: "min(440px, 100%)",
+      }}>
+        {/* Recording bar */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 16px",
+          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(255,255,255,0.03)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{
+              width: 8, height: 8, borderRadius: "50%", background: "#EF4444",
+              boxShadow: "0 0 6px rgba(239,68,68,0.8)",
+              display: "inline-block",
+              animation: "pulse 1.2s ease-in-out infinite",
+            }} />
+            <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>Recording</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>{mm}:{ss}</span>
+          </div>
+          {/* Waveform */}
+          <div style={{ display: "flex", alignItems: "center", gap: 2, height: 20 }}>
+            {bars.map((h, i) => (
+              <div key={i} style={{
+                width: 3, borderRadius: 2,
+                background: "#2563EB",
+                height: `${(((h + (tick * 0.13 + i * 0.7)) % 1) * 0.65 + 0.2) * 100}%`,
+                opacity: 0.7 + (i % 3) * 0.1,
+                transition: "height 0.18s ease",
+              }} />
+            ))}
+          </div>
+        </div>
+
+        {/* Question */}
+        <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 5, textTransform: "uppercase" as const, letterSpacing: 0.8 }}>Current question</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+            "Tell me about a time you had to navigate a difficult stakeholder relationship."
+          </div>
+        </div>
+
+        {/* Live dimension scores */}
+        <div style={{ padding: "14px 16px" }}>
+          <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.8 }}>Live analysis</div>
+          <div style={{ display: "grid", gap: 10 }}>
+            {dims.map((d, i) => (
+              <div key={d.label} style={{
+                opacity: visible ? 1 : 0,
+                transition: `opacity 0.4s ease ${600 + i * 100}ms`,
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{d.label}</span>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.score.toFixed(1)}</span>
+                </div>
+                <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", borderRadius: 99,
+                    width: visible ? `${d.score * 10}%` : "0%",
+                    background: d.color,
+                    transition: `width 0.8s cubic-bezier(0.4,0,0.2,1) ${700 + i * 120}ms`,
+                  }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "10px 16px",
+          borderTop: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(37,99,235,0.08)",
+        }}>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Overall score</span>
+          <span style={{ fontSize: 16, fontWeight: 700, color: "#F1F5F9" }}>6.7 <span style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.4)" }}>/ 10</span></span>
+        </div>
+      </div>
+
+      {/* Floating social proof pip */}
+      <div style={{
+        position: "absolute", bottom: -14, left: -12, zIndex: 2,
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "8px 14px", borderRadius: 20,
+        background: "rgba(15,28,58,0.95)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        backdropFilter: "blur(12px)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.5s ease 1100ms",
+      }}>
+        <span style={{ fontSize: 14 }}>📈</span>
+        <span style={{ fontSize: 12, fontWeight: 600, color: "#10B981" }}>+2.3 pts</span>
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>since last session</span>
+      </div>
+    </div>
+  );
+}
+
 function HeroContent() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -567,78 +723,102 @@ function HeroContent() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 760 }}>
-      <div style={{
-        display: "inline-flex", alignItems: "center", gap: 7,
-        padding: "5px 12px", borderRadius: 6,
-        border: "1px solid rgba(59,130,246,0.3)",
-        background: "rgba(59,130,246,0.08)",
-        fontSize: 12, fontWeight: 600,
-        color: "#93C5FD", letterSpacing: 0.2,
-        marginBottom: 28,
-        opacity: visible ? 1 : 0,
-        transition: "opacity 0.6s ease",
-      }}>
-        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#3B82F6" }} />
-        Interview intelligence
+    <div className="ipc-hero-grid" style={{
+      maxWidth: 1100, width: "100%",
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: "60px 80px",
+      alignItems: "center",
+    }}>
+      {/* Left: text */}
+      <div style={{ textAlign: "left" as const }}>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 7,
+          padding: "5px 12px", borderRadius: 6,
+          border: "1px solid rgba(59,130,246,0.3)",
+          background: "rgba(59,130,246,0.08)",
+          fontSize: 12, fontWeight: 600,
+          color: "#93C5FD", letterSpacing: 0.2,
+          marginBottom: 28,
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.6s ease",
+        }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#3B82F6" }} />
+          Interview intelligence
+        </div>
+
+        <h1 style={{
+          margin: "0 0 22px",
+          fontSize: "clamp(34px, 4vw, 52px)",
+          fontWeight: 700,
+          lineHeight: 1.18,
+          letterSpacing: -0.3,
+          color: "#F1F5F9",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(20px)",
+          transition: "opacity 0.65s ease 120ms, transform 0.65s ease 120ms",
+        }}>
+          Know exactly how you interview.
+        </h1>
+
+        <p style={{
+          margin: "0 0 44px",
+          fontSize: "clamp(15px, 1.8vw, 18px)",
+          color: "rgba(255,255,255,0.5)",
+          lineHeight: 1.75,
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(16px)",
+          transition: "opacity 0.65s ease 200ms, transform 0.65s ease 200ms",
+        }}>
+          Signal scores your answers across seven dimensions, identifies your communication archetype,
+          and tells you the one thing to fix before your next real interview.
+        </p>
+
+        <div style={{
+          display: "flex", gap: 14, flexWrap: "wrap",
+          opacity: visible ? 1 : 0,
+          transform: visible ? "translateY(0)" : "translateY(14px)",
+          transition: "opacity 0.65s ease 300ms, transform 0.65s ease 300ms",
+        }}>
+          <Link href="/signup" style={{
+            padding: "14px 32px", borderRadius: 10,
+            background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
+            color: "#fff", textDecoration: "none",
+            fontWeight: 700, fontSize: 15,
+            boxShadow: "0 4px 32px rgba(37,99,235,0.4)",
+            whiteSpace: "nowrap" as const,
+          }}>
+            Start for free
+          </Link>
+          <Link href="/login" style={{
+            padding: "14px 32px", borderRadius: 10,
+            border: "1px solid rgba(255,255,255,0.12)",
+            color: "rgba(255,255,255,0.7)", textDecoration: "none",
+            fontWeight: 700, fontSize: 15,
+            background: "transparent",
+            whiteSpace: "nowrap" as const,
+          }}>
+            Log in
+          </Link>
+        </div>
+
+        {/* Trust line */}
+        <div style={{
+          marginTop: 36, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+          opacity: visible ? 1 : 0,
+          transition: "opacity 0.5s ease 500ms",
+        }}>
+          {["No credit card required", "Works on mobile", "Results in 2 minutes"].map((t, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
+              <span style={{ color: "#10B981", fontSize: 13 }}>✓</span> {t}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <h1 style={{
-        margin: "0 0 22px",
-        fontSize: "clamp(34px, 5vw, 56px)",
-        fontWeight: 700,
-        lineHeight: 1.18,
-        letterSpacing: -0.3,
-        color: "#F1F5F9",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(20px)",
-        transition: "opacity 0.65s ease 120ms, transform 0.65s ease 120ms",
-      }}>
-        Know exactly how you interview.
-      </h1>
-
-      <p style={{
-        margin: "0 0 44px",
-        fontSize: "clamp(16px, 2vw, 19px)",
-        color: "rgba(255,255,255,0.5)",
-        lineHeight: 1.75,
-        maxWidth: 580,
-        marginLeft: "auto",
-        marginRight: "auto",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(16px)",
-        transition: "opacity 0.65s ease 200ms, transform 0.65s ease 200ms",
-      }}>
-        Signal scores your answers across seven dimensions, identifies your communication archetype,
-        and tells you the one thing to fix before your next real interview.
-      </p>
-
-      <div style={{
-        display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap",
-        opacity: visible ? 1 : 0,
-        transform: visible ? "translateY(0)" : "translateY(14px)",
-        transition: "opacity 0.65s ease 300ms, transform 0.65s ease 300ms",
-      }}>
-        <Link href="/signup" style={{
-          padding: "15px 36px", borderRadius: 12,
-          background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-          color: "#fff", textDecoration: "none",
-          fontWeight: 800, fontSize: 15,
-          boxShadow: "0 4px 32px rgba(37,99,235,0.4)",
-          whiteSpace: "nowrap" as const,
-        }}>
-          Start for free
-        </Link>
-        <Link href="/login" style={{
-          padding: "15px 36px", borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.12)",
-          color: "rgba(255,255,255,0.7)", textDecoration: "none",
-          fontWeight: 800, fontSize: 15,
-          background: "transparent",
-          whiteSpace: "nowrap" as const,
-        }}>
-          Log in
-        </Link>
+      {/* Right: mock interview card */}
+      <div className="ipc-hero-preview" style={{ display: "flex", justifyContent: "center", paddingTop: 20 }}>
+        <MockInterviewCard visible={visible} />
       </div>
     </div>
   );
