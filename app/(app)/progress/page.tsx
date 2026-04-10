@@ -41,6 +41,33 @@ type Attempt = {
 
   prosody?: {
     monotoneScore?: number;
+    pitchStd?: number;
+    pitchRange?: number;
+    pitchMean?: number;
+    energyVariation?: number;
+    tempoDynamics?: number;
+    energyMean?: number;
+  } | null;
+
+  deliveryMetrics?: {
+    fillersPer100?: number;
+    acoustics?: {
+      monotoneScore?: number;
+      pitchStd?: number;
+      pitchRange?: number;
+      energyVariation?: number;
+      tempoDynamics?: number;
+    } | null;
+    face?: {
+      eyeContact?: number;
+      expressiveness?: number;
+      headStability?: number;
+      smileRate?: number;
+      blinkRate?: number;
+      browEngagement?: number;
+      lookAwayRate?: number;
+      framesAnalyzed?: number;
+    } | null;
   } | null;
 
   feedback?: {
@@ -156,7 +183,51 @@ function getAttemptFillers(a: Attempt) {
 }
 
 function getAttemptMonotone(a: Attempt) {
-  return asTenPoint(n(a.prosody?.monotoneScore));
+  return asTenPoint(n(a.prosody?.monotoneScore ?? a.deliveryMetrics?.acoustics?.monotoneScore));
+}
+
+function getEnergyVariation(a: Attempt) {
+  const v = n(a.prosody?.energyVariation ?? a.deliveryMetrics?.acoustics?.energyVariation);
+  return asTenPoint(v);
+}
+
+function getTempoDynamics(a: Attempt) {
+  const v = n(a.prosody?.tempoDynamics ?? a.deliveryMetrics?.acoustics?.tempoDynamics);
+  return asTenPoint(v);
+}
+
+function getEyeContact(a: Attempt): number | null {
+  const v = n(a.deliveryMetrics?.face?.eyeContact);
+  return v === null ? null : Math.round(v * 100);
+}
+
+function getExpressiveness(a: Attempt): number | null {
+  const v = n(a.deliveryMetrics?.face?.expressiveness);
+  return v === null ? null : Math.round(v * 100);
+}
+
+function getHeadStability(a: Attempt): number | null {
+  const v = n(a.deliveryMetrics?.face?.headStability);
+  return v === null ? null : Math.round(v * 100);
+}
+
+function getSmileRate(a: Attempt): number | null {
+  const v = n(a.deliveryMetrics?.face?.smileRate);
+  return v === null ? null : Math.round(v * 100);
+}
+
+function getBlinkRate(a: Attempt): number | null {
+  return n(a.deliveryMetrics?.face?.blinkRate);
+}
+
+function getBrowEngagement(a: Attempt): number | null {
+  const v = n(a.deliveryMetrics?.face?.browEngagement);
+  return v === null ? null : Math.round(v * 100);
+}
+
+function getLookAwayRate(a: Attempt): number | null {
+  const v = n(a.deliveryMetrics?.face?.lookAwayRate);
+  return v === null ? null : Math.round(v * 100);
 }
 
 function getAttemptStarResult(a: Attempt) {
@@ -226,6 +297,70 @@ function monotoneCoaching(monotone: number | null) {
   if (monotone <= 4) return `Your vocal variety looks solid (${monotone.toFixed(1)}/10 monotone risk). Keep emphasizing outcomes and numbers.`;
   if (monotone <= 6) return `Your tone is acceptable but can flatten on key points (${monotone.toFixed(1)}/10 monotone risk). Add more lift when you state the result.`;
   return `Your vocal delivery is trending flat (${monotone.toFixed(1)}/10 monotone risk). Stress the action and result parts of your answer more clearly.`;
+}
+
+function energyVarCoaching(v: number | null) {
+  if (v === null) return "No vocal energy data yet.";
+  if (v >= 6.5) return `Strong vocal energy variation (${v.toFixed(1)}/10). Your delivery naturally emphasizes key moments.`;
+  if (v >= 4.5) return `Moderate energy variation (${v.toFixed(1)}/10). Try lifting your voice more noticeably on results and outcomes.`;
+  return `Low vocal energy variation (${v.toFixed(1)}/10). A flat energy delivery makes answers harder to follow — emphasize the result moment.`;
+}
+
+function tempoDynCoaching(v: number | null) {
+  if (v === null) return "No tempo dynamics data yet.";
+  if (v >= 6.5) return `Good tempo dynamics (${v.toFixed(1)}/10). Your pacing shifts naturally around key points.`;
+  if (v >= 4.5) return `Moderate tempo variation (${v.toFixed(1)}/10). Try slowing slightly before your main result or decision.`;
+  return `Flat tempo (${v.toFixed(1)}/10). A brief pause before your most important sentence will sharpen impact.`;
+}
+
+function eyeContactCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track eye contact.";
+  if (v >= 70) return `Strong eye contact (${v}%). You come across as engaged and confident on camera.`;
+  if (v >= 50) return `Moderate eye contact (${v}%). Focus on the camera lens more when delivering key points.`;
+  return `Low eye contact (${v}%). Practice speaking directly to the camera — it signals confidence and builds connection.`;
+}
+
+function expressivenessCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track expressiveness.";
+  if (v >= 65) return `Natural expressiveness (${v}%). Your facial cues match your answer content well.`;
+  if (v >= 45) return `Developing expressiveness (${v}%). Let your face reflect key moments — genuine reactions read well.`;
+  return `Flat expression (${v}%). Interviewers read your face for enthusiasm. Let positive outcomes show.`;
+}
+
+function headStabilityCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track presence.";
+  if (v >= 75) return `Steady on-camera presence (${v}%). Stable positioning reads as grounded and confident.`;
+  if (v >= 55) return `Moderate head stability (${v}%). Reduce movement when working through complex points.`;
+  return `High movement detected (${v}%). Grounding your position signals calm under pressure.`;
+}
+
+function smileRateCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track warmth signals.";
+  if (v >= 30) return `Natural warmth (${v}% smile rate). Your approachability reads well on camera.`;
+  if (v >= 12) return `Some warmth present (${v}% smile rate). A brief natural smile when starting your answer builds rapport.`;
+  return `Very flat affect (${v}% smile rate). Interviewers read enthusiasm through your face — let genuine reactions show, especially on outcomes.`;
+}
+
+function blinkRateCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track nervous signals.";
+  if (v >= 12 && v <= 20) return `Blink rate is in the ideal range (${v}/min). This reads as calm and focused.`;
+  if (v > 20 && v <= 28) return `Slightly elevated blink rate (${v}/min) may suggest mild tension. Slow your breathing before answering.`;
+  if (v > 28) return `High blink rate (${v}/min) signals nervousness. Try a slow breath before you start speaking.`;
+  return `Very low blink rate (${v}/min) — you may be staring. Blink naturally and let your gaze soften.`;
+}
+
+function browEngagementCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track facial engagement.";
+  if (v >= 40) return `Active brow engagement (${v}%). Your face shows genuine investment in what you are saying.`;
+  if (v >= 22) return `Moderate brow activity (${v}%). More natural brow movement will make you seem more engaged.`;
+  return `Frozen brow (${v}%). A flat upper face makes answers feel rehearsed — let natural reactions through.`;
+}
+
+function lookAwayCoaching(v: number | null) {
+  if (v === null) return "Enable webcam in practice to track note-checking.";
+  if (v <= 8) return `Minimal look-aways (${v}%). You are staying present and camera-focused throughout.`;
+  if (v <= 18) return `Occasional look-aways (${v}%). Checking notes briefly is acceptable, but try to reduce it on key points.`;
+  return `Frequent look-aways (${v}%). Practice with notes face-down — you know more than you think.`;
 }
 
 function resultCoaching(starResult: number | null) {
@@ -1113,6 +1248,15 @@ export default function ProgressPage() {
     const paceVals = attemptsNewestFirst.map((a) => n(a.wpm)).filter((v): v is number => v !== null);
     const monotoneVals = attemptsNewestFirst.map(getAttemptMonotone).filter((v): v is number => v !== null);
     const resultVals = attemptsNewestFirst.map(getAttemptStarResult).filter((v): v is number => v !== null);
+    const energyVarVals = attemptsNewestFirst.map(getEnergyVariation).filter((v): v is number => v !== null);
+    const tempoDynVals = attemptsNewestFirst.map(getTempoDynamics).filter((v): v is number => v !== null);
+    const eyeVals = attemptsNewestFirst.map(getEyeContact).filter((v): v is number => v !== null);
+    const expressVals = attemptsNewestFirst.map(getExpressiveness).filter((v): v is number => v !== null);
+    const headVals = attemptsNewestFirst.map(getHeadStability).filter((v): v is number => v !== null);
+    const smileVals = attemptsNewestFirst.map(getSmileRate).filter((v): v is number => v !== null);
+    const blinkVals = attemptsNewestFirst.map(getBlinkRate).filter((v): v is number => v !== null);
+    const browVals = attemptsNewestFirst.map(getBrowEngagement).filter((v): v is number => v !== null);
+    const lookAwayVals = attemptsNewestFirst.map(getLookAwayRate).filter((v): v is number => v !== null);
 
     const categoryCounts = new Map<string, number>();
     const profileCounts = new Map<string, number>();
@@ -1140,6 +1284,16 @@ export default function ProgressPage() {
       avgPace: round1(avg(paceVals)),
       avgMonotone: round1(avgTenPoint(monotoneVals)),
       avgStarResult: round1(avgTenPoint(resultVals)),
+      avgEnergyVar: round1(avg(energyVarVals)),
+      avgTempoDyn: round1(avg(tempoDynVals)),
+      avgEyeContact: eyeVals.length > 0 ? round1(avg(eyeVals)) : null,
+      avgExpressiveness: expressVals.length > 0 ? round1(avg(expressVals)) : null,
+      avgHeadStability: headVals.length > 0 ? round1(avg(headVals)) : null,
+      avgSmileRate: smileVals.length > 0 ? round1(avg(smileVals)) : null,
+      avgBlinkRate: blinkVals.length > 0 ? Math.round(avg(blinkVals)!) : null,
+      avgBrowEngagement: browVals.length > 0 ? round1(avg(browVals)) : null,
+      avgLookAwayRate: lookAwayVals.length > 0 ? round1(avg(lookAwayVals)) : null,
+      hasWebcamData: eyeVals.length > 0,
       topCategory,
       topProfile,
     };
@@ -1603,76 +1757,94 @@ export default function ProgressPage() {
     return items.slice(0, 3);
   }, [trendSummary, overview]);
 
+  // ── Coaching Profile (full-history, all-signal) ───────────────────────────────
+  const coachingProfile = useMemo(() => {
+    if (history.length < 2) return null;
+    return buildUserCoachingProfile(history);
+  }, [history]);
+
   const interviewNotes = useMemo(() => {
     const leanInto: string[] = [];
     const watchouts: string[] = [];
     const reminders: string[] = [];
 
-    if (strongestDimension?.label === "Communication") {
-      leanInto.push("Lead with the headline of your answer - clear framing is already one of your strengths.");
-    }
-    if (strongestDimension?.label === "Confidence") {
-      leanInto.push("Use direct language and strong ownership - your tone carries authority when you trust your first sentence.");
-    }
-    if (strongestCategory?.label) {
-      leanInto.push(`You are most natural in ${strongestCategory.label.toLowerCase()} questions, so borrow that same structure in weaker categories.`);
-    }
-    if (overview.avgPace !== null && overview.avgPace >= 115 && overview.avgPace <= 145) {
-      leanInto.push("Your pacing is already in a strong interview range - keep that same tempo under pressure.");
-    }
+    if (coachingProfile) {
+      // Lean into: consistent strengths from full profile
+      for (const s of coachingProfile.strengthPatterns.filter(p => p.consistent && p.allTimeFrequency >= 0.4).slice(0, 2)) {
+        const label = s.key.replace(/_/g, " ");
+        leanInto.push(`${label.charAt(0).toUpperCase() + label.slice(1)} is a consistent strength (${Math.round(s.allTimeFrequency * 100)}% of sessions) — lean on this in every answer.`);
+      }
+      // Lean into: strong delivery
+      if (overview.avgPace !== null && overview.avgPace >= 115 && overview.avgPace <= 145) {
+        leanInto.push("Your pacing is already in a strong interview range - keep that same tempo under pressure.");
+      }
+      if (overview.avgEyeContact !== null && overview.avgEyeContact >= 70) {
+        leanInto.push(`Strong on-camera eye contact (${overview.avgEyeContact}%) — your presence reads as confident and engaged.`);
+      }
+      // Lean into: strong dimensions
+      const strongDim = coachingProfile.dimensionProfile
+        .filter(d => d.classification === "persistent_strength" || (d.allTimeAvg >= 7.5 && d.attemptCount >= 3))
+        .sort((a, b) => b.allTimeAvg - a.allTimeAvg)[0];
+      if (strongDim && leanInto.length < 3) {
+        leanInto.push(`${strongDim.label} is one of your strongest dimensions (avg ${strongDim.allTimeAvg.toFixed(1)}/10) — model your weaker answers on this structure.`);
+      }
 
-    if (overview.avgFillers !== null && overview.avgFillers >= 3) {
-      watchouts.push("Do not rush to fill silence. Your first fix is replacing filler words with a clean pause.");
-    }
-    if (overview.avgStarResult !== null && overview.avgStarResult <= 6.5) {
-      watchouts.push("Do not stop after explaining the action. Your answers need a clearer final result or business impact.");
-    }
-    if (biggestGap?.label === "Communication") {
-      watchouts.push("Do not spend too long setting context. Get to your point earlier.");
-    }
-    if (biggestGap?.label === "Confidence") {
-      watchouts.push("Do not soften strong examples with hedging language. Lead with more ownership.");
-    }
-    if (overview.avgMonotone !== null && overview.avgMonotone >= 6) {
-      watchouts.push("Do not deliver key outcomes in the same flat tone as background detail.");
-    }
-    if (overview.avgPace !== null && overview.avgPace > 165) {
-      watchouts.push("Do not rush your best points. Fast delivery can make strong content feel less controlled.");
-    }
-    if (overview.avgPace !== null && overview.avgPace < 100) {
-      watchouts.push("Do not overbuild the setup. Slower pacing works best when your first sentence is concise.");
-    }
+      // Watchouts: top priorities from full profile
+      for (const p of coachingProfile.topPriorities.slice(0, 2)) {
+        const watchoutMap: Record<string, string> = {
+          outcome_strength: "Do not stop after the action — every behavioral answer needs an explicit result statement.",
+          hedging_language: "Do not soften strong examples with 'I think' or 'kind of' — direct ownership scores better.",
+          evidence_specificity: "Do not make claims without a number or concrete metric to back them up.",
+          directness: "Do not build slowly to your point — lead with the answer, then support it.",
+          ownership: "Do not use 'we' when describing your own decisions — use 'I' to claim your contribution.",
+          structural_clarity: "Do not ramble to your answer — state your headline first, then support with 2-3 points.",
+          filler_words: "Do not fill silence with filler words — replace 'um' and 'like' with a clean pause.",
+          pace_fast: "Do not rush through key outcomes — slow down after results and metrics so they land.",
+          pace_slow: "Do not overbuild your setup — get to your point faster.",
+        };
+        const msg = watchoutMap[p.key] ?? `Do not underestimate ${p.area.toLowerCase()} — it has shown up in ${p.evidence}.`;
+        watchouts.push(msg);
+      }
+      // Watchouts: delivery issues not in topPriorities
+      if (overview.avgMonotone !== null && overview.avgMonotone >= 6 && watchouts.length < 2) {
+        watchouts.push("Do not deliver key outcomes in the same flat tone as background detail — add more vocal lift on results.");
+      }
 
-    const primaryPriority = getPrimaryDeliveryPriority({
-      avgPace: overview.avgPace,
-      avgFillers: overview.avgFillers,
-      avgMonotone: overview.avgMonotone,
-    });
-
-    if (primaryPriority === "fillers") {
-      reminders.push("Your main focus is polish: pause briefly instead of filling silence.");
-    }
-    if (primaryPriority === "pace") {
-      reminders.push("Your main focus is tempo: slow down slightly after metrics, decisions, and outcomes.");
-    }
-    if (primaryPriority === "monotone") {
-      reminders.push("Your main focus is emphasis: lift your voice when you reach the result or takeaway.");
-    }
-
-    reminders.push("Open with the answer first, then support it with 2–3 details.");
-    reminders.push("Make the final line sound finished - result, takeaway, or impact.");
-    reminders.push("If you start rambling, shorten the sentence instead of adding more explanation.");
-
-    if (watchouts.length === 0) {
-      if (biggestGap?.label === "Closing Impact") {
-        watchouts.push("Do not let solid answers fade at the end - your final sentence should clearly state the result.");
-      } else if (biggestGap?.label === "Communication") {
-        watchouts.push("Do not bury your best point in too much setup - get to the answer faster.");
-      } else if (biggestGap?.label === "Confidence") {
-        watchouts.push("Do not undersell good examples - stronger ownership will improve how credible you sound.");
+      // Reminders: role-specific focus + universal
+      const topDimGap = coachingProfile.dimensionProfile
+        .filter(d => d.classification === "persistent_gap" || (d.allTimeAvg < 5.5 && d.attemptCount >= 3))
+        .sort((a, b) => a.allTimeAvg - b.allTimeAvg)[0];
+      if (topDimGap) {
+        reminders.push(`Your main focus area: ${topDimGap.label.toLowerCase()} (avg ${topDimGap.allTimeAvg.toFixed(1)}/10 across ${topDimGap.attemptCount} sessions).`);
+      }
+      reminders.push("Open with the answer first, then support it with 2–3 details.");
+      reminders.push("Make the final line sound finished - result, takeaway, or impact.");
+      if (coachingProfile.resolvedWeaknesses.length > 0) {
+        const resolved = coachingProfile.resolvedWeaknesses[0].replace(/_/g, " ");
+        reminders.push(`Maintain your progress on ${resolved} — confirm it is still holding in this session.`);
       } else {
+        reminders.push("If you start rambling, shorten the sentence instead of adding more explanation.");
+      }
+    } else {
+      // Fallback for new users (no coachingProfile)
+      if (strongestCategory?.label) {
+        leanInto.push(`You are most natural in ${strongestCategory.label.toLowerCase()} questions, so borrow that same structure in weaker categories.`);
+      }
+      if (overview.avgPace !== null && overview.avgPace >= 115 && overview.avgPace <= 145) {
+        leanInto.push("Your pacing is already in a strong interview range - keep that same tempo under pressure.");
+      }
+      if (overview.avgFillers !== null && overview.avgFillers >= 3) {
+        watchouts.push("Do not rush to fill silence. Your first fix is replacing filler words with a clean pause.");
+      }
+      if (overview.avgStarResult !== null && overview.avgStarResult <= 6.5) {
+        watchouts.push("Do not stop after explaining the action. Your answers need a clearer final result or business impact.");
+      }
+      if (watchouts.length === 0) {
         watchouts.push("Do not try to improve everything at once - one focused adjustment will help more than five vague ones.");
       }
+      reminders.push("Open with the answer first, then support it with 2–3 details.");
+      reminders.push("Make the final line sound finished - result, takeaway, or impact.");
+      reminders.push("If you start rambling, shorten the sentence instead of adding more explanation.");
     }
 
     return {
@@ -1680,7 +1852,7 @@ export default function ProgressPage() {
       watchouts: watchouts.slice(0, 3),
       reminders: reminders.slice(0, 4),
     };
-  }, [strongestDimension, strongestCategory, overview, biggestGap]);
+  }, [coachingProfile, overview, strongestCategory]);
 
   const nextFocusCard = useMemo(() => {
     if (overview.avgStarResult !== null && overview.avgStarResult <= 6.5) {
@@ -1749,12 +1921,6 @@ export default function ProgressPage() {
       questionCategory: a.questionCategory,
     })),
   });
-
-  // ── Coaching Profile (full-history, all-signal) ───────────────────────────────
-  const coachingProfile = useMemo(() => {
-    if (history.length < 2) return null;
-    return buildUserCoachingProfile(history);
-  }, [history]);
 
   return (
     <PremiumShell title="Insights">
@@ -2009,6 +2175,20 @@ export default function ProgressPage() {
                         score: overview.avgMonotone !== null ? (overview.avgMonotone <= 4 ? 9 : overview.avgMonotone <= 6 ? 6 : 4) : null,
                         trend: null,
                       },
+                      {
+                        label: "Vocal Energy",
+                        value: overview.avgEnergyVar === null ? null : `${overview.avgEnergyVar?.toFixed(1)}/10`,
+                        coaching: energyVarCoaching(overview.avgEnergyVar),
+                        score: overview.avgEnergyVar !== null ? (overview.avgEnergyVar >= 6.5 ? 9 : overview.avgEnergyVar >= 4.5 ? 6 : 4) : null,
+                        trend: null,
+                      },
+                      {
+                        label: "Tempo Dynamics",
+                        value: overview.avgTempoDyn === null ? null : `${overview.avgTempoDyn?.toFixed(1)}/10`,
+                        coaching: tempoDynCoaching(overview.avgTempoDyn),
+                        score: overview.avgTempoDyn !== null ? (overview.avgTempoDyn >= 6.5 ? 9 : overview.avgTempoDyn >= 4.5 ? 6 : 4) : null,
+                        trend: null,
+                      },
                     ].map(({ label, value, coaching, score, trend }) => {
                       if (value === null) return null;
                       const color = score === null ? "var(--text-muted)" : score >= 8 ? "#10B981" : score >= 6 ? "var(--accent)" : "#EF4444";
@@ -2029,6 +2209,71 @@ export default function ProgressPage() {
                     {overview.avgPace === null && overview.avgFillers === null && (
                       <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                         Delivery signals appear after spoken attempts.
+                      </div>
+                    )}
+
+                    {/* Webcam / facial signals */}
+                    {overview.hasWebcamData && (
+                      <div style={{ marginTop: 18, paddingTop: 16, borderTop: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 14 }}>
+                          On-Camera Presence
+                        </div>
+                        {[
+                          {
+                            label: "Eye Contact",
+                            value: overview.avgEyeContact === null ? null : `${overview.avgEyeContact}%`,
+                            coaching: eyeContactCoaching(overview.avgEyeContact),
+                            score: overview.avgEyeContact !== null ? (overview.avgEyeContact >= 70 ? 9 : overview.avgEyeContact >= 50 ? 6 : 4) : null,
+                          },
+                          {
+                            label: "Look-Away Rate",
+                            value: overview.avgLookAwayRate === null ? null : `${overview.avgLookAwayRate}%`,
+                            coaching: lookAwayCoaching(overview.avgLookAwayRate),
+                            score: overview.avgLookAwayRate !== null ? (overview.avgLookAwayRate <= 8 ? 9 : overview.avgLookAwayRate <= 18 ? 6 : 4) : null,
+                          },
+                          {
+                            label: "Expressiveness",
+                            value: overview.avgExpressiveness === null ? null : `${overview.avgExpressiveness}%`,
+                            coaching: expressivenessCoaching(overview.avgExpressiveness),
+                            score: overview.avgExpressiveness !== null ? (overview.avgExpressiveness >= 65 ? 9 : overview.avgExpressiveness >= 45 ? 6 : 4) : null,
+                          },
+                          {
+                            label: "Smile Rate",
+                            value: overview.avgSmileRate === null ? null : `${overview.avgSmileRate}%`,
+                            coaching: smileRateCoaching(overview.avgSmileRate),
+                            score: overview.avgSmileRate !== null ? (overview.avgSmileRate >= 30 ? 9 : overview.avgSmileRate >= 12 ? 6 : 4) : null,
+                          },
+                          {
+                            label: "Brow Engagement",
+                            value: overview.avgBrowEngagement === null ? null : `${overview.avgBrowEngagement}%`,
+                            coaching: browEngagementCoaching(overview.avgBrowEngagement),
+                            score: overview.avgBrowEngagement !== null ? (overview.avgBrowEngagement >= 40 ? 9 : overview.avgBrowEngagement >= 22 ? 6 : 4) : null,
+                          },
+                          {
+                            label: "Blink Rate",
+                            value: overview.avgBlinkRate === null ? null : `${overview.avgBlinkRate}/min`,
+                            coaching: blinkRateCoaching(overview.avgBlinkRate),
+                            score: overview.avgBlinkRate !== null ? (overview.avgBlinkRate >= 12 && overview.avgBlinkRate <= 20 ? 9 : overview.avgBlinkRate <= 28 ? 6 : 4) : null,
+                          },
+                          {
+                            label: "Head Stability",
+                            value: overview.avgHeadStability === null ? null : `${overview.avgHeadStability}%`,
+                            coaching: headStabilityCoaching(overview.avgHeadStability),
+                            score: overview.avgHeadStability !== null ? (overview.avgHeadStability >= 75 ? 9 : overview.avgHeadStability >= 55 ? 6 : 4) : null,
+                          },
+                        ].map(({ label, value, coaching, score }) => {
+                          if (value === null) return null;
+                          const color = score === null ? "var(--text-muted)" : score >= 8 ? "#10B981" : score >= 6 ? "var(--accent)" : "#EF4444";
+                          return (
+                            <div key={label} style={{ marginBottom: 14 }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                                <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color }}>{value}</span>
+                              </div>
+                              <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{coaching}</div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

@@ -337,6 +337,10 @@ type Persona = {
   eyeContactStart: number;    eyeContactEnd: number;
   expressivenessStart: number; expressivenessEnd: number;
   headStabilityStart: number;  headStabilityEnd: number;
+  smileRateStart: number;      smileRateEnd: number;
+  blinkRateStart: number;      blinkRateEnd: number;  // blinks/min; 12–20 = ideal
+  browEngagementStart: number; browEngagementEnd: number;
+  lookAwayRateStart: number;   lookAwayRateEnd: number;
   // ESL mode
   useEslMode: boolean;
   // Archetype progression: [threshold_t, archetype][] - first matching t wins
@@ -364,6 +368,10 @@ const MARCUS: Persona = {
   eyeContactStart: 0.44,    eyeContactEnd: 0.84,
   expressivenessStart: 0.38, expressivenessEnd: 0.76,
   headStabilityStart: 0.58,  headStabilityEnd: 0.88,
+  smileRateStart: 0.08,      smileRateEnd: 0.28,
+  blinkRateStart: 28,        blinkRateEnd: 17,
+  browEngagementStart: 0.20, browEngagementEnd: 0.50,
+  lookAwayRateStart: 0.28,   lookAwayRateEnd: 0.12,
   useEslMode: false,
   archetypeArc: [
     [0.30, "Hedger"],
@@ -391,6 +399,10 @@ const AALIYAH: Persona = {
   eyeContactStart: 0.80,    eyeContactEnd: 0.93,
   expressivenessStart: 0.76, expressivenessEnd: 0.91,
   headStabilityStart: 0.82,  headStabilityEnd: 0.94,
+  smileRateStart: 0.42,      smileRateEnd: 0.58,
+  blinkRateStart: 16,        blinkRateEnd: 15,
+  browEngagementStart: 0.55, browEngagementEnd: 0.72,
+  lookAwayRateStart: 0.06,   lookAwayRateEnd: 0.04,
   useEslMode: false,
   archetypeArc: [
     [0.10, "Overloader"],  // early attempts front-load too much detail
@@ -417,6 +429,10 @@ const DIEGO: Persona = {
   eyeContactStart: 0.50,    eyeContactEnd: 0.76,
   expressivenessStart: 0.36, expressivenessEnd: 0.64,
   headStabilityStart: 0.68,  headStabilityEnd: 0.86,
+  smileRateStart: 0.14,      smileRateEnd: 0.34,
+  blinkRateStart: 24,        blinkRateEnd: 16,
+  browEngagementStart: 0.18, browEngagementEnd: 0.42,
+  lookAwayRateStart: 0.22,   lookAwayRateEnd: 0.10,
   useEslMode: true,  // bilingual - ESL mode active throughout
   archetypeArc: [
     [0.40, "Monotone Expert"],
@@ -444,6 +460,10 @@ const SOPHIE: Persona = {
   eyeContactStart: 0.64,    eyeContactEnd: 0.73,
   expressivenessStart: 0.40, expressivenessEnd: 0.46,
   headStabilityStart: 0.70,  headStabilityEnd: 0.76,
+  smileRateStart: 0.20,      smileRateEnd: 0.24,
+  blinkRateStart: 19,        blinkRateEnd: 18,
+  browEngagementStart: 0.30, browEngagementEnd: 0.34,
+  lookAwayRateStart: 0.14,   lookAwayRateEnd: 0.12,
   useEslMode: false,
   // Sophie is always a Hedger - this IS her plateau. Occasional Vague Narrator for variety.
   archetypeArc: [
@@ -471,6 +491,10 @@ const JORDAN: Persona = {
   eyeContactStart: 0.26,    eyeContactEnd: 0.56,
   expressivenessStart: 0.22, expressivenessEnd: 0.52,
   headStabilityStart: 0.42,  headStabilityEnd: 0.66,
+  smileRateStart: 0.04,      smileRateEnd: 0.14,
+  blinkRateStart: 32,        blinkRateEnd: 24,
+  browEngagementStart: 0.12, browEngagementEnd: 0.28,
+  lookAwayRateStart: 0.38,   lookAwayRateEnd: 0.22,
   useEslMode: false,
   archetypeArc: [
     [0.50, "Scattered Thinker"],
@@ -530,6 +554,10 @@ function buildAttempt(
   const eyeContact      = round3(clamp(noise(lerp(persona.eyeContactStart, persona.eyeContactEnd, t), 0.06), 0.10, 0.98));
   const expressiveness  = round3(clamp(noise(lerp(persona.expressivenessStart, persona.expressivenessEnd, t), 0.05), 0.08, 0.96));
   const headStability   = round3(clamp(noise(lerp(persona.headStabilityStart, persona.headStabilityEnd, t), 0.04), 0.20, 0.98));
+  const smileRate       = round3(clamp(noise(lerp(persona.smileRateStart, persona.smileRateEnd, t), 0.04), 0.00, 0.90));
+  const blinkRate       = Math.round(clamp(noise(lerp(persona.blinkRateStart, persona.blinkRateEnd, t), v * 0.8), 8, 45));
+  const browEngagement  = round3(clamp(noise(lerp(persona.browEngagementStart, persona.browEngagementEnd, t), 0.04), 0.00, 0.95));
+  const lookAwayRate    = round3(clamp(noise(lerp(persona.lookAwayRateStart, persona.lookAwayRateEnd, t), 0.04), 0.00, 0.70));
   const framesAnalyzed  = Math.round(random(380, 520)); // 30fps * ~13-17s window
 
   // Archetype
@@ -665,6 +693,10 @@ function buildAttempt(
         eyeContact,
         expressiveness,
         headStability,
+        smileRate,
+        blinkRate,
+        browEngagement,
+        lookAwayRate,
         framesAnalyzed,
       },
     },

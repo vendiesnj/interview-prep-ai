@@ -245,26 +245,27 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
 }
 
 function makeDeliveryMetrics(wpm, fillers, score) {
-  const monotone = Math.max(1, Math.min(9, 7 - (score - 6) * 1.2 + (Math.random() * 1.4 - 0.7)));
+  const monotone = parseFloat(Math.max(1, Math.min(9, 7 - (score - 6) * 1.2 + (Math.random() * 1.4 - 0.7))).toFixed(1));
   const pitchRange = 80 + Math.floor(score * 8) + Math.floor(Math.random() * 30);
-  const energyVar = Math.max(1, Math.min(9, (score - 5) * 1.5 + (Math.random() * 1.0 - 0.5)));
+  const energyVar = parseFloat(Math.max(1, Math.min(9, (score - 5) * 1.5 + (Math.random() * 1.0 - 0.5))).toFixed(1));
+  const tempoDyn = parseFloat(Math.max(1.5, Math.min(9.5, (score - 4.5) * 1.2 + (Math.random() * 1.2 - 0.6))).toFixed(1));
   const eyeContact = Math.min(0.95, 0.45 + (score - 5.5) * 0.08 + Math.random() * 0.08);
   return {
     wpm,
+    fillersPer100: parseFloat((fillers / (wpm * 1.8 / 100)).toFixed(2)),
     fillers: Array(fillers).fill("um"),
     words: Math.floor(wpm * 1.8),
     duration_seconds: 108,
-    // acoustics in the format the results page reads (dm?.acoustics)
     acoustics: {
-      monotoneScore: parseFloat(monotone.toFixed(1)),
+      monotoneScore: monotone,
       pitchRange,
       pitchMean: 150 + Math.floor(Math.random() * 30),
       pitchStd: 20 + Math.floor(Math.random() * 15),
-      energyVariation: parseFloat(energyVar.toFixed(1)),
+      energyVariation: energyVar,
       energyMean: 0.55 + Math.random() * 0.15,
       energyStd: 0.04 + Math.random() * 0.04,
+      tempoDynamics: tempoDyn,
     },
-    // face metrics in the format the results page reads (dm?.face or stored.faceMetrics)
     face: {
       eyeContact: parseFloat(eyeContact.toFixed(2)),
       expressiveness: parseFloat(Math.min(0.9, 0.3 + score * 0.05 + Math.random() * 0.1).toFixed(2)),
@@ -273,7 +274,23 @@ function makeDeliveryMetrics(wpm, fillers, score) {
       blinkRate: Math.floor(12 + Math.random() * 8),
       browEngagement: parseFloat(Math.min(0.4, 0.05 + score * 0.02 + Math.random() * 0.05).toFixed(2)),
       lookAwayRate: parseFloat(Math.max(0.02, 0.25 - score * 0.02 + Math.random() * 0.05).toFixed(2)),
+      framesAnalyzed: Math.floor(380 + Math.random() * 140),
     },
+  };
+}
+
+function makeProsody(wpm, score) {
+  const monotone = parseFloat(Math.max(1, Math.min(9, 7 - (score - 6) * 1.2 + (Math.random() * 1.4 - 0.7))).toFixed(1));
+  const energyVar = parseFloat(Math.max(1, Math.min(9, (score - 5) * 1.5 + (Math.random() * 1.0 - 0.5))).toFixed(1));
+  const tempoDyn = parseFloat(Math.max(1.5, Math.min(9.5, (score - 4.5) * 1.2 + (Math.random() * 1.2 - 0.6))).toFixed(1));
+  return {
+    monotoneScore: monotone,
+    pitchMean: parseFloat((150 + Math.random() * 30).toFixed(1)),
+    pitchStd: parseFloat((20 + Math.random() * 15).toFixed(1)),
+    pitchRange: parseFloat((80 + score * 8 + Math.random() * 30).toFixed(1)),
+    energyVariation: energyVar,
+    tempoDynamics: tempoDyn,
+    energyMean: parseFloat((0.55 + Math.random() * 0.15).toFixed(3)),
   };
 }
 
@@ -335,6 +352,7 @@ for (let i = 0; i < attemptData.length; i++) {
       durationSeconds: 95 + Math.floor(Math.random() * 30),
       feedback: makeFeedback(d.score, d.comm, d.conf, d.arch, q.q),
       deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers, d.score),
+      prosody: makeProsody(d.wpm, d.score),
     },
   });
 }
