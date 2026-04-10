@@ -28,12 +28,29 @@ export async function POST() {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL!;
-    const portal = await stripe.billingPortal.sessions.create({
-      customer: user.stripeCustomerId,
-      return_url: `${appUrl}/account`,
-    });
+    let portalUrl: string;
+    try {
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: user.stripeCustomerId,
+        return_url: `${appUrl}/settings`,
+      });
+      portalUrl = portal.url;
+    } catch (stripeErr: any) {
+      if (stripeErr?.code === "resource_missing") {
+        // Stale customer ID (e.g. key rotated or test→live switch) — clear it
+        await prisma.user.update({
+          where: { email },
+          data: { stripeCustomerId: null },
+        });
+        return NextResponse.json(
+          { error: "STALE_CUSTOMER", message: "Billing session expired. Please use Upgrade to re-link your account." },
+          { status: 400 }
+        );
+      }
+      throw stripeErr;
+    }
 
-    return NextResponse.json({ url: portal.url }, { status: 200 });
+    return NextResponse.json({ url: portalUrl }, { status: 200 });
   } catch (err: any) {
     return NextResponse.json(
       { error: "PORTAL_ERROR", message: err?.message ?? "Unknown error" },

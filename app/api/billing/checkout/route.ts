@@ -53,8 +53,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
 
-    // Ensure Stripe customer exists
+    // Ensure Stripe customer exists (handle stale IDs from key rotation / test→live switch)
     let customerId = user.stripeCustomerId ?? null;
+
+    if (customerId) {
+      try {
+        await stripe.customers.retrieve(customerId);
+      } catch (stripeErr: any) {
+        if (stripeErr?.code === "resource_missing") {
+          customerId = null; // stale — will create fresh below
+          await prisma.user.update({ where: { id: user.id }, data: { stripeCustomerId: null } });
+        } else {
+          throw stripeErr;
+        }
+      }
+    }
 
     if (!customerId) {
       const customer = await stripe.customers.create({
