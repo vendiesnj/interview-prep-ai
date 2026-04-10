@@ -1283,6 +1283,7 @@ export default function DashboardPage() {
               { Icon: Target,    title: "Job Profiles",         desc: "Practice for specific roles with tailored question sets.",                         href: "/job-profiles",        color: ACCENT_MINDSET },
               { Icon: Briefcase, title: "Job Tracker",           desc: "Track applications, monitor your funnel, and stay organized through every stage.", href: "/job-tracker",         color: "#F59E0B" },
               { Icon: Library,  title: "Experience Log",        desc: "Build your library of career stories. Refine the STAR structure and practice until they're fluent.", href: "/experience-log", color: "#8B5CF6" },
+              { Icon: Home,     title: "Life Buddy",            desc: "Plan your week, track your budget, and project your retirement — all in one place.",            href: "/life-buddy",      color: "#EC4899" },
             ].map(item => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
                 <div style={{ padding: "18px 20px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", flexDirection: "column", gap: 10, transition: "border-color 150ms", cursor: "pointer" }}>

@@ -721,9 +721,7 @@ useEffect(() => {
 
       const practiceRaw =
         sessionStorage.getItem(LAST_RESULT_KEY) ||
-        localStorage.getItem(LAST_RESULT_KEY) ||
-        sessionStorage.getItem("ipc_last_result") ||
-        localStorage.getItem("ipc_last_result");
+        localStorage.getItem(LAST_RESULT_KEY);
 
       if (practiceRaw) {
         setStored(JSON.parse(practiceRaw));
@@ -734,9 +732,7 @@ useEffect(() => {
 
     const selectedRaw =
       sessionStorage.getItem(SELECTED_KEY) ||
-      localStorage.getItem(SELECTED_KEY) ||
-      sessionStorage.getItem("ipc_selected_attempt") ||
-      localStorage.getItem("ipc_selected_attempt");
+      localStorage.getItem(SELECTED_KEY);
 
     if (selectedRaw) {
       setStored(JSON.parse(selectedRaw));
@@ -746,9 +742,7 @@ useEffect(() => {
 
     const raw =
       sessionStorage.getItem(LAST_RESULT_KEY) ||
-      localStorage.getItem(LAST_RESULT_KEY) ||
-      sessionStorage.getItem("ipc_last_result") ||
-      localStorage.getItem("ipc_last_result");
+      localStorage.getItem(LAST_RESULT_KEY);
 
     if (raw) setStored(JSON.parse(raw));
     else setStored(null);

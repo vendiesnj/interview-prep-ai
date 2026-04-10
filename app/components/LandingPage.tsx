@@ -83,7 +83,7 @@ export default function LandingPage() {
 
   return (
     <div style={{
-      background: "#080d18",
+      background: "#0d1e3a",
       color: "#fff",
       fontFamily: "var(--font-manrope, system-ui, sans-serif)",
       overflowX: "hidden",
@@ -95,10 +95,10 @@ export default function LandingPage() {
         height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px",
         borderBottom: "1px solid rgba(255,255,255,0.05)",
-        background: "rgba(8,13,24,0.85)",
+        background: "rgba(13,30,58,0.85)",
         backdropFilter: "blur(16px)",
       }}>
-        <div style={{ fontSize: 17, fontWeight: 950, letterSpacing: -0.4, color: "#fff" }}>Signal</div>
+        <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.4, color: "#fff" }}>Signal</div>
         <div style={{ display: "flex", gap: 8 }}>
           <Link href="/login" style={{
             padding: "7px 16px", borderRadius: 8,
@@ -132,12 +132,7 @@ export default function LandingPage() {
       {/* ── Problem ── */}
       <section style={{ padding: "100px 24px", maxWidth: 760, margin: "0 auto" }}>
         <Fade>
-          <p style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "#2563EB", textTransform: "uppercase", marginBottom: 20 }}>
-            The gap nobody talks about
-          </p>
-        </Fade>
-        <Fade delay={80}>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 950, lineHeight: 1.2, letterSpacing: -0.8, margin: "0 0 24px", color: "#fff" }}>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 24px", color: "#fff" }}>
             Interview feedback is almost always wrong.
           </h2>
         </Fade>
@@ -156,18 +151,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── Dimensions ── */}
-      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.015)", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
 
           <div>
             <Fade>
-              <p style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "#2563EB", textTransform: "uppercase", marginBottom: 20 }}>
-                The engine
-              </p>
-            </Fade>
-            <Fade delay={80}>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 950, lineHeight: 1.2, letterSpacing: -0.7, margin: "0 0 20px" }}>
-                Seven dimensions.<br />One honest read.
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+                Seven dimensions. One honest read.
               </h2>
             </Fade>
             <Fade delay={140}>
@@ -219,7 +209,7 @@ export default function LandingPage() {
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 12 }}>
                 Communication archetype
               </div>
-              <div style={{ fontSize: 26, fontWeight: 950, color: "#fff", marginBottom: 6, letterSpacing: -0.3 }}>The Hedger</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: "#fff", marginBottom: 6, letterSpacing: -0.3 }}>The Hedger</div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.45)", marginBottom: 20 }}>
                 Sharp thinking, softened delivery
               </div>
@@ -249,13 +239,8 @@ export default function LandingPage() {
 
           <div>
             <Fade>
-              <p style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 20 }}>
-                Pattern recognition
-              </p>
-            </Fade>
-            <Fade delay={80}>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 950, lineHeight: 1.2, letterSpacing: -0.7, margin: "0 0 20px" }}>
-                You have a pattern. Most people never find out what it is.
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
+                You have a communication pattern. Most people never find out what it is.
               </h2>
             </Fade>
             <Fade delay={140}>
@@ -276,16 +261,11 @@ export default function LandingPage() {
       </section>
 
       {/* ── Vocal ── */}
-      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.015)", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <div style={{ maxWidth: 600, marginBottom: 60 }}>
             <Fade>
-              <p style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "#0EA5E9", textTransform: "uppercase", marginBottom: 20 }}>
-                Delivery intelligence
-              </p>
-            </Fade>
-            <Fade delay={80}>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 950, lineHeight: 1.2, letterSpacing: -0.7, margin: "0 0 20px" }}>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
                 Your words and your voice are telling different stories.
               </h2>
             </Fade>
@@ -315,7 +295,7 @@ export default function LandingPage() {
                 transition: `opacity 0.55s ease ${m.delay}ms, transform 0.55s ease ${m.delay}ms`,
               }}>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", marginBottom: 10 }}>{m.label}</div>
-                <div style={{ fontSize: 24, fontWeight: 950, color: m.color, letterSpacing: -0.4, marginBottom: 8 }}>{m.value}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: m.color, letterSpacing: -0.4, marginBottom: 8 }}>{m.value}</div>
                 <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>{m.note}</div>
               </div>
             ))}
@@ -326,15 +306,10 @@ export default function LandingPage() {
       {/* ── IBM language analytics ── */}
       <section style={{ padding: "100px 24px" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-          <Fade>
-            <p style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "#2563EB", textTransform: "uppercase", marginBottom: 20 }}>
-              Language analytics
-            </p>
-          </Fade>
           <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "60px 80px", alignItems: "start" }}>
             <div>
-              <Fade delay={60}>
-                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 950, lineHeight: 1.2, letterSpacing: -0.7, margin: "0 0 20px" }}>
+              <Fade>
+                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px" }}>
                   What your word choices are signaling.
                 </h2>
               </Fade>
@@ -382,13 +357,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── Tools ── */}
-      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.015)", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <Fade>
-            <p style={{ fontSize: 13, fontWeight: 900, letterSpacing: 1.2, color: "#2563EB", textTransform: "uppercase", marginBottom: 16 }}>The full kit</p>
-          </Fade>
-          <Fade delay={60}>
-            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 950, lineHeight: 1.2, letterSpacing: -0.7, margin: "0 0 60px", maxWidth: 560 }}>
+            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 800, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 40px", maxWidth: 560 }}>
               Everything you need to run a real job search.
             </h2>
           </Fade>
@@ -452,8 +424,8 @@ export default function LandingPage() {
       {/* ── CTA ── */}
       <section style={{ padding: "120px 24px", textAlign: "center" }}>
         <Fade>
-          <h2 style={{ fontSize: "clamp(30px, 5vw, 52px)", fontWeight: 950, letterSpacing: -1, margin: "0 0 16px", lineHeight: 1.15 }}>
-            Three sessions free.<br />No card required.
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 46px)", fontWeight: 800, letterSpacing: -0.3, margin: "0 0 16px", lineHeight: 1.2 }}>
+            Three sessions free. No card required.
           </h2>
         </Fade>
         <Fade delay={80}>
@@ -467,7 +439,7 @@ export default function LandingPage() {
               padding: "15px 36px", borderRadius: 12,
               background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
               color: "#fff", textDecoration: "none",
-              fontWeight: 950, fontSize: 15,
+              fontWeight: 800, fontSize: 15,
               boxShadow: "0 4px 32px rgba(37,99,235,0.4)",
             }}>
               Start for free
@@ -530,10 +502,10 @@ function HeroContent() {
 
       <h1 style={{
         margin: "0 0 24px",
-        fontSize: "clamp(38px, 6vw, 68px)",
-        fontWeight: 950,
-        lineHeight: 1.1,
-        letterSpacing: -1.5,
+        fontSize: "clamp(36px, 5.5vw, 60px)",
+        fontWeight: 800,
+        lineHeight: 1.15,
+        letterSpacing: -0.4,
         color: "#fff",
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(20px)",
@@ -571,7 +543,7 @@ function HeroContent() {
           padding: "15px 36px", borderRadius: 12,
           background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
           color: "#fff", textDecoration: "none",
-          fontWeight: 950, fontSize: 15,
+          fontWeight: 800, fontSize: 15,
           boxShadow: "0 4px 32px rgba(37,99,235,0.4)",
           whiteSpace: "nowrap" as const,
         }}>
