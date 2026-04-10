@@ -1221,7 +1221,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <StreakBanner />
+        {isUniversity && <StreakBanner />}
 
         {/* ── Quick-access bar (university only) ── */}
         {isUniversity && <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
