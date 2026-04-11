@@ -1,143 +1,240 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
-import Link from "next/link";
+import React, { useEffect, useRef, useState, useMemo } from "react";
+import { useSession } from "next-auth/react";
 import PremiumShell from "@/app/components/PremiumShell";
+import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
+import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
+import type { ConversationTurn, MockScoreResult } from "@/app/api/mock-interview/route";
+import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
+
+// ── Local storage ─────────────────────────────────────────────────────────────
+
+function safeJSONParse<T>(val: string | null, fallback: T): T {
+  if (!val) return fallback;
+  try { return JSON.parse(val) as T; } catch { return fallback; }
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type RecordingState = "idle" | "recording" | "processing" | "done";
-type SessionState = "setup" | "interview" | "results";
+type Phase =
+  | "setup"
+  | "countdown"
+  | "question"
+  | "recording"
+  | "processing"
+  | "between"
+  | "finishing"
+  | "results";
 
-interface HistoryEntry {
-  question: string;
-  transcript: string;
-  starAnalysis: Record<string, boolean>;
-  isFollowup?: boolean;
+interface SessionConfig {
+  role: string;
+  industry: string;
+  numQuestions: number;
+  questionTypes: ("behavioral" | "situational")[];
 }
 
-interface ScoreResult {
-  overallScore: number;
-  strengths: string[];
-  improvements: string[];
-  starCompleteness: Record<string, number>;
-  coachingSummary: string;
-  readinessLevel: string;
+// ── Dimension labels ──────────────────────────────────────────────────────────
+
+const DIM_ORDER = [
+  "narrative_clarity",
+  "evidence_quality",
+  "ownership_agency",
+  "response_control",
+  "cognitive_depth",
+  "presence_confidence",
+  "vocal_engagement",
+] as const;
+
+// ── Small components ──────────────────────────────────────────────────────────
+
+function ScoreBar({ label, score, coaching }: { label: string; score: number; coaching: string }) {
+  const color = score >= 7.5 ? "#10B981" : score >= 5.5 ? "var(--accent)" : "#EF4444";
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color }}>{score.toFixed(1)}/10</span>
+      </div>
+      <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden", marginBottom: 5 }}>
+        <div style={{ width: `${Math.round(score * 10)}%`, height: "100%", background: color, borderRadius: 99 }} />
+      </div>
+      <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{coaching}</div>
+    </div>
+  );
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-function StarBadge({ label, present }: { label: string; present: boolean }) {
+function ReadinessBadge({ level }: { level: string }) {
+  const map: Record<string, { label: string; color: string; bg: string }> = {
+    strong:      { label: "Interview Ready",    color: "#10B981", bg: "rgba(16,185,129,0.12)" },
+    ready:       { label: "Ready to Interview", color: "#10B981", bg: "rgba(16,185,129,0.08)" },
+    developing:  { label: "Developing",         color: "#F59E0B", bg: "rgba(245,158,11,0.10)" },
+    not_ready:   { label: "More Practice Needed", color: "#EF4444", bg: "rgba(239,68,68,0.10)" },
+  };
+  const { label, color, bg } = map[level] ?? map.developing;
   return (
     <span style={{
-      fontSize: 11, fontWeight: 900, padding: "3px 9px", borderRadius: 99,
-      background: present ? "rgba(16,185,129,0.12)" : "rgba(239,68,68,0.08)",
-      color: present ? "#10B981" : "#EF4444",
-      border: `1px solid ${present ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.2)"}`,
+      fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99,
+      color, background: bg, border: `1px solid ${color}33`,
     }}>
-      {present ? "✓" : "○"} {label}
+      {label}
     </span>
   );
 }
 
-function ScoreBar({ label, value }: { label: string; value: number }) {
-  const color = value >= 70 ? "#10B981" : value >= 50 ? "#F59E0B" : "#EF4444";
+function PulsingDot() {
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 900, color }}>{value}</span>
-      </div>
-      <div style={{ height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-        <div style={{ height: "100%", borderRadius: 99, width: `${value}%`, background: color, transition: "width 0.8s ease" }} />
-      </div>
-    </div>
+    <span style={{
+      display: "inline-block", width: 8, height: 8, borderRadius: "50%",
+      background: "#EF4444", marginRight: 8,
+      animation: "mockPulse 1.2s ease-in-out infinite",
+    }} />
   );
 }
 
 // ── Setup Screen ──────────────────────────────────────────────────────────────
 
-function SetupScreen({ onStart }: { onStart: (role: string, industry: string) => void }) {
+function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
   const [role, setRole] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [camAllowed, setCamAllowed] = useState<boolean | null>(null);
+  const [industry, setIndustry] = useState("Technology");
+  const [numQuestions, setNumQuestions] = useState(5);
+  const [types, setTypes] = useState<("behavioral" | "situational")[]>(["behavioral", "situational"]);
 
-  async function requestCamera() {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setCamAllowed(true);
-    } catch {
-      setCamAllowed(false);
-    }
+  const industries = ["Technology", "Finance", "Consulting", "Healthcare", "Marketing", "Operations", "Research", "Non-profit"];
+
+  function toggleType(t: "behavioral" | "situational") {
+    setTypes(prev =>
+      prev.includes(t)
+        ? prev.length > 1 ? prev.filter(x => x !== t) : prev
+        : [...prev, t]
+    );
   }
 
-  useEffect(() => { requestCamera(); }, []);
-
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, fontWeight: 600,
+    width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, fontWeight: 500,
     border: "1px solid var(--card-border)", background: "var(--input-bg)",
     color: "var(--text-primary)", outline: "none", boxSizing: "border-box",
   };
 
   return (
-    <div style={{ maxWidth: 560, margin: "0 auto" }}>
-      <div style={{ textAlign: "center", marginBottom: 40 }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>🎙️</div>
-        <h1 style={{ margin: "0 0 8px", fontSize: 28, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>
+    <div style={{ maxWidth: 580, margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginBottom: 36 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 8 }}>
           Mock Interview
+        </div>
+        <h1 style={{ margin: "0 0 10px", fontSize: 30, fontWeight: 900, color: "var(--text-primary)", letterSpacing: -0.5 }}>
+          Full Interview Simulation
         </h1>
-        <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.6 }}>
-          A 5-question AI-powered interview with follow-up questions based on your answers.
-          Webcam on for visual feedback.
+        <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 460, marginInline: "auto" }}>
+          An AI interviewer asks real questions, adapts to your answers, and generates a
+          coaching report tied to your full practice history.
         </p>
       </div>
 
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, marginBottom: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.7 }}>
-              Target Role (optional)
-            </label>
-            <input
-              type="text"
-              value={role}
-              onChange={e => setRole(e.target.value)}
-              placeholder="e.g. Software Engineer, Marketing Manager"
-              style={inputStyle}
-            />
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, marginBottom: 16, display: "flex", flexDirection: "column", gap: 18 }}>
+        {/* Role */}
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.7 }}>
+            Target Role
+          </label>
+          <input
+            type="text"
+            value={role}
+            onChange={e => setRole(e.target.value)}
+            placeholder="e.g. Product Manager, Financial Analyst, Software Engineer"
+            style={inputStyle}
+          />
+        </div>
+
+        {/* Industry */}
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.7 }}>
+            Industry
+          </label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {industries.map(ind => (
+              <button
+                key={ind}
+                onClick={() => setIndustry(ind)}
+                style={{
+                  padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600,
+                  border: `1px solid ${industry === ind ? "var(--accent)" : "var(--card-border)"}`,
+                  background: industry === ind ? "var(--accent-soft)" : "transparent",
+                  color: industry === ind ? "var(--accent)" : "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                {ind}
+              </button>
+            ))}
           </div>
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.7 }}>
-              Industry (optional)
-            </label>
-            <input
-              type="text"
-              value={industry}
-              onChange={e => setIndustry(e.target.value)}
-              placeholder="e.g. Technology, Finance, Healthcare"
-              style={inputStyle}
-            />
+        </div>
+
+        {/* Question count */}
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.7 }}>
+            Number of Questions
+          </label>
+          <div style={{ display: "flex", gap: 10 }}>
+            {[3, 5, 7].map(n => (
+              <button
+                key={n}
+                onClick={() => setNumQuestions(n)}
+                style={{
+                  flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  border: `1px solid ${numQuestions === n ? "var(--accent)" : "var(--card-border)"}`,
+                  background: numQuestions === n ? "var(--accent-soft)" : "transparent",
+                  color: numQuestions === n ? "var(--accent)" : "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                {n} questions
+                <div style={{ fontSize: 10, fontWeight: 500, marginTop: 2, opacity: 0.7 }}>
+                  {n === 3 ? "~10 min" : n === 5 ? "~18 min" : "~25 min"}
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Question types */}
+        <div>
+          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.7 }}>
+            Question Types
+          </label>
+          <div style={{ display: "flex", gap: 10 }}>
+            {(["behavioral", "situational"] as const).map(t => (
+              <button
+                key={t}
+                onClick={() => toggleType(t)}
+                style={{
+                  flex: 1, padding: "9px 0", borderRadius: 10, fontSize: 13, fontWeight: 600,
+                  border: `1px solid ${types.includes(t) ? "var(--accent)" : "var(--card-border)"}`,
+                  background: types.includes(t) ? "var(--accent-soft)" : "transparent",
+                  color: types.includes(t) ? "var(--accent)" : "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                {t === "behavioral" ? "Behavioral" : "Situational"}
+                <div style={{ fontSize: 10, fontWeight: 500, marginTop: 2, opacity: 0.7 }}>
+                  {t === "behavioral" ? '"Tell me about a time..."' : '"Imagine you\'re in..."'}
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Camera status */}
-      <div style={{
-        marginBottom: 20, padding: "10px 14px", borderRadius: 10,
-        background: camAllowed === false ? "rgba(239,68,68,0.07)" : "rgba(16,185,129,0.07)",
-        border: `1px solid ${camAllowed === false ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)"}`,
-        display: "flex", alignItems: "center", gap: 8,
-      }}>
-        <span style={{ fontSize: 16 }}>{camAllowed === null ? "⏳" : camAllowed ? "📷" : "⚠️"}</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: camAllowed === false ? "#EF4444" : "var(--text-primary)" }}>
-          {camAllowed === null ? "Requesting camera access…" : camAllowed ? "Camera & microphone ready" : "Camera access denied - interview will be audio-only"}
-        </span>
-      </div>
-
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "12px 16px", marginBottom: 24 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 8 }}>What to expect</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {["5 behavioral questions targeting NACE competencies", "AI follow-up questions if your answer is missing STAR components", "Real-time STAR tracking as you speak", "Full coaching report at the end"].map(item => (
+      {/* What to expect */}
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "14px 18px", marginBottom: 24 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 10 }}>What to expect</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          {[
+            "AI interviewer adapts follow-up questions based on your actual answers",
+            "Coaching report scored across 7 communication dimensions",
+            "Results saved to your profile and factored into your insights",
+            "Webcam optional — enables on-camera presence scoring",
+          ].map(item => (
             <div key={item} style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 8, alignItems: "flex-start" }}>
               <span style={{ color: "#10B981", flexShrink: 0, marginTop: 1 }}>✓</span>
               {item}
@@ -147,12 +244,12 @@ function SetupScreen({ onStart }: { onStart: (role: string, industry: string) =>
       </div>
 
       <button
-        onClick={() => onStart(role || "a professional role", industry || "general")}
+        onClick={() => onStart({ role: role || "a professional role", industry, numQuestions, questionTypes: types })}
         style={{
-          width: "100%", padding: "14px 0", borderRadius: 12,
-          background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-          color: "#fff", fontWeight: 950, fontSize: 16, border: "none",
-          cursor: "pointer", boxShadow: "0 4px 20px rgba(37,99,235,0.35)",
+          width: "100%", padding: "15px 0", borderRadius: 12,
+          background: "linear-gradient(135deg, var(--accent), #0EA5E9)",
+          color: "#fff", fontWeight: 800, fontSize: 16, border: "none",
+          cursor: "pointer", letterSpacing: -0.3,
         }}
       >
         Start Interview →
@@ -161,447 +258,686 @@ function SetupScreen({ onStart }: { onStart: (role: string, industry: string) =>
   );
 }
 
-// ── Interview Screen ──────────────────────────────────────────────────────────
+// ── Results Screen ────────────────────────────────────────────────────────────
 
-function InterviewScreen({
-  role,
-  industry,
-  onComplete,
+function ResultsScreen({
+  config,
+  score,
+  history,
+  saved,
+  onSave,
+  onRetry,
 }: {
-  role: string;
-  industry: string;
-  onComplete: (history: HistoryEntry[], score: ScoreResult) => void;
+  config: SessionConfig;
+  score: MockScoreResult;
+  history: ConversationTurn[];
+  saved: boolean;
+  onSave: () => void;
+  onRetry: () => void;
 }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const readinessColor: Record<string, string> = {
+    strong: "#10B981", ready: "#10B981", developing: "#F59E0B", not_ready: "#EF4444",
+  };
+  const color = readinessColor[score.readinessLevel] ?? "#F59E0B";
+
+  const candidateTurns = history.filter(t => t.speaker === "candidate");
+  const totalWords = candidateTurns.reduce((sum, t) => sum + t.content.split(/\s+/).length, 0);
+
+  return (
+    <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* Header */}
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 28 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
+              Interview Complete — {config.role}
+            </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 10 }}>
+              <span style={{ fontSize: 64, fontWeight: 900, color, lineHeight: 1 }}>
+                {score.overallScore}
+              </span>
+              <span style={{ fontSize: 16, color: "var(--text-muted)", fontWeight: 500 }}>/100</span>
+            </div>
+            <ReadinessBadge level={score.readinessLevel} />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+              {history.filter(t => t.speaker === "interviewer").length} questions &nbsp;·&nbsp; ~{totalWords} words spoken
+            </div>
+            {!saved ? (
+              <button
+                onClick={onSave}
+                style={{
+                  padding: "9px 20px", borderRadius: 10, background: "var(--accent)",
+                  color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer",
+                }}
+              >
+                Save to Profile
+              </button>
+            ) : (
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>✓ Saved to profile</span>
+            )}
+            <button
+              onClick={onRetry}
+              style={{
+                padding: "9px 20px", borderRadius: 10, background: "transparent",
+                color: "var(--text-muted)", fontWeight: 600, fontSize: 13,
+                border: "1px solid var(--card-border)", cursor: "pointer",
+              }}
+            >
+              New Interview
+            </button>
+          </div>
+        </div>
+
+        {/* Coaching summary */}
+        <div style={{ marginTop: 20, padding: "14px 18px", borderRadius: 10, background: "var(--card-bg-strong)", borderLeft: "3px solid var(--accent)" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 6 }}>Coaching Summary</div>
+          <div style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.7 }}>{score.coachingSummary}</div>
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        {/* Strengths */}
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#10B981", marginBottom: 14 }}>What You Did Well</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {score.strengths.map((s, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                <span style={{ color: "#10B981", flexShrink: 0, marginTop: 2 }}>✓</span>
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Improvements */}
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#F59E0B", marginBottom: 14 }}>Work On Next</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {score.improvements.map((s, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                <span style={{ color: "#F59E0B", flexShrink: 0, marginTop: 2 }}>→</span>
+                {s}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 7 Dimensions */}
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 18 }}>Communication Scorecard</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 32px" }}>
+          {DIM_ORDER.map(key => {
+            const d = score.dimensionScores?.[key];
+            if (!d) return null;
+            return <ScoreBar key={key} label={d.label} score={d.score} coaching={d.coaching} />;
+          })}
+        </div>
+      </div>
+
+      {/* STAR */}
+      {score.starScores && (
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 18 }}>STAR Structure</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+            {(["situation", "task", "action", "result"] as const).map(k => {
+              const v = score.starScores[k];
+              const c = v >= 70 ? "#10B981" : v >= 50 ? "#F59E0B" : "#EF4444";
+              return (
+                <div key={k} style={{ textAlign: "center", padding: "14px 10px", borderRadius: 10, background: "var(--card-bg-strong)", border: `1px solid ${c}22` }}>
+                  <div style={{ fontSize: 24, fontWeight: 900, color: c, lineHeight: 1 }}>{v}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, textTransform: "capitalize", fontWeight: 600 }}>{k}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Per-question breakdown */}
+      {score.questionBreakdowns?.length > 0 && (
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>Question Breakdown</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {score.questionBreakdowns.map((qb, i) => {
+              const c = qb.score >= 70 ? "#10B981" : qb.score >= 50 ? "#F59E0B" : "#EF4444";
+              return (
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 14, alignItems: "start", padding: "12px 0", borderBottom: i < score.questionBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 10, background: `${c}15`, border: `1px solid ${c}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 15, fontWeight: 900, color: c }}>{qb.score}</span>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3, lineHeight: 1.4 }}>{qb.question}</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.note}</div>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap", marginTop: 2 }}>
+                    {qb.competency?.replace(/_/g, " ")}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Main Interview Page ───────────────────────────────────────────────────────
+
+export default function MockInterviewPage() {
+  const { data: session } = useSession();
+
+  // Phase + config
+  const [phase, setPhase] = useState<Phase>("setup");
+  const [config, setConfig] = useState<SessionConfig | null>(null);
+
+  // Conversation
+  const [history, setHistory] = useState<ConversationTurn[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [currentCompetency, setCurrentCompetency] = useState("");
+  const [currentQuestionType, setCurrentQuestionType] = useState<string>("behavioral");
+  const [isFollowup, setIsFollowup] = useState(false);
+  const [mainQuestionsAsked, setMainQuestionsAsked] = useState(0);
+
+  // Recording
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
-
-  const [recordingState, setRecordingState] = useState<RecordingState>("idle");
-  const [currentQuestion, setCurrentQuestion] = useState<string>("");
-  const [currentHint, setCurrentHint] = useState<string>("");
-  const [currentCompetency, setCurrentCompetency] = useState<string>("");
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [isFollowup, setIsFollowup] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [latestStar, setLatestStar] = useState<Record<string, boolean> | null>(null);
-  const [loadingQuestion, setLoadingQuestion] = useState(true);
   const [recordingSeconds, setRecordingSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Start camera
+  // Countdown
+  const [countdown, setCountdown] = useState(3);
+
+  // Status messages
+  const [statusMsg, setStatusMsg] = useState("");
+
+  // Results
+  const [scoreResult, setScoreResult] = useState<MockScoreResult | null>(null);
+  const [saved, setSaved] = useState(false);
+
+  // Face metrics
+  const webcamRef = useRef<WebcamOverlayHandle>(null);
+  const [webcamEnabled, setWebcamEnabled] = useState(false);
+  const faceSessionSamples = useRef<FaceMetrics[]>([]);
+
+  // Coaching profile context from practice history
+  const [coachingContext, setCoachingContext] = useState<string | null>(null);
+
+  // Load coaching profile from localStorage
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true, audio: true })
-      .then((stream) => {
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.muted = true;
+    if (!session?.user) return;
+    const key = `ipc_history_${session.user.email ?? ""}`;
+    const saved = safeJSONParse<any[]>(localStorage.getItem(key), []);
+    if (saved.length >= 2) {
+      try {
+        const profile = buildUserCoachingProfile(saved);
+        setCoachingContext(profile.llmContext ?? null);
+      } catch {
+        // if history is malformed, skip coaching context
+      }
+    }
+    // Also try fetching from API for logged-in users
+    fetch("/api/attempts?limit=200", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const attempts = Array.isArray(data?.attempts) ? data.attempts : [];
+        if (attempts.length >= 2) {
+          const profile = buildUserCoachingProfile(attempts);
+          setCoachingContext(profile.llmContext ?? null);
         }
       })
-      .catch(() => {
-        // audio only fallback
-        navigator.mediaDevices.getUserMedia({ audio: true }).then((s) => { streamRef.current = s; }).catch(() => {});
-      });
+      .catch(() => {});
+  }, [session]);
 
-    return () => { streamRef.current?.getTracks().forEach(t => t.stop()); };
-  }, []);
+  // Webcam: collect face samples after each answer
+  function collectFaceSample() {
+    if (!webcamEnabled) return;
+    const metrics = webcamRef.current?.stop();
+    if (metrics) faceSessionSamples.current.push(metrics);
+    // Restart for next question
+    webcamRef.current?.start().catch(() => {});
+  }
 
-  // Fetch first question on mount
-  useEffect(() => {
-    fetchStart();
-  }, []);
+  function avgFaceMetrics(): Record<string, number> | null {
+    const samples = faceSessionSamples.current;
+    if (samples.length === 0) return null;
+    const keys: (keyof FaceMetrics)[] = ["eyeContact", "expressiveness", "headStability", "smileRate", "blinkRate", "browEngagement", "lookAwayRate"];
+    const out: Record<string, number> = {};
+    for (const k of keys) {
+      const vals = samples.map(s => s[k] as number).filter(v => typeof v === "number");
+      if (vals.length > 0) out[k] = Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100;
+    }
+    return Object.keys(out).length > 0 ? out : null;
+  }
 
-  async function fetchStart() {
-    setLoadingQuestion(true);
-    const res = await fetch("/api/mock-interview", {
+  // ── Start session ───────────────────────────────────────────────────────────
+
+  async function handleStart(cfg: SessionConfig) {
+    setConfig(cfg);
+    setHistory([]);
+    setMainQuestionsAsked(0);
+    setScoreResult(null);
+    setSaved(false);
+    faceSessionSamples.current = [];
+
+    // Request mic
+    try {
+      const s = await navigator.mediaDevices.getUserMedia({ audio: true, video: webcamEnabled });
+      streamRef.current = s;
+    } catch {
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = s;
+      } catch {
+        alert("Microphone access is required for the interview.");
+        return;
+      }
+    }
+
+    if (webcamEnabled) {
+      webcamRef.current?.start().catch(() => {});
+    }
+
+    setStatusMsg("Preparing your interview…");
+    setPhase("countdown");
+
+    // Fetch first question while countdown runs
+    const questionPromise = fetch("/api/mock-interview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "start", role, industry }),
+      body: JSON.stringify({
+        action: "start",
+        role: cfg.role,
+        industry: cfg.industry,
+        numQuestions: cfg.numQuestions,
+        questionTypes: cfg.questionTypes,
+        coachingContext,
+      }),
+    }).then(r => r.json());
+
+    // 3-second countdown
+    setCountdown(3);
+    await new Promise<void>(resolve => {
+      let c = 3;
+      const interval = setInterval(() => {
+        c--;
+        setCountdown(c);
+        if (c <= 0) { clearInterval(interval); resolve(); }
+      }, 1000);
     });
-    const data = await res.json();
-    setCurrentQuestion(data.question);
-    setCurrentHint(data.hint ?? "");
+
+    const data = await questionPromise;
+    setCurrentQuestion(data.message);
     setCurrentCompetency(data.competency ?? "");
-    setQuestionIndex(0);
+    setCurrentQuestionType(data.questionType ?? "behavioral");
     setIsFollowup(false);
-    setLoadingQuestion(false);
+    setMainQuestionsAsked(1);
+    setHistory([{ speaker: "interviewer", content: data.message, questionIndex: 1, competency: data.competency, questionType: data.questionType }]);
+    setPhase("question");
   }
+
+  // ── Recording ───────────────────────────────────────────────────────────────
 
   function startRecording() {
     if (!streamRef.current) return;
     chunksRef.current = [];
     const mr = new MediaRecorder(streamRef.current, { mimeType: "audio/webm" });
-    mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+    mr.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data); };
     mr.start(250);
     mediaRecorderRef.current = mr;
-    setRecordingState("recording");
     setRecordingSeconds(0);
     timerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
+    setPhase("recording");
   }
 
   async function stopRecording() {
     if (timerRef.current) clearInterval(timerRef.current);
-    setRecordingState("processing");
 
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       const mr = mediaRecorderRef.current!;
       mr.onstop = () => resolve();
       mr.stop();
     });
+
+    setPhase("processing");
+    setStatusMsg("Transcribing your answer…");
+    collectFaceSample();
 
     const blob = new Blob(chunksRef.current, { type: "audio/webm" });
     const form = new FormData();
     form.append("audio", blob, "answer.webm");
 
     const transcribeRes = await fetch("/api/mock-interview/transcribe", { method: "POST", body: form });
-    const { transcript, starAnalysis } = await transcribeRes.json();
+    const { transcript } = await transcribeRes.json();
 
-    setLatestStar(starAnalysis);
-
-    const newEntry: HistoryEntry = {
-      question: currentQuestion,
-      transcript,
-      starAnalysis,
-      isFollowup,
-    };
-    const newHistory = [...history, newEntry];
+    const newHistory: ConversationTurn[] = [
+      ...history,
+      { speaker: "candidate", content: transcript },
+    ];
     setHistory(newHistory);
 
-    // Get next question or finish
-    const followupRes = await fetch("/api/mock-interview", {
+    // Get next action from AI
+    setStatusMsg("Thinking…");
+    const nextRes = await fetch("/api/mock-interview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        action: "followup",
+        action: "respond",
+        role: config!.role,
+        industry: config!.industry,
         transcript,
-        starAnalysis,
-        questionIndex,
-        history: newHistory.map(h => ({ question: h.question, transcript: h.transcript })),
-        role,
-        industry,
+        history: newHistory,
+        mainQuestionsAsked,
+        numQuestions: config!.numQuestions,
+        questionTypes: config!.questionTypes,
+        coachingContext,
       }),
     });
-    const next = await followupRes.json();
+    const next = await nextRes.json();
 
-    if (next.done || questionIndex >= 4) {
-      // Score the full session
-      const scoreRes = await fetch("/api/mock-interview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "score", history: newHistory, role }),
-      });
-      const scoreData = await scoreRes.json();
-      streamRef.current?.getTracks().forEach(t => t.stop());
-      onComplete(newHistory, scoreData);
+    if (next.action === "done") {
+      await finishInterview(newHistory);
     } else {
-      setCurrentQuestion(next.question);
-      setCurrentHint(next.hint ?? "");
+      const nextTurn: ConversationTurn = {
+        speaker: "interviewer",
+        content: next.message,
+        questionIndex: next.isFollowup ? mainQuestionsAsked : mainQuestionsAsked + 1,
+        isFollowup: next.isFollowup,
+        competency: next.competency,
+        questionType: next.questionType,
+      };
+      const fullHistory = [...newHistory, nextTurn];
+      setHistory(fullHistory);
+      setCurrentQuestion(next.message);
       setCurrentCompetency(next.competency ?? "");
-      setQuestionIndex(next.questionIndex);
+      setCurrentQuestionType(next.questionType ?? "behavioral");
       setIsFollowup(next.isFollowup ?? false);
-      setLatestStar(null);
-      setRecordingState("idle");
+      if (!next.isFollowup) setMainQuestionsAsked(q => q + 1);
+      setPhase("between");
     }
+  }
+
+  // ── Finish & score ──────────────────────────────────────────────────────────
+
+  async function finishInterview(finalHistory: ConversationTurn[]) {
+    setPhase("finishing");
+    setStatusMsg("Scoring your interview…");
+
+    streamRef.current?.getTracks().forEach(t => t.stop());
+
+    const scoreRes = await fetch("/api/mock-interview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "score",
+        role: config!.role,
+        industry: config!.industry,
+        history: finalHistory,
+        faceMetrics: avgFaceMetrics(),
+      }),
+    });
+    const scored: MockScoreResult = await scoreRes.json();
+    setScoreResult(scored);
+    setPhase("results");
+  }
+
+  // ── Save to profile ─────────────────────────────────────────────────────────
+
+  async function saveToProfile() {
+    if (!scoreResult || !config) return;
+    const res = await fetch("/api/mock-interview", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "save",
+        role: config.role,
+        industry: config.industry,
+        history,
+        scoreResult,
+        faceMetrics: avgFaceMetrics(),
+      }),
+    });
+    if (res.ok) setSaved(true);
   }
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
-  const competencyColors: Record<string, string> = {
-    communication: "#2563EB",
-    critical_thinking: "#8B5CF6",
+  const competencyColor: Record<string, string> = {
     leadership: "#F59E0B",
+    communication: "#2563EB",
+    problem_solving: "#8B5CF6",
+    collaboration: "#10B981",
+    "domain knowledge": "#0EA5E9",
     teamwork: "#10B981",
     professionalism: "#0EA5E9",
-    career_dev: "#EC4899",
   };
+  const qColor = competencyColor[currentCompetency?.toLowerCase()] ?? "var(--accent)";
+
+  // ── Conversation log (right sidebar) ────────────────────────────────────────
+
+  const conversationLog = useMemo(() => {
+    return history.slice().reverse();
+  }, [history]);
+
+  // ── Render ───────────────────────────────────────────────────────────────────
+
+  if (phase === "setup") {
+    return (
+      <PremiumShell title="Mock Interview">
+        <style>{`@keyframes mockPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }`}</style>
+        <SetupScreen onStart={handleStart} />
+      </PremiumShell>
+    );
+  }
+
+  if (phase === "results" && scoreResult && config) {
+    return (
+      <PremiumShell title="Mock Interview — Results">
+        <style>{`@keyframes mockPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }`}</style>
+        <ResultsScreen
+          config={config}
+          score={scoreResult}
+          history={history}
+          saved={saved}
+          onSave={saveToProfile}
+          onRetry={() => setPhase("setup")}
+        />
+      </PremiumShell>
+    );
+  }
+
+  // ── Countdown ───────────────────────────────────────────────────────────────
+
+  if (phase === "countdown") {
+    return (
+      <PremiumShell title="Mock Interview">
+        <div style={{ maxWidth: 580, margin: "0 auto", textAlign: "center", paddingTop: 80 }}>
+          <div style={{ fontSize: 96, fontWeight: 900, color: "var(--accent)", lineHeight: 1, marginBottom: 16 }}>
+            {countdown > 0 ? countdown : "Go"}
+          </div>
+          <div style={{ fontSize: 16, color: "var(--text-muted)" }}>Get ready — interview starting…</div>
+        </div>
+      </PremiumShell>
+    );
+  }
+
+  // ── Interview UI ─────────────────────────────────────────────────────────────
+
+  const progressPct = config ? Math.round((mainQuestionsAsked / config.numQuestions) * 100) : 0;
 
   return (
-    <div style={{ maxWidth: 840, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, alignItems: "start" }}>
-      {/* Left: Question + controls */}
-      <div>
-        {/* Progress */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-            <div style={{ height: "100%", borderRadius: 99, width: `${(questionIndex / 5) * 100}%`, background: "linear-gradient(90deg,#2563EB,#0EA5E9)", transition: "width 0.4s" }} />
+    <PremiumShell title="Mock Interview">
+      <style>{`@keyframes mockPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }`}</style>
+
+      <div style={{ maxWidth: 960, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "start" }}>
+
+        {/* ── Left: Interview area ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+          {/* Progress bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1, height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${progressPct}%`, background: "linear-gradient(90deg, var(--accent), #0EA5E9)", borderRadius: 99, transition: "width 0.5s ease" }} />
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+              {mainQuestionsAsked} / {config?.numQuestions ?? 5}
+            </span>
           </div>
-          <span style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
-            {questionIndex + 1} / 5
-          </span>
-        </div>
 
-        {/* Question card */}
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, marginBottom: 16 }}>
-          {isFollowup && (
-            <div style={{ marginBottom: 10, display: "inline-block", fontSize: 11, fontWeight: 900, color: "#F59E0B", background: "rgba(245,158,11,0.12)", padding: "3px 10px", borderRadius: 99, border: "1px solid rgba(245,158,11,0.3)" }}>
-              Follow-up question
-            </div>
-          )}
-          {currentCompetency && !isFollowup && (
-            <div style={{ marginBottom: 10, display: "inline-block", fontSize: 11, fontWeight: 900, color: competencyColors[currentCompetency] ?? "#2563EB", background: (competencyColors[currentCompetency] ?? "#2563EB") + "14", padding: "3px 10px", borderRadius: 99 }}>
-              {currentCompetency.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-            </div>
-          )}
-          {loadingQuestion ? (
-            <div style={{ fontSize: 16, color: "var(--text-muted)", fontStyle: "italic" }}>Generating question…</div>
-          ) : (
-            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.5 }}>
-              {currentQuestion}
-            </div>
-          )}
-          {currentHint && (
-            <div style={{ marginTop: 12, padding: "8px 12px", borderRadius: 8, background: "var(--card-bg-strong)", fontSize: 12, color: "var(--text-muted)", borderLeft: "3px solid var(--accent)" }}>
-              💡 {currentHint}
-            </div>
-          )}
-        </div>
-
-        {/* STAR tracker */}
-        {latestStar && (
-          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "12px 16px", marginBottom: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 10 }}>STAR Coverage</div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <StarBadge label="Situation" present={latestStar.situation} />
-              <StarBadge label="Task" present={latestStar.task} />
-              <StarBadge label="Action" present={latestStar.action} />
-              <StarBadge label="Result" present={latestStar.result} />
+          {/* Question card */}
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 28, minHeight: 140 }}>
+            {isFollowup && (
+              <div style={{ marginBottom: 10, display: "inline-block", fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "rgba(245,158,11,0.12)", padding: "3px 10px", borderRadius: 99, border: "1px solid rgba(245,158,11,0.25)" }}>
+                Follow-up
+              </div>
+            )}
+            {currentCompetency && !isFollowup && (
+              <div style={{ marginBottom: 10, display: "inline-block", fontSize: 11, fontWeight: 700, color: qColor, background: `${qColor}18`, padding: "3px 10px", borderRadius: 99, border: `1px solid ${qColor}33`, textTransform: "capitalize" }}>
+                {currentCompetency.replace(/_/g, " ")} · {currentQuestionType}
+              </div>
+            )}
+            <div style={{ fontSize: 19, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.55 }}>
+              {currentQuestion || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Loading question…</span>}
             </div>
           </div>
-        )}
 
-        {/* Record controls */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-          {recordingState === "idle" && (
-            <button
-              onClick={startRecording}
-              style={{
-                width: 72, height: 72, borderRadius: "50%",
-                background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-                border: "none", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 28, boxShadow: "0 4px 20px rgba(37,99,235,0.4)",
-              }}
-            >
-              🎙️
-            </button>
-          )}
-          {recordingState === "recording" && (
-            <>
+          {/* Controls */}
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24, display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+
+            {(phase === "processing" || phase === "finishing") && (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 6 }}>{statusMsg}</div>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", opacity: 0.6 }}>This takes a few seconds…</div>
+              </div>
+            )}
+
+            {phase === "question" && (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+                  Take a moment to think, then press record when ready.
+                </div>
+                <button
+                  onClick={startRecording}
+                  style={{
+                    width: 80, height: 80, borderRadius: "50%",
+                    background: "linear-gradient(135deg, var(--accent), #0EA5E9)",
+                    border: "none", cursor: "pointer", fontSize: 30,
+                    boxShadow: "0 6px 24px rgba(37,99,235,0.4)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  🎙️
+                </button>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>Tap to start recording</div>
+              </div>
+            )}
+
+            {phase === "recording" && (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <PulsingDot />
+                  Recording &nbsp;
+                  <span style={{ fontVariantNumeric: "tabular-nums" }}>{formatTime(recordingSeconds)}</span>
+                </div>
+                <button
+                  onClick={stopRecording}
+                  style={{
+                    width: 80, height: 80, borderRadius: "50%",
+                    background: "#EF4444", border: "none", cursor: "pointer", fontSize: 22,
+                    boxShadow: "0 6px 24px rgba(239,68,68,0.4)",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 700,
+                  }}
+                >
+                  ■
+                </button>
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>Tap to stop</div>
+              </div>
+            )}
+
+            {phase === "between" && (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+                  Next question is ready. Take a breath.
+                </div>
+                <button
+                  onClick={() => setPhase("question")}
+                  style={{
+                    padding: "12px 32px", borderRadius: 12,
+                    background: "linear-gradient(135deg, var(--accent), #0EA5E9)",
+                    color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer",
+                  }}
+                >
+                  I'm Ready →
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Right: Camera + conversation log ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, position: "sticky", top: 20 }}>
+
+          {/* Webcam toggle + feed */}
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, overflow: "hidden" }}>
+            <div style={{ padding: "12px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>Camera</span>
               <button
-                onClick={stopRecording}
+                onClick={() => {
+                  const next = !webcamEnabled;
+                  setWebcamEnabled(next);
+                  if (next) webcamRef.current?.start().catch(() => {});
+                  else webcamRef.current?.stop();
+                }}
                 style={{
-                  width: 72, height: 72, borderRadius: "50%",
-                  background: "#EF4444", border: "none", cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 22, boxShadow: "0 4px 20px rgba(239,68,68,0.4)",
-                  animation: "pulse 1.5s infinite",
+                  padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 700,
+                  border: `1px solid ${webcamEnabled ? "var(--accent)" : "var(--card-border)"}`,
+                  background: webcamEnabled ? "var(--accent-soft)" : "transparent",
+                  color: webcamEnabled ? "var(--accent)" : "var(--text-muted)",
+                  cursor: "pointer",
                 }}
               >
-                ⏹
+                {webcamEnabled ? "On" : "Off"}
               </button>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#EF4444" }}>
-                Recording {formatTime(recordingSeconds)}
-              </div>
-            </>
-          )}
-          {recordingState === "processing" && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 72, height: 72, borderRadius: "50%", background: "var(--card-bg-strong)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>🧠</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)" }}>Analyzing your answer…</div>
             </div>
-          )}
-
-          {recordingState === "idle" && (
-            <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>Press to start recording your answer</div>
-          )}
-        </div>
-      </div>
-
-      {/* Right: Webcam */}
-      <div style={{ position: "sticky", top: 80 }}>
-        <div style={{ borderRadius: 16, overflow: "hidden", background: "#000", aspectRatio: "4/3", position: "relative" }}>
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-          />
-          {recordingState === "recording" && (
-            <div style={{ position: "absolute", top: 10, right: 10, width: 10, height: 10, borderRadius: "50%", background: "#EF4444", boxShadow: "0 0 8px #EF4444", animation: "pulse 1s infinite" }} />
-          )}
-        </div>
-        <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)", textAlign: "center", fontWeight: 700 }}>
-          Your video stays on your device
-        </div>
-
-        {/* Q history */}
-        {history.length > 0 && (
-          <div style={{ marginTop: 16, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 14 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 10 }}>Answered</div>
-            {history.map((h, i) => (
-              <div key={i} style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", gap: 8, marginBottom: 6 }}>
-                <span style={{ color: "#10B981", flexShrink: 0 }}>✓</span>
-                <span style={{ lineHeight: 1.4 }}>{h.question.slice(0, 60)}{h.question.length > 60 ? "…" : ""}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }`}</style>
-    </div>
-  );
-}
-
-// ── Results Screen ────────────────────────────────────────────────────────────
-
-function ResultsScreen({ history, score }: { history: HistoryEntry[]; score: ScoreResult }) {
-  const readinessColors: Record<string, string> = {
-    strong: "#10B981", ready: "#2563EB", developing: "#F59E0B", not_ready: "#EF4444",
-  };
-  const readinessLabels: Record<string, string> = {
-    strong: "Interview Ready - Strong", ready: "Interview Ready", developing: "Still Developing", not_ready: "Needs More Practice",
-  };
-
-  const color = readinessColors[score.readinessLevel] ?? "#2563EB";
-  const label = readinessLabels[score.readinessLevel] ?? score.readinessLevel;
-
-  return (
-    <div style={{ maxWidth: 720, margin: "0 auto" }}>
-      {/* Hero score */}
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ fontSize: 72, fontWeight: 950, color, lineHeight: 1 }}>{score.overallScore}</div>
-        <div style={{ fontSize: 16, fontWeight: 900, color, marginTop: 6 }}>{label}</div>
-        <div style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 4 }}>
-          Based on {history.length} questions answered
-        </div>
-      </div>
-
-      {/* Coaching summary */}
-      <div style={{ background: "var(--card-bg)", border: `1px solid ${color}40`, borderLeft: `3px solid ${color}`, borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color, textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 8 }}>Coaching Summary</div>
-        <p style={{ margin: 0, fontSize: 15, color: "var(--text-primary)", lineHeight: 1.7, fontWeight: 600 }}>{score.coachingSummary}</p>
-      </div>
-
-      {/* Two columns: strengths + improvements */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: "#10B981", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 12 }}>✓ Strengths</div>
-          {score.strengths.map((s, i) => (
-            <div key={i} style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 700, marginBottom: 8, display: "flex", gap: 8 }}>
-              <span style={{ color: "#10B981", flexShrink: 0 }}>•</span>{s}
-            </div>
-          ))}
-        </div>
-        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 12 }}>↑ To Improve</div>
-          {score.improvements.map((s, i) => (
-            <div key={i} style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 700, marginBottom: 8, display: "flex", gap: 8 }}>
-              <span style={{ color: "#F59E0B", flexShrink: 0 }}>•</span>{s}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* STAR completeness */}
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 14 }}>STAR Framework Scores</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {Object.entries(score.starCompleteness).map(([key, val]) => (
-            <ScoreBar key={key} label={key.charAt(0).toUpperCase() + key.slice(1)} value={val} />
-          ))}
-        </div>
-      </div>
-
-      {/* Q&A review */}
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 16, marginBottom: 32 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 14 }}>Interview Transcript</div>
-        {history.map((h, i) => (
-          <div key={i} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: i < history.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
-            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", marginBottom: 4 }}>
-              {h.isFollowup ? "Follow-up" : `Q${i + 1}`}
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8 }}>{h.question}</div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 8 }}>{h.transcript}</div>
-            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {Object.entries(h.starAnalysis).map(([k, v]) => (
-                <StarBadge key={k} label={k.charAt(0).toUpperCase() + k.slice(1)} present={v as boolean} />
-              ))}
+            <div style={{ position: "relative", height: webcamEnabled ? 180 : 80, background: "var(--card-bg-strong)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              {webcamEnabled
+                ? <WebcamOverlay ref={webcamRef} isRecording={phase === "recording"} position="bottom-right" />
+                : <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Camera off — enable for presence scoring</span>
+              }
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Actions */}
-      <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-        <a
-          href="/mock-interview"
-          style={{
-            padding: "12px 28px", borderRadius: 12,
-            background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-            color: "#fff", fontWeight: 900, fontSize: 14, textDecoration: "none",
-          }}
-        >
-          Try Again →
-        </a>
-        <Link
-          href="/practice"
-          style={{
-            padding: "12px 28px", borderRadius: 12,
-            border: "1px solid var(--card-border)", background: "var(--card-bg)",
-            color: "var(--text-primary)", fontWeight: 900, fontSize: 14, textDecoration: "none",
-          }}
-        >
-          Practice More
-        </Link>
-        <Link
-          href="/my-journey"
-          style={{
-            padding: "12px 28px", borderRadius: 12,
-            border: "1px solid var(--card-border)", background: "var(--card-bg)",
-            color: "var(--text-primary)", fontWeight: 900, fontSize: 14, textDecoration: "none",
-          }}
-        >
-          View My Journey
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-// ── Main page ─────────────────────────────────────────────────────────────────
-
-export default function MockInterviewPage() {
-  const [sessionState, setSessionState] = useState<SessionState>("setup");
-  const [role, setRole] = useState("a professional role");
-  const [industry, setIndustry] = useState("general");
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [score, setScore] = useState<ScoreResult | null>(null);
-
-  function handleStart(r: string, i: string) {
-    setRole(r);
-    setIndustry(i);
-    setSessionState("interview");
-  }
-
-  function handleComplete(h: HistoryEntry[], s: ScoreResult) {
-    setHistory(h);
-    setScore(s);
-    setSessionState("results");
-  }
-
-  return (
-    <PremiumShell title={sessionState === "setup" ? "Mock Interview" : sessionState === "results" ? "Interview Results" : undefined} hideHeader={sessionState === "interview"}>
-      <div style={{ paddingBottom: 48, paddingTop: sessionState === "interview" ? 12 : 0 }}>
-        {sessionState === "setup" && <SetupScreen onStart={handleStart} />}
-        {sessionState === "interview" && (
-          <InterviewScreen role={role} industry={industry} onComplete={handleComplete} />
-        )}
-        {sessionState === "results" && score && (
-          <ResultsScreen history={history} score={score} />
-        )}
+          {/* Conversation log */}
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 16, maxHeight: 420, overflowY: "auto" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 12 }}>
+              Conversation
+            </div>
+            {conversationLog.length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interview starting…</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {conversationLog.map((turn, i) => (
+                  <div key={i} style={{
+                    padding: "9px 11px", borderRadius: 8,
+                    background: turn.speaker === "interviewer" ? "var(--card-bg-strong)" : "var(--accent-soft)",
+                    borderLeft: `2px solid ${turn.speaker === "interviewer" ? "var(--card-border)" : "var(--accent)"}`,
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: turn.speaker === "interviewer" ? "var(--text-muted)" : "var(--accent)", marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                      {turn.speaker === "interviewer" ? "Interviewer" : "You"}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                      {turn.content.length > 120 ? turn.content.slice(0, 120) + "…" : turn.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </PremiumShell>
   );
