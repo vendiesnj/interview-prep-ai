@@ -556,8 +556,12 @@ export default function LandingPage() {
         flexWrap: "wrap", gap: 12,
       }}>
         <div style={{ fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.3)" }}>Signal</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>
-          © {new Date().getFullYear()} Signal. All rights reserved.
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Privacy Policy</a>
+          <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Terms of Service</a>
+          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>
+            © {new Date().getFullYear()} Signal. All rights reserved.
+          </div>
         </div>
       </footer>
     </div>
