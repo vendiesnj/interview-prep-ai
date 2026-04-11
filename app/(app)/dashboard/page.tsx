@@ -8,7 +8,7 @@ import {
   BarChart2, CheckSquare, FileText, Home, BarChart, RefreshCw,
   TrendingUp, Brain, Target, CheckCircle2, Circle, Flame,
   ChevronRight, ChevronLeft, Plus, X, Clock, Heart,
-  Gamepad2, Zap, Map, Briefcase, Library,
+  Gamepad2, Zap, Map, Briefcase, Library, Users,
 } from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
 import StreakBanner from "@/app/components/StreakBanner";
@@ -1324,6 +1324,7 @@ export default function DashboardPage() {
             {/* Regular tiles grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 14 }}>
               {[
+                { Icon: Users,     title: "Mock Interview", desc: "Full conversational interview with a GPT-4o hiring manager. Scored across 7 dimensions.",      href: "/mock-interview" },
                 { Icon: BarChart2, title: "My Progress",    desc: "Track scores, vocal patterns, eye contact, and improvement over time.",                        href: "/progress"       },
                 { Icon: FileText,  title: "Resume Analysis",desc: "Upload your resume for ATS scoring, gap analysis, and top action items.",                      href: "/resume-gap"     },
                 { Icon: BookOpen,  title: "Question Bank",  desc: "Browse and filter hundreds of interview questions by type and role.",                          href: "/question-bank"  },
