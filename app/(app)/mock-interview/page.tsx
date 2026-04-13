@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
 import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
@@ -710,6 +711,7 @@ function ResultsScreen({
 
 export default function MockInterviewPage() {
   const { data: session } = useSession();
+  const searchParams = useSearchParams();
 
   // Phase + config
   const [phase, setPhase] = useState<Phase>("setup");
@@ -785,6 +787,34 @@ export default function MockInterviewPage() {
       })
       .catch(() => {});
   }, [session]);
+
+  // Load last results if navigated with ?view=results
+  useEffect(() => {
+    if (searchParams.get("view") !== "results") return;
+    fetch("/api/mock-interview", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const attempt = data?.attempt;
+        if (!attempt) return;
+        const fb = attempt.feedback as Record<string, any> | null ?? {};
+        const scored: MockScoreResult = {
+          overallScore:       (attempt.score ?? 0) * 10,
+          readinessLevel:     fb.readiness_level ?? "developing",
+          coachingSummary:    fb.coaching_summary ?? "",
+          strengths:          fb.strengths ?? [],
+          improvements:       fb.improvements ?? [],
+          dimensionScores:    fb.dimension_scores ?? {},
+          starScores:         { situation: (fb.star?.situation ?? 5) * 10, task: (fb.star?.task ?? 5) * 10, action: (fb.star?.action ?? 5) * 10, result: (fb.star?.result ?? 5) * 10 },
+          questionBreakdowns: fb.question_breakdowns ?? [],
+          interviewArc:       fb.interview_arc ?? undefined,
+        };
+        setScoreResult(scored);
+        setConfig({ role: attempt.question ?? "Unknown Role", industry: "Unknown", numQuestions: 5, questionTypes: ["behavioral"] });
+        setPhase("results");
+        setSaved(true); // already saved, hide save button
+      })
+      .catch(() => {});
+  }, [searchParams]);
 
   // Webcam: collect face samples after each answer
   function collectFaceSample() {

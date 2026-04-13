@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
 import {
@@ -429,9 +430,137 @@ function Results({ answers }: { answers: Answers }) {
   );
 }
 
+// ── Results From Stored ───────────────────────────────────────────────────────
+
+function ResultsFromStored({ riasecScores, workValues, entrepreneurProfile: ep }: {
+  riasecScores: RiasecScores;
+  workValues: WorkValueScores;
+  entrepreneurProfile: EntrepreneurProfile;
+}) {
+  const profileString = riasecProfileString(riasecScores);
+  const sorted = (Object.entries(riasecScores) as [RiasecDimension, number][]).sort((a, b) => b[1] - a[1]);
+  const topDimension = sorted[0][0];
+  const secondDimension = sorted[1][0];
+
+  const topOccupations = matchOccupations(profileString, { limit: 10 });
+  const sideHustles = matchSideHustles(profileString);
+  const entrepreneurPaths = matchEntrepreneurPaths(profileString);
+  const topValue = (Object.entries(workValues) as [WorkValue, number][]).sort((a, b) => b[1] - a[1])[0][0];
+
+  const VALUE_EXPLANATIONS: Record<WorkValue, string> = {
+    achievement: "You want to grow, master things, and be genuinely excellent at what you do. Look for roles with a steep learning curve and real intellectual challenge.",
+    independence: "You need autonomy. Micromanagement will drain you fast. Aim for roles where you own your work - or consider building something yourself.",
+    recognition: "You're motivated by visibility and advancement. High-growth companies, client-facing roles, and meritocratic environments will bring out your best.",
+    relationships: "You thrive when surrounded by people you respect and care about. Team culture and collaboration matter as much as the work itself.",
+    support: "Meaning is non-negotiable for you. You need to know your work is making a positive difference in people's lives.",
+    conditions: "You value stability, predictability, and a life that isn't consumed by work. That's a smart priority - seek roles with strong benefits and clear boundaries.",
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+      <div style={{ textAlign: "center", paddingBottom: 8 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>Your RIASEC Profile</div>
+        <h2 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.02em", marginBottom: 6 }}>{profileString}</h2>
+        <p style={{ fontSize: 15, color: "var(--text-muted)" }}>
+          {DIMENSION_LABELS[topDimension]} · {DIMENSION_LABELS[secondDimension]} · {DIMENSION_LABELS[sorted[2][0]]}
+        </p>
+      </div>
+
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Your Personality Profile</h3>
+        {sorted.slice(0, 3).map(([dim, score]) => (
+          <MiniBar key={dim} label={`${dim} - ${DIMENSION_LABELS[dim as RiasecDimension]}`} value={score} />
+        ))}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 20 }}>
+          {[topDimension, secondDimension].map((dim) => (
+            <div key={dim} style={{ background: "rgba(99,102,241,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>{DIMENSION_LABELS[dim]}</div>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55, margin: 0 }}>{DIMENSION_DESCRIPTIONS[dim]}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>Top Career Matches</h3>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 18 }}>Based on your RIASEC profile, these careers are the strongest fits.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+          {topOccupations.map((occ) => <OccupationCard key={occ.id} occ={occ} />)}
+        </div>
+      </div>
+
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Side Hustles & Side Income</h3>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 18 }}>Income ideas that align with your strengths and interests.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
+          {sideHustles.slice(0, 10).map((hustle, i) => (
+            <div key={i} style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--card-border)", fontSize: 13, fontWeight: 500, background: "var(--card-bg)" }}>{hustle}</div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Entrepreneurship Profile</h3>
+          {ep.overall >= 50 && <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, background: "rgba(16,185,129,0.12)", color: "#10B981" }}>Entrepreneur Track</span>}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          <div>
+            <MiniBar label="Risk Tolerance" value={ep.riskTolerance} color="#F59E0B" />
+            <MiniBar label="Autonomy Drive" value={ep.autonomyDrive} color="#8B5CF6" />
+            <MiniBar label="Execution Bias" value={ep.executionBias} color="#10B981" />
+            <MiniBar label="Side Income Interest" value={ep.sideIncomeInterest} color="var(--accent)" />
+            <MiniBar label="Overall Score" value={ep.overall} color="#EF4444" />
+          </div>
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>Paths that match your profile:</p>
+            {entrepreneurPaths.slice(0, 8).map((path, i) => (
+              <div key={i} style={{ fontSize: 13, padding: "6px 0", borderBottom: i < Math.min(7, entrepreneurPaths.length - 1) ? "1px solid var(--card-border)" : "none", color: "var(--text-muted)" }}>{path}</div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Your Core Work Value</h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <span style={{ fontSize: 15, fontWeight: 700, padding: "6px 14px", borderRadius: 99, background: "rgba(99,102,241,0.1)", color: "var(--accent)" }}>{VALUE_LABELS[topValue]}</span>
+        </div>
+        <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>{VALUE_EXPLANATIONS[topValue]}</p>
+      </div>
+
+      <div style={{ textAlign: "center", paddingBottom: 16 }}>
+        <Link href="/aptitude" style={{ display: "inline-block", padding: "13px 36px", borderRadius: 12, background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 15, textDecoration: "none" }}>
+          Retake Assessment →
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AptitudePage() {
+  const searchParams = useSearchParams();
+  const viewResults = searchParams.get("view") === "results";
+
+  const [storedData, setStoredData] = useState<{ riasecScores: RiasecScores; workValues: WorkValueScores; entrepreneurProfile: EntrepreneurProfile } | null>(null);
+  const [loadingStored, setLoadingStored] = useState(viewResults);
+
+  useEffect(() => {
+    if (!viewResults) return;
+    fetch("/api/aptitude", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const scores = data?.result?.scores;
+        if (scores?.riasecScores && scores?.workValues && scores?.entrepreneurProfile) {
+          setStoredData({ riasecScores: scores.riasecScores, workValues: scores.workValues, entrepreneurProfile: scores.entrepreneurProfile });
+        }
+        setLoadingStored(false);
+      })
+      .catch(() => setLoadingStored(false));
+  }, [viewResults]);
+
   const [answers, setAnswers] = useState<Answers>({
     activities: {},
     scenarios: {},
@@ -624,6 +753,24 @@ export default function AptitudePage() {
 
   const showNavButtons = step !== "intro";
   const totalSteps = totalStepsForSection(section);
+
+  if (loadingStored) {
+    return <PremiumShell><div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)", fontSize: 15 }}>Loading results…</div></PremiumShell>;
+  }
+
+  if (storedData) {
+    return (
+      <PremiumShell>
+        <div style={{ maxWidth: 740, margin: "0 auto", padding: "32px 20px 80px" }}>
+          <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8 }}>Your Career Profile</h1>
+            <p style={{ color: "var(--text-muted)", fontSize: 15 }}>Here's what your answers reveal about you.</p>
+          </div>
+          <ResultsFromStored riasecScores={storedData.riasecScores} workValues={storedData.workValues} entrepreneurProfile={storedData.entrepreneurProfile} />
+        </div>
+      </PremiumShell>
+    );
+  }
 
   return (
     <PremiumShell>

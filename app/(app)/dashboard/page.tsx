@@ -1195,11 +1195,11 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: qBreakdowns.length > 0 ? 12 : 0 }}>
           {topDims.map(([key, dim]) => (
             <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 100, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dim.label ?? key}</span>
               <div style={{ flex: 1, height: 4, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 99, background: "var(--accent)", width: `${(dim.score / 10) * 100}%` }} />
               </div>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 120, textAlign: "right" }}>{dim.label}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", minWidth: 20 }}>{dim.score}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", minWidth: 24, textAlign: "right" }}>{dim.score}</span>
             </div>
           ))}
         </div>
@@ -1434,12 +1434,12 @@ export default function DashboardPage() {
             {(data?.aptitude || lastMockInterview) && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
                 {data?.aptitude && (
-                  <Link href="/aptitude" style={{ textDecoration: "none", color: "inherit" }}>
+                  <Link href="/aptitude?view=results" style={{ textDecoration: "none", color: "inherit" }}>
                     <CareerAssessmentCard aptitude={data.aptitude} />
                   </Link>
                 )}
                 {lastMockInterview && (
-                  <Link href="/mock-interview" style={{ textDecoration: "none", color: "inherit" }}>
+                  <Link href="/mock-interview?view=results" style={{ textDecoration: "none", color: "inherit" }}>
                     <LastMockInterviewCard attempt={lastMockInterview} />
                   </Link>
                 )}
