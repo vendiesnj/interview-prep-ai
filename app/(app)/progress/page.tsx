@@ -1191,6 +1191,7 @@ export default function ProgressPage() {
   const { data: session, status } = useSession();
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const [activeTab, setActiveTab] = useState<InsightsTab>("overview");
+  const [sessionFilter, setSessionFilter] = useState<"all" | "mock_interview">("all");
   const isUniversity = useIsUniversity();
 
   useEffect(() => {
@@ -1237,8 +1238,11 @@ export default function ProgressPage() {
     };
   }, [status, session?.user, HISTORY_KEY]);
 
-  const attemptsNewestFirst = history;
-  const attemptsOldestFirst = useMemo(() => [...history].reverse(), [history]);
+  const attemptsNewestFirst = useMemo(
+    () => sessionFilter === "mock_interview" ? history.filter(a => a.evaluationFramework === "mock_interview") : history,
+    [history, sessionFilter],
+  );
+  const attemptsOldestFirst = useMemo(() => [...attemptsNewestFirst].reverse(), [attemptsNewestFirst]);
 
   const overview = useMemo(() => {
     const overallVals = attemptsNewestFirst.map(getAttemptScore).filter((v): v is number => v !== null);
@@ -1922,9 +1926,190 @@ export default function ProgressPage() {
     })),
   });
 
+  const mockInterviewAttempts = useMemo(
+    () => history.filter(a => a.evaluationFramework === "mock_interview"),
+    [history],
+  );
+
   return (
     <PremiumShell title="Insights">
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 6 }}>
+
+        {/* ── Session Filter ──────────────────────────────────────────────── */}
+        {history.length > 0 && (
+          <div style={{ display: "flex", gap: 6, padding: "4px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: "flex-start" }}>
+            {(["all", "mock_interview"] as const).map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setSessionFilter(f)}
+                style={{
+                  padding: "7px 16px", borderRadius: 9, border: "none",
+                  background: sessionFilter === f ? "var(--accent)" : "transparent",
+                  color: sessionFilter === f ? "#fff" : "var(--text-muted)",
+                  fontWeight: 600, fontSize: 13, cursor: "pointer",
+                  transition: "all 150ms ease",
+                }}
+              >
+                {f === "all" ? `All Sessions (${history.length})` : `Mock Interviews (${mockInterviewAttempts.length})`}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── Mock Interview session list (only in mock filter) ──────────── */}
+        {sessionFilter === "mock_interview" && mockInterviewAttempts.length > 0 && (
+          <PremiumCard>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Mock Interview Sessions</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>Full conversational sessions, scored across 7 dimensions with per-question breakdowns.</div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+              {mockInterviewAttempts.map((a, idx) => {
+                const fb = a.feedback as any;
+                const score = Math.round((n(a.score ?? fb?.score) ?? 0) * 10);
+                const readiness: string = fb?.readiness_level ?? "developing";
+                const rColor: Record<string, string> = { strong: "#10B981", ready: "#10B981", developing: "#F59E0B", not_ready: "#EF4444" };
+                const rLabel: Record<string, string> = { strong: "Strong", ready: "Ready", developing: "Developing", not_ready: "Not Ready" };
+                const c = rColor[readiness] ?? "#F59E0B";
+                const role = a.question?.replace("Mock Interview — ", "") ?? "Mock Interview";
+                const dateStr = a.ts ? new Date(a.ts).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "";
+                const qBreakdowns: Array<any> = fb?.question_breakdowns ?? [];
+                const dimScores = fb?.dimension_scores as Record<string, { score: number; label: string }> | null;
+
+                return (
+                  <div key={idx} style={{ borderRadius: 12, border: "1px solid var(--card-border)", overflow: "hidden" }}>
+                    {/* Header */}
+                    <div style={{ padding: "14px 18px", background: "var(--card-bg-strong)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                        <div style={{ textAlign: "center" as const }}>
+                          <div style={{ fontSize: 28, fontWeight: 900, color: c, lineHeight: 1 }}>{score}</div>
+                          <div style={{ fontSize: 9, color: "var(--text-muted)" }}>/100</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{role}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${c}18`, color: c }}>{rLabel[readiness]}</span>
+                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{dateStr}</span>
+                            {fb?.conversation_turns && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{Math.floor(fb.conversation_turns / 2)} questions</span>}
+                          </div>
+                        </div>
+                      </div>
+                      {dimScores && (
+                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "4px 16px" }}>
+                          {Object.entries(dimScores).slice(0, 4).map(([key, dim]) => (
+                            <div key={key} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <div style={{ width: 32, height: 3, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                                <div style={{ height: "100%", background: "var(--accent)", width: `${(dim.score / 10) * 100}%` }} />
+                              </div>
+                              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{dim.label.split(" ")[0]}</span>
+                              <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-primary)" }}>{dim.score}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Coaching summary */}
+                    {fb?.coaching_summary && (
+                      <div style={{ padding: "10px 18px", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65, borderBottom: qBreakdowns.length > 0 ? "1px solid var(--card-border)" : "none", background: "var(--card-bg)" }}>
+                        {fb.coaching_summary}
+                      </div>
+                    )}
+
+                    {/* Interview arc sparklines */}
+                    {fb?.interview_arc?.qualityArc?.length > 0 && (() => {
+                      const arc = fb.interview_arc;
+                      const qs = arc.qualityArc as number[];
+                      const cs = arc.confidenceArc as number[] | undefined;
+                      const ws = arc.wordCountArc as number[] | undefined;
+                      const h = 40, w = 100;
+                      const makePts = (vals: number[], max: number) =>
+                        vals.map((v, i) => `${(i / Math.max(vals.length - 1, 1)) * w},${h - (v / max) * h}`).join(" ");
+                      return (
+                        <div style={{ padding: "12px 18px", background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
+                          <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>Interview Arc</div>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 10 }}>
+                            {([
+                              { label: "Quality", vals: qs, max: 100 },
+                              { label: "Confidence", vals: cs ?? [], max: 10 },
+                              { label: "Word Count", vals: ws ?? [], max: Math.max(...(ws ?? [1])) },
+                            ] as const).filter(s => s.vals.length > 0).map(({ label, vals, max }) => (
+                              <div key={label}>
+                                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4 }}>{label}</div>
+                                <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: h, overflow: "visible" }}>
+                                  <polyline points={makePts(vals, max)} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                                  {vals.map((v, i) => (
+                                    <circle key={i} cx={(i / Math.max(vals.length - 1, 1)) * w} cy={h - (v / max) * h} r="2.5" fill="var(--accent)" />
+                                  ))}
+                                </svg>
+                              </div>
+                            ))}
+                          </div>
+                          <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+                            {arc.warmupEffect && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(245,158,11,0.1)", color: "#D97706" }}>Warm-up Effect</span>}
+                            {arc.fatigueSigns && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: "rgba(239,68,68,0.1)", color: "#EF4444" }}>Late Fatigue</span>}
+                            {arc.consistencyScore != null && <span style={{ fontSize: 10, color: "var(--text-muted)", padding: "2px 8px", borderRadius: 99, background: "var(--card-bg-strong)" }}>Consistency {arc.consistencyScore}/100</span>}
+                            {arc.pitchDrift && <span style={{ fontSize: 10, color: "var(--text-muted)", padding: "2px 8px", borderRadius: 99, background: "var(--card-bg-strong)", textTransform: "capitalize" as const }}>Arc: {arc.pitchDrift}</span>}
+                          </div>
+                          {(arc.openingNote || arc.closingNote) && (
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
+                              {arc.openingNote && <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "7px 10px", borderRadius: 8, background: "var(--card-bg-strong)", borderLeft: "2px solid #10B981" }}><strong style={{ color: "#10B981" }}>Opening:</strong> {arc.openingNote}</div>}
+                              {arc.closingNote && <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "7px 10px", borderRadius: 8, background: "var(--card-bg-strong)", borderLeft: "2px solid var(--accent)" }}><strong style={{ color: "var(--accent)" }}>Closing:</strong> {arc.closingNote}</div>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Question breakdowns */}
+                    {qBreakdowns.length > 0 && (
+                      <div style={{ padding: "12px 18px", background: "var(--card-bg)" }}>
+                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>Questions</div>
+                        <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                          {qBreakdowns.map((qb, qi) => {
+                            const qc = qb.score >= 70 ? "#10B981" : qb.score >= 50 ? "#F59E0B" : "#EF4444";
+                            const hasSigs = qb.confidenceSignal != null || qb.ownershipScore != null || qb.wordCount != null;
+                            return (
+                              <div key={qi} style={{ paddingBottom: qi < qBreakdowns.length - 1 ? 8 : 0, borderBottom: qi < qBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
+                                <div style={{ display: "grid", gridTemplateColumns: "36px 1fr", gap: 10, alignItems: "start", marginBottom: hasSigs ? 5 : 0 }}>
+                                  <div style={{ width: 36, height: 36, borderRadius: 8, background: `${qc}15`, border: `1px solid ${qc}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                    <span style={{ fontSize: 12, fontWeight: 900, color: qc }}>{qb.score}</span>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>{qb.question}</div>
+                                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2, lineHeight: 1.5 }}>{qb.note}</div>
+                                  </div>
+                                </div>
+                                {hasSigs && (
+                                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const, marginLeft: 46 }}>
+                                    {qb.confidenceSignal != null && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Confidence <strong style={{ color: "var(--text-primary)" }}>{qb.confidenceSignal}/10</strong></span>}
+                                    {qb.ownershipScore != null && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Ownership <strong style={{ color: "var(--text-primary)" }}>{qb.ownershipScore}/10</strong></span>}
+                                    {qb.wordCount != null && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{qb.wordCount}w</span>}
+                                    {qb.fillerEstimate != null && qb.fillerEstimate > 0 && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{qb.fillerEstimate} fillers</span>}
+                                    {qb.starComplete === false && <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 99, background: "rgba(245,158,11,0.1)", color: "#D97706" }}>Missing STAR</span>}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </PremiumCard>
+        )}
+
+        {sessionFilter === "mock_interview" && mockInterviewAttempts.length === 0 && loadState === "ready" && (
+          <PremiumCard>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>No mock interviews yet</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>
+              Complete a full mock interview session to see per-session scores, question breakdowns, and coaching summaries here.
+            </div>
+          </PremiumCard>
+        )}
+
         {loadState === "hydrating" ? (
           <PremiumCard>
             <div style={{ display: "grid", gap: 10 }}>

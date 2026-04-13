@@ -589,25 +589,113 @@ function ResultsScreen({
         </div>
       )}
 
+      {/* Interview Arc */}
+      {score.interviewArc && score.interviewArc.qualityArc.length > 0 && (
+        <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>Interview Arc</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 20 }}>How your performance changed across the session.</div>
+
+          {/* Arc sparklines */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, marginBottom: 20 }}>
+            {([
+              { label: "Answer Quality", arc: score.interviewArc.qualityArc, max: 100, suffix: "" },
+              { label: "Confidence", arc: score.interviewArc.confidenceArc, max: 10, suffix: "" },
+              { label: "Word Count", arc: score.interviewArc.wordCountArc, max: Math.max(...(score.interviewArc.wordCountArc ?? [1])), suffix: "w" },
+            ] as const).map(({ label, arc, max }) => {
+              if (!arc || arc.length === 0) return null;
+              const h = 48;
+              const w = 100;
+              const pts = arc.map((v, i) => `${(i / Math.max(arc.length - 1, 1)) * w},${h - (v / max) * h}`).join(" ");
+              return (
+                <div key={label}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6 }}>{label}</div>
+                  <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: h, overflow: "visible" }}>
+                    <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+                    {arc.map((v, i) => (
+                      <circle key={i} cx={(i / Math.max(arc.length - 1, 1)) * w} cy={h - (v / max) * h} r="3" fill="var(--accent)" />
+                    ))}
+                  </svg>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+                    {arc.map((v, i) => (
+                      <span key={i} style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>Q{i + 1}</span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Arc summary flags */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+            {score.interviewArc.warmupEffect && (
+              <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "rgba(245,158,11,0.1)", color: "#D97706" }}>Warm-up Effect</span>
+            )}
+            {score.interviewArc.fatigueSigns && (
+              <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "rgba(239,68,68,0.1)", color: "#EF4444" }}>Late Fatigue</span>
+            )}
+            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "var(--card-bg-strong)", color: "var(--text-muted)" }}>
+              Consistency {score.interviewArc.consistencyScore}/100
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "var(--card-bg-strong)", color: "var(--text-muted)", textTransform: "capitalize" }}>
+              Arc: {score.interviewArc.pitchDrift}
+            </span>
+          </div>
+
+          {/* Opening / closing notes */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--card-bg-strong)", borderLeft: "2px solid #10B981" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#10B981", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Opening</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{score.interviewArc.openingNote}</div>
+            </div>
+            <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--card-bg-strong)", borderLeft: "2px solid var(--accent)" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Closing</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{score.interviewArc.closingNote}</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Per-question breakdown */}
       {score.questionBreakdowns?.length > 0 && (
         <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24 }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>Question Breakdown</div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {score.questionBreakdowns.map((qb, i) => {
               const c = qb.score >= 70 ? "#10B981" : qb.score >= 50 ? "#F59E0B" : "#EF4444";
+              const hasSigs = qb.confidenceSignal != null || qb.ownershipScore != null || qb.wordCount != null;
               return (
-                <div key={i} style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 14, alignItems: "start", padding: "12px 0", borderBottom: i < score.questionBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 10, background: `${c}15`, border: `1px solid ${c}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 15, fontWeight: 900, color: c }}>{qb.score}</span>
+                <div key={i} style={{ padding: "14px 0", borderBottom: i < score.questionBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "start", marginBottom: hasSigs ? 10 : 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 10, background: `${c}15`, border: `1px solid ${c}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: 15, fontWeight: 900, color: c }}>{qb.score}</span>
+                    </div>
+                    <div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 3 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>{qb.question}</div>
+                        {qb.starComplete === false && (
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 7px", borderRadius: 99, background: "rgba(245,158,11,0.1)", color: "#D97706", whiteSpace: "nowrap" }}>Missing STAR part</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.note}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: 3, lineHeight: 1.4 }}>{qb.question}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.note}</div>
-                  </div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap", marginTop: 2 }}>
-                    {qb.competency?.replace(/_/g, " ")}
-                  </div>
+                  {hasSigs && (
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginLeft: 58 }}>
+                      {qb.confidenceSignal != null && (
+                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Confidence <strong style={{ color: "var(--text-primary)" }}>{qb.confidenceSignal}/10</strong></span>
+                      )}
+                      {qb.ownershipScore != null && (
+                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Ownership <strong style={{ color: "var(--text-primary)" }}>{qb.ownershipScore}/10</strong></span>
+                      )}
+                      {qb.wordCount != null && (
+                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{qb.wordCount} words</span>
+                      )}
+                      {qb.fillerEstimate != null && qb.fillerEstimate > 0 && (
+                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{qb.fillerEstimate} fillers est.</span>
+                      )}
+                      <span style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "capitalize" }}>{qb.competency?.replace(/_/g, " ")}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}

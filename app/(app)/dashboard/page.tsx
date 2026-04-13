@@ -1072,6 +1072,157 @@ interface SignalData {
   instincts: { totalXp: number };
 }
 
+// ── Career Assessment Card ────────────────────────────────────────────────────
+
+const RIASEC_FULL: Record<string, string> = {
+  R: "Realistic", I: "Investigative", A: "Artistic",
+  S: "Social", E: "Enterprising", C: "Conventional",
+};
+
+function CareerAssessmentCard({ aptitude }: { aptitude: NonNullable<SignalData["aptitude"]> }) {
+  const scores = aptitude.scores as any;
+  const profile = scores?.riasecProfile ?? aptitude.primary ?? null;
+  const riasecScores: Record<string, number> = scores?.riasecScores ?? {};
+  const workValues: Record<string, number> = scores?.workValues ?? {};
+  const topValue = Object.entries(workValues).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  const VALUE_LABELS: Record<string, string> = {
+    achievement: "Achievement", independence: "Independence", recognition: "Recognition",
+    relationships: "Relationships", support: "Social Impact", conditions: "Work-Life Balance",
+  };
+
+  const topDims = Object.entries(riasecScores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3);
+  const maxScore = Math.max(...topDims.map(d => d[1]), 1);
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Brain size={15} color="var(--accent)" />
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Career Assessment</span>
+        </div>
+        <Link href="/aptitude" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>Retake →</Link>
+      </div>
+
+      {profile && (
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div style={{ fontSize: 28, fontWeight: 900, color: "var(--accent)", letterSpacing: -1, lineHeight: 1 }}>{profile}</div>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+            {profile.split("").map((c: string) => RIASEC_FULL[c] ?? c).join(" · ")}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: topValue ? 12 : 0 }}>
+        {topDims.map(([dim, score]) => (
+          <div key={dim} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", width: 14 }}>{dim}</span>
+            <div style={{ flex: 1, height: 5, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 99, background: "var(--accent)", width: `${(score / maxScore) * 100}%`, transition: "width 0.5s ease" }} />
+            </div>
+            <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 24, textAlign: "right" }}>{score}</span>
+          </div>
+        ))}
+      </div>
+
+      {topValue && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Core value:</span>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{VALUE_LABELS[topValue] ?? topValue}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Last Mock Interview Card ───────────────────────────────────────────────────
+
+function LastMockInterviewCard({ attempt }: { attempt: any }) {
+  const feedback = attempt.feedback as any;
+  const score = Math.round((feedback?.score ?? 0) * 10);
+  const readiness: string = feedback?.readiness_level ?? "developing";
+  const readinessColor: Record<string, string> = {
+    strong: "#10B981", ready: "#10B981", developing: "#F59E0B", not_ready: "#EF4444",
+  };
+  const color = readinessColor[readiness] ?? "#F59E0B";
+  const readinessLabel: Record<string, string> = {
+    strong: "Strong", ready: "Ready", developing: "Developing", not_ready: "Not Ready",
+  };
+
+  const role = attempt.question?.replace("Mock Interview — ", "") ?? "Mock Interview";
+  const dateStr = attempt.ts ? new Date(attempt.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+
+  const qBreakdowns: Array<{ question: string; competency: string; score: number; note: string }> =
+    feedback?.question_breakdowns?.slice(0, 3) ?? [];
+
+  const dimScores = feedback?.dimension_scores as Record<string, { score: number; label: string }> | null;
+  const topDims = dimScores
+    ? Object.entries(dimScores).sort((a, b) => b[1].score - a[1].score).slice(0, 3)
+    : [];
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Users size={15} color="var(--accent)" />
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Last Mock Interview</span>
+        </div>
+        <Link href="/mock-interview" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>New →</Link>
+      </div>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 40, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>/100</div>
+        </div>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${color}18`, color }}>{readinessLabel[readiness]}</span>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>{role}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{dateStr}</div>
+        </div>
+      </div>
+
+      {feedback?.coaching_summary && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 12, padding: "8px 10px", background: "var(--card-bg-strong)", borderRadius: 8, borderLeft: "2px solid var(--accent)" }}>
+          {feedback.coaching_summary.slice(0, 180)}{feedback.coaching_summary.length > 180 ? "..." : ""}
+        </div>
+      )}
+
+      {topDims.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: qBreakdowns.length > 0 ? 12 : 0 }}>
+          {topDims.map(([key, dim]) => (
+            <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ flex: 1, height: 4, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 99, background: "var(--accent)", width: `${(dim.score / 10) * 100}%` }} />
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 120, textAlign: "right" }}>{dim.label}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", minWidth: 20 }}>{dim.score}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {qBreakdowns.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Questions</div>
+          {qBreakdowns.map((qb, i) => {
+            const qc = qb.score >= 70 ? "#10B981" : qb.score >= 50 ? "#F59E0B" : "#EF4444";
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 900, color: qc, minWidth: 24 }}>{qb.score}</span>
+                <span style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.question.slice(0, 70)}{qb.question.length > 70 ? "..." : ""}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -1080,6 +1231,7 @@ export default function DashboardPage() {
   const [progress, setProgress]   = useState<ChecklistProgressEntry[]>([]);
   const [tasks, setTasks]         = useState<DbTask[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
+  const [lastMockInterview, setLastMockInterview] = useState<any | null>(null);
   const [calView, setCalView]     = useState<"month" | "week" | "day">("week");
   const [calAddDate, setCalAddDate] = useState<string | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
@@ -1104,6 +1256,14 @@ export default function DashboardPage() {
   }
 
   useEffect(() => { refreshTasks(); }, []);
+
+  useEffect(() => {
+    if (!isUniversity) return;
+    fetch("/api/mock-interview")
+      .then(r => r.json())
+      .then(d => setLastMockInterview(d?.attempt ?? null))
+      .catch(() => {});
+  }, [isUniversity]);
 
   // Map DB tasks to ScheduleItem[] for calendar display (only tasks with scheduledAt)
   const scheduled: ScheduleItem[] = tasks
@@ -1261,6 +1421,14 @@ export default function DashboardPage() {
 
         {/* ── Role Cluster readiness (university) ── */}
         {isUniversity && <RoleClusterSection accentColor="var(--accent)" />}
+
+        {/* ── Career assessment + last mock interview (university) ── */}
+        {isUniversity && (data?.aptitude || lastMockInterview) && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
+            {data?.aptitude && <CareerAssessmentCard aptitude={data.aptitude} />}
+            {lastMockInterview && <LastMockInterviewCard attempt={lastMockInterview} />}
+          </div>
+        )}
 
         {/* ── Onboarding nudge (new users with no activity) ── */}
         {!loading && data && !hasAptitude && !hasAnySessions && (

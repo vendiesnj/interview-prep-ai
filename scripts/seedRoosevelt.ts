@@ -713,6 +713,130 @@ function buildAttempt(
 }
 
 // ---------------------------------------------------------------------------
+// Mock Interview Seed
+// ---------------------------------------------------------------------------
+
+function buildMockInterview(
+  userId: string,
+  tenantId: string,
+  role: string,
+  daysAgoVal: number,
+  overallScore: number,
+  readinessLevel: "not_ready" | "developing" | "ready" | "strong",
+): object {
+  const ts = daysAgo(new Date(), daysAgoVal);
+  const dimScores = {
+    narrative_clarity:   { score: round1(clamp(noise(overallScore / 12.5, 0.8), 3.5, 9.5)), label: "Narrative Clarity",   coaching: "Good structure on behavioral questions. Keep leading with the outcome when framing your answer." },
+    evidence_quality:    { score: round1(clamp(noise(overallScore / 12.8, 0.9), 3.5, 9.5)), label: "Evidence Quality",    coaching: "Specific patient examples land well. Add a measurable outcome (patient satisfaction, recovery time) when you can." },
+    ownership_agency:    { score: round1(clamp(noise(overallScore / 11.5, 0.7), 3.5, 9.5)), label: "Ownership & Agency",  coaching: "You use 'I' consistently. Keep that first-person ownership framing throughout." },
+    response_control:    { score: round1(clamp(noise(overallScore / 12.2, 0.8), 3.5, 9.5)), label: "Response Control",   coaching: "Answers are focused and on-topic. Watch for over-explaining in the situation setup." },
+    cognitive_depth:     { score: round1(clamp(noise(overallScore / 13.0, 0.9), 3.5, 9.5)), label: "Cognitive Depth",    coaching: "Add one sentence on the tradeoff or risk you managed to lift this dimension further." },
+    presence_confidence: { score: round1(clamp(noise(overallScore / 12.0, 0.7), 3.5, 9.5)), label: "Presence & Confidence", coaching: "Confident framing throughout. Minor hedging on clinical knowledge questions -- cut 'I think' when describing protocols." },
+    vocal_engagement:    { score: round1(clamp(noise(overallScore / 11.8, 0.8), 3.5, 9.5)), label: "Vocal Engagement",   coaching: "Pace is strong. Lift slightly on the result sentence so it lands as a distinct close." },
+  };
+
+  const qScores = [
+    round1(clamp(noise(overallScore, 8), 45, 95)),
+    round1(clamp(noise(overallScore + 2, 8), 45, 95)),
+    round1(clamp(noise(overallScore - 1, 8), 45, 95)),
+    round1(clamp(noise(overallScore + 1, 7), 45, 95)),
+    round1(clamp(noise(overallScore - 2, 9), 45, 95)),
+  ];
+
+  return {
+    userId,
+    tenantId,
+    ts,
+    createdAt: ts,
+    question: `Mock Interview — ${role}`,
+    questionCategory: "mock_interview",
+    evaluationFramework: "mock_interview",
+    inputMethod: "spoken",
+    score: round1(overallScore / 10),
+    communicationScore: dimScores.narrative_clarity.score,
+    confidenceScore: dimScores.presence_confidence.score,
+    wpm: Math.round(clamp(noise(132, 12), 110, 165)),
+    transcript: [
+      `Q: Tell me about a time you had to handle a high-pressure patient situation.`,
+      `A: During my clinical rotation at the Roosevelt student clinic, I was assisting with a patient who was showing signs of respiratory distress that the attending nurse had attributed to anxiety. I flagged my concern based on the patient's vitals trend I'd been monitoring, specifically an O2 sat drop from 97% to 91% over 15 minutes. I immediately notified the charge nurse, documented my observations in the EHR, and stayed with the patient to monitor until the attending reassessed. The patient was ultimately transferred to ED and treated for early pneumonia. The nurse manager later noted my observation in my rotation evaluation.`,
+      `Q: How do you prioritize when multiple patients need your attention?`,
+      `A: I use an ABC approach -- airway, breathing, circulation -- as the baseline triage framework, then layer in contextual urgency. In my last rotation, I had three post-op patients with competing needs: one needed a pain med reassessment, one was due for wound care, and one was flagging concern about a family member. I handled the pain reassessment first because undertreated pain can spiral into other complications, then wound care because it had a time sensitivity, then spent real time with the family concern because that's relationship trust and it affects patient outcomes too.`,
+      `Q: What drew you to nursing specifically?`,
+      `A: My grandmother had a 4-month hospital stay when I was 16. The nurses were the people she actually talked to every day -- they remembered what she was anxious about, explained things so she could understand, and made her feel like a person, not a case. I went in thinking I wanted to be a doctor, but watching that dynamic shifted me. The nursing relationship with the patient is genuinely different and I want to be in that role.`,
+      `Q: Tell me about a time you made a mistake in a clinical setting.`,
+      `A: During my first week on the med-surg floor, I administered medication at the wrong time window -- 45 minutes late -- because I had misread the schedule notation. I caught it myself during documentation review. I immediately disclosed to the supervising nurse, completed the incident report, and asked for a full review of the EHR workflow I'd been using. No patient harm resulted, but I implemented a personal double-check system for time-sensitive orders that I still use. The mistake stuck with me but I treated it as a protocol failure I could fix rather than something to hide.`,
+      `Q: Where do you see yourself in five years?`,
+      `A: ICU nursing, honestly. I want the technical depth and the high-stakes environment. I'm planning to pursue CCRN certification after I'm in practice for a year or two. Long term I'm interested in clinical education -- training new nurses -- but I want to build real floor expertise first so that credibility is earned, not just a credential.`,
+    ].join("\n\n"),
+    feedback: {
+      score: round1(overallScore / 10),
+      communication_score: dimScores.narrative_clarity.score,
+      confidence_score: dimScores.presence_confidence.score,
+      strengths: [
+        "Strong patient-centered framing -- you anchor answers in observable outcomes, not just processes.",
+        "Transparent mistake disclosure with a structural fix shows strong clinical accountability.",
+        "STAR structure is natural and consistent across all five questions without sounding formulaic.",
+      ],
+      improvements: [
+        "Add one quantified outcome per answer where possible -- patient satisfaction scores, recovery metrics, or supervisor ratings.",
+        "The five-year answer is strong conceptually but slightly long. Practice a 60-second version.",
+      ],
+      coaching_summary: "This was a competitive mock interview performance for a nursing externship. Your clinical judgment story (the O2 sat observation) is your strongest answer -- it demonstrates both technical competence and professional courage. The mistake disclosure is also rare and impressive because most candidates deflect. Your biggest lever is quantification: even approximate numbers ('reduced documentation time by roughly 20%') make clinical stories more credible in a competitive candidate pool. You're at a strong developing level and a realistic candidate for the Rush final round.",
+      readiness_level: readinessLevel,
+      dimension_scores: {
+        narrative_clarity:   { ...dimScores.narrative_clarity, isStrength: dimScores.narrative_clarity.score >= 7.5, isGap: dimScores.narrative_clarity.score < 5.5 },
+        evidence_quality:    { ...dimScores.evidence_quality,  isStrength: dimScores.evidence_quality.score >= 7.5,  isGap: dimScores.evidence_quality.score < 5.5 },
+        ownership_agency:    { ...dimScores.ownership_agency,  isStrength: dimScores.ownership_agency.score >= 7.5,  isGap: dimScores.ownership_agency.score < 5.5 },
+        response_control:    { ...dimScores.response_control,  isStrength: dimScores.response_control.score >= 7.5,  isGap: dimScores.response_control.score < 5.5 },
+        cognitive_depth:     { ...dimScores.cognitive_depth,   isStrength: dimScores.cognitive_depth.score >= 7.5,   isGap: dimScores.cognitive_depth.score < 5.5 },
+        presence_confidence: { ...dimScores.presence_confidence, isStrength: dimScores.presence_confidence.score >= 7.5, isGap: dimScores.presence_confidence.score < 5.5 },
+        vocal_engagement:    { ...dimScores.vocal_engagement,  isStrength: dimScores.vocal_engagement.score >= 7.5,  isGap: dimScores.vocal_engagement.score < 5.5 },
+      },
+      star: { situation: 8.2, task: 7.8, action: 8.5, result: 6.8 },
+      question_breakdowns: [
+        { question: "Tell me about a time you had to handle a high-pressure patient situation.", competency: "clinical_judgment", score: qScores[0], note: "Strong O2 sat observation story with documented outcome. EHR reference adds credibility.", wordCount: 168, starComplete: true,  confidenceSignal: 7.2, ownershipScore: 8.0, fillerEstimate: 3 },
+        { question: "How do you prioritize when multiple patients need your attention?",         competency: "prioritization",    score: qScores[1], note: "ABC framework is exactly what hiring managers want to hear. Concrete example follows well.",    wordCount: 142, starComplete: true,  confidenceSignal: 7.8, ownershipScore: 7.5, fillerEstimate: 2 },
+        { question: "What drew you to nursing specifically?",                                   competency: "motivation_fit",    score: qScores[2], note: "Personal and specific. The grandmother story is memorable. Watch that it doesn't run long.",     wordCount: 195, starComplete: false, confidenceSignal: 8.2, ownershipScore: 7.0, fillerEstimate: 4 },
+        { question: "Tell me about a time you made a mistake in a clinical setting.",           competency: "accountability",    score: qScores[3], note: "Best answer of the session. Disclosure + systemic fix is rare. Will stand out in a panel.",    wordCount: 158, starComplete: true,  confidenceSignal: 7.5, ownershipScore: 9.0, fillerEstimate: 1 },
+        { question: "Where do you see yourself in five years?",                                 competency: "growth_mindset",   score: qScores[4], note: "ICU goal is specific and credible. Mention CCRN certification target upfront.",                 wordCount: 112, starComplete: false, confidenceSignal: 7.0, ownershipScore: 7.8, fillerEstimate: 2 },
+      ],
+      interview_arc: {
+        qualityArc:     [qScores[0], qScores[1], qScores[2], qScores[3], qScores[4]],
+        confidenceArc:  [7.2, 7.8, 8.2, 7.5, 7.0],
+        ownershipArc:   [8.0, 7.5, 7.0, 9.0, 7.8],
+        wordCountArc:   [168, 142, 195, 158, 112],
+        warmupEffect:   qScores[0] < (qScores.reduce((a, b) => a + b, 0) / qScores.length - 4),
+        fatigueSigns:   false,
+        consistencyScore: round1(100 - (Math.max(...qScores) - Math.min(...qScores)) * 1.5),
+        pitchDrift: "stable" as const,
+        openingNote: "Opened with a strong clinical observation story — concrete detail and good outcome framing from the start.",
+        closingNote: "Closed with a forward-looking answer. Energy dipped slightly in the final response — adding a crisp one-sentence summary would strengthen the close.",
+      },
+      mock_interview: true,
+      conversation_turns: 10,
+    },
+    deliveryMetrics: {
+      fillersPer100: round2(random(1.2, 2.8)),
+      face: {
+        eyeContact: round3(clamp(noise(0.82, 0.06), 0.60, 0.95)),
+        expressiveness: round3(clamp(noise(0.74, 0.05), 0.55, 0.90)),
+        headStability: round3(clamp(noise(0.88, 0.04), 0.70, 0.97)),
+        smileRate: round3(clamp(noise(0.38, 0.05), 0.10, 0.65)),
+        blinkRate: Math.round(clamp(noise(18, 4), 10, 35)),
+        browEngagement: round3(clamp(noise(0.62, 0.05), 0.35, 0.85)),
+        lookAwayRate: round3(clamp(noise(0.14, 0.04), 0.02, 0.30)),
+        framesAnalyzed: 1840,
+      },
+    },
+    prosody: {
+      monotoneScore: round1(clamp(noise(3.8, 0.6), 1.5, 6.5)),
+      energyVariation: round1(clamp(noise(6.8, 0.8), 4.0, 9.2)),
+      tempoDynamics: round1(clamp(noise(7.2, 0.7), 4.5, 9.5)),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -781,7 +905,9 @@ async function run() {
     const daysBack = Math.round(lerp(185, 3, i / Math.max(1, marcusTotal - 1))) + Math.floor(random(0, 4));
     await prisma.attempt.create({ data: buildAttempt(MARCUS, i, marcusTotal, daysAgo(TODAY, daysBack), marcus.id, tenantId) });
   }
-  console.log(`  ${marcusTotal} attempts seeded.`);
+  // Mock interview for Marcus - Rush University prep session, 5 days ago
+  await prisma.attempt.create({ data: buildMockInterview(marcus.id, tenantId, "Registered Nurse", 5, 74, "developing") as any });
+  console.log(`  ${marcusTotal} attempts + 1 mock interview seeded.`);
 
   await prisma.careerCheckIn.deleteMany({ where: { userId: marcus.id } });
   await prisma.careerCheckIn.create({

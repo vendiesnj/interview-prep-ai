@@ -81,7 +81,26 @@ export interface MockScoreResult {
     competency: string;
     score: number;
     note: string;
+    // Per-question arc signals
+    wordCount?: number;
+    starComplete?: boolean;
+    confidenceSignal?: number;   // 1-10
+    ownershipScore?: number;     // 1-10
+    fillerEstimate?: number;     // estimated count
   }>;
+  // Interview arc — how performance changed across the session
+  interviewArc?: {
+    qualityArc: number[];        // score per question in order
+    confidenceArc: number[];     // confidence per question
+    ownershipArc: number[];      // ownership/I-language per question
+    wordCountArc: number[];      // words spoken per answer
+    warmupEffect: boolean;       // Q1 score notably below avg
+    fatigueSigns: boolean;       // last 2 Qs notably below first 2
+    consistencyScore: number;    // 0-100, lower = more variable performance
+    pitchDrift: "stable" | "building" | "declining" | "volatile";
+    openingNote: string;         // observation about first answer
+    closingNote: string;         // observation about final answer
+  };
 }
 
 // ── System prompt builder ─────────────────────────────────────────────────────
@@ -276,12 +295,34 @@ Respond with JSON only:
   "coachingSummary": "<3-4 sentence personalized coaching note referencing specific moments from the interview>",
   "readinessLevel": "not_ready" | "developing" | "ready" | "strong",
   "questionBreakdowns": [
-    { "question": "<question text>", "competency": "<competency>", "score": <0-100>, "note": "<one sentence on this specific answer>" }
-  ]
+    {
+      "question": "<question text>",
+      "competency": "<competency>",
+      "score": <0-100>,
+      "note": "<one sentence on this specific answer>",
+      "wordCount": <estimated word count of candidate's answer>,
+      "starComplete": <true if answer contained all 4 STAR parts, false otherwise>,
+      "confidenceSignal": <1-10, how confident this specific answer sounded>,
+      "ownershipScore": <1-10, how well they used I-language and claimed their contribution>,
+      "fillerEstimate": <estimated number of filler words in this answer>
+    }
+  ],
+  "interviewArc": {
+    "qualityArc": [<score for Q1>, <score for Q2>, ...],
+    "confidenceArc": [<confidence 1-10 for Q1>, <confidence for Q2>, ...],
+    "ownershipArc": [<ownership 1-10 for Q1>, ...],
+    "wordCountArc": [<word count Q1>, <word count Q2>, ...],
+    "warmupEffect": <true if Q1 score was notably below the average>,
+    "fatigueSigns": <true if last 2 questions scored notably lower than first 2>,
+    "consistencyScore": <0-100, 100 = very consistent, 0 = wildly variable>,
+    "pitchDrift": "<stable|building|declining|volatile> — overall energy/confidence arc across the interview",
+    "openingNote": "<one sentence observation about the first answer>",
+    "closingNote": "<one sentence observation about the final answer>"
+  }
 }`,
       },
     ],
-    max_tokens: 1200,
+    max_tokens: 1800,
     temperature: 0.3,
   });
 
@@ -351,6 +392,7 @@ async function handleSave(
           result: (scoreResult.starScores?.result ?? 50) / 10,
         },
         question_breakdowns: scoreResult.questionBreakdowns,
+        interview_arc: scoreResult.interviewArc ?? null,
         strength_theme_keys: strengthThemeKeys,
         improvement_theme_keys: improvementThemeKeys,
         mock_interview: true,
@@ -370,6 +412,35 @@ async function handleSave(
   });
 
   return NextResponse.json({ attemptId: attempt.id });
+}
+
+// ── GET: return the most recent mock interview attempt ────────────────────────
+
+export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const attempt = await prisma.attempt.findFirst({
+    where: { userId: user.id, evaluationFramework: "mock_interview", deletedAt: null },
+    orderBy: { ts: "desc" },
+    select: {
+      id: true, ts: true, question: true, score: true,
+      communicationScore: true, confidenceScore: true, wpm: true,
+      feedback: true, deliveryMetrics: true, prosody: true,
+    },
+  });
+
+  if (!attempt) return NextResponse.json({ attempt: null });
+
+  return NextResponse.json({ attempt });
 }
 
 // ── Router ────────────────────────────────────────────────────────────────────

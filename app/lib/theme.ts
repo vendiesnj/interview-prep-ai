@@ -362,32 +362,43 @@ export const ipcBlueTheme: AppTheme = {
   },
 };
 
-// Roosevelt University - Dark base (consumer-style) with forest green accent
+// Roosevelt University - Light base with emerald green accent
 export const rooseveltTheme: AppTheme = {
-  ...defaultTheme,
+  ...lightTheme,
   name: "roosevelt",
   colors: {
-    ...defaultTheme.colors,
-    pageBg: "#0D1610",
-    pageBgAccentA: "rgba(74,222,128,0.07)",
-    pageBgAccentB: "rgba(74,222,128,0.03)",
+    ...lightTheme.colors,
+    pageBg: "#F2FAF5",
+    pageBgAccentA: "rgba(16,185,129,0.07)",
+    pageBgAccentB: "rgba(5,150,105,0.04)",
 
-    accent: "#4ADE80",
-    accentSoft: "rgba(74,222,128,0.10)",
-    accentStrong: "rgba(74,222,128,0.22)",
+    cardBg: "#FFFFFF",
+    cardBgStrong: "#F7FDF9",
+    cardBorder: "rgba(16,185,129,0.14)",
+    cardBorderSoft: "rgba(5,150,105,0.09)",
 
-    accent2: "#22C55E",
-    accent2Soft: "rgba(34,197,94,0.12)",
+    inputBg: "#FFFFFF",
+    inputBorder: "rgba(16,185,129,0.18)",
 
-    success: "#86EFAC",
-    successSoft: "rgba(134,239,172,0.10)",
+    accent: "#059669",
+    accentSoft: "rgba(5,150,105,0.09)",
+    accentStrong: "rgba(5,150,105,0.22)",
 
-    chartPositive: "#4ADE80",
+    accent2: "#10B981",
+    accent2Soft: "rgba(16,185,129,0.11)",
+
+    success: "#065F46",
+    successSoft: "rgba(6,95,70,0.09)",
+
+    chartPositive: "#10B981",
+    chartNegative: "#DC2626",
+    chartNeutral: "#D97706",
+    chartCritical: "#B91C1C",
   },
   shadows: {
-    card: "0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.40)",
-    cardSoft: "0 1px 0 rgba(255,255,255,0.04)",
-    glow: "0 8px 24px rgba(74,222,128,0.16)",
+    card: "0 1px 3px rgba(5,150,105,0.06), 0 4px 12px rgba(5,150,105,0.06)",
+    cardSoft: "0 1px 2px rgba(5,150,105,0.04)",
+    glow: "0 8px 24px rgba(5,150,105,0.16)",
     none: "none",
   },
 };
