@@ -168,7 +168,7 @@ export function getCluster(key: ClusterKey): RoleCluster | undefined {
 export function inferClusterForOccupation(occ: Occupation): ClusterKey {
   const cat = occ.category;
   for (const cluster of ROLE_CLUSTERS) {
-    if (cluster.onetCategories.some((c) => cat.toLowerCase().includes(c.toLowerCase()) || c.toLowerCase().includes(cat.toLowerCase()))) {
+    if (cluster.onetCategories.some((c) => cat.toLowerCase().includes(c.toLowerCase()))) {
       return cluster.key;
     }
   }

@@ -660,6 +660,15 @@ function buildAttempt(
       ...(persona.useEslMode && confidenceScore < 7 ? {
         esl_cultural_note: "US interviews reward first-person declarative language as a proxy for leadership potential. 'I led the project' scores differently than 'I was involved in the project' even if the underlying contribution was identical. This is a learnable convention - it's not about changing how you actually work, just how you describe it.",
       } : {}),
+      dimension_scores: {
+        narrative_clarity:   { score: round1(clamp(noise((communicationScore + relevanceBase + directnessBase) / 3, v * 0.08), 3.5, 9.5)) },
+        evidence_quality:    { score: round1(clamp(noise((closingImpact + completenessBase + relevanceBase) / 3, v * 0.08), 3.5, 9.5)) },
+        ownership_agency:    { score: round1(clamp(noise(lerp(persona.confStart * 0.9, persona.confEnd * 0.9, t), v * 0.10), 3.5, 9.5)) },
+        response_control:    { score: round1(clamp(noise((directnessBase + completenessBase) / 2, v * 0.08), 3.5, 9.5)) },
+        cognitive_depth:     { score: round1(clamp(noise((completenessBase + closingImpact) / 2, v * 0.09), 3.5, 9.5)) },
+        presence_confidence: { score: round1(clamp(noise(confidenceScore, v * 0.08), 3.5, 9.5)) },
+        vocal_engagement:    { score: round1(clamp(noise((tempoDyn + (10 - monotoneScore * 0.5)) / 2, v * 0.10), 3.5, 9.5)) },
+      },
     },
     prosody: {
       monotone: monotoneScore,
