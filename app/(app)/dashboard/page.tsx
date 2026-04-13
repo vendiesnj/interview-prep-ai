@@ -17,6 +17,7 @@ import { matchOccupations } from "@/app/lib/onet-occupations";
 import JourneySidebar from "@/app/components/JourneySidebar";
 import TasksPanel, { type Task as DbTask } from "@/app/components/TasksPanel";
 import { useIsUniversity } from "@/app/hooks/usePlan";
+import RoleClusterSection from "@/app/components/RoleClusterSection";
 
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
@@ -1276,6 +1277,8 @@ export default function DashboardPage() {
         {/* ── Consumer dashboard: interview-focused tiles ── */}
         {!isUniversity && (
           <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+
+            <RoleClusterSection accentColor="var(--accent)" />
 
             {/* Featured: Interview Practice */}
             <Link href="/practice" style={{ textDecoration: "none" }}>

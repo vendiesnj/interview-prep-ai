@@ -453,6 +453,61 @@ const [questionFilter, setQuestionFilter] = useState<
 const [questionBuckets, setQuestionBuckets] = useState<QuestionBuckets | null>(null);
 const [customQuestion, setCustomQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+
+// ── Target role quick-start ───────────────────────────────────────────────────
+const [practiceTargetRoles, setPracticeTargetRoles] = useState<Array<{key: string; title: string}>>([]);
+const [roleGenLoading, setRoleGenLoading] = useState<string | null>(null); // roleKey being generated
+
+useEffect(() => {
+  fetch("/api/cluster-readiness", { cache: "no-store" })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if (!Array.isArray(data?.targetRoleKeys) || data.targetRoleKeys.length === 0) return;
+      // Resolve titles from cluster-readiness response
+      const roles: Array<{key: string; title: string}> = [];
+      for (const cluster of (data.clusters ?? [])) {
+        for (const key of (cluster.targetRoles ?? [])) {
+          if (!roles.find(r => r.key === key)) {
+            // Title comes from competencyMaps inside cluster; fall back to key formatting
+            const title = key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
+            roles.push({ key, title });
+          }
+        }
+      }
+      // If clusters didn't have role titles, still populate from keys
+      if (roles.length === 0) {
+        for (const key of data.targetRoleKeys) {
+          roles.push({ key, title: (key as string).replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) });
+        }
+      }
+      setPracticeTargetRoles(roles);
+    })
+    .catch(() => {});
+}, []);
+
+async function generateFromRole(roleKey: string, roleTitle: string) {
+  setRoleGenLoading(roleKey);
+  setError(null);
+  try {
+    const res = await fetch(`/api/role-competency?roleKey=${encodeURIComponent(roleKey)}`);
+    if (!res.ok) throw new Error("Failed to load role");
+    const data = await res.json();
+    const qs: Array<{question: string; competency: string; type: string}> = Array.isArray(data.questions) ? data.questions : [];
+    const behavioral = qs.filter(q => q.type === "behavioral").map(q => q.question);
+    const role_specific = qs.filter(q => q.type !== "behavioral").map(q => q.question);
+    const allQ = [...behavioral, ...role_specific];
+    setQuestions(allQ);
+    setQuestionBuckets({ behavioral, technical: [], role_specific, custom: [] });
+    setQuestionFilter("all");
+    setJobDesc(`Practicing for: ${roleTitle}`);
+    persistHomeState({ jobDesc: `Practicing for: ${roleTitle}`, questions: allQ, questionBuckets: { behavioral, technical: [], role_specific, custom: [] }, mode: "questions" });
+    setMode("questions");
+  } catch {
+    setError("Could not load questions for this role. Try pasting a job description instead.");
+  } finally {
+    setRoleGenLoading(null);
+  }
+}
   const hydratedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
@@ -2658,6 +2713,37 @@ return (
       <>
 
 
+{/* ===== SECTION: Target Role Quick-Start ===== */}
+{practiceTargetRoles.length > 0 && (
+  <div style={{ marginTop: 24, padding: "14px 16px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
+      Quick-start from your target roles
+    </div>
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+      {practiceTargetRoles.map(r => (
+        <button
+          key={r.key}
+          onClick={() => generateFromRole(r.key, r.title)}
+          disabled={roleGenLoading !== null}
+          style={{
+            padding: "7px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600,
+            border: "1px solid var(--card-border)",
+            background: roleGenLoading === r.key ? "var(--accent-soft)" : "transparent",
+            color: roleGenLoading === r.key ? "var(--accent)" : "var(--text-primary)",
+            cursor: roleGenLoading !== null ? "not-allowed" : "pointer",
+            opacity: roleGenLoading !== null && roleGenLoading !== r.key ? 0.5 : 1,
+          }}
+        >
+          {roleGenLoading === r.key ? "Loading…" : r.title}
+        </button>
+      ))}
+    </div>
+    <div style={{ marginTop: 8, fontSize: 11, color: "var(--text-muted)" }}>
+      Generates role-specific behavioral and situational questions from your Role Prep targets.
+    </div>
+  </div>
+)}
+
 {/* ===== SECTION: Job Description ===== */}
 <div
   style={{
@@ -2668,7 +2754,7 @@ return (
     background: "transparent",
   }}
 >
-  
+
   {/* Section Label */}
  <div
   style={{

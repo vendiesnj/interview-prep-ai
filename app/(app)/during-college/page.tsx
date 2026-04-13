@@ -7,6 +7,7 @@ import { Mic, Users, Radio, CheckSquare, Target, CreditCard, Briefcase, Receipt,
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import StreakBanner from "@/app/components/StreakBanner";
+import RoleClusterSection from "@/app/components/RoleClusterSection";
 
 const TODOS = [
   { id: "interview_prep",  Icon: Mic,         label: "Interview Prep Session",    desc: "Practice behavioral and situational questions for internships and full-time roles.", href: "/practice",       color: "#2563EB", time: "~15 min" },
@@ -121,6 +122,8 @@ export default function DuringCollegePage() {
         </div>
 
         <StreakBanner />
+
+        <RoleClusterSection accentColor="#2563EB" />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "start" }}>
           <div>

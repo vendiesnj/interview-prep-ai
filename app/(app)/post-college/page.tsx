@@ -7,6 +7,7 @@ import { CheckSquare, TrendingUp, Mic, Users, BarChart, CreditCard, Rocket, Doll
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import StreakBanner from "@/app/components/StreakBanner";
+import RoleClusterSection from "@/app/components/RoleClusterSection";
 
 const TODOS = [
   { id: "career_checkin",  Icon: CheckSquare, label: "Career Check-In",           desc: "Log your current role, salary, savings, and loan balance for a full financial snapshot.",         href: "/career-checkin",          color: "#10B981", time: "~5 min" },
@@ -121,6 +122,8 @@ export default function PostCollegePage() {
         </div>
 
         <StreakBanner />
+
+        <RoleClusterSection accentColor="#8B5CF6" />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "start" }}>
           <div>

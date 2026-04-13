@@ -737,17 +737,17 @@ async function run() {
   // ---------------------------------------------------------------------------
   // Update user profiles
   // ---------------------------------------------------------------------------
-  await prisma.user.update({ where: { id: marcus.id },  data: { graduationYear: 2025, major: "Finance", targetRole: "Wealth Management Analyst", targetIndustry: "Financial Services" } });
-  await prisma.user.update({ where: { id: aaliyah.id }, data: { graduationYear: 2026, major: "Business Administration", targetRole: "Business Analyst", targetIndustry: "Professional Services" } });
-  await prisma.user.update({ where: { id: diego.id },   data: { graduationYear: 2027, major: "Computer Science", targetRole: "Software Engineer", targetIndustry: "Technology" } });
-  await prisma.user.update({ where: { id: sophie.id },  data: { graduationYear: 2026, major: "Psychology", targetRole: "HR Coordinator", targetIndustry: "Hospitality" } });
-  await prisma.user.update({ where: { id: jordan.id },  data: { graduationYear: 2028, major: "Communications", targetRole: "Marketing Coordinator", targetIndustry: "Media & Entertainment" } });
+  await prisma.user.update({ where: { id: marcus.id },  data: { graduationYear: 2026, major: "Finance", targetRole: "Investment Banking Analyst", targetIndustry: "Financial Services", targetRoleKeys: ["investment_banker", "financial_analyst"] } });
+  await prisma.user.update({ where: { id: aaliyah.id }, data: { graduationYear: 2026, major: "Business Administration", targetRole: "Business Analyst", targetIndustry: "Professional Services", targetRoleKeys: ["financial_analyst", "mgmt_consultant"] } });
+  await prisma.user.update({ where: { id: diego.id },   data: { graduationYear: 2027, major: "Computer Science", targetRole: "Software Engineer", targetIndustry: "Technology", targetRoleKeys: ["software_engineer"] } });
+  await prisma.user.update({ where: { id: sophie.id },  data: { graduationYear: 2026, major: "Psychology", targetRole: "HR Coordinator", targetIndustry: "Hospitality", targetRoleKeys: ["hr_specialist"] } });
+  await prisma.user.update({ where: { id: jordan.id },  data: { graduationYear: 2028, major: "Communications", targetRole: "Marketing Coordinator", targetIndustry: "Media & Entertainment", targetRoleKeys: ["marketing_manager", "copywriter"] } });
   console.log("User profiles updated.");
 
   // ==========================================================================
   // 1. MARCUS JOHNSON
-  //    Post-grad success. 38 sessions. Hedger -> Polished Performer.
-  //    Placed at Northern Trust $67k.
+  //    Junior, Finance major. 38 sessions. Hedger -> Polished Performer.
+  //    Targeting IB summer analyst internship. Strong trajectory.
   //    Productivity: excellent - schedules ahead, no missed deadlines.
   // ==========================================================================
   console.log("\nSeeding Marcus Johnson...");
@@ -778,45 +778,38 @@ async function run() {
   await prisma.careerCheckIn.create({
     data: {
       userId: marcus.id, tenantId,
-      employmentStatus: "employed",
-      jobTitle: "Wealth Management Analyst",
+      employmentStatus: "student",
       industry: "Financial Services",
-      salaryRange: "60_75k",
-      salaryExact: 67000,
-      has401k: true,
-      contribution401kPct: 5,
-      currentSavingsRange: "5_15k",
-      studentLoanRange: "10_30k",
-      satisfactionScore: 5,
-      graduationYear: 2025,
-      monthsSinceGrad: 10,
+      satisfactionScore: 4,
+      graduationYear: 2026,
+      monthsSinceGrad: null,
     },
   });
 
-  // Checklist - Marcus is post-grad, all items done, scheduled ahead with completedAt
+  // Checklist - Marcus is during_college, most items done
   await prisma.checklistProgress.deleteMany({ where: { userId: marcus.id } });
   const marcusChecklistItems = [
-    { itemId: "401k_enrolled",    completedDaysAgo: 60, scheduledDaysAgo: 67, dueDaysAgo: 55 },
-    { itemId: "contribution_set", completedDaysAgo: 55, scheduledDaysAgo: 62, dueDaysAgo: 50 },
-    { itemId: "benefits_reviewed",completedDaysAgo: 50, scheduledDaysAgo: 58, dueDaysAgo: 45 },
-    { itemId: "w4_set",           completedDaysAgo: 48, scheduledDaysAgo: 54, dueDaysAgo: 42 },
-    { itemId: "paycheck_review",  completedDaysAgo: 42, scheduledDaysAgo: 50, dueDaysAgo: 38 },
-    { itemId: "emergency_3mo",    completedDaysAgo: 30, scheduledDaysAgo: 38, dueDaysAgo: 25 },
-    { itemId: "renter_insurance", completedDaysAgo: 22, scheduledDaysAgo: 30, dueDaysAgo: 18 },
-    { itemId: "credit_report",    completedDaysAgo: 14, scheduledDaysAgo: 21, dueDaysAgo: 10 },
+    { itemId: "resume",            completedDaysAgo: 100, scheduledDaysAgo: 108, dueDaysAgo: 94 },
+    { itemId: "linkedin",          completedDaysAgo: 95,  scheduledDaysAgo: 103, dueDaysAgo: 89 },
+    { itemId: "internship_apps",   completedDaysAgo: 60,  scheduledDaysAgo: 68,  dueDaysAgo: 55 },
+    { itemId: "taxes_filed",       completedDaysAgo: 45,  scheduledDaysAgo: 52,  dueDaysAgo: 40 },
+    { itemId: "fafsa_renewed",     completedDaysAgo: 38,  scheduledDaysAgo: 46,  dueDaysAgo: 32 },
+    { itemId: "advisor_semester",  completedDaysAgo: 28,  scheduledDaysAgo: 35,  dueDaysAgo: 22 },
+    { itemId: "career_fair",       completedDaysAgo: 18,  scheduledDaysAgo: 26,  dueDaysAgo: 12 },
+    { itemId: "rec_letter",        completedDaysAgo: 10,  scheduledDaysAgo: 18,  dueDaysAgo: 5  },
   ];
   for (const item of marcusChecklistItems) {
     await prisma.checklistProgress.upsert({
-      where: { userId_stage_itemId: { userId: marcus.id, stage: "post_college", itemId: item.itemId } },
+      where: { userId_stage_itemId: { userId: marcus.id, stage: "during_college", itemId: item.itemId } },
       update: { done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
-      create: { userId: marcus.id, tenantId, stage: "post_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
+      create: { userId: marcus.id, tenantId, stage: "during_college", itemId: item.itemId, done: true, completedAt: daysAgo(TODAY, item.completedDaysAgo), scheduledDate: daysAgo(TODAY, item.scheduledDaysAgo), dueDate: daysAgo(TODAY, item.dueDaysAgo) },
     });
   }
 
   await prisma.studentSkill.deleteMany({ where: { userId: marcus.id } });
   for (const [skill, category] of [
     ["Financial Modeling", "analytical"], ["Excel", "technical"], ["Bloomberg Terminal", "technical"],
-    ["Client Relations", "communication"], ["Portfolio Analysis", "domain"], ["Risk Assessment", "analytical"],
+    ["Valuation Analysis", "domain"], ["Portfolio Theory", "analytical"], ["Risk Assessment", "analytical"],
     ["PowerPoint", "technical"], ["Leadership", "leadership"],
   ]) {
     await prisma.studentSkill.create({ data: { userId: marcus.id, tenantId, skill, category, confidence: round2(random(0.74, 0.96)), source: "ai_extracted" } });
@@ -825,24 +818,23 @@ async function run() {
   await prisma.interviewActivity.deleteMany({ where: { userId: marcus.id } });
   await prisma.interviewActivity.createMany({
     data: [
-      { userId: marcus.id, tenantId, company: "JPMorgan Chase", role: "Financial Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 310), interviewDate: daysAgo(TODAY, 295), stage: "phone_screen", outcome: "rejected", notes: "Rejected after phone screen - feedback cited need for more quantitative depth." },
-      { userId: marcus.id, tenantId, company: "Morningstar", role: "Investment Research Associate", industry: "Financial Services", appliedDate: daysAgo(TODAY, 280), interviewDate: daysAgo(TODAY, 265), stage: "offer", outcome: "declined", salaryOffered: 61000, notes: "Offer at $61k. Declined - compensation below target and no WFH flexibility." },
-      { userId: marcus.id, tenantId, company: "Northern Trust", role: "Wealth Management Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 255), interviewDate: daysAgo(TODAY, 238), stage: "accepted", outcome: "accepted", salaryOffered: 67000, notes: "Current role. Strong panel interview - Signal prep made the behavioral round straightforward." },
+      { userId: marcus.id, tenantId, company: "JPMorgan Chase", role: "Summer Analyst - Investment Banking", industry: "Financial Services", appliedDate: daysAgo(TODAY, 90), interviewDate: daysAgo(TODAY, 72), stage: "phone_screen", outcome: "rejected", notes: "Rejected after HireVue - feedback cited need for stronger technical depth on DCF." },
+      { userId: marcus.id, tenantId, company: "Baird", role: "Investment Banking Summer Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 65), interviewDate: daysAgo(TODAY, 48), stage: "final_round", outcome: "pending", notes: "Final round superday next week. Three behavioral rounds + technical case." },
+      { userId: marcus.id, tenantId, company: "William Blair", role: "Equity Research Summer Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 45), stage: "applied", outcome: "pending", notes: "Applied through Roosevelt career fair connection. Follow-up sent." },
     ],
   });
 
-  // Tasks - Marcus is organized and proactive. All completed on time or early.
+  // Tasks - Marcus is organized and proactive.
   await prisma.task.deleteMany({ where: { userId: marcus.id } });
   await prisma.task.createMany({ data: [
-    { userId: marcus.id, tenantId, title: "Max out 401(k) contribution to 10%", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 4), dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 6) },
-    { userId: marcus.id, tenantId, title: "Schedule 30-day check-in with manager", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 5) },
-    { userId: marcus.id, tenantId, title: "Open Roth IRA account", priority: "medium", category: "Finance", scheduledAt: daysAgo(TODAY, 3), dueDate: daysFromNow(TODAY, 14), completedAt: null, createdAt: daysAgo(TODAY, 7) },
-    { userId: marcus.id, tenantId, title: "Update LinkedIn with Northern Trust role", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 1), dueDate: daysFromNow(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 4) },
-    { userId: marcus.id, tenantId, title: "Review first pay stub and verify withholdings", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 12), dueDate: daysAgo(TODAY, 3), completedAt: daysAgo(TODAY, 3), createdAt: daysAgo(TODAY, 14) },
-    { userId: marcus.id, tenantId, title: "Enroll in health + dental benefits", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 16), dueDate: daysAgo(TODAY, 5), completedAt: daysAgo(TODAY, 6), createdAt: daysAgo(TODAY, 18) },
-    { userId: marcus.id, tenantId, title: "Connect with mentor from Roosevelt alumni network", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 24), dueDate: daysAgo(TODAY, 10), completedAt: daysAgo(TODAY, 10), createdAt: daysAgo(TODAY, 26) },
-    { userId: marcus.id, tenantId, title: "Build post-grad monthly budget", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 30), dueDate: daysAgo(TODAY, 20), completedAt: daysAgo(TODAY, 21), createdAt: daysAgo(TODAY, 32) },
-    { userId: marcus.id, tenantId, title: "Request renter's insurance quote", priority: "low", category: "Finance", scheduledAt: daysAgo(TODAY, 9), dueDate: daysAgo(TODAY, 2), completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 11) },
+    { userId: marcus.id, tenantId, title: "Prep Baird superday - behavioral + DCF walkthrough", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 3), dueDate: daysFromNow(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 5) },
+    { userId: marcus.id, tenantId, title: "Send thank-you note to Baird first-round interviewer", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: marcus.id, tenantId, title: "Research William Blair recent deals for follow-up call", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 4), dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 6) },
+    { userId: marcus.id, tenantId, title: "Complete finance capstone - merger model deliverable", priority: "high", category: "Academic", scheduledAt: daysAgo(TODAY, 14), dueDate: daysAgo(TODAY, 3), completedAt: daysAgo(TODAY, 4), createdAt: daysAgo(TODAY, 16) },
+    { userId: marcus.id, tenantId, title: "Update LinkedIn with CFA Level 1 enrollment", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 20), dueDate: daysAgo(TODAY, 10), completedAt: daysAgo(TODAY, 11), createdAt: daysAgo(TODAY, 22) },
+    { userId: marcus.id, tenantId, title: "Reach out to Roosevelt alumni at Baird for coffee chat", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 26), dueDate: daysAgo(TODAY, 14), completedAt: daysAgo(TODAY, 14), createdAt: daysAgo(TODAY, 28) },
+    { userId: marcus.id, tenantId, title: "File FAFSA for next academic year", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 32), dueDate: daysAgo(TODAY, 20), completedAt: daysAgo(TODAY, 21), createdAt: daysAgo(TODAY, 35) },
+    { userId: marcus.id, tenantId, title: "Register for Financial Modeling course - Spring semester", priority: "medium", category: "Academic", scheduledAt: daysAgo(TODAY, 10), dueDate: daysAgo(TODAY, 2), completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 12) },
   ]});
   console.log("  Tasks, checklist, career check-in, skills, interview activity seeded.");
 

@@ -2,11 +2,13 @@
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import { Search, X } from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
 import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
 import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
-import type { ConversationTurn, MockScoreResult } from "@/app/api/mock-interview/route";
+import type { ConversationTurn, MockScoreResult, CompetencyQuestion } from "@/app/api/mock-interview/route";
 import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
+import OCCUPATIONS, { type Occupation } from "@/app/lib/onet-occupations";
 
 // ── Local storage ─────────────────────────────────────────────────────────────
 
@@ -29,10 +31,23 @@ type Phase =
 
 interface SessionConfig {
   role: string;
+  roleKey?: string;        // O*NET key, if selected from saved/search
   industry: string;
   numQuestions: number;
   questionTypes: ("behavioral" | "situational")[];
+  competencyQuestions?: CompetencyQuestion[]; // pre-fetched from RoleCompetencyMap
 }
+
+const CLUSTER_TO_INDUSTRY: Record<string, string> = {
+  finance: "Finance",
+  tech: "Technology",
+  consulting: "Consulting",
+  marketing: "Marketing",
+  operations: "Operations",
+  healthcare: "Healthcare",
+  education: "Non-profit",
+  trades: "Operations",
+};
 
 // ── Dimension labels ──────────────────────────────────────────────────────────
 
@@ -94,13 +109,86 @@ function PulsingDot() {
 
 // ── Setup Screen ──────────────────────────────────────────────────────────────
 
-function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
-  const [role, setRole] = useState("");
+function SetupScreen({
+  onStart,
+  savedRoleKeys,
+}: {
+  onStart: (cfg: SessionConfig) => void;
+  savedRoleKeys: string[];
+}) {
+  // Role selection
+  const [selectedRoleKey, setSelectedRoleKey] = useState<string | null>(null);
+  const [customRole, setCustomRole] = useState("");
+  const [search, setSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
+
+  // Competency map fetched when a role key is selected
+  const [competencyQuestions, setCompetencyQuestions] = useState<CompetencyQuestion[] | null>(null);
+  const [loadingCompetency, setLoadingCompetency] = useState(false);
+
+  // Other config
   const [industry, setIndustry] = useState("Technology");
   const [numQuestions, setNumQuestions] = useState(5);
   const [types, setTypes] = useState<("behavioral" | "situational")[]>(["behavioral", "situational"]);
 
   const industries = ["Technology", "Finance", "Consulting", "Healthcare", "Marketing", "Operations", "Research", "Non-profit"];
+
+  // Resolve saved occupations for display
+  const savedOccs: Occupation[] = savedRoleKeys
+    .map(k => OCCUPATIONS.find((o: Occupation) => o.id === k))
+    .filter((o): o is Occupation => o != null);
+
+  // O*NET search results
+  const filteredOccs: Occupation[] = search.length >= 2
+    ? OCCUPATIONS
+        .filter((o: Occupation) =>
+          o.title.toLowerCase().includes(search.toLowerCase()) ||
+          o.category.toLowerCase().includes(search.toLowerCase())
+        )
+        .slice(0, 8)
+    : [];
+
+  const selectedOcc = selectedRoleKey
+    ? OCCUPATIONS.find((o: Occupation) => o.id === selectedRoleKey) ?? null
+    : null;
+
+  const roleLabel = selectedOcc?.title ?? customRole;
+
+  // When a role key is selected, fetch its competency map and auto-set industry
+  useEffect(() => {
+    if (!selectedRoleKey) { setCompetencyQuestions(null); return; }
+    setLoadingCompetency(true);
+    fetch(`/api/role-competency?roleKey=${encodeURIComponent(selectedRoleKey)}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (Array.isArray(data?.questions)) setCompetencyQuestions(data.questions as CompetencyQuestion[]);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingCompetency(false));
+  }, [selectedRoleKey]);
+
+  function selectRole(occ: Occupation) {
+    setSelectedRoleKey(occ.id);
+    setCustomRole("");
+    setSearch("");
+    setShowSearch(false);
+    // Auto-set industry from cluster
+    // Simple category → industry heuristic
+    const cat = occ.category.toLowerCase();
+    if (cat.includes("finance") || cat.includes("banking") || cat.includes("accounting") || cat.includes("insurance")) setIndustry("Finance");
+    else if (cat.includes("tech") || cat.includes("engineer") || cat.includes("software") || cat.includes("data")) setIndustry("Technology");
+    else if (cat.includes("consult") || cat.includes("strategy")) setIndustry("Consulting");
+    else if (cat.includes("marketing") || cat.includes("advertis") || cat.includes("media")) setIndustry("Marketing");
+    else if (cat.includes("health") || cat.includes("medical") || cat.includes("pharma")) setIndustry("Healthcare");
+    else if (cat.includes("education") || cat.includes("social") || cat.includes("nonprofit")) setIndustry("Non-profit");
+    else if (cat.includes("operation") || cat.includes("supply") || cat.includes("logistics") || cat.includes("manufactur")) setIndustry("Operations");
+  }
+
+  function clearRole() {
+    setSelectedRoleKey(null);
+    setCustomRole("");
+    setCompetencyQuestions(null);
+  }
 
   function toggleType(t: "behavioral" | "situational") {
     setTypes(prev =>
@@ -115,6 +203,10 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
     border: "1px solid var(--card-border)", background: "var(--input-bg)",
     color: "var(--text-primary)", outline: "none", boxSizing: "border-box",
   };
+
+  const uniqueCompetencies = competencyQuestions
+    ? [...new Set(competencyQuestions.map(q => q.competency))]
+    : null;
 
   return (
     <div style={{ maxWidth: 580, margin: "0 auto" }}>
@@ -131,25 +223,117 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
         </p>
       </div>
 
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, marginBottom: 16, display: "flex", flexDirection: "column", gap: 18 }}>
-        {/* Role */}
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, marginBottom: 16, display: "flex", flexDirection: "column", gap: 20 }}>
+
+        {/* ── Role Selection ── */}
         <div>
-          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.7 }}>
-            Target Role
+          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 10, textTransform: "uppercase", letterSpacing: 0.7 }}>
+            What role are you interviewing for?
           </label>
-          <input
-            type="text"
-            value={role}
-            onChange={e => setRole(e.target.value)}
-            placeholder="e.g. Product Manager, Financial Analyst, Software Engineer"
-            style={inputStyle}
-          />
+
+          {/* Selected role chip */}
+          {(selectedOcc || customRole) ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid var(--accent)", background: "var(--accent-soft)", marginBottom: 8 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
+                  {roleLabel}
+                </div>
+                {loadingCompetency && (
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Loading role-specific questions…</div>
+                )}
+                {uniqueCompetencies && !loadingCompetency && (
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                    Covers: {uniqueCompetencies.slice(0, 4).map(c => c.replace(/_/g, " ")).join(" · ")}
+                    {uniqueCompetencies.length > 4 && ` +${uniqueCompetencies.length - 4} more`}
+                  </div>
+                )}
+              </div>
+              <button onClick={clearRole} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--accent)", display: "flex", alignItems: "center", padding: 4 }}>
+                <X size={16} />
+              </button>
+            </div>
+          ) : null}
+
+          {/* Saved target roles */}
+          {savedOccs.length > 0 && !selectedOcc && !customRole && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 6 }}>Your saved targets</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {savedOccs.map(occ => (
+                  <button
+                    key={occ.id}
+                    onClick={() => selectRole(occ)}
+                    style={{
+                      padding: "6px 14px", borderRadius: 99, fontSize: 13, fontWeight: 600,
+                      border: "1px solid var(--card-border)", background: "transparent",
+                      color: "var(--text-primary)", cursor: "pointer",
+                    }}
+                  >
+                    {occ.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* O*NET Search */}
+          {!selectedOcc && !customRole && (
+            <div style={{ position: "relative" }}>
+              <div style={{ position: "relative" }}>
+                <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => { setSearch(e.target.value); setShowSearch(true); }}
+                  onFocus={() => setShowSearch(true)}
+                  placeholder={savedOccs.length > 0 ? "Search for a different role…" : "Search roles (e.g. Financial Analyst, Product Manager)"}
+                  style={{ ...inputStyle, paddingLeft: 34 }}
+                />
+              </div>
+              {showSearch && filteredOccs.length > 0 && (
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 50, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 10, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+                  {filteredOccs.map(occ => (
+                    <button
+                      key={occ.id}
+                      onClick={() => selectRole(occ)}
+                      style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "none", border: "none", cursor: "pointer", textAlign: "left", borderBottom: "1px solid var(--card-border-soft)" }}
+                    >
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{occ.title}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{occ.category}</div>
+                      </div>
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>↵</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Custom free-text fallback */}
+          {!selectedOcc && !customRole && !search && (
+            <div style={{ marginTop: 8 }}>
+              <input
+                type="text"
+                value={customRole}
+                onChange={e => setCustomRole(e.target.value)}
+                placeholder="Or type any role not in the list…"
+                style={{ ...inputStyle, fontSize: 13 }}
+              />
+            </div>
+          )}
+
+          {savedOccs.length === 0 && !selectedOcc && !customRole && (
+            <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+              No saved targets yet. <a href="/during-college" style={{ color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>Add roles in Role Prep →</a>
+            </div>
+          )}
         </div>
 
-        {/* Industry */}
+        {/* ── Industry ── */}
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.7 }}>
-            Industry
+            Industry {selectedOcc ? <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(auto-set from role)</span> : ""}
           </label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {industries.map(ind => (
@@ -170,7 +354,7 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
           </div>
         </div>
 
-        {/* Question count */}
+        {/* ── Question count ── */}
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.7 }}>
             Number of Questions
@@ -197,7 +381,7 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
           </div>
         </div>
 
-        {/* Question types */}
+        {/* ── Question types ── */}
         <div>
           <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.7 }}>
             Question Types
@@ -223,6 +407,7 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
             ))}
           </div>
         </div>
+
       </div>
 
       {/* What to expect */}
@@ -230,7 +415,7 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 10 }}>What to expect</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
           {[
-            "AI interviewer adapts follow-up questions based on your actual answers",
+            competencyQuestions ? `Questions tailored for ${roleLabel} across ${uniqueCompetencies?.length ?? 5} competency areas` : "AI interviewer adapts follow-up questions based on your actual answers",
             "Coaching report scored across 7 communication dimensions",
             "Results saved to your profile and factored into your insights",
             "Webcam optional — enables on-camera presence scoring",
@@ -244,15 +429,23 @@ function SetupScreen({ onStart }: { onStart: (cfg: SessionConfig) => void }) {
       </div>
 
       <button
-        onClick={() => onStart({ role: role || "a professional role", industry, numQuestions, questionTypes: types })}
+        onClick={() => onStart({
+          role: roleLabel || "a professional role",
+          roleKey: selectedRoleKey ?? undefined,
+          industry,
+          numQuestions,
+          questionTypes: types,
+          competencyQuestions: competencyQuestions ?? undefined,
+        })}
+        disabled={loadingCompetency}
         style={{
           width: "100%", padding: "15px 0", borderRadius: 12,
-          background: "linear-gradient(135deg, var(--accent), #0EA5E9)",
+          background: loadingCompetency ? "var(--card-border)" : "linear-gradient(135deg, var(--accent), #0EA5E9)",
           color: "#fff", fontWeight: 800, fontSize: 16, border: "none",
-          cursor: "pointer", letterSpacing: -0.3,
+          cursor: loadingCompetency ? "not-allowed" : "pointer", letterSpacing: -0.3,
         }}
       >
-        Start Interview →
+        {loadingCompetency ? "Loading role questions…" : "Start Interview →"}
       </button>
     </div>
   );
@@ -434,6 +627,11 @@ export default function MockInterviewPage() {
   const [phase, setPhase] = useState<Phase>("setup");
   const [config, setConfig] = useState<SessionConfig | null>(null);
 
+  // Saved target role keys
+  const [savedRoleKeys, setSavedRoleKeys] = useState<string[]>([]);
+  // Role key practiced in last session (for "add to targets" prompt)
+  const [addTargetRoleKey, setAddTargetRoleKey] = useState<string | null>(null);
+
   // Conversation
   const [history, setHistory] = useState<ConversationTurn[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState("");
@@ -467,7 +665,7 @@ export default function MockInterviewPage() {
   // Coaching profile context from practice history
   const [coachingContext, setCoachingContext] = useState<string | null>(null);
 
-  // Load coaching profile from localStorage
+  // Load coaching profile from localStorage + fetch saved target roles
   useEffect(() => {
     if (!session?.user) return;
     const key = `ipc_history_${session.user.email ?? ""}`;
@@ -480,7 +678,7 @@ export default function MockInterviewPage() {
         // if history is malformed, skip coaching context
       }
     }
-    // Also try fetching from API for logged-in users
+    // Fetch coaching context from API
     fetch("/api/attempts?limit=200", { cache: "no-store" })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
@@ -489,6 +687,13 @@ export default function MockInterviewPage() {
           const profile = buildUserCoachingProfile(attempts);
           setCoachingContext(profile.llmContext ?? null);
         }
+      })
+      .catch(() => {});
+    // Fetch saved target role keys
+    fetch("/api/cluster-readiness", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (Array.isArray(data?.targetRoleKeys)) setSavedRoleKeys(data.targetRoleKeys as string[]);
       })
       .catch(() => {});
   }, [session]);
@@ -545,6 +750,13 @@ export default function MockInterviewPage() {
     setStatusMsg("Preparing your interview…");
     setPhase("countdown");
 
+    // Track if this role needs to be added to targets after the session
+    if (cfg.roleKey && !savedRoleKeys.includes(cfg.roleKey)) {
+      setAddTargetRoleKey(cfg.roleKey);
+    } else {
+      setAddTargetRoleKey(null);
+    }
+
     // Fetch first question while countdown runs
     const questionPromise = fetch("/api/mock-interview", {
       method: "POST",
@@ -556,6 +768,7 @@ export default function MockInterviewPage() {
         numQuestions: cfg.numQuestions,
         questionTypes: cfg.questionTypes,
         coachingContext,
+        competencyQuestions: cfg.competencyQuestions,
       }),
     }).then(r => r.json());
 
@@ -635,6 +848,7 @@ export default function MockInterviewPage() {
         numQuestions: config!.numQuestions,
         questionTypes: config!.questionTypes,
         coachingContext,
+        competencyQuestions: config!.competencyQuestions,
       }),
     });
     const next = await nextRes.json();
@@ -729,15 +943,51 @@ export default function MockInterviewPage() {
     return (
       <PremiumShell title="Mock Interview">
         <style>{`@keyframes mockPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }`}</style>
-        <SetupScreen onStart={handleStart} />
+        <SetupScreen onStart={handleStart} savedRoleKeys={savedRoleKeys} />
       </PremiumShell>
     );
   }
 
   if (phase === "results" && scoreResult && config) {
+    const addTargetOcc = addTargetRoleKey
+      ? OCCUPATIONS.find((o: Occupation) => o.id === addTargetRoleKey) ?? null
+      : null;
+
+    async function addToTargets() {
+      if (!addTargetRoleKey) return;
+      const next = [...savedRoleKeys, addTargetRoleKey].slice(0, 8);
+      await fetch("/api/cluster-readiness", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetRoleKeys: next }),
+      });
+      setSavedRoleKeys(next);
+      setAddTargetRoleKey(null);
+    }
+
     return (
       <PremiumShell title="Mock Interview — Results">
         <style>{`@keyframes mockPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }`}</style>
+        {/* Add-to-targets banner */}
+        {addTargetOcc && (
+          <div style={{ maxWidth: 860, margin: "0 auto 16px", padding: "12px 18px", borderRadius: 12, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ flex: 1, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.5 }}>
+              <strong>Track your progress for {addTargetOcc.title}.</strong> Add it to your Role Prep targets so your readiness score updates after each session.
+            </div>
+            <button
+              onClick={addToTargets}
+              style={{ padding: "8px 16px", borderRadius: 8, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", whiteSpace: "nowrap" }}
+            >
+              Add to targets →
+            </button>
+            <button
+              onClick={() => setAddTargetRoleKey(null)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 4, display: "flex", alignItems: "center" }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
         <ResultsScreen
           config={config}
           score={scoreResult}

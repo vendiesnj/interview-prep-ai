@@ -19,6 +19,13 @@ export interface ConversationTurn {
   questionType?: "behavioral" | "situational" | "problem_solving";
 }
 
+export interface CompetencyQuestion {
+  question: string;
+  competency: string;
+  type: string;
+  why: string;
+}
+
 interface StartBody {
   action: "start";
   role: string;
@@ -26,6 +33,7 @@ interface StartBody {
   numQuestions: number;
   questionTypes: string[];
   coachingContext?: string; // llmContext from UserCoachingProfile
+  competencyQuestions?: CompetencyQuestion[]; // from RoleCompetencyMap cache
 }
 
 interface RespondBody {
@@ -38,6 +46,7 @@ interface RespondBody {
   numQuestions: number;
   questionTypes: string[];
   coachingContext?: string;
+  competencyQuestions?: CompetencyQuestion[];
 }
 
 interface ScoreBody {
@@ -83,6 +92,7 @@ function buildSystemPrompt(
   numQuestions: number,
   questionTypes: string[],
   coachingContext?: string,
+  competencyQuestions?: CompetencyQuestion[],
 ): string {
   const typeDesc = questionTypes.includes("situational") && questionTypes.includes("behavioral")
     ? "behavioral (tell me about a time...) and situational (imagine you're in a scenario where...)"
@@ -94,7 +104,14 @@ function buildSystemPrompt(
     ? `\n\nCANDIDATE COACHING PROFILE (from their practice history):\n${coachingContext}\n\nUse this profile to:\n- Target their known weak areas with specific probes\n- Acknowledge progress on resolved weaknesses if relevant\n- Ask follow-up questions that expose their persistent gaps`
     : "";
 
-  return `You are Jordan, a senior hiring manager at a leading ${industry} company conducting a structured interview for a ${role} position. You are experienced, professional, and genuinely curious — you probe when answers are vague and move on when you have enough signal.${coachingBlock}
+  const questionBankBlock = competencyQuestions && competencyQuestions.length > 0
+    ? `\n\nROLE-SPECIFIC QUESTION BANK — draw your ${numQuestions} main questions from this list (adapt phrasing naturally, don't ask verbatim):
+${competencyQuestions.slice(0, numQuestions + 3).map((q, i) => `${i + 1}. [${q.competency} | ${q.type}] ${q.question}`).join("\n")}
+
+These questions were curated specifically for ${role}. Prioritize them over generic questions. Distribute across the competency areas shown.`
+    : "";
+
+  return `You are Jordan, a senior hiring manager at a leading ${industry} company conducting a structured interview for a ${role} position. You are experienced, professional, and genuinely curious — you probe when answers are vague and move on when you have enough signal.${coachingBlock}${questionBankBlock}
 
 INTERVIEW STRUCTURE:
 - Ask exactly ${numQuestions} main questions total, using ${typeDesc} formats
@@ -120,9 +137,9 @@ Be conversational — brief transitions like "Thanks for sharing that." or "Got 
 // ── Handlers ──────────────────────────────────────────────────────────────────
 
 async function handleStart(body: StartBody): Promise<NextResponse> {
-  const { role, industry, numQuestions, questionTypes, coachingContext } = body;
+  const { role, industry, numQuestions, questionTypes, coachingContext, competencyQuestions } = body;
 
-  const systemPrompt = buildSystemPrompt(role, industry, numQuestions, questionTypes, coachingContext);
+  const systemPrompt = buildSystemPrompt(role, industry, numQuestions, questionTypes, coachingContext, competencyQuestions);
 
   const openingInstruction = `You are beginning the interview. Ask the first question. Do not introduce yourself — jump straight into the question naturally. Choose a question appropriate for ${role} in ${industry}.`;
 
@@ -151,10 +168,10 @@ async function handleStart(body: StartBody): Promise<NextResponse> {
 async function handleRespond(body: RespondBody): Promise<NextResponse> {
   const {
     role, industry, transcript, history, mainQuestionsAsked,
-    numQuestions, questionTypes, coachingContext,
+    numQuestions, questionTypes, coachingContext, competencyQuestions,
   } = body;
 
-  const systemPrompt = buildSystemPrompt(role, industry, numQuestions, questionTypes, coachingContext);
+  const systemPrompt = buildSystemPrompt(role, industry, numQuestions, questionTypes, coachingContext, competencyQuestions);
 
   // Build conversation messages for context
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [

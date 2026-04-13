@@ -7,6 +7,7 @@ import { Radio, Mic, Users, Target, CreditCard, FileText, GraduationCap, Map, Ho
 import ChecklistSection, { type ChecklistProgressEntry } from "@/app/components/ChecklistSection";
 import MiniCalendar, { type ScheduledItem } from "@/app/components/MiniCalendar";
 import StreakBanner from "@/app/components/StreakBanner";
+import RoleClusterSection from "@/app/components/RoleClusterSection";
 
 // ── To-Do items (interactive tools) ──────────────────────────────────────────
 const TODOS = [
@@ -176,6 +177,8 @@ export default function PreCollegePage() {
         </div>
 
         <StreakBanner />
+
+        <RoleClusterSection accentColor="#10B981" />
 
         {/* ── Two-column layout ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 360px", gap: 28, alignItems: "start" }}>
