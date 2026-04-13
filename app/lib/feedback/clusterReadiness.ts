@@ -148,10 +148,10 @@ function buildNarrative(
   clusterLabel: string,
 ): string {
   if (sessions === 0) return `Start practicing ${clusterLabel} questions to build your readiness score.`;
-  if (sessions < 3)   return `${sessions} session${sessions > 1 ? "s" : ""} in — keep going, readiness score unlocks at 3.`;
+  if (sessions < 3)   return `${sessions} session${sessions > 1 ? "s" : ""} in. Keep going, readiness score unlocks at 3.`;
 
   const strengthPart = strength ? `Your ${strength.label.toLowerCase()} is a real asset` : "You're building solid foundations";
-  const gapPart = gap ? `— focus on ${gap.label.toLowerCase()} to unlock your next readiness level` : "";
+  const gapPart = gap ? `. Focus on ${gap.label.toLowerCase()} to unlock your next readiness level` : "";
 
   switch (label) {
     case "not_ready":   return `${strengthPart}. You're in the early stages of ${clusterLabel} prep ${gapPart}.`;

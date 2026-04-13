@@ -737,7 +737,7 @@ async function run() {
   // ---------------------------------------------------------------------------
   // Update user profiles
   // ---------------------------------------------------------------------------
-  await prisma.user.update({ where: { id: marcus.id },  data: { graduationYear: 2026, major: "Finance", targetRole: "Investment Banking Analyst", targetIndustry: "Financial Services", targetRoleKeys: ["investment_banker", "financial_analyst"] } });
+  await prisma.user.update({ where: { id: marcus.id },  data: { graduationYear: 2026, major: "Health Sciences", targetRole: "Registered Nurse", targetIndustry: "Healthcare", targetRoleKeys: ["registered_nurse"] } });
   await prisma.user.update({ where: { id: aaliyah.id }, data: { graduationYear: 2026, major: "Business Administration", targetRole: "Business Analyst", targetIndustry: "Professional Services", targetRoleKeys: ["financial_analyst", "mgmt_consultant"] } });
   await prisma.user.update({ where: { id: diego.id },   data: { graduationYear: 2027, major: "Computer Science", targetRole: "Software Engineer", targetIndustry: "Technology", targetRoleKeys: ["software_engineer"] } });
   await prisma.user.update({ where: { id: sophie.id },  data: { graduationYear: 2026, major: "Psychology", targetRole: "HR Coordinator", targetIndustry: "Hospitality", targetRoleKeys: ["hr_specialist"] } });
@@ -746,8 +746,8 @@ async function run() {
 
   // ==========================================================================
   // 1. MARCUS JOHNSON
-  //    Junior, Finance major. 38 sessions. Hedger -> Polished Performer.
-  //    Targeting IB summer analyst internship. Strong trajectory.
+  //    Junior, Health Sciences major. 38 sessions. Hedger -> Polished Performer.
+  //    Targeting nursing clinical internship. Strong trajectory.
   //    Productivity: excellent - schedules ahead, no missed deadlines.
   // ==========================================================================
   console.log("\nSeeding Marcus Johnson...");
@@ -756,12 +756,12 @@ async function run() {
   await prisma.aptitudeResult.create({
     data: {
       userId: marcus.id, tenantId,
-      primary: "E", secondary: "C",
+      primary: "S", secondary: "I",
       scores: {
-        riasecProfile: "ECF",
-        riasecScores: { R: 18, I: 38, A: 32, S: 55, E: 80, C: 68 },
-        workValues: { achievement: 3, independence: 1, recognition: 2, relationships: 2, support: 0, conditions: 2 },
-        entrepreneurProfile: { riskTolerance: 65, autonomyDrive: 60, executionBias: 72, sideIncomeInterest: 55, overall: 63 },
+        riasecProfile: "SIC",
+        riasecScores: { R: 32, I: 62, A: 28, S: 82, E: 45, C: 50 },
+        workValues: { achievement: 2, independence: 1, recognition: 1, relationships: 3, support: 3, conditions: 2 },
+        entrepreneurProfile: { riskTolerance: 40, autonomyDrive: 50, executionBias: 65, sideIncomeInterest: 35, overall: 45 },
       },
     },
   });
@@ -779,7 +779,7 @@ async function run() {
     data: {
       userId: marcus.id, tenantId,
       employmentStatus: "student",
-      industry: "Financial Services",
+      industry: "Healthcare",
       satisfactionScore: 4,
       graduationYear: 2026,
       monthsSinceGrad: null,
@@ -808,9 +808,9 @@ async function run() {
 
   await prisma.studentSkill.deleteMany({ where: { userId: marcus.id } });
   for (const [skill, category] of [
-    ["Financial Modeling", "analytical"], ["Excel", "technical"], ["Bloomberg Terminal", "technical"],
-    ["Valuation Analysis", "domain"], ["Portfolio Theory", "analytical"], ["Risk Assessment", "analytical"],
-    ["PowerPoint", "technical"], ["Leadership", "leadership"],
+    ["Patient Communication", "interpersonal"], ["Clinical Assessment", "domain"], ["Medical Terminology", "domain"],
+    ["Vital Signs Monitoring", "technical"], ["Electronic Health Records", "technical"], ["Empathy & Active Listening", "interpersonal"],
+    ["Care Planning", "analytical"], ["Leadership", "leadership"],
   ]) {
     await prisma.studentSkill.create({ data: { userId: marcus.id, tenantId, skill, category, confidence: round2(random(0.74, 0.96)), source: "ai_extracted" } });
   }
@@ -818,23 +818,23 @@ async function run() {
   await prisma.interviewActivity.deleteMany({ where: { userId: marcus.id } });
   await prisma.interviewActivity.createMany({
     data: [
-      { userId: marcus.id, tenantId, company: "JPMorgan Chase", role: "Summer Analyst - Investment Banking", industry: "Financial Services", appliedDate: daysAgo(TODAY, 90), interviewDate: daysAgo(TODAY, 72), stage: "phone_screen", outcome: "rejected", notes: "Rejected after HireVue - feedback cited need for stronger technical depth on DCF." },
-      { userId: marcus.id, tenantId, company: "Baird", role: "Investment Banking Summer Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 65), interviewDate: daysAgo(TODAY, 48), stage: "final_round", outcome: "pending", notes: "Final round superday next week. Three behavioral rounds + technical case." },
-      { userId: marcus.id, tenantId, company: "William Blair", role: "Equity Research Summer Analyst", industry: "Financial Services", appliedDate: daysAgo(TODAY, 45), stage: "applied", outcome: "pending", notes: "Applied through Roosevelt career fair connection. Follow-up sent." },
+      { userId: marcus.id, tenantId, company: "Northwestern Medicine", role: "Nursing Clinical Intern", industry: "Healthcare", appliedDate: daysAgo(TODAY, 90), interviewDate: daysAgo(TODAY, 72), stage: "phone_screen", outcome: "rejected", notes: "Rejected after phone screen - feedback cited need for more clinical shadowing hours." },
+      { userId: marcus.id, tenantId, company: "Rush University Medical Center", role: "Nursing Extern - Med/Surg", industry: "Healthcare", appliedDate: daysAgo(TODAY, 65), interviewDate: daysAgo(TODAY, 48), stage: "final_round", outcome: "pending", notes: "Final round panel interview next week. Two behavioral rounds with nurse managers." },
+      { userId: marcus.id, tenantId, company: "Advocate Health", role: "Patient Care Technician Intern", industry: "Healthcare", appliedDate: daysAgo(TODAY, 45), stage: "applied", outcome: "pending", notes: "Applied through Roosevelt nursing program partnership. Follow-up sent to recruiter." },
     ],
   });
 
   // Tasks - Marcus is organized and proactive.
   await prisma.task.deleteMany({ where: { userId: marcus.id } });
   await prisma.task.createMany({ data: [
-    { userId: marcus.id, tenantId, title: "Prep Baird superday - behavioral + DCF walkthrough", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 3), dueDate: daysFromNow(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 5) },
-    { userId: marcus.id, tenantId, title: "Send thank-you note to Baird first-round interviewer", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 4) },
-    { userId: marcus.id, tenantId, title: "Research William Blair recent deals for follow-up call", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 4), dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 6) },
-    { userId: marcus.id, tenantId, title: "Complete finance capstone - merger model deliverable", priority: "high", category: "Academic", scheduledAt: daysAgo(TODAY, 14), dueDate: daysAgo(TODAY, 3), completedAt: daysAgo(TODAY, 4), createdAt: daysAgo(TODAY, 16) },
-    { userId: marcus.id, tenantId, title: "Update LinkedIn with CFA Level 1 enrollment", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 20), dueDate: daysAgo(TODAY, 10), completedAt: daysAgo(TODAY, 11), createdAt: daysAgo(TODAY, 22) },
-    { userId: marcus.id, tenantId, title: "Reach out to Roosevelt alumni at Baird for coffee chat", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 26), dueDate: daysAgo(TODAY, 14), completedAt: daysAgo(TODAY, 14), createdAt: daysAgo(TODAY, 28) },
+    { userId: marcus.id, tenantId, title: "Prep Rush panel interview - behavioral + clinical scenarios", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 3), dueDate: daysFromNow(TODAY, 2), completedAt: null, createdAt: daysAgo(TODAY, 5) },
+    { userId: marcus.id, tenantId, title: "Send thank-you note to Rush first-round nurse manager", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 2), dueDate: daysFromNow(TODAY, 1), completedAt: null, createdAt: daysAgo(TODAY, 4) },
+    { userId: marcus.id, tenantId, title: "Log 8 hours clinical shadowing at Roosevelt student clinic", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 4), dueDate: daysFromNow(TODAY, 3), completedAt: null, createdAt: daysAgo(TODAY, 6) },
+    { userId: marcus.id, tenantId, title: "Complete Pathophysiology midterm study guide", priority: "high", category: "Academic", scheduledAt: daysAgo(TODAY, 14), dueDate: daysAgo(TODAY, 3), completedAt: daysAgo(TODAY, 4), createdAt: daysAgo(TODAY, 16) },
+    { userId: marcus.id, tenantId, title: "Update LinkedIn with clinical rotation experience", priority: "medium", category: "Career", scheduledAt: daysAgo(TODAY, 20), dueDate: daysAgo(TODAY, 10), completedAt: daysAgo(TODAY, 11), createdAt: daysAgo(TODAY, 22) },
+    { userId: marcus.id, tenantId, title: "Connect with Roosevelt nursing alumni at Northwestern Medicine", priority: "high", category: "Career", scheduledAt: daysAgo(TODAY, 26), dueDate: daysAgo(TODAY, 14), completedAt: daysAgo(TODAY, 14), createdAt: daysAgo(TODAY, 28) },
     { userId: marcus.id, tenantId, title: "File FAFSA for next academic year", priority: "high", category: "Finance", scheduledAt: daysAgo(TODAY, 32), dueDate: daysAgo(TODAY, 20), completedAt: daysAgo(TODAY, 21), createdAt: daysAgo(TODAY, 35) },
-    { userId: marcus.id, tenantId, title: "Register for Financial Modeling course - Spring semester", priority: "medium", category: "Academic", scheduledAt: daysAgo(TODAY, 10), dueDate: daysAgo(TODAY, 2), completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 12) },
+    { userId: marcus.id, tenantId, title: "Register for Advanced Clinical Skills lab - Spring semester", priority: "medium", category: "Academic", scheduledAt: daysAgo(TODAY, 10), dueDate: daysAgo(TODAY, 2), completedAt: daysAgo(TODAY, 2), createdAt: daysAgo(TODAY, 12) },
   ]});
   console.log("  Tasks, checklist, career check-in, skills, interview activity seeded.");
 

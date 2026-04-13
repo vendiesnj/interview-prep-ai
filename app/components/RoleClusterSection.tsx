@@ -201,7 +201,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
           )}
 
           {search.length >= 2 && filteredOccupations.length === 0 && (
-            <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "10px 0" }}>No matches — try a different title or industry.</div>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "10px 0" }}>No matches. Try a different title or industry.</div>
           )}
 
           {search.length < 2 && (
@@ -265,7 +265,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                     </svg>
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <span style={{ fontSize: 13, fontWeight: 900, color: r.hasEnoughData ? color : "var(--text-muted)" }}>
-                        {r.hasEnoughData ? `${r.overall}%` : "—"}
+                        {r.hasEnoughData ? `${r.overall}%` : "--"}
                       </span>
                     </div>
                   </div>
