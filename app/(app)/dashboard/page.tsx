@@ -1259,6 +1259,9 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* ── Role Cluster readiness (university) ── */}
+        {isUniversity && <RoleClusterSection accentColor="var(--accent)" />}
+
         {/* ── Onboarding nudge (new users with no activity) ── */}
         {!loading && data && !hasAptitude && !hasAnySessions && (
           <div style={{ marginTop: 12, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>

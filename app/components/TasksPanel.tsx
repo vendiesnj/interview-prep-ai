@@ -22,7 +22,7 @@ type Props = {
 };
 
 const PRIORITY_COLOR = { high: "#EF4444", medium: "#F59E0B", low: "#94A3B8" };
-const PRIORITY_BG    = { high: "#FEF2F2", medium: "#FFFBEB", low: "#F8FAFC" };
+const PRIORITY_BG    = { high: "rgba(239,68,68,0.07)", medium: "rgba(245,158,11,0.07)", low: "rgba(148,163,184,0.05)" };
 
 function todayStr() {
   return new Date().toISOString().split("T")[0];

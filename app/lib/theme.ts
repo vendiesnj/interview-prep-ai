@@ -369,25 +369,25 @@ export const rooseveltTheme: AppTheme = {
   colors: {
     ...defaultTheme.colors,
     pageBg: "#0D1610",
-    pageBgAccentA: "rgba(34,197,94,0.08)",
-    pageBgAccentB: "rgba(34,197,94,0.04)",
+    pageBgAccentA: "rgba(74,222,128,0.07)",
+    pageBgAccentB: "rgba(74,222,128,0.03)",
 
-    accent: "#22C55E",
-    accentSoft: "rgba(34,197,94,0.12)",
-    accentStrong: "rgba(34,197,94,0.28)",
+    accent: "#4ADE80",
+    accentSoft: "rgba(74,222,128,0.10)",
+    accentStrong: "rgba(74,222,128,0.22)",
 
-    accent2: "#16A34A",
-    accent2Soft: "rgba(22,163,74,0.14)",
+    accent2: "#22C55E",
+    accent2Soft: "rgba(34,197,94,0.12)",
 
-    success: "#4ADE80",
-    successSoft: "rgba(74,222,128,0.10)",
+    success: "#86EFAC",
+    successSoft: "rgba(134,239,172,0.10)",
 
-    chartPositive: "#22C55E",
+    chartPositive: "#4ADE80",
   },
   shadows: {
     card: "0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.40)",
     cardSoft: "0 1px 0 rgba(255,255,255,0.04)",
-    glow: "0 8px 24px rgba(34,197,94,0.20)",
+    glow: "0 8px 24px rgba(74,222,128,0.16)",
     none: "none",
   },
 };
