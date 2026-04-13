@@ -1236,6 +1236,7 @@ export default function DashboardPage() {
   const [calAddDate, setCalAddDate] = useState<string | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [checklistKey, setChecklistKey] = useState(0);
+  const [dashView, setDashView]   = useState<"dashboard" | "planner">("dashboard");
   const { data: session } = useSession();
   const isUniversity = useIsUniversity();
 
@@ -1353,7 +1354,7 @@ export default function DashboardPage() {
       <div style={{ maxWidth: 1280, margin: "0 auto", paddingBottom: 80 }}>
 
         {/* ── Header ── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
           <div>
             <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.3 }}>
               {greeting}{firstName ? `, ${firstName}` : ""}.
@@ -1363,19 +1364,29 @@ export default function DashboardPage() {
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            {/* Dashboard / Planner toggle — university only */}
+            {isUniversity && (
+              <div style={{ display: "flex", padding: "3px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+                {(["dashboard", "planner"] as const).map(v => (
+                  <button key={v} type="button" onClick={() => setDashView(v)} style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: dashView === v ? "var(--accent)" : "transparent", color: dashView === v ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer", textTransform: "capitalize", transition: "all 140ms" }}>
+                    {v === "dashboard" ? "Overview" : "Planner"}
+                  </button>
+                ))}
+              </div>
+            )}
             {!loading && isUniversity && signalScore !== null && (
-              <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)" }}>Signal Score</div>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{data?.completeness ?? 0}% complete</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", lineHeight: 1 }}>Signal Score</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{data?.completeness ?? 0}% complete</div>
                 </div>
               </div>
             )}
             <button
               type="button"
               onClick={() => setJourneyOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
             >
               My Journey →
             </button>
@@ -1384,64 +1395,67 @@ export default function DashboardPage() {
 
         {isUniversity && <StreakBanner />}
 
-        {/* ── Quick-access bar (university only) ── */}
-        {isUniversity && <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-          {[
-            { Icon: Mic,         label: "Interview Prep",     href: "/practice",             color: ACCENT_CAREER },
-            { Icon: Target,      label: "Career Assessment",  href: "/aptitude",             color: ACCENT_MINDSET },
-            { Icon: BarChart2,   label: "My Journey",         href: "/my-journey",           color: "#2563EB" },
-            { Icon: FileText,    label: "Resume",             href: "/resume-gap",           color: "#F59E0B" },
-            { Icon: CheckSquare, label: "Career Check-In",    href: "/career-checkin",       color: "#10B981" },
-            { Icon: BookOpen,    label: "Financial Literacy", href: "/financial-literacy",   color: "#8B5CF6" },
-            { Icon: DollarSign,  label: "Budget",             href: "/career-guide/budget",  color: ACCENT_PERSONAL },
-            { Icon: Map,         label: "Career Guide",       href: "/career-guide",         color: "#0EA5E9" },
-            { Icon: Gamepad2,    label: "Games",              href: "/games",                color: ACCENT_MINDSET },
-          ].map(item => (
-            <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 7, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap" }}>
-                <item.Icon size={12} color={item.color} />
-                {item.label}
-              </div>
-            </Link>
-          ))}
-        </div>}
+        {/* ── OVERVIEW VIEW (university) ── */}
+        {isUniversity && dashView === "dashboard" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, marginTop: 12 }}>
 
-        {isUniversity && needsReassessment && (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", marginTop: 10, flexWrap: "wrap" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <RefreshCw size={18} color="#92400E" />
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 900, color: "#92400E" }}>Time to retake your Career Assessment</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Interests shift over time - see if your profile has evolved.</div>
-              </div>
+            {/* Quick actions row */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[
+                { Icon: Mic,      label: "Practice",      href: "/practice",        color: ACCENT_CAREER },
+                { Icon: Users,    label: "Mock Interview", href: "/mock-interview",  color: "#8B5CF6" },
+                { Icon: BarChart2,label: "My Progress",   href: "/progress",        color: "#0EA5E9" },
+                { Icon: FileText, label: "Resume",        href: "/resume-gap",      color: "#F59E0B" },
+                { Icon: Map,      label: "Career Guide",  href: "/career-guide",    color: "#10B981" },
+              ].map(item => (
+                <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 12, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", transition: "border-color 150ms" }}>
+                    <item.Icon size={13} color={item.color} />
+                    {item.label}
+                  </div>
+                </Link>
+              ))}
             </div>
-            <Link href="/aptitude" style={{ padding: "7px 16px", borderRadius: 8, background: "#F59E0B", color: "#fff", fontWeight: 900, fontSize: 12, textDecoration: "none", flexShrink: 0 }}>Retake →</Link>
-          </div>
-        )}
 
-        {/* ── Role Cluster readiness (university) ── */}
-        {isUniversity && <RoleClusterSection accentColor="var(--accent)" />}
-
-        {/* ── Career assessment + last mock interview (university) ── */}
-        {isUniversity && (data?.aptitude || lastMockInterview) && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 14 }}>
-            {data?.aptitude && <CareerAssessmentCard aptitude={data.aptitude} />}
-            {lastMockInterview && <LastMockInterviewCard attempt={lastMockInterview} />}
-          </div>
-        )}
-
-        {/* ── Onboarding nudge (new users with no activity) ── */}
-        {!loading && data && !hasAptitude && !hasAnySessions && (
-          <div style={{ marginTop: 12, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal - let's get you set up</div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                {isUniversity ? "Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan." : "Start with an interview practice session to get your first score and personalized feedback."}
+            {needsReassessment && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <RefreshCw size={16} color="#92400E" />
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#92400E" }}>Time to retake your Career Assessment</div>
+                </div>
+                <Link href="/aptitude" style={{ padding: "6px 14px", borderRadius: 8, background: "#F59E0B", color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none" }}>Retake →</Link>
               </div>
-            </div>
-            <Link href={isUniversity ? "/aptitude" : "/practice"} style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 13, textDecoration: "none", flexShrink: 0, whiteSpace: "nowrap" }}>
-              {isUniversity ? "Take Career Assessment →" : "Start Practicing →"}
-            </Link>
+            )}
+
+            {/* Role cluster readiness */}
+            <RoleClusterSection accentColor="var(--accent)" />
+
+            {/* Career assessment + last mock interview — clickable through to full views */}
+            {(data?.aptitude || lastMockInterview) && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
+                {data?.aptitude && (
+                  <Link href="/aptitude" style={{ textDecoration: "none", color: "inherit" }}>
+                    <CareerAssessmentCard aptitude={data.aptitude} />
+                  </Link>
+                )}
+                {lastMockInterview && (
+                  <Link href="/mock-interview" style={{ textDecoration: "none", color: "inherit" }}>
+                    <LastMockInterviewCard attempt={lastMockInterview} />
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {/* Onboarding nudge */}
+            {!loading && data && !hasAptitude && !hasAnySessions && (
+              <div style={{ padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal — let's get you set up</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan.</div>
+                </div>
+                <Link href="/aptitude" style={{ padding: "8px 18px", borderRadius: 9, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap" }}>Take Career Assessment →</Link>
+              </div>
+            )}
           </div>
         )}
 
@@ -1530,8 +1544,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Primary: Calendar + Tasks/Habits/Goals (university only) ── */}
-        {isUniversity && <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
+        {/* ── PLANNER VIEW: Calendar + Tasks/Habits/Goals (university only) ── */}
+        {isUniversity && dashView === "planner" && <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
 
           {/* Calendar */}
           <div>
