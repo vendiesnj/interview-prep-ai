@@ -1173,7 +1173,7 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 40, fontWeight: 900, color, lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: 40, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{score}</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>/100</div>
         </div>
         <div>
@@ -1208,15 +1208,12 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
       {qBreakdowns.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Questions</div>
-          {qBreakdowns.map((qb, i) => {
-            const qc = qb.score >= 70 ? "#10B981" : qb.score >= 50 ? "#F59E0B" : "#EF4444";
-            return (
-              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 900, color: qc, minWidth: 24 }}>{qb.score}</span>
-                <span style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.question.slice(0, 70)}{qb.question.length > 70 ? "..." : ""}</span>
-              </div>
-            );
-          })}
+          {qBreakdowns.map((qb, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", minWidth: 24 }}>{qb.score}</span>
+              <span style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.question.slice(0, 70)}{qb.question.length > 70 ? "..." : ""}</span>
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -1229,7 +1226,7 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
   const totalSessions = (data.speaking.interview.count ?? 0) + (lastMockInterview ? 1 : 0);
   const avgScore = data.speaking.interview.avgScore;
   const signalScore = data.signalScore;
-  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 60 ? "#10B981" : signalScore >= 35 ? "#F59E0B" : "#EF4444";
+  const signalColor = signalScore === null ? "var(--text-muted)" : "var(--accent)";
 
   const topNace = data.naceScores
     .filter(n => n.score !== null)
@@ -1276,16 +1273,16 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {topNace && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "rgba(16,185,129,0.12)", color: "#10B981" }}>TOP</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>TOP</span>
               <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, fontWeight: 500 }}>{topNace.shortLabel}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>{topNace.score}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{topNace.score}</span>
             </div>
           )}
           {weakNace && weakNace.key !== topNace?.key && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "rgba(245,158,11,0.12)", color: "#F59E0B" }}>FOCUS</span>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>FOCUS</span>
               <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, fontWeight: 500 }}>{weakNace.shortLabel}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#F59E0B" }}>{weakNace.score}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{weakNace.score}</span>
             </div>
           )}
         </div>
@@ -1369,7 +1366,7 @@ export default function DashboardPage() {
   const totalSessions = data ? data.speaking.interview.count + data.speaking.networking.count + data.speaking.publicSpeaking.count : null;
 
   const signalScore = data?.signalScore ?? null;
-  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 60 ? "#10B981" : signalScore >= 35 ? "#F59E0B" : "#EF4444";
+  const signalColor = signalScore === null ? "var(--text-muted)" : "var(--accent)";
 
   const hour    = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -1451,15 +1448,6 @@ export default function DashboardPage() {
                     {v === "dashboard" ? "Overview" : "Planner"}
                   </button>
                 ))}
-              </div>
-            )}
-            {!loading && isUniversity && signalScore !== null && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <div style={{ fontSize: 20, fontWeight: 700, color: signalColor, lineHeight: 1 }}>{signalScore}</div>
-                <div>
-                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", lineHeight: 1 }}>Signal Score</div>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{data?.completeness ?? 0}% complete</div>
-                </div>
               </div>
             )}
             <button
