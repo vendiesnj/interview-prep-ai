@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PremiumShell from "@/app/components/PremiumShell";
@@ -541,6 +541,14 @@ function ResultsFromStored({ riasecScores, workValues, entrepreneurProfile: ep }
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
 export default function AptitudePage() {
+  return (
+    <Suspense fallback={<PremiumShell><div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)", fontSize: 15 }}>Loading…</div></PremiumShell>}>
+      <AptitudePageInner />
+    </Suspense>
+  );
+}
+
+function AptitudePageInner() {
   const searchParams = useSearchParams();
   const viewResults = searchParams.get("view") === "results";
 

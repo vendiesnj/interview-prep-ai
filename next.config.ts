@@ -1,8 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // Canonical: redirect www → non-www
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.signalhq.us" }],
+        destination: "https://signalhq.us/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
+      // Security headers on all routes
       {
         source: "/:path*",
         headers: [
@@ -20,6 +33,36 @@ const nextConfig: NextConfig = {
                 },
               ]
             : []),
+        ],
+      },
+      // Long-lived cache for immutable Next.js static chunks
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      // Cache OG/Twitter images for 1 hour (short enough to update, long enough to serve fast)
+      {
+        source: "/(opengraph-image|twitter-image)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      // Cache sitemap + robots for 24 hours
+      {
+        source: "/(sitemap.xml|robots.txt)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
         ],
       },
     ];

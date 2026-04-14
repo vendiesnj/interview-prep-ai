@@ -11,10 +11,33 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
 
 export const metadata: Metadata = {
-  title: "Signal HQ | AI Interview Practice & Career Coaching",
+  title: {
+    default: "Signal HQ | AI Interview Practice & Career Coaching",
+    template: "%s | Signal HQ",
+  },
   description:
     "Practice interviews with AI-powered feedback. Get STAR breakdown scoring, communication analysis, and personalized improvement tips to ace your next interview.",
   metadataBase: new URL("https://signalhq.us"),
+  keywords: [
+    "AI interview practice",
+    "mock interview",
+    "interview coaching",
+    "career coaching",
+    "STAR method",
+    "communication skills",
+    "job interview prep",
+    "interview feedback",
+    "AI career tools",
+    "interview analysis",
+    "soft skills training",
+    "interview confidence",
+  ],
+  authors: [{ name: "Signal HQ", url: "https://signalhq.us" }],
+  creator: "Signal HQ",
+  publisher: "Signal HQ",
+  alternates: {
+    canonical: "https://signalhq.us",
+  },
   openGraph: {
     title: "Signal HQ | AI Interview Practice & Career Coaching",
     description:
@@ -22,6 +45,39 @@ export const metadata: Metadata = {
     url: "https://signalhq.us",
     siteName: "Signal HQ",
     type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "Signal HQ — AI Interview Practice & Career Coaching",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@signalhq",
+    creator: "@signalhq",
+    title: "Signal HQ | AI Interview Practice & Career Coaching",
+    description:
+      "AI-powered mock interview practice with STAR scoring, communication analysis, and personalized feedback.",
+    images: ["/twitter-image"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Add your Google Search Console verification token here when available
+    // google: "your-verification-token",
   },
 };
 

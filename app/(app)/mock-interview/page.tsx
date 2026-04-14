@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
@@ -710,6 +710,14 @@ function ResultsScreen({
 // ── Main Interview Page ───────────────────────────────────────────────────────
 
 export default function MockInterviewPage() {
+  return (
+    <Suspense fallback={<PremiumShell title="Mock Interview"><div style={{ textAlign: "center", padding: "80px 20px", color: "var(--text-muted)", fontSize: 15 }}>Loading…</div></PremiumShell>}>
+      <MockInterviewPageInner />
+    </Suspense>
+  );
+}
+
+function MockInterviewPageInner() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
 

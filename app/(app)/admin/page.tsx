@@ -803,6 +803,7 @@ export default async function AdminPage({
       major: true,
       targetRole: true,
       targetIndustry: true,
+      targetRoleKeys: true,
       createdAt: true,
     },
     orderBy: {
@@ -1073,6 +1074,7 @@ export default async function AdminPage({
       major: user.major,
       targetRole: user.targetRole,
       targetIndustry: user.targetIndustry,
+      targetRoleKeys: (user.targetRoleKeys as string[] | null) ?? [],
       attempts: userAttempts.length,
       avgScore: userScore,
       avgScore100: userScore100,
@@ -1395,6 +1397,56 @@ export default async function AdminPage({
     })
     .sort((a, b) => (b.fitScore ?? -1) - (a.fitScore ?? -1))
     .slice(0, 5);
+
+  // ── Target role practice map (uses targetRole from user profile + mock interview questions) ──
+  const targetRolePracticeMap = new Map<string, {
+    label: string;
+    studentIds: Set<string>;
+    totalAttempts: number;
+    mockInterviewCount: number;
+    avgScore: number | null;
+    dimScores: Record<string, number[]>;
+  }>();
+
+  // Bucket by targetRole from user profile
+  for (const s of filteredStudents) {
+    if (!s.targetRole) continue;
+    if (!targetRolePracticeMap.has(s.targetRole)) {
+      targetRolePracticeMap.set(s.targetRole, { label: s.targetRole, studentIds: new Set(), totalAttempts: 0, mockInterviewCount: 0, avgScore: null, dimScores: {} });
+    }
+    targetRolePracticeMap.get(s.targetRole)!.studentIds.add(s.id);
+  }
+
+  // Add attempt counts + dimension scores per target role
+  for (const a of filteredAttempts) {
+    const student = filteredStudents.find((s) => s.id === a.userId);
+    if (!student?.targetRole) continue;
+    const entry = targetRolePracticeMap.get(student.targetRole);
+    if (!entry) continue;
+    entry.totalAttempts++;
+    if (a.evaluationFramework === "mock_interview") entry.mockInterviewCount++;
+    const dims = (a.feedback as any)?.dimension_scores;
+    if (dims) {
+      for (const key of ["narrative_clarity","evidence_quality","ownership_agency","response_control","cognitive_depth","presence_confidence","vocal_engagement"]) {
+        const v = typeof dims[key]?.score === "number" ? dims[key].score : null;
+        if (v !== null) {
+          if (!entry.dimScores[key]) entry.dimScores[key] = [];
+          entry.dimScores[key].push(v);
+        }
+      }
+    }
+  }
+
+  // Compute avg scores
+  for (const entry of targetRolePracticeMap.values()) {
+    const allScores = filteredAttempts
+      .filter((a) => filteredStudents.find((s) => s.id === a.userId)?.targetRole === entry.label)
+      .map(getAttemptScore).filter((v): v is number => v !== null);
+    entry.avgScore = allScores.length > 0 ? round1(avg(allScores)) : null;
+  }
+
+  const targetRolePracticeRows = Array.from(targetRolePracticeMap.values())
+    .sort((a, b) => b.totalAttempts - a.totalAttempts);
 
   const spokenRate =
     totalAttempts > 0 ? Math.round((spokenAttempts.length / totalAttempts) * 100) : 0;
@@ -1902,25 +1954,38 @@ const activeThisWeek = filteredAttempts.filter(
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
                 {/* Top roles */}
                 <Panel eyebrow="Target Roles" title="Most Practiced Roles">
-                  {roleRows.length === 0 ? (
-                    <div style={{ fontSize: 13, color: "var(--text-muted)" }}>No role-specific data yet.</div>
+                  {targetRolePracticeRows.length === 0 ? (
+                    <div style={{ fontSize: 13, color: "var(--text-muted)" }}>No target roles set yet. Students can set a target role in their profile.</div>
                   ) : (
                     <div style={{ display: "grid", gap: 8 }}>
-                      {roleRows.map((r) => (
-                        <div key={r.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
-                              {r.company && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{r.company}</div>}
-                            </div>
-                            <div style={{ textAlign: "right", flexShrink: 0, marginLeft: 10 }}>
-                              <div style={{ fontSize: 14, fontWeight: 700, color: (r.fitScore ?? 0) >= 7.5 ? "var(--chart-positive)" : (r.fitScore ?? 0) >= 6 ? "#F59E0B" : "var(--chart-critical)" }}>{r.fitScore != null ? r.fitScore.toFixed(1) : "—"}</div>
-                              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>fit score</div>
+                      {targetRolePracticeRows.map((r) => {
+                        const scoreColor = r.avgScore !== null ? (r.avgScore >= 70 ? "var(--chart-positive)" : r.avgScore >= 50 ? "#F59E0B" : "var(--chart-critical)") : "var(--text-muted)";
+                        const weakestDim = Object.entries(r.dimScores)
+                          .map(([k, vals]) => ({ k, avg: vals.reduce((a,b)=>a+b,0)/vals.length }))
+                          .sort((a,b) => a.avg - b.avg)[0] ?? null;
+                        const dimLabel: Record<string, string> = {
+                          narrative_clarity:"Narrative Clarity", evidence_quality:"Evidence Quality", ownership_agency:"Ownership & Agency",
+                          response_control:"Response Control", cognitive_depth:"Cognitive Depth", presence_confidence:"Presence & Confidence", vocal_engagement:"Vocal Engagement",
+                        };
+                        return (
+                          <div key={r.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                              <div style={{ minWidth: 0, flex: 1 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
+                                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                                  {r.studentIds.size} student{r.studentIds.size !== 1 ? "s" : ""} · {r.totalAttempts} session{r.totalAttempts !== 1 ? "s" : ""}
+                                  {r.mockInterviewCount > 0 && <span style={{ marginLeft: 6, color: "var(--accent)" }}>· {r.mockInterviewCount} mock interview{r.mockInterviewCount !== 1 ? "s" : ""}</span>}
+                                </div>
+                                {weakestDim && <div style={{ fontSize: 10, color: "var(--chart-critical)", marginTop: 3 }}>Gap: {dimLabel[weakestDim.k] ?? weakestDim.k} ({weakestDim.avg.toFixed(1)}/10)</div>}
+                              </div>
+                              <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                <div style={{ fontSize: 14, fontWeight: 700, color: scoreColor }}>{r.avgScore !== null ? Math.round(r.avgScore) : "—"}</div>
+                                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>avg score</div>
+                              </div>
                             </div>
                           </div>
-                          {r.gaps.length > 0 && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6, lineHeight: 1.5 }}>Gap: {r.gaps.join(", ")}</div>}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </Panel>
@@ -2991,47 +3056,86 @@ const activeThisWeek = filteredAttempts.filter(
         {/* ── JOBS TAB ─────────────────────────────────────────────────── */}
         {activeTab === "jobs" && (
           <div style={{ display: "grid", gap: 18 }}>
-            {(() => {
-              const roleList = Array.from(roleGroups.values())
-                .map((g) => ({
-                  label: g.label,
-                  company: g.company,
-                  roleType: g.roleType,
-                  studentCount: new Set(g.attempts.map((a) => a.userId)).size,
-                  attemptCount: g.attempts.length,
-                }))
-                .sort((a, b) => b.attemptCount - a.attemptCount)
-                .slice(0, 6);
 
-              return (
-                <Panel eyebrow="Targeting" title="Job Profile Targeting">
-                  {roleList.length === 0 ? (
-                    <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
-                      No job profiles in use yet. Students can select a target role when practicing.
-                    </div>
-                  ) : (
-                    <div style={{ display: "grid", gap: 8 }}>
-                      {roleList.map((r) => (
-                        <div key={r.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                          <div style={{ minWidth: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.label}</div>
-                            {(r.company || r.roleType) && (
-                              <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>
-                                {[r.company, r.roleType].filter(Boolean).join(" · ")}
-                              </div>
-                            )}
+            {/* Target role summary cards */}
+            <Panel eyebrow="Student Role Targets" title="What Roles Are Students Preparing For?">
+              {targetRolePracticeRows.length === 0 ? (
+                <div style={{ padding: "20px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 13 }}>
+                  No target roles set yet.
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 12 }}>
+                  {targetRolePracticeRows.map((r) => {
+                    const scoreColor = r.avgScore !== null ? (r.avgScore >= 70 ? "var(--chart-positive)" : r.avgScore >= 50 ? "#F59E0B" : "var(--chart-critical)") : "var(--text-muted)";
+                    const dimLabel: Record<string, string> = {
+                      narrative_clarity:"Narrative Clarity", evidence_quality:"Evidence Quality", ownership_agency:"Ownership & Agency",
+                      response_control:"Response Control", cognitive_depth:"Cognitive Depth", presence_confidence:"Presence & Confidence", vocal_engagement:"Vocal Engagement",
+                    };
+                    const dimRows = Object.entries(r.dimScores)
+                      .map(([k, vals]) => ({ key: k, label: dimLabel[k] ?? k, avg: round1(vals.reduce((a,b)=>a+b,0)/vals.length) }))
+                      .sort((a,b) => (a.avg ?? 0) - (b.avg ?? 0));
+                    return (
+                      <div key={r.label} style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: dimRows.length > 0 ? 12 : 0 }}>
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>{r.label}</div>
+                            <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.studentIds.size} student{r.studentIds.size !== 1 ? "s" : ""}</span>
+                              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.totalAttempts} practice session{r.totalAttempts !== 1 ? "s" : ""}</span>
+                              {r.mockInterviewCount > 0 && <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700 }}>{r.mockInterviewCount} mock interview{r.mockInterviewCount !== 1 ? "s" : ""}</span>}
+                            </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{r.studentCount} student{r.studentCount !== 1 ? "s" : ""}</div>
-                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>{r.attemptCount} attempt{r.attemptCount !== 1 ? "s" : ""}</div>
+                            <div style={{ fontSize: 22, fontWeight: 900, color: scoreColor, lineHeight: 1 }}>{r.avgScore !== null ? Math.round(r.avgScore) : "—"}</div>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>avg score /100</div>
                           </div>
                         </div>
-                      ))}
+                        {dimRows.length > 0 && (
+                          <div style={{ display: "grid", gap: 5 }}>
+                            {dimRows.map((d) => {
+                              const dColor = (d.avg ?? 0) >= 7.5 ? "var(--chart-positive)" : (d.avg ?? 0) >= 5.5 ? "#F59E0B" : "var(--chart-critical)";
+                              return (
+                                <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                  <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 140 }}>{d.label}</span>
+                                  <div style={{ flex: 1, height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                    <div style={{ height: "100%", width: `${((d.avg ?? 0) / 10) * 100}%`, background: dColor, borderRadius: 99 }} />
+                                  </div>
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: dColor, minWidth: 28, textAlign: "right" }}>{d.avg ?? "—"}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </Panel>
+
+            {/* Per-student role targeting table */}
+            <Panel eyebrow="Per-Student" title="Role Targets by Student">
+              <div style={{ display: "grid", gap: 6 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px 80px", gap: 10, padding: "0 10px 6px", fontSize: 10, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", borderBottom: "1px solid var(--card-border-soft)" }}>
+                  <div>Student</div><div>Target Role</div><div>Industry</div><div>Sessions</div><div>Avg</div>
+                </div>
+                {filteredStudents.map((s) => {
+                  const scoreColor = s.avgScore100 !== null ? (s.avgScore100 >= 70 ? "var(--chart-positive)" : s.avgScore100 >= 50 ? "#F59E0B" : "var(--chart-critical)") : "var(--text-muted)";
+                  return (
+                    <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px 80px", gap: 10, padding: "10px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{s.name}</div>
+                        {s.major && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{s.major}</div>}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 500 }}>{s.targetRole ?? <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Not set</span>}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{s.targetIndustry ?? "—"}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{s.attempts}</div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: scoreColor }}>{s.avgScore100 ?? "—"}</div>
                     </div>
-                  )}
-                </Panel>
-              );
-            })()}
+                  );
+                })}
+              </div>
+            </Panel>
           </div>
         )}
 

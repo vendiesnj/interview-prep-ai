@@ -115,8 +115,10 @@ export default function LandingPage() {
         </div>
       </nav>
 
+      <main>
+
       {/* ── Hero ── */}
-      <section style={{
+      <section aria-label="Hero" style={{
         minHeight: "100vh",
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
@@ -138,7 +140,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Problem ── */}
-      <section style={{ padding: "100px 24px", maxWidth: 760, margin: "0 auto" }}>
+      <section aria-label="The Problem with Interview Feedback" style={{ padding: "100px 24px", maxWidth: 760, margin: "0 auto" }}>
         <Fade>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 24px", color: "#fff" }}>
             Interview feedback is almost always wrong.
@@ -159,7 +161,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Dimensions ── */}
-      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <section aria-label="Seven Communication Dimensions" style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
 
           <div>
@@ -201,7 +203,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Archetype ── */}
-      <section style={{ padding: "100px 24px" }}>
+      <section aria-label="Communication Archetypes" style={{ padding: "100px 24px" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
 
           <div ref={arch.ref}>
@@ -269,7 +271,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Vocal ── */}
-      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <section aria-label="Vocal Delivery Analysis" style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start", marginBottom: 48 }}>
@@ -338,7 +340,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Visual Intelligence ── */}
-      <section style={{ padding: "100px 24px" }}>
+      <section aria-label="Visual Intelligence" style={{ padding: "100px 24px" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
 
@@ -396,7 +398,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── IBM language analytics ── */}
-      <section style={{ padding: "100px 24px" }}>
+      <section aria-label="Language Analytics" style={{ padding: "100px 24px" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "60px 80px", alignItems: "start" }}>
             <div>
@@ -449,7 +451,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Tools ── */}
-      <section style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <section aria-label="Career Tools" style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1080, margin: "0 auto" }}>
           <Fade>
             <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 40px", maxWidth: 560 }}>
@@ -513,7 +515,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section style={{ padding: "120px 24px", textAlign: "center" }}>
+      <section aria-label="Get Started" style={{ padding: "120px 24px", textAlign: "center" }}>
         <Fade>
           <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 700, letterSpacing: -0.2, margin: "0 0 16px", lineHeight: 1.25 }}>
             Three sessions free. No card required.
@@ -547,6 +549,8 @@ export default function LandingPage() {
           </div>
         </Fade>
       </section>
+
+      </main>
 
       {/* ── Footer ── */}
       <footer style={{

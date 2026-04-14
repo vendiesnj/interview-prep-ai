@@ -1096,7 +1096,7 @@ function CareerAssessmentCard({ aptitude }: { aptitude: NonNullable<SignalData["
   const maxScore = Math.max(...topDims.map(d => d[1]), 1);
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px" }}>
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Brain size={15} color="var(--accent)" />
@@ -1162,7 +1162,7 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
     : [];
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px" }}>
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Users size={15} color="var(--accent)" />
@@ -1218,6 +1218,85 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
             );
           })}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ── Practice Stats Card ───────────────────────────────────────────────────────
+
+function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; lastMockInterview: any | null }) {
+  const totalSessions = (data.speaking.interview.count ?? 0) + (lastMockInterview ? 1 : 0);
+  const avgScore = data.speaking.interview.avgScore;
+  const signalScore = data.signalScore;
+  const signalColor = signalScore === null ? "var(--text-muted)" : signalScore >= 60 ? "#10B981" : signalScore >= 35 ? "#F59E0B" : "#EF4444";
+
+  const topNace = data.naceScores
+    .filter(n => n.score !== null)
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))[0] ?? null;
+
+  const weakNace = data.naceScores
+    .filter(n => n.score !== null)
+    .sort((a, b) => (a.score ?? 0) - (b.score ?? 0))[0] ?? null;
+
+  const next = data.nextAction;
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <BarChart2 size={15} color="var(--accent)" />
+          <span style={{ fontSize: 13, fontWeight: 700 }}>Practice Stats</span>
+        </div>
+        <Link href="/progress" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>View all →</Link>
+      </div>
+
+      {/* Signal score + session count */}
+      <div style={{ display: "flex", gap: 10 }}>
+        <div style={{ flex: 1, padding: "10px 12px", borderRadius: 10, background: "var(--card-bg-strong)", textAlign: "center" }}>
+          <div style={{ fontSize: 26, fontWeight: 900, color: signalColor, lineHeight: 1 }}>
+            {signalScore !== null ? signalScore : "—"}
+          </div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Signal Score</div>
+        </div>
+        <div style={{ flex: 1, padding: "10px 12px", borderRadius: 10, background: "var(--card-bg-strong)", textAlign: "center" }}>
+          <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{totalSessions}</div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Sessions</div>
+        </div>
+        {avgScore !== null && (
+          <div style={{ flex: 1, padding: "10px 12px", borderRadius: 10, background: "var(--card-bg-strong)", textAlign: "center" }}>
+            <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{avgScore}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Avg Score</div>
+          </div>
+        )}
+      </div>
+
+      {/* Strength + gap */}
+      {(topNace || weakNace) && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {topNace && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "rgba(16,185,129,0.12)", color: "#10B981" }}>TOP</span>
+              <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, fontWeight: 500 }}>{topNace.shortLabel}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>{topNace.score}</span>
+            </div>
+          )}
+          {weakNace && weakNace.key !== topNace?.key && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "rgba(245,158,11,0.12)", color: "#F59E0B" }}>FOCUS</span>
+              <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, fontWeight: 500 }}>{weakNace.shortLabel}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#F59E0B" }}>{weakNace.score}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Next action */}
+      {next && (
+        <Link href={next.href} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 9, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", textDecoration: "none" }}>
+          <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{next.label}</span>
+          <span style={{ fontSize: 14, color: "var(--accent)" }}>→</span>
+        </Link>
       )}
     </div>
   );
@@ -1430,19 +1509,32 @@ export default function DashboardPage() {
             {/* Role cluster readiness */}
             <RoleClusterSection accentColor="var(--accent)" />
 
-            {/* Career assessment + last mock interview — clickable through to full views */}
-            {(data?.aptitude || lastMockInterview) && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
-                {data?.aptitude && (
-                  <Link href="/aptitude?view=results" style={{ textDecoration: "none", color: "inherit" }}>
+            {/* Career assessment + last mock interview + practice stats */}
+            {(data?.aptitude || lastMockInterview || data) && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, alignItems: "stretch" }}>
+                {data?.aptitude ? (
+                  <Link href="/aptitude?view=results" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column" }}>
                     <CareerAssessmentCard aptitude={data.aptitude} />
                   </Link>
+                ) : (
+                  <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "18px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 140 }}>
+                    <Brain size={22} color="var(--text-muted)" />
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", textAlign: "center" }}>Career Assessment</div>
+                    <Link href="/aptitude" style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>Take assessment →</Link>
+                  </div>
                 )}
-                {lastMockInterview && (
-                  <Link href="/mock-interview?view=results" style={{ textDecoration: "none", color: "inherit" }}>
+                {lastMockInterview ? (
+                  <Link href="/mock-interview?view=results" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column" }}>
                     <LastMockInterviewCard attempt={lastMockInterview} />
                   </Link>
+                ) : (
+                  <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 14, padding: "18px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 10, minHeight: 140 }}>
+                    <Users size={22} color="var(--text-muted)" />
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)", textAlign: "center" }}>No mock interview yet</div>
+                    <Link href="/mock-interview" style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, textDecoration: "none" }}>Start interview →</Link>
+                  </div>
                 )}
+                {data && <PracticeStatsCard data={data} lastMockInterview={lastMockInterview} />}
               </div>
             )}
 
