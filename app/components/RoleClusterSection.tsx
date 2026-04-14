@@ -1,10 +1,39 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Search, Plus, X, ChevronRight, Zap, TrendingUp, Target, DollarSign } from "lucide-react";
 import OCCUPATIONS from "@/app/lib/onet-occupations";
 import { ROLE_CLUSTERS } from "@/app/lib/roleClusters";
+
+interface OnetResult {
+  code: string;
+  title: string;
+  slug: string;
+  brightOutlook: boolean;
+}
+
+const LABELS_KEY = "onet_role_labels";
+
+function getRoleLabels(): Record<string, string> {
+  if (typeof window === "undefined") return {};
+  try { return JSON.parse(localStorage.getItem(LABELS_KEY) ?? "{}"); } catch { return {}; }
+}
+
+function saveRoleLabel(slug: string, title: string) {
+  if (typeof window === "undefined") return;
+  const labels = getRoleLabels();
+  labels[slug] = title;
+  localStorage.setItem(LABELS_KEY, JSON.stringify(labels));
+}
+
+function getRoleDisplayTitle(key: string): string {
+  const staticOcc = OCCUPATIONS.find((o) => o.id === key);
+  if (staticOcc) return staticOcc.title;
+  const labels = getRoleLabels();
+  if (labels[key]) return labels[key];
+  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
 
 interface CompetencyScore {
   key: string;
@@ -60,6 +89,11 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [expandedCluster, setExpandedCluster] = useState<string | null>(null);
+  const [onetResults, setOnetResults] = useState<OnetResult[]>([]);
+  const [onetTotal, setOnetTotal] = useState<number>(0);
+  const [onetSearching, setOnetSearching] = useState(false);
+  const [onetError, setOnetError] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -73,20 +107,46 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // Debounced O*NET search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (search.length < 2) {
+      setOnetResults([]);
+      setOnetTotal(0);
+      setOnetError(null);
+      return;
+    }
+    debounceRef.current = setTimeout(async () => {
+      setOnetSearching(true);
+      setOnetError(null);
+      try {
+        const res = await fetch(`/api/onet/search?q=${encodeURIComponent(search)}&end=20`);
+        const json = await res.json();
+        if (!res.ok) {
+          setOnetError(json.error ?? "Search failed");
+          setOnetResults([]);
+        } else {
+          setOnetResults(json.occupations ?? []);
+          setOnetTotal(json.total ?? 0);
+        }
+      } catch {
+        setOnetError("Could not reach search service");
+        setOnetResults([]);
+      } finally {
+        setOnetSearching(false);
+      }
+    }, 350);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [search]);
+
   const targetRoleKeys = data?.targetRoleKeys ?? [];
 
-  const filteredOccupations = search.length >= 2
-    ? OCCUPATIONS.filter((o) =>
-        o.title.toLowerCase().includes(search.toLowerCase()) ||
-        o.category.toLowerCase().includes(search.toLowerCase())
-      ).slice(0, 12)
-    : [];
-
-  async function toggleRole(roleKey: string) {
+  async function toggleRole(roleKey: string, displayTitle?: string) {
     const current = targetRoleKeys;
     const next = current.includes(roleKey)
       ? current.filter((k) => k !== roleKey)
       : [...current, roleKey].slice(0, 8);
+    if (displayTitle) saveRoleLabel(roleKey, displayTitle);
     setSaving(true);
     await fetch("/api/cluster-readiness", {
       method: "PATCH",
@@ -95,7 +155,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
     });
     // Trigger competency map generation for new role
     if (!current.includes(roleKey)) {
-      fetch(`/api/role-competency?roleKey=${roleKey}`).catch(() => {});
+      fetch(`/api/role-competency?roleKey=${encodeURIComponent(roleKey)}`).catch(() => {});
     }
     await fetchData();
     setSaving(false);
@@ -146,7 +206,12 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
       {showRolePicker && (
         <div style={{ marginBottom: 20, padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
-            Search 200+ roles from the O*NET database
+            Search 900+ careers from the O*NET database
+            {onetTotal > 0 && search.length >= 2 && (
+              <span style={{ fontWeight: 500, color: "var(--text-muted)", marginLeft: 8 }}>
+                — {onetTotal.toLocaleString()} matches
+              </span>
+            )}
           </div>
           <div style={{ position: "relative", marginBottom: 12 }}>
             <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
@@ -161,35 +226,47 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
           {/* Current target roles */}
           {targetRoleKeys.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-              {targetRoleKeys.map((key) => {
-                const occ = OCCUPATIONS.find((o) => o.id === key);
-                return (
-                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: "var(--radius-sm)", background: `${accentColor}15`, border: `1px solid ${accentColor}35`, fontSize: 12, fontWeight: 600, color: accentColor }}>
-                    {occ?.title ?? key}
-                    <button onClick={() => toggleRole(key)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: accentColor, display: "flex", alignItems: "center" }}>
-                      <X size={12} />
-                    </button>
-                  </div>
-                );
-              })}
+              {targetRoleKeys.map((key) => (
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: "var(--radius-sm)", background: `${accentColor}15`, border: `1px solid ${accentColor}35`, fontSize: 12, fontWeight: 600, color: accentColor }}>
+                  {getRoleDisplayTitle(key)}
+                  <button onClick={() => toggleRole(key)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: accentColor, display: "flex", alignItems: "center" }}>
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
           {/* Search results */}
-          {filteredOccupations.length > 0 && (
+          {onetSearching && search.length >= 2 && (
+            <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "10px 0" }}>Searching…</div>
+          )}
+
+          {!onetSearching && onetError && (
+            <div style={{ fontSize: 13, color: "#EF4444", padding: "10px 0" }}>{onetError}</div>
+          )}
+
+          {!onetSearching && !onetError && onetResults.length > 0 && (
             <div style={{ display: "grid", gap: 6 }}>
-              {filteredOccupations.map((occ) => {
-                const isAdded = targetRoleKeys.includes(occ.id);
+              {onetResults.map((occ) => {
+                const isAdded = targetRoleKeys.includes(occ.slug);
                 return (
                   <button
-                    key={occ.id}
-                    onClick={() => toggleRole(occ.id)}
+                    key={occ.code}
+                    onClick={() => toggleRole(occ.slug, occ.title)}
                     disabled={saving}
                     style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--radius-md)", border: `1px solid ${isAdded ? accentColor + "40" : "var(--card-border)"}`, background: isAdded ? `${accentColor}10` : "transparent", cursor: "pointer", textAlign: "left" }}
                   >
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{occ.title}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{occ.category} · ${occ.salary[0]}k–${occ.salary[1]}k</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                        {occ.title}
+                        {occ.brightOutlook && (
+                          <span style={{ marginLeft: 6, fontSize: 10, fontWeight: 700, color: "#22C55E", background: "rgba(34,197,94,0.1)", padding: "1px 5px", borderRadius: "var(--radius-xs)" }}>
+                            ★ Bright Outlook
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>O*NET {occ.code}</div>
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: isAdded ? accentColor : "var(--text-muted)" }}>
                       {isAdded ? "Added ✓" : "+ Add"}
@@ -200,7 +277,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
             </div>
           )}
 
-          {search.length >= 2 && filteredOccupations.length === 0 && (
+          {!onetSearching && !onetError && search.length >= 2 && onetResults.length === 0 && (
             <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "10px 0" }}>No matches. Try a different title or industry.</div>
           )}
 
@@ -369,14 +446,11 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                             Your Target Roles
                           </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                            {cluster.targetRoles.map((key) => {
-                              const occ = OCCUPATIONS.find((o) => o.id === key);
-                              return (
-                                <span key={key} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: "var(--radius-sm)", background: `${accentColor}12`, border: `1px solid ${accentColor}30`, color: accentColor }}>
-                                  {occ?.title ?? key}
-                                </span>
-                              );
-                            })}
+                            {cluster.targetRoles.map((key) => (
+                              <span key={key} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: "var(--radius-sm)", background: `${accentColor}12`, border: `1px solid ${accentColor}30`, color: accentColor }}>
+                                {getRoleDisplayTitle(key)}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       )}

@@ -2869,7 +2869,7 @@ const activeThisWeek = filteredAttempts.filter(
                   />
                   <MiniBar
                     label="Energy Variation"
-                    value={avgEnergyVariation !== null ? Math.round(avgEnergyVariation * 10) : null}
+                    value={avgEnergyVariation !== null ? Math.round(avgEnergyVariation * 10) / 10 : null}
                     max={10}
                     suffix="/10"
                     optimalMin={4}
