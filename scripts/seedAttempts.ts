@@ -74,12 +74,12 @@ const PERSONAS: PersonaSeed[] = [
     // Voice: high-pitched, starts flat and rushed, gains expressiveness over time
     key: "struggling_improver",
     label: "Struggling but improving",
-    overallStart: 52,        overallEnd: 76,
-    communicationStart: 5.1, communicationEnd: 7.4,
-    confidenceStart: 4.9,   confidenceEnd: 7.2,
-    fillersStart: 4.8,       fillersEnd: 2.0,
+    overallStart: 34,        overallEnd: 68,
+    communicationStart: 3.8, communicationEnd: 7.0,
+    confidenceStart: 3.5,   confidenceEnd: 6.8,
+    fillersStart: 5.8,       fillersEnd: 2.0,
     wpmStart: 98,            wpmEnd: 128,
-    closingStart: 4.8,       closingEnd: 7.2,
+    closingStart: 3.2,       closingEnd: 6.8,
     volatility: 3.4,
     // Acoustic: starts very monotone and low energy, improves significantly
     monotoneStart: 7.8,      monotoneEnd: 4.8,
@@ -96,12 +96,12 @@ const PERSONAS: PersonaSeed[] = [
     // Voice: mid-register, consistently moderate — not bad enough to fix, not good enough to shine
     key: "average_plateau",
     label: "Average but plateaued",
-    overallStart: 64,        overallEnd: 69,
-    communicationStart: 6.4, communicationEnd: 6.9,
-    confidenceStart: 6.1,   confidenceEnd: 6.7,
+    overallStart: 48,        overallEnd: 58,
+    communicationStart: 5.0, communicationEnd: 5.6,
+    confidenceStart: 4.8,   confidenceEnd: 5.4,
     fillersStart: 3.0,       fillersEnd: 2.5,
     wpmStart: 122,           wpmEnd: 130,
-    closingStart: 6.0,       closingEnd: 6.5,
+    closingStart: 4.8,       closingEnd: 5.5,
     volatility: 2.8,
     // Acoustic: "forever moderate" — pitch and energy barely change across all attempts
     monotoneStart: 5.8,      monotoneEnd: 5.5,
@@ -118,12 +118,12 @@ const PERSONAS: PersonaSeed[] = [
     // Voice: warm, dynamic, good energy — the delivery is her strength
     key: "strong_comm_weak_structure",
     label: "Strong communicator, weak structure",
-    overallStart: 66,        overallEnd: 75,
+    overallStart: 50,        overallEnd: 72,
     communicationStart: 7.4, communicationEnd: 8.3,
     confidenceStart: 7.0,   confidenceEnd: 8.0,
     fillersStart: 2.1,       fillersEnd: 1.3,
     wpmStart: 128,           wpmEnd: 138,
-    closingStart: 5.1,       closingEnd: 6.3,
+    closingStart: 3.8,       closingEnd: 5.8,
     volatility: 2.6,
     // Acoustic: expressive from day 1, maintains and refines
     monotoneStart: 4.2,      monotoneEnd: 3.1,
@@ -140,12 +140,12 @@ const PERSONAS: PersonaSeed[] = [
     // Voice: low register, very consistent (flat), controlled pace
     key: "analytical_flat",
     label: "Analytical but flat delivery",
-    overallStart: 68,        overallEnd: 78,
-    communicationStart: 6.8, communicationEnd: 7.7,
-    confidenceStart: 6.3,   confidenceEnd: 7.2,
+    overallStart: 54,        overallEnd: 74,
+    communicationStart: 5.8, communicationEnd: 7.2,
+    confidenceStart: 5.4,   confidenceEnd: 6.8,
     fillersStart: 2.2,       fillersEnd: 1.6,
     wpmStart: 118,           wpmEnd: 132,
-    closingStart: 6.2,       closingEnd: 7.3,
+    closingStart: 5.2,       closingEnd: 7.0,
     volatility: 2.2,
     // Acoustic: persistently flat — improving content scores but voice barely changes
     monotoneStart: 7.8,      monotoneEnd: 6.8,  // improves slightly but stays flat
@@ -162,12 +162,12 @@ const PERSONAS: PersonaSeed[] = [
     // Voice: confident, dynamic, well-paced from the start
     key: "high_performer",
     label: "High performer",
-    overallStart: 78,        overallEnd: 87,
+    overallStart: 72,        overallEnd: 88,
     communicationStart: 8.0, communicationEnd: 8.9,
     confidenceStart: 7.8,   confidenceEnd: 8.7,
     fillersStart: 1.6,       fillersEnd: 0.8,
     wpmStart: 126,           wpmEnd: 142,
-    closingStart: 7.3,       closingEnd: 8.6,
+    closingStart: 7.0,       closingEnd: 8.8,
     volatility: 1.8,
     // Acoustic: strong and expressive from the start, fine-tuning over time
     monotoneStart: 3.8,      monotoneEnd: 2.6,
@@ -228,9 +228,9 @@ function buildFeedback(args: {
     confidence_score: round1(confidence10),
     filler: { per100: round1(fillersPer100) },
     star: {
-      situation: round1(clamp(random(5.8, 8.5) + structureLift, 1, 10)),
-      task: round1(clamp(random(5.8, 8.5) + structureLift, 1, 10)),
-      action: round1(clamp(random(6.0, 8.9) + structureLift, 1, 10)),
+      situation: round1(clamp(random(3.0, 9.2) + structureLift, 1, 10)),
+      task: round1(clamp(random(3.0, 9.2) + structureLift, 1, 10)),
+      action: round1(clamp(random(3.5, 9.5) + structureLift, 1, 10)),
       result: round1(closingImpact10),
     },
   };
@@ -304,12 +304,12 @@ async function run() {
       const q = pickRandom(QUESTIONS);
       const v = persona.volatility;
 
-      const overallScore = round1(clamp(withNoise(lerp(persona.overallStart, persona.overallEnd, t), v), 45, 92));
+      const overallScore = round1(clamp(withNoise(lerp(persona.overallStart, persona.overallEnd, t), v), 28, 95));
       const communicationScore = round1(clamp(withNoise(lerp(persona.communicationStart, persona.communicationEnd, t), v * 0.12), 4.2, 9.3));
       const confidenceScore = round1(clamp(withNoise(lerp(persona.confidenceStart, persona.confidenceEnd, t), v * 0.12), 4.0, 9.2));
       const fillersPer100 = round1(clamp(withNoise(lerp(persona.fillersStart, persona.fillersEnd, t), v * 0.18), 0.4, 6.0));
       const wpm = Math.round(clamp(withNoise(lerp(persona.wpmStart, persona.wpmEnd, t), v * 2), 90, 170));
-      const closingImpact = round1(clamp(withNoise(lerp(persona.closingStart, persona.closingEnd, t), v * 0.15), 4.5, 9.0));
+      const closingImpact = round1(clamp(withNoise(lerp(persona.closingStart, persona.closingEnd, t), v * 0.15), 2.0, 9.5));
 
       // Per-persona acoustic values that evolve over time
       const monotoneScore = round1(clamp(withNoise(lerp(persona.monotoneStart, persona.monotoneEnd, t), v * 0.08), 1.5, 9.2));

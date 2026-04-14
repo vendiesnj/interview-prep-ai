@@ -442,12 +442,12 @@ const DIEGO: Persona = {
 };
 
 const SOPHIE: Persona = {
-  overallStart: 65,  overallEnd: 69,
-  commStart: 6.5,    commEnd: 6.9,
-  confStart: 6.2,    confEnd: 6.6,
+  overallStart: 48,  overallEnd: 56,
+  commStart: 5.0,    commEnd: 5.5,
+  confStart: 4.8,    confEnd: 5.2,
   fillersStart: 2.8, fillersEnd: 2.4,
   wpmStart: 124,     wpmEnd: 130,
-  closingStart: 6.2, closingEnd: 6.5,
+  closingStart: 4.8, closingEnd: 5.2,
   volatility: 2.6,
   monotoneStart: 5.4, monotoneEnd: 5.2,
   pitchMeanBase: 220,
@@ -635,9 +635,9 @@ function buildAttempt(
         per100: fillersPer100,
       },
       star: {
-        situation: round1(clamp(random(5.5, 8.5) + sl, 1, 10)),
-        task:      round1(clamp(random(5.5, 8.5) + sl, 1, 10)),
-        action:    round1(clamp(random(6.0, 8.9) + sl, 1, 10)),
+        situation: round1(clamp(random(3.0, 9.2) + sl, 1, 10)),
+        task:      round1(clamp(random(3.0, 9.2) + sl, 1, 10)),
+        action:    round1(clamp(random(3.5, 9.5) + sl, 1, 10)),
         result:    closingImpact,
       },
       strengths,

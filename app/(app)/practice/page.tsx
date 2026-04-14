@@ -2519,8 +2519,8 @@ return (
   marginTop: 6, marginBottom: 28,
   padding: "28px 32px",
   borderRadius: "var(--radius-lg, 12px)",
-  background: "linear-gradient(135deg, rgba(37,99,235,0.14) 0%, rgba(14,165,233,0.07) 100%)",
-  border: "1px solid rgba(37,99,235,0.22)",
+  background: "linear-gradient(135deg, var(--accent-soft) 0%, transparent 100%)",
+  border: "1px solid var(--card-border)",
   borderLeft: "3px solid var(--accent)",
   position: "relative" as const,
   overflow: "hidden" as const,
@@ -2530,18 +2530,18 @@ return (
     position: "absolute", top: -40, right: -40,
     width: 180, height: 180,
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(37,99,235,0.18), transparent 70%)",
+    background: "radial-gradient(circle, var(--accent-soft), transparent 70%)",
     pointerEvents: "none" as const,
   }} />
 
   <div style={{
     display: "inline-flex", alignItems: "center", gap: 6,
     padding: "3px 10px", borderRadius: "var(--radius-xs)",
-    background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)",
-    fontSize: 11, fontWeight: 600, color: "#93C5FD", letterSpacing: 0.4,
+    background: "var(--accent-soft)", border: "1px solid var(--card-border)",
+    fontSize: 11, fontWeight: 600, color: "var(--accent)", letterSpacing: 0.4,
     marginBottom: 14,
   }}>
-    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#3B82F6", display: "inline-block" }} />
+    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
     AI-Powered Analysis
   </div>
 
