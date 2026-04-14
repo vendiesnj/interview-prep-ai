@@ -126,7 +126,7 @@ function GaugeTile({
             style={{
               width: 44,
               height: 44,
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
               background: `conic-gradient(var(--accent) ${deg}deg, var(--card-border) 0deg)`,
               display: "grid",
               placeItems: "center",
@@ -138,7 +138,7 @@ function GaugeTile({
               style={{
                 width: 34,
                 height: 34,
-                borderRadius: 999,
+                borderRadius: "var(--radius-sm)",
                 background: "var(--card-bg-strong)",
                 display: "grid",
                 placeItems: "center",
@@ -196,7 +196,7 @@ function MetricBar({
         style={{
           marginTop: 8,
           height: 10,
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           background: "var(--card-border-soft)",
           overflow: "hidden",
           border: "1px solid var(--card-border-soft)",
@@ -206,7 +206,7 @@ function MetricBar({
           style={{
             width: `${pct}%`,
             height: "100%",
-            borderRadius: 999,
+            borderRadius: "var(--radius-sm)",
             background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
             boxShadow: "var(--shadow-glow)",
             transition: "width 250ms ease",
@@ -2567,7 +2567,7 @@ return (
           alignItems: "center",
           gap: 6,
           padding: "4px 10px",
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: "1px solid var(--accent-strong)",
           background: "var(--accent-soft)",
           color: "var(--accent)",
@@ -2810,7 +2810,7 @@ return (
             <span
               style={{
                 padding: "4px 8px",
-                borderRadius: 999,
+                borderRadius: "var(--radius-sm)",
                 border: "none",
                 background: "var(--card-bg)",
               }}
@@ -2823,7 +2823,7 @@ return (
             <span
               style={{
                 padding: "4px 8px",
-                borderRadius: 999,
+                borderRadius: "var(--radius-sm)",
                 border: "none",
                 background: "var(--card-bg)",
               }}
@@ -3211,7 +3211,7 @@ return (
         }}
         style={{
   padding: "7px 11px",
-  borderRadius: 999,
+  borderRadius: "var(--radius-sm)",
   border: "none",
   background: active
     ? "var(--accent-soft)"
@@ -3508,7 +3508,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         fontSize: 11,
         fontWeight: 600,
         padding: "4px 10px",
-        borderRadius: 999,
+        borderRadius: "var(--radius-sm)",
         border: focusGoal
           ? "1px solid var(--accent-strong)"
           : "none",
@@ -3540,7 +3540,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
           onClick={() => saveFocus(k)}
           style={{
             padding: "7px 10px",
-            borderRadius: 999,
+            borderRadius: "var(--radius-sm)",
             border: selected
               ? "1px solid var(--accent-strong)"
               : "none",
@@ -3562,7 +3562,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         onClick={() => saveFocus(null)}
         style={{
           padding: "7px 10px",
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: "none",
           background: "transparent",
           color: "var(--text-muted)",
@@ -3601,7 +3601,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
       onClick={toggleEslMode}
       style={{
         padding: "6px 14px",
-        borderRadius: 999,
+        borderRadius: "var(--radius-sm)",
         border: eslMode ? "1px solid var(--accent-strong)" : "1px solid var(--card-border)",
         background: eslMode ? "var(--accent-soft)" : "transparent",
         color: eslMode ? "var(--accent)" : "var(--text-muted)",
@@ -3734,7 +3734,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
   background: recording ? "var(--card-bg)" : "var(--accent-soft)",
   color: recording ? "var(--text-muted)" : "var(--accent)",
   fontSize: 14,
-  fontWeight: 900,
+  fontWeight: 700,
   cursor: recording ? "not-allowed" : "pointer",
   opacity: recording ? 0.7 : 1,
 })}
@@ -3805,7 +3805,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
   width: "100%",
   padding: "13px 16px",
   fontSize: 14,
-  fontWeight: 900,
+  fontWeight: 700,
   borderRadius: "var(--radius-sm)",
   border: analyzeDisabled
     ? "1px solid var(--card-border)"
@@ -3899,7 +3899,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
     fontSize: 11,
     fontWeight: 500,
     padding: "4px 10px",
-    borderRadius: 999,
+    borderRadius: "var(--radius-sm)",
     border: "none",
     background: "var(--card-bg-strong)",
     color: "var(--text-muted)",
@@ -4024,7 +4024,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
   style={{
     width: 36,
     height: 36,
-    borderRadius: 999,
+    borderRadius: "var(--radius-sm)",
     border: "1px solid var(--card-border-soft)",
     background: "var(--card-bg-strong)",
     color: "var(--text-primary)",
@@ -4124,7 +4124,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
             onClick={() => setTrendMetric(k)}
             style={{
               padding: "6px 10px",
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
               border: active ? "1px solid var(--accent-strong)" : "none",
               background: active ? "var(--accent-soft)" : "transparent",
               color: active ? "var(--accent)" : "var(--text-muted)",
@@ -4283,7 +4283,7 @@ onMouseLeave={(e) =>
                         color: "var(--accent)",
                         border: "1px solid var(--accent-strong)",
                         padding: "2px 8px",
-                        borderRadius: 999,
+                        borderRadius: "var(--radius-sm)",
                       }}
                     >
                       spoken
@@ -4295,7 +4295,7 @@ onMouseLeave={(e) =>
                         color: "var(--text-muted)",
                         border: "none",
                         padding: "2px 8px",
-                        borderRadius: 999,
+                        borderRadius: "var(--radius-sm)",
                       }}
                     >
                       pasted
@@ -4333,7 +4333,7 @@ onMouseLeave={(e) =>
                     }}
                     style={{
                       padding: "6px 10px",
-                      borderRadius: 999,
+                      borderRadius: "var(--radius-sm)",
                       border: isPlaying ? "1px solid var(--accent-strong)" : "none",
                       background: isPlaying ? "var(--accent-soft)" : "transparent",
                       color: isPlaying ? "var(--accent)" : "var(--text-muted)",
@@ -4386,7 +4386,7 @@ onMouseLeave={(e) =>
               style={{
                 width: 60,
                 height: 60,
-                borderRadius: 999,
+                borderRadius: "var(--radius-sm)",
                 background: `conic-gradient(${archetypeColor} ${deg}deg, var(--card-border) 0deg)`,
                 display: "grid",
                 placeItems: "center",
@@ -4397,7 +4397,7 @@ onMouseLeave={(e) =>
                 style={{
                   width: 46,
                   height: 46,
-                  borderRadius: 999,
+                  borderRadius: "var(--radius-sm)",
                   background: "var(--card-bg-strong)",
                   display: "grid",
                   placeItems: "center",
@@ -4427,7 +4427,7 @@ onMouseLeave={(e) =>
                       fontSize: 11,
                       fontWeight: 600,
                       padding: "2px 8px",
-                      borderRadius: 999,
+                      borderRadius: "var(--radius-sm)",
                       background: `${archetypeColor}22`,
                       color: archetypeColor,
                       border: `1px solid ${archetypeColor}44`,
@@ -4442,7 +4442,7 @@ onMouseLeave={(e) =>
                       fontSize: 11,
                       fontWeight: 600,
                       padding: "2px 8px",
-                      borderRadius: 999,
+                      borderRadius: "var(--radius-sm)",
                       background: "#7C3AED18",
                       color: "#7C3AED",
                       border: "1px solid #7C3AED33",
@@ -4730,7 +4730,7 @@ onMouseLeave={(e) =>
         style={{
           marginTop: 12,
           height: 12,
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           background: "var(--card-border)",
           overflow: "hidden",
           border: "1px solid var(--card-border)",
@@ -4740,7 +4740,7 @@ onMouseLeave={(e) =>
           style={{
             width: `${progress}%`,
             height: "100%",
-            borderRadius: 999,
+            borderRadius: "var(--radius-sm)",
             background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
 boxShadow: "var(--shadow-glow)",
             transition: "width 420ms ease",

@@ -304,7 +304,7 @@ export default function BudgetPage() {
                   transform: "translate(-50%,-50%)",
                   textAlign: "center",
                 }}>
-                  <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5 }}>TOTAL</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.5 }}>TOTAL</div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>{fmt(totalSpent)}</div>
                 </div>
               </div>
@@ -318,7 +318,7 @@ export default function BudgetPage() {
                     <div key={cat} style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 10, height: 10, borderRadius: 3, background: cfg.color, flexShrink: 0 }} />
                       <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", flex: 1 }}>{cfg.label}</span>
-                      <span style={{ fontSize: 12, fontWeight: 900, color: cfg.color }}>{fmt(total)}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: cfg.color }}>{fmt(total)}</span>
                       <span style={{ fontSize: 11, color: "var(--text-muted)", width: 32, textAlign: "right" }}>{pct}%</span>
                     </div>
                   );
@@ -371,7 +371,7 @@ export default function BudgetPage() {
                       <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", flex: 1 }}>{cfg.label}</span>
                       <span style={{
                         fontSize: 11,
-                        fontWeight: 900,
+                        fontWeight: 700,
                         color: ok ? "#10B981" : over ? "#EF4444" : "#F59E0B",
                         padding: "2px 8px",
                         borderRadius: 99,

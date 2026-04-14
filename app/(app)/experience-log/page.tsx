@@ -79,7 +79,7 @@ function SkillTag({ label }: { label: string }) {
   return (
     <span style={{
       padding: "3px 8px",
-      borderRadius: 999,
+      borderRadius: "var(--radius-sm)",
       fontSize: 11,
       fontWeight: 600,
       background: "var(--card-bg-strong)",
@@ -407,7 +407,7 @@ function ExperienceModal({
                       <span
                         key={s}
                         onClick={() => removeSkill(s)}
-                        style={{ padding: "3px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", color: "var(--accent)", cursor: "pointer" }}
+                        style={{ padding: "3px 8px", borderRadius: "var(--radius-sm)", fontSize: 11, fontWeight: 600, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", color: "var(--accent)", cursor: "pointer" }}
                       >
                         {s} ×
                       </span>

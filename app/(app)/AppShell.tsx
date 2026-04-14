@@ -46,7 +46,7 @@ function PracticeTopNav() {
             style={{
               fontSize: 12,
               color: "var(--text-muted)",
-              fontWeight: 900,
+              fontWeight: 700,
               letterSpacing: 0.6,
             }}
           >
@@ -95,7 +95,7 @@ function PracticeTopNav() {
                   style={{
                     width: 8,
                     height: 8,
-                    borderRadius: 999,
+                    borderRadius: "var(--radius-sm)",
                     background: active ? "var(--accent)" : "var(--text-soft)",
                     boxShadow: active ? "var(--shadow-glow)" : "none",
                   }}

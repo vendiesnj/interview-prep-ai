@@ -215,7 +215,7 @@ function SetupScreen({
         <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 8 }}>
           Mock Interview
         </div>
-        <h1 style={{ margin: "0 0 10px", fontSize: 30, fontWeight: 900, color: "var(--text-primary)", letterSpacing: -0.5 }}>
+        <h1 style={{ margin: "0 0 10px", fontSize: 30, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.5 }}>
           Full Interview Simulation
         </h1>
         <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 460, marginInline: "auto" }}>
@@ -487,7 +487,7 @@ function ResultsScreen({
               Interview Complete — {config.role}
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginBottom: 10 }}>
-              <span style={{ fontSize: 64, fontWeight: 900, color, lineHeight: 1 }}>
+              <span style={{ fontSize: 64, fontWeight: 700, color, lineHeight: 1 }}>
                 {score.overallScore}
               </span>
               <span style={{ fontSize: 16, color: "var(--text-muted)", fontWeight: 500 }}>/100</span>
@@ -581,7 +581,7 @@ function ResultsScreen({
               const c = v >= 70 ? "#10B981" : v >= 50 ? "#F59E0B" : "#EF4444";
               return (
                 <div key={k} style={{ textAlign: "center", padding: "14px 10px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: `1px solid ${c}22` }}>
-                  <div style={{ fontSize: 24, fontWeight: 900, color: c, lineHeight: 1 }}>{v}</div>
+                  <div style={{ fontSize: 24, fontWeight: 700, color: c, lineHeight: 1 }}>{v}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, textTransform: "capitalize", fontWeight: 600 }}>{k}</div>
                 </div>
               );
@@ -668,7 +668,7 @@ function ResultsScreen({
                 <div key={i} style={{ padding: "14px 0", borderBottom: i < score.questionBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "start", marginBottom: hasSigs ? 10 : 0 }}>
                     <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: `${c}15`, border: `1px solid ${c}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: c }}>{qb.score}</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: c }}>{qb.score}</span>
                     </div>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 3 }}>
@@ -1132,7 +1132,7 @@ function MockInterviewPageInner() {
     return (
       <PremiumShell title="Mock Interview">
         <div style={{ maxWidth: 580, margin: "0 auto", textAlign: "center", paddingTop: 80 }}>
-          <div style={{ fontSize: 96, fontWeight: 900, color: "var(--accent)", lineHeight: 1, marginBottom: 16 }}>
+          <div style={{ fontSize: 96, fontWeight: 700, color: "var(--accent)", lineHeight: 1, marginBottom: 16 }}>
             {countdown > 0 ? countdown : "Go"}
           </div>
           <div style={{ fontSize: 16, color: "var(--text-muted)" }}>Get ready — interview starting…</div>

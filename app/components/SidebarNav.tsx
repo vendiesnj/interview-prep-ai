@@ -117,7 +117,7 @@ function NavLink({ item, active, collapsed }: { item: NavItem; active: boolean; 
         </span>
       )}
       {!collapsed && item.comingSoon && (
-        <span style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 6px", borderRadius: 4, textTransform: "uppercase" as const, letterSpacing: 0.4, flexShrink: 0 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 6px", borderRadius: 4, textTransform: "uppercase" as const, letterSpacing: 0.4, flexShrink: 0 }}>
           Soon
         </span>
       )}
@@ -198,14 +198,14 @@ export default function SidebarNav() {
 
               {STUDENT_GROUPS.map((group, gi) => (
                 <div key={group.heading || gi}>
-                  {group.heading && <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", padding: "10px 12px 4px" }}>{group.heading}</div>}
+                  {group.heading && <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", padding: "10px 12px 4px" }}>{group.heading}</div>}
                   {group.items.map((item) => {
                     const active = isActive(item.href);
                     if (item.comingSoon) return (
                       <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 16px", borderRadius: 14, opacity: 0.45 }}>
                         <span style={{ color: "var(--text-muted)", display: "grid", placeItems: "center" }}>{item.icon}</span>
                         <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-muted)" }}>{item.label}</span>
-                        <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 900, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 6px", borderRadius: 4, textTransform: "uppercase" as const }}>Soon</span>
+                        <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 700, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 6px", borderRadius: 4, textTransform: "uppercase" as const }}>Soon</span>
                       </div>
                     );
                     return (
@@ -250,7 +250,7 @@ export default function SidebarNav() {
           </Link>
         )}
 
-        <button type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} style={{ width: 36, height: 36, borderRadius: "var(--radius-lg)", border: "none", background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontSize: 18, fontWeight: 900, lineHeight: "34px", textAlign: "center", flex: "0 0 auto" }}>
+        <button type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} style={{ width: 36, height: 36, borderRadius: "var(--radius-lg)", border: "none", background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontSize: 18, fontWeight: 700, lineHeight: "34px", textAlign: "center", flex: "0 0 auto" }}>
           <span aria-hidden style={{ display: "inline-block", fontSize: 18, lineHeight: 1, opacity: 0.9 }}>≡</span>
         </button>
       </div>
@@ -267,7 +267,7 @@ export default function SidebarNav() {
           STUDENT_GROUPS.map((group, gi) => (
             <div key={group.heading || gi} style={{ marginBottom: 6 }}>
               {!collapsed && group.heading && (
-                <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", padding: "8px 12px 4px", opacity: 0.7 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", padding: "8px 12px 4px", opacity: 0.7 }}>
                   {group.heading}
                 </div>
               )}

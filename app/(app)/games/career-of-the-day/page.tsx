@@ -99,7 +99,7 @@ function AIRiskBar({ risk }: { risk: number }) {
     <div>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>Automation Risk</span>
-        <span style={{ fontSize: 11, fontWeight: 900, color }}>{label} ({risk}%)</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color }}>{label} ({risk}%)</span>
       </div>
       <div style={{ height: 8, borderRadius: 4, background: "var(--card-border)", overflow: "hidden" }}>
         <div style={{
@@ -182,7 +182,7 @@ export default function CareerOfTheDayPage() {
           </button>
 
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase" }}>
               {isToday ? "Today" : new Date(dateKey + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function CareerOfTheDayPage() {
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 6 }}>
                 Career of the Day
               </div>
               <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 10px", letterSpacing: -0.5, lineHeight: 1.2 }}>
@@ -275,9 +275,9 @@ export default function CareerOfTheDayPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
               <DollarSign size={14} color="#10B981" />
-              <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Salary</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Salary</span>
             </div>
-            <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.3 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>
               {formatSalary(occupation.salary)}
             </div>
           </div>
@@ -289,9 +289,9 @@ export default function CareerOfTheDayPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
               <GraduationCap size={14} color="#2563EB" />
-              <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Education</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Education</span>
             </div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.3 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.3 }}>
               {educationLabel(occupation.education as Education)}
             </div>
           </div>
@@ -303,7 +303,7 @@ export default function CareerOfTheDayPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
               <Bot size={14} color="#8B5CF6" />
-              <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>AI Risk</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>AI Risk</span>
             </div>
             <AIRiskBar risk={occupation.aiRisk} />
           </div>
@@ -314,7 +314,7 @@ export default function CareerOfTheDayPage() {
           background: "var(--card-bg)", border: "1px solid var(--card-border)",
           borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 16,
         }}>
-          <h2 style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", margin: "0 0 14px" }}>
+          <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 14px" }}>
             Is this for me?
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -327,7 +327,7 @@ export default function CareerOfTheDayPage() {
                     width: 28, height: 28, borderRadius: "var(--radius-sm)", flexShrink: 0,
                     background: info.color + "15", border: `1px solid ${info.color}30`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 13, fontWeight: 900, color: info.color,
+                    fontSize: 13, fontWeight: 700, color: info.color,
                   }}>
                     {code}
                   </div>
@@ -349,7 +349,7 @@ export default function CareerOfTheDayPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <TrendingUp size={16} color="#F59E0B" />
-              <h2 style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", margin: 0 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
                 Side Income Ideas
               </h2>
             </div>
@@ -377,7 +377,7 @@ export default function CareerOfTheDayPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <Rocket size={16} color="#8B5CF6" />
-              <h2 style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", margin: 0 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
                 Entrepreneur Angle
               </h2>
             </div>
@@ -395,7 +395,7 @@ export default function CareerOfTheDayPage() {
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <Briefcase size={16} color="#2563EB" />
-              <h2 style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", margin: 0 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
                 Explore Similar Careers
               </h2>
             </div>

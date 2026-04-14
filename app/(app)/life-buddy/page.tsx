@@ -519,7 +519,7 @@ function WeekPlanner({ events, onSave, onDelete }: {
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", color: isToday ? "#2563EB" : "var(--text-muted)" }}>
                   {DAY_SHORT[date.getDay()]}
                 </div>
-                <div style={{ fontSize: 22, fontWeight: 900, color: isToday ? "#fff" : "var(--text-primary)", background: isToday ? "#2563EB" : "transparent", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", margin: "2px auto 0", transition: "background 200ms" }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: isToday ? "#fff" : "var(--text-primary)", background: isToday ? "#2563EB" : "transparent", borderRadius: "50%", width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", margin: "2px auto 0", transition: "background 200ms" }}>
                   {date.getDate()}
                 </div>
               </div>
@@ -941,7 +941,7 @@ function RetireCalc({ state, setState }: {
             <div key={b.label} style={{ marginBottom: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                 <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>{b.label}</span>
-                <span style={{ fontSize: 15, fontWeight: 900, color: b.color }}>{fmtM(b.value)}</span>
+                <span style={{ fontSize: 15, fontWeight: 700, color: b.color }}>{fmtM(b.value)}</span>
               </div>
               <div style={{ height: 8, borderRadius: 5, background: "var(--card-border)", overflow: "hidden" }}>
                 <div style={{ height: "100%", borderRadius: 5, background: b.color, width: `${(b.value / maxVal) * 100}%`, transition: "width 500ms cubic-bezier(.4,0,.2,1)" }} />
@@ -951,7 +951,7 @@ function RetireCalc({ state, setState }: {
 
           <div style={{ borderTop: "1px solid var(--card-border)", paddingTop: 14, marginTop: 4 }}>
             <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>Estimated monthly income (4% rule)</div>
-            <div style={{ fontSize: 22, fontWeight: 900, color: "#10B981" }}>{fmtM(monthly4pct)}<span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)" }}>/mo</span></div>
+            <div style={{ fontSize: 22, fontWeight: 700, color: "#10B981" }}>{fmtM(monthly4pct)}<span style={{ fontSize: 13, fontWeight: 600, color: "var(--text-muted)" }}>/mo</span></div>
           </div>
 
           {state.contribPct < 6 && (

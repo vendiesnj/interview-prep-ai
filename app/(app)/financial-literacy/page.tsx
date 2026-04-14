@@ -251,7 +251,7 @@ export default function FinancialLiteracyPage() {
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>Overall Progress</span>
-              <span style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{completedTotal} / {totalSteps} steps</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{completedTotal} / {totalSteps} steps</span>
             </div>
             <div style={{ height: 8, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
               <div style={{ height: "100%", width: `${overallPct}%`, background: "linear-gradient(90deg, #10B981, #2563EB)", borderRadius: 99, transition: "width 0.5s ease" }} />
@@ -296,9 +296,9 @@ export default function FinancialLiteracyPage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                       <span style={{ fontSize: 11, fontWeight: 700, color: mod.color, textTransform: "uppercase", letterSpacing: 0.5 }}>{mod.eyebrow}</span>
-                      {isComplete && <span style={{ fontSize: 10, fontWeight: 900, color: mod.color, background: mod.color + "18", padding: "2px 7px", borderRadius: 99, border: `1px solid ${mod.color}30` }}>Complete ✓</span>}
+                      {isComplete && <span style={{ fontSize: 10, fontWeight: 700, color: mod.color, background: mod.color + "18", padding: "2px 7px", borderRadius: 99, border: `1px solid ${mod.color}30` }}>Complete ✓</span>}
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 5 }}>{mod.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 5 }}>{mod.title}</div>
                     <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${modPct}%`, background: mod.color, borderRadius: 99, transition: "width 0.4s ease" }} />
                     </div>
@@ -323,7 +323,7 @@ export default function FinancialLiteracyPage() {
                       <div style={{ display: "grid", gap: 8 }}>
                         {mod.keyPoints.map((pt, i) => (
                           <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                            <div style={{ width: 20, height: 20, borderRadius: 99, background: mod.color + "18", border: `1px solid ${mod.color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 10, color: mod.color, fontWeight: 900, marginTop: 1 }}>{i + 1}</div>
+                            <div style={{ width: 20, height: 20, borderRadius: 99, background: mod.color + "18", border: `1px solid ${mod.color}30`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 10, color: mod.color, fontWeight: 700, marginTop: 1 }}>{i + 1}</div>
                             <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{pt}</p>
                           </div>
                         ))}

@@ -513,7 +513,7 @@ export default function ConnectionsPage() {
                 animation: "popIn 300ms ease",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
               }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, textTransform: "uppercase", opacity: 0.85 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: "uppercase", opacity: 0.85 }}>
                   {group.category}
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 800 }}>
@@ -547,7 +547,7 @@ export default function ConnectionsPage() {
                     background: isSelected ? "var(--accent)" : "var(--card-bg)",
                     color: isSelected ? "#fff" : "var(--text-primary)",
                     cursor: "pointer",
-                    fontWeight: 900,
+                    fontWeight: 700,
                     fontSize: 12,
                     textAlign: "center",
                     lineHeight: 1.3,
@@ -595,7 +595,7 @@ export default function ConnectionsPage() {
               style={{
                 padding: "9px 22px", borderRadius: "var(--radius-md)",
                 background: selected.size === 4 ? "var(--accent)" : "var(--card-border)",
-                color: "#fff", fontWeight: 900, fontSize: 13, cursor: selected.size === 4 ? "pointer" : "default",
+                color: "#fff", fontWeight: 700, fontSize: 13, cursor: selected.size === 4 ? "pointer" : "default",
                 opacity: selected.size !== 4 ? 0.5 : 1,
                 border: "none",
                 transition: "background 150ms",
@@ -620,7 +620,7 @@ export default function ConnectionsPage() {
             <div style={{ fontSize: 32, marginBottom: 8 }}>
               {gameState === "won" ? (mistakes === 0 ? "🏆" : "🎉") : "😅"}
             </div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
               {gameState === "won"
                 ? mistakes === 0 ? "Genius! Perfect solve!" : mistakes === 1 ? "Impressive!" : mistakes <= 2 ? "Well done!" : "Got there!"
                 : "Better luck tomorrow!"}
@@ -634,7 +634,7 @@ export default function ConnectionsPage() {
                     border: `1px solid ${COLOR_MAP[g.color]}40`,
                     marginBottom: 6, fontSize: 12, color: "var(--text-primary)", fontWeight: 700,
                   }}>
-                    <span style={{ color: COLOR_MAP[g.color], fontWeight: 900 }}>{g.category}:</span>{" "}
+                    <span style={{ color: COLOR_MAP[g.color], fontWeight: 700 }}>{g.category}:</span>{" "}
                     {g.items.join(", ")}
                   </div>
                 ))}
@@ -672,7 +672,7 @@ export default function ConnectionsPage() {
               style={{
                 padding: "10px 22px", borderRadius: "var(--radius-md)",
                 background: "var(--accent)", color: "#fff",
-                border: "none", fontWeight: 900, fontSize: 13, cursor: "pointer",
+                border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
                 marginRight: 8,
               }}
             >

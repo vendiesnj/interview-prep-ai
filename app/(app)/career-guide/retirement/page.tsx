@@ -317,7 +317,7 @@ function RetirementContent() {
                 border: "1px solid var(--card-border)",
                 background: aggressive === agg ? VIVID : "var(--card-bg)",
                 color: aggressive === agg ? "#fff" : "var(--text-primary)",
-                fontWeight: 900,
+                fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",
               }}
@@ -341,7 +341,7 @@ function RetirementContent() {
           flexWrap: "wrap",
         }}>
           <div style={{ flex: "1 1 260px" }}>
-            <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.8, color: VIVID, textTransform: "uppercase", marginBottom: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.8, color: VIVID, textTransform: "uppercase", marginBottom: 8 }}>
               Projected nest egg at {proj.retirementAge}
             </div>
             <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1, marginBottom: 6 }}>
@@ -355,15 +355,15 @@ function RetirementContent() {
 
           <div style={{ flex: "1 1 220px", display: "grid", gap: 14 }}>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Current age (est.)</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Current age (est.)</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{proj.currentAge}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Monthly 401k contribution</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Monthly 401k contribution</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{formatCurrency(proj.monthly401k)}</div>
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Annual salary (est.)</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Annual salary (est.)</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{formatCurrency(proj.annualSalary)}</div>
             </div>
           </div>
@@ -413,7 +413,7 @@ function RetirementContent() {
                   <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{lever.title}</div>
                   <span style={{
                     fontSize: 10,
-                    fontWeight: 900,
+                    fontWeight: 700,
                     letterSpacing: 0.5,
                     color: lever.tagColor,
                     background: lever.tagColor + "18",
@@ -426,7 +426,7 @@ function RetirementContent() {
                 <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>{lever.desc}</p>
               </div>
               <div style={{ flexShrink: 0, textAlign: "right" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>Impact</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>Impact</div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: lever.tagColor, marginTop: 2 }}>{lever.impact}</div>
               </div>
             </div>

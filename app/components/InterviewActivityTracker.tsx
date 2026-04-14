@@ -380,7 +380,7 @@ export default function InterviewActivityTracker() {
                   border: "1px solid var(--card-border)",
                   background: "var(--card-bg)",
                   color: "var(--text-primary)",
-                  fontWeight: 900,
+                  fontWeight: 700,
                   fontSize: 14,
                   cursor: "pointer",
                 }}
@@ -519,7 +519,7 @@ export default function InterviewActivityTracker() {
                           border: "1px solid var(--card-border)",
                           background: "var(--card-bg)",
                           color: "var(--text-primary)",
-                          fontWeight: 900,
+                          fontWeight: 700,
                           fontSize: 14,
                           cursor: "pointer",
                         }}
@@ -638,7 +638,7 @@ function ActivityCard({
               padding: "2px 9px",
               borderRadius: 99,
               fontSize: 11,
-              fontWeight: 900,
+              fontWeight: 700,
               background: stageColor + "22",
               color: stageColor,
               border: `1px solid ${stageColor}55`,
@@ -655,7 +655,7 @@ function ActivityCard({
                 padding: "2px 9px",
                 borderRadius: 99,
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 background: outcomeColor + "22",
                 color: outcomeColor,
                 border: `1px solid ${outcomeColor}55`,
@@ -691,7 +691,7 @@ function ActivityCard({
         >
           {displayDate && <span>{displayDate}</span>}
           {activity.salaryOffered != null && (
-            <span style={{ color: "#10B981", fontWeight: 900 }}>
+            <span style={{ color: "#10B981", fontWeight: 700 }}>
               ${activity.salaryOffered.toLocaleString()}/yr
             </span>
           )}
@@ -730,7 +730,7 @@ function ActivityCard({
             border: "1px solid var(--card-border)",
             background: "var(--card-bg)",
             color: "var(--text-primary)",
-            fontWeight: 900,
+            fontWeight: 700,
             fontSize: 12,
             cursor: "pointer",
           }}
@@ -746,7 +746,7 @@ function ActivityCard({
             border: "1px solid #EF444430",
             background: "#EF444410",
             color: "#EF4444",
-            fontWeight: 900,
+            fontWeight: 700,
             fontSize: 12,
             cursor: deleting ? "not-allowed" : "pointer",
             opacity: deleting ? 0.5 : 1,
@@ -781,7 +781,7 @@ function ActivityFormFields({
 }) {
   const fieldLabel: React.CSSProperties = {
     fontSize: 12,
-    fontWeight: 900,
+    fontWeight: 700,
     color: "var(--text-primary)",
     marginBottom: 5,
     letterSpacing: 0.3,

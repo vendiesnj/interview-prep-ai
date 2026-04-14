@@ -331,7 +331,7 @@ function cellStyle(state: LetterState, _isCurrentRow: boolean, _letterIndex: num
     justifyContent: "center",
     borderRadius: 4,
     fontSize: 22,
-    fontWeight: 900,
+    fontWeight: 700,
     border: "2px solid",
     transition: "background 300ms, border-color 300ms",
     flexShrink: 0,
@@ -360,7 +360,7 @@ function keyStyle(state: LetterState): React.CSSProperties {
     borderRadius: "var(--radius-xs)",
     border: "none",
     cursor: "pointer",
-    fontWeight: 900,
+    fontWeight: 700,
     fontSize: 13,
     display: "flex",
     alignItems: "center",
@@ -669,7 +669,7 @@ export default function HustlePage() {
             borderRadius: "var(--radius-xl)", padding: "24px", textAlign: "center", width: "100%",
           }}>
             <div style={{ fontSize: 36, marginBottom: 8 }}>{won ? "🎉" : "😞"}</div>
-            <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
               {won ? `${WIN_MESSAGES[rows.filter(r => r.states[0] !== "empty" && r.states[0] !== "tbd").length - 1] ?? "Nice!"}` : `The word was ${todayAnswer}`}
             </div>
 
@@ -711,7 +711,7 @@ export default function HustlePage() {
               style={{
                 padding: "10px 22px", borderRadius: "var(--radius-md)",
                 background: "var(--accent)", color: "#fff",
-                border: "none", fontWeight: 900, fontSize: 13, cursor: "pointer",
+                border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
               }}
             >
               Copy Results

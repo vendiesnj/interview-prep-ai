@@ -441,7 +441,7 @@ export default function LandingPage() {
                       <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.55)", marginBottom: 2 }}>{item.label}</div>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{item.desc}</div>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: item.bad ? "#F87171" : "#34D399", flexShrink: 0 }}>{item.val}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: item.bad ? "#F87171" : "#34D399", flexShrink: 0 }}>{item.val}</div>
                   </div>
                 </Fade>
               ))}
@@ -559,7 +559,7 @@ export default function LandingPage() {
         display: "flex", alignItems: "center", justifyContent: "space-between",
         flexWrap: "wrap", gap: 12,
       }}>
-        <div style={{ fontSize: 14, fontWeight: 900, color: "rgba(255,255,255,0.3)" }}>Signal</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>Signal</div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
           <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Privacy Policy</a>
           <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Terms of Service</a>

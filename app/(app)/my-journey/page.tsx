@@ -704,7 +704,7 @@ function SpeakingCard({
                           alignItems: "center",
                           justifyContent: "center",
                           fontSize: 11,
-                          fontWeight: 900,
+                          fontWeight: 700,
                           color: sc !== null ? c : "var(--text-muted)",
                           flexShrink: 0,
                         }}
@@ -1083,7 +1083,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
           }}
         >
           <SectionLabel>Total Sessions</SectionLabel>
-          <div style={{ fontSize: 32, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
+          <div style={{ fontSize: 32, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>
             {totalSessions}
           </div>
           <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
@@ -1105,7 +1105,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
           }}
         >
           <SectionLabel>Profile Complete</SectionLabel>
-          <div style={{ fontSize: 32, fontWeight: 900, color: completeness >= 75 ? "#10B981" : "#F59E0B", lineHeight: 1 }}>
+          <div style={{ fontSize: 32, fontWeight: 700, color: completeness >= 75 ? "#10B981" : "#F59E0B", lineHeight: 1 }}>
             {completeness}%
           </div>
           <MiniBar pct={completeness} color={completeness >= 75 ? "#10B981" : "#F59E0B"} />
@@ -1125,7 +1125,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
           }}
         >
           <SectionLabel>Checklist</SectionLabel>
-          <div style={{ fontSize: 32, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
+          <div style={{ fontSize: 32, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>
             {checklistDone}
             <span style={{ fontSize: 16, fontWeight: 700, color: "var(--text-muted)" }}>/{checklistTotal}</span>
           </div>
@@ -1166,10 +1166,10 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               <Zap size={18} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 900, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 2 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 2 }}>
                 Recommended next step
               </div>
-              <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{nextAction.title}</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{nextAction.title}</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{nextAction.description}</div>
             </div>
             <ArrowRight size={18} color="var(--accent)" style={{ flexShrink: 0 }} />
@@ -1215,7 +1215,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               <ChevronRight size={13} color="var(--text-muted)" />
             </div>
             <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{tile.title}</div>
-            <div style={{ fontSize: 15, fontWeight: 900, color: tile.color }}>{tile.stat}</div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: tile.color }}>{tile.stat}</div>
             <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{tile.sub}</div>
           </div>
         ))}
@@ -1260,7 +1260,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
             {careerCheckIn.satisfactionScore !== null && careerCheckIn.satisfactionScore !== undefined && (
               <div>
                 <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Satisfaction</div>
-                <div style={{ fontSize: 14, fontWeight: 900, color: careerCheckIn.satisfactionScore >= 4 ? "#10B981" : careerCheckIn.satisfactionScore >= 3 ? "#F59E0B" : "#EF4444" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: careerCheckIn.satisfactionScore >= 4 ? "#10B981" : careerCheckIn.satisfactionScore >= 3 ? "#F59E0B" : "#EF4444" }}>
                   {careerCheckIn.satisfactionScore}/5
                 </div>
               </div>
@@ -1445,7 +1445,7 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
                   <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.7, marginBottom: 2 }}>
                     Avg WPM
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                     {(speaking.interview as InterviewSegment).avgWpm}
                     <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}> wpm</span>
                   </div>
@@ -1732,7 +1732,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
                   <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>
                     Salary Range
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                     {salaryRangeLabel(careerCheckIn.salaryRange)}
                   </div>
                 </div>
@@ -2037,10 +2037,10 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
                 padding: "16px 18px",
               }}
             >
-              <div style={{ fontSize: 10, fontWeight: 900, color: INSTINCT_COLORS[d], letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: INSTINCT_COLORS[d], letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 4 }}>
                 {i === 0 ? "Strongest" : "Also Strong"}
               </div>
-              <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                 {INSTINCT_LABELS[d]}
               </div>
               <div style={{ fontSize: 20, fontWeight: 800, color: INSTINCT_COLORS[d], marginTop: 4 }}>
@@ -2106,7 +2106,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
           <TrendingUp size={17} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 2 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 2 }}>
             Growth Opportunity
           </div>
           <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{INSTINCT_LABELS[growth]}</div>
@@ -2155,7 +2155,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{label}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{description}</div>
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 900, color: scoreColor(value * 100) }}>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: scoreColor(value * 100) }}>
                     {Math.round(value * 100)}%
                   </span>
                 </div>

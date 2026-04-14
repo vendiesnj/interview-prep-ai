@@ -73,7 +73,7 @@ function MiniCard({ icon: Icon, name, href, status, color, label }: MiniCardProp
           <Icon size={16} color={color} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {name}
           </div>
           <div style={{ fontSize: 11, fontWeight: 700, color: status.played ? "#10B981" : "var(--text-muted)" }}>
@@ -111,7 +111,7 @@ export default function DailyGamesWidget() {
   return (
     <div style={{ marginTop: 16, marginBottom: 4 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-        <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" }}>
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" }}>
           Daily Games
         </div>
         {allDone ? (

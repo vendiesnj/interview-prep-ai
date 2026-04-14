@@ -72,7 +72,7 @@ export default function SetPasswordClient() {
         }}
       >
         <div style={{ padding: 6 }}>
-          <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)" }}>
             INTERVIEW PERFORMANCE COACH
           </div>
 
@@ -151,7 +151,7 @@ export default function SetPasswordClient() {
           </form>
 
           <div style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
-            <a href="/account" style={{ color: "#A5F3FC", fontWeight: 900, textDecoration: "none" }}>
+            <a href="/account" style={{ color: "#A5F3FC", fontWeight: 700, textDecoration: "none" }}>
               Back to account
             </a>
           </div>

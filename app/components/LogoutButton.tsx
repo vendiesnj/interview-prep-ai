@@ -15,7 +15,7 @@ export default function LogoutButton() {
         border: "none",
         background: "transparent",
         color: "var(--text-muted)",
-        fontWeight: 900,
+        fontWeight: 700,
         fontSize: 13,
         cursor: "pointer",
       }}

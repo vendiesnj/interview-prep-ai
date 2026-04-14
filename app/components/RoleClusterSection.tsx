@@ -104,7 +104,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
   if (loading) {
     return (
       <div style={{ padding: "24px 0" }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase", marginBottom: 16 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase", marginBottom: 16 }}>
           Role Readiness
         </div>
         <div style={{ display: "flex", gap: 12 }}>
@@ -124,7 +124,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <div>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase", marginBottom: 4 }}>
             Role Readiness
           </div>
           <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
@@ -164,7 +164,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
               {targetRoleKeys.map((key) => {
                 const occ = OCCUPATIONS.find((o) => o.id === key);
                 return (
-                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: 999, background: `${accentColor}15`, border: `1px solid ${accentColor}35`, fontSize: 12, fontWeight: 600, color: accentColor }}>
+                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 10px", borderRadius: "var(--radius-sm)", background: `${accentColor}15`, border: `1px solid ${accentColor}35`, fontSize: 12, fontWeight: 600, color: accentColor }}>
                     {occ?.title ?? key}
                     <button onClick={() => toggleRole(key)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: accentColor, display: "flex", alignItems: "center" }}>
                       <X size={12} />
@@ -264,7 +264,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                       />
                     </svg>
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 13, fontWeight: 900, color: r.hasEnoughData ? color : "var(--text-muted)" }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: r.hasEnoughData ? color : "var(--text-muted)" }}>
                         {r.hasEnoughData ? `${r.overall}%` : "--"}
                       </span>
                     </div>
@@ -273,8 +273,8 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>{cluster.clusterLabel}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 999, background: color + "18", color }}>{READINESS_LABEL[r.label]}</span>
+                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{cluster.clusterLabel}</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", background: color + "18", color }}>{READINESS_LABEL[r.label]}</span>
                     </div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 4 }}>{r.narrative}</div>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
@@ -318,7 +318,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                   <div style={{ borderTop: "1px solid var(--card-border)", padding: "18px 20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                     {/* Competency breakdown */}
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
                         Competency Breakdown
                       </div>
                       <div style={{ display: "grid", gap: 8 }}>
@@ -344,7 +344,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
 
                     {/* Next questions to practice */}
                     <div>
-                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
                         Questions to Practice Next
                       </div>
                       {cluster.nextQuestions.length > 0 ? (
@@ -365,14 +365,14 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                       {/* Target roles in this cluster */}
                       {cluster.targetRoles.length > 0 && (
                         <div style={{ marginTop: 14 }}>
-                          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>
                             Your Target Roles
                           </div>
                           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                             {cluster.targetRoles.map((key) => {
                               const occ = OCCUPATIONS.find((o) => o.id === key);
                               return (
-                                <span key={key} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: 999, background: `${accentColor}12`, border: `1px solid ${accentColor}30`, color: accentColor }}>
+                                <span key={key} style={{ fontSize: 11, fontWeight: 600, padding: "4px 10px", borderRadius: "var(--radius-sm)", background: `${accentColor}12`, border: `1px solid ${accentColor}30`, color: accentColor }}>
                                   {occ?.title ?? key}
                                 </span>
                               );

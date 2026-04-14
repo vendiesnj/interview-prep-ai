@@ -240,7 +240,7 @@ export default function ResumeGapPage() {
             padding: "14px 28px", borderRadius: "var(--radius-lg)", border: "none",
             background: resume.trim() && !loading ? "var(--accent)" : "var(--card-border-soft)",
             color: resume.trim() && !loading ? "#fff" : "var(--text-muted)",
-            fontWeight: 900, fontSize: 15, cursor: resume.trim() && !loading ? "pointer" : "not-allowed",
+            fontWeight: 700, fontSize: 15, cursor: resume.trim() && !loading ? "pointer" : "not-allowed",
             alignSelf: "flex-start", transition: "all 150ms",
           }}
         >
@@ -293,7 +293,7 @@ export default function ResumeGapPage() {
                 <div style={{ display: "grid", gap: 10 }}>
                   {result.strengths.map((s, i) => (
                     <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 99, background: "#10B98118", border: "1px solid #10B98140", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 10, color: "#10B981", fontWeight: 900, marginTop: 1 }}>✓</div>
+                      <div style={{ width: 18, height: 18, borderRadius: 99, background: "#10B98118", border: "1px solid #10B98140", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 10, color: "#10B981", fontWeight: 700, marginTop: 1 }}>✓</div>
                       <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.55 }}>{s}</div>
                     </div>
                   ))}

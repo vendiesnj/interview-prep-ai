@@ -77,7 +77,7 @@ export default function AssignmentProgress() {
       <div
         style={{
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.5,
           color: "var(--text-muted)",
           textTransform: "uppercase",
@@ -141,7 +141,7 @@ export default function AssignmentProgress() {
                   style={{
                     flex: 1,
                     height: 6,
-                    borderRadius: 999,
+                    borderRadius: "var(--radius-sm)",
                     background: "var(--card-border-soft)",
                     overflow: "hidden",
                   }}

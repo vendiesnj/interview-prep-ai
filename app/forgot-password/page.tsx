@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
           <div
             style={{
               fontSize: 12,
-              fontWeight: 900,
+              fontWeight: 700,
               letterSpacing: 0.8,
               color: "var(--text-muted)",
             }}
@@ -165,7 +165,7 @@ export default function ForgotPasswordPage() {
               href="/login"
               style={{
                 color: "var(--accent)",
-                fontWeight: 900,
+                fontWeight: 700,
                 textDecoration: "none",
               }}
             >

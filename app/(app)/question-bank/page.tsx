@@ -679,7 +679,7 @@ useEffect(() => {
                         <span
                           style={{
                             padding: "3px 8px",
-                            borderRadius: 999,
+                            borderRadius: "var(--radius-sm)",
                             border: "none",
                             background: "var(--card-bg-strong)",
                           }}
@@ -691,7 +691,7 @@ useEffect(() => {
   <span
     style={{
       padding: "3px 8px",
-      borderRadius: 999,
+      borderRadius: "var(--radius-sm)",
       border: "none",
       background: "var(--card-bg-strong)",
     }}
@@ -722,7 +722,7 @@ useEffect(() => {
                         onClick={() => practiceQuestion(x)}
                         style={{
                           padding: "6px 12px",
-                          borderRadius: 999,
+                          borderRadius: "var(--radius-sm)",
                           border: "none",
                           background: "var(--accent-soft)",
                           color: "var(--accent)",
@@ -740,7 +740,7 @@ useEffect(() => {
                         title={x.favorite ? "Unsave" : "Save"}
                         style={{
                           padding: "4px 6px",
-                          borderRadius: 999,
+                          borderRadius: "var(--radius-sm)",
                           border: "none",
                           background: "none",
                           color: x.favorite ? "var(--accent)" : "var(--text-soft)",
@@ -759,7 +759,7 @@ useEffect(() => {
                         style={{
                           marginLeft: "auto",
                           padding: "4px 8px",
-                          borderRadius: 999,
+                          borderRadius: "var(--radius-sm)",
                           border: "none",
                           background: "none",
                           color: "var(--text-soft)",

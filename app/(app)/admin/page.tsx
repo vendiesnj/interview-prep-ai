@@ -451,7 +451,7 @@ function KpiCard({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.7,
           color: "var(--text-muted)",
           textTransform: "uppercase",
@@ -514,7 +514,7 @@ function Panel({
           <div
             style={{
               fontSize: 11,
-              fontWeight: 900,
+              fontWeight: 700,
               letterSpacing: 0.7,
               color: "var(--accent)",
               textTransform: "uppercase",
@@ -562,7 +562,7 @@ function SmallMetric({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.55,
           color: "var(--text-muted)",
           textTransform: "uppercase",
@@ -618,7 +618,7 @@ function MetricPill({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.55,
           color: "var(--text-muted)",
           textTransform: "uppercase",
@@ -630,7 +630,7 @@ function MetricPill({
         style={{
           marginTop: 6,
           fontSize: 16,
-          fontWeight: 900,
+          fontWeight: 700,
           color: "var(--text-primary)",
         }}
       >
@@ -665,7 +665,7 @@ function ListRows({
             <div
               style={{
                 fontSize: 13,
-                fontWeight: 900,
+                fontWeight: 700,
                 color: "var(--text-primary)",
               }}
             >
@@ -689,7 +689,7 @@ function ListRows({
             <div
               style={{
                 fontSize: 13,
-                fontWeight: 900,
+                fontWeight: 700,
                 color: "var(--text-primary)",
                 whiteSpace: "nowrap",
               }}
@@ -708,79 +708,62 @@ function MiniBar({
   value,
   max = 100,
   suffix = "",
-  tone = "default",
+  optimalMin,
+  optimalMax,
+  lowerIsBetter = false,
+  rangeLabel,
 }: {
   label: string;
-  value: number;
+  value: number | null;
   max?: number;
   suffix?: string;
-  tone?: "default" | "good" | "warn";
+  optimalMin?: number;
+  optimalMax?: number;
+  lowerIsBetter?: boolean;
+  rangeLabel?: string;
 }) {
+  if (value === null) return null;
   const pct = clamp((value / max) * 100, 0, 100);
-  const gradient =
-    tone === "good"
-      ? "linear-gradient(90deg, var(--accent), var(--accent-2))"
-      : tone === "warn"
-      ? "linear-gradient(90deg, var(--accent), var(--accent-2))"
-      : "linear-gradient(90deg, var(--accent-2), var(--accent))";
+
+  // Determine status color
+  let statusColor = "var(--accent)";
+  let statusLabel = "";
+  if (optimalMin !== undefined && optimalMax !== undefined) {
+    if (value >= optimalMin && value <= optimalMax) {
+      statusColor = "#10B981";
+      statusLabel = "In range";
+    } else if (lowerIsBetter ? value > optimalMax * 1.3 : value < optimalMin * 0.75 || value > optimalMax * 1.35) {
+      statusColor = "#EF4444";
+      statusLabel = lowerIsBetter ? (value > optimalMax * 1.5 ? "High" : "Elevated") : (value < optimalMin * 0.75 ? "Low" : "High");
+    } else {
+      statusColor = "#F59E0B";
+      statusLabel = lowerIsBetter ? "Elevated" : (value < optimalMin ? "Slightly low" : "Slightly high");
+    }
+  }
 
   return (
-    <div
-      style={{
-        padding: 12,
-        borderRadius: 14,
-        border: "1px solid var(--card-border-soft)",
-        background: "var(--card-bg)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 10,
-          alignItems: "baseline",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 800,
-            color: "var(--text-primary)",
-          }}
-        >
-          {label}
-        </div>
-        <div
-          style={{
-            fontSize: 12,
-            fontWeight: 900,
-            color: "var(--text-muted)",
-          }}
-        >
-          {Math.round(value)}
-          {suffix}
+    <div style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", marginBottom: 6 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{label}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {statusLabel && (
+            <span style={{ fontSize: 10, fontWeight: 700, color: statusColor, background: `${statusColor}18`, padding: "1px 6px", borderRadius: 99 }}>
+              {statusLabel}
+            </span>
+          )}
+          <span style={{ fontSize: 13, fontWeight: 800, color: statusColor, minWidth: 36, textAlign: "right" as const }}>
+            {typeof value === "number" && !Number.isInteger(value) ? value.toFixed(1) : Math.round(value)}{suffix}
+          </span>
         </div>
       </div>
-
-      <div
-        style={{
-          marginTop: 8,
-          height: 8,
-          borderRadius: 999,
-          background: "var(--card-border-soft)",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: "100%",
-            borderRadius: 999,
-            background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))",
-boxShadow: "none",
-          }}
-        />
+      <div style={{ height: 6, borderRadius: "var(--radius-sm)", background: "var(--card-border)", overflow: "hidden", position: "relative" as const }}>
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: "var(--radius-sm)", background: statusLabel ? statusColor : "var(--accent)", transition: "width 0.4s ease" }} />
       </div>
+      {(rangeLabel || (optimalMin !== undefined && optimalMax !== undefined)) && (
+        <div style={{ marginTop: 4, fontSize: 10, color: "var(--text-muted)" }}>
+          {rangeLabel ?? `Ideal: ${optimalMin}–${optimalMax}${suffix}`}
+        </div>
+      )}
     </div>
   );
 }
@@ -1761,7 +1744,7 @@ const activeThisWeek = filteredAttempts.filter(
           {/* Secondary controls: cohort filter + quick links + export */}
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-              <span style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" }}>
                 Cohort
               </span>
               {[
@@ -1779,7 +1762,7 @@ const activeThisWeek = filteredAttempts.filter(
                   >
                     <div style={{
                       padding: "5px 12px",
-                      borderRadius: 999,
+                      borderRadius: "var(--radius-sm)",
                       fontSize: 12,
                       fontWeight: 600,
                       border: active ? "1px solid var(--accent-strong)" : "1px solid var(--card-border-soft)",
@@ -1795,16 +1778,16 @@ const activeThisWeek = filteredAttempts.filter(
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <Link href="/admin/roster" style={{ textDecoration: "none" }}>
-                <div style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--card-border-soft)", color: "var(--text-muted)", cursor: "pointer" }}>
+                <div style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 600, border: "1px solid var(--card-border-soft)", color: "var(--text-muted)", cursor: "pointer" }}>
                   Roster
                 </div>
               </Link>
               <Link href="/admin/compliance" style={{ textDecoration: "none" }}>
-                <div style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid rgba(22,163,74,0.25)", background: "rgba(22,163,74,0.05)", color: "#16A34A", cursor: "pointer" }}>
+                <div style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 600, border: "1px solid rgba(22,163,74,0.25)", background: "rgba(22,163,74,0.05)", color: "#16A34A", cursor: "pointer" }}>
                   FERPA
                 </div>
               </Link>
-              <a href="/api/admin/export" style={{ padding: "5px 12px", borderRadius: 999, fontSize: 12, fontWeight: 600, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none" }}>
+              <a href="/api/admin/export" style={{ padding: "5px 12px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 600, border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", color: "var(--accent)", textDecoration: "none" }}>
                 Export
               </a>
             </div>
@@ -1936,7 +1919,7 @@ const activeThisWeek = filteredAttempts.filter(
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{d.label}</span>
-                                {tag && <span style={{ fontSize: 10, fontWeight: 900, padding: "2px 7px", borderRadius: 999, background: score >= 7.5 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.10)", color }}>{tag}</span>}
+                                {tag && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: "var(--radius-sm)", background: score >= 7.5 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.10)", color }}>{tag}</span>}
                               </div>
                               <span style={{ fontSize: 14, fontWeight: 700, color }}>{d.avg !== null ? d.avg.toFixed(1) : "—"}<span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 500 }}>/10</span></span>
                             </div>
@@ -1987,7 +1970,7 @@ const activeThisWeek = filteredAttempts.filter(
                               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{s.name}</div>
                               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{getIntervention(s)}</div>
                             </div>
-                            <div style={{ padding: "3px 8px", borderRadius: 999, background: "rgba(239,68,68,0.10)", color: "var(--chart-critical)", fontSize: 12, fontWeight: 900, flexShrink: 0, marginLeft: 12 }}>
+                            <div style={{ padding: "3px 8px", borderRadius: "var(--radius-sm)", background: "rgba(239,68,68,0.10)", color: "var(--chart-critical)", fontSize: 12, fontWeight: 700, flexShrink: 0, marginLeft: 12 }}>
                               {s.avgScore !== null ? `${Math.round(s.avgScore)}/100` : "—"}
                             </div>
                           </div>
@@ -2124,7 +2107,7 @@ const activeThisWeek = filteredAttempts.filter(
                             <div style={{ flex: 1, height: 6, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
                               <div style={{ height: "100%", width: `${barWidth}%`, background: color, borderRadius: 99, marginLeft: r.trendDelta < 0 ? "auto" : 0 }} />
                             </div>
-                            <div style={{ fontSize: 14, fontWeight: 900, color, width: 52, textAlign: "right", flexShrink: 0 }}>
+                            <div style={{ fontSize: 14, fontWeight: 700, color, width: 52, textAlign: "right", flexShrink: 0 }}>
                               {r.trendDelta > 0 ? "+" : ""}{r.trendDelta} pts
                             </div>
                           </div>
@@ -2148,7 +2131,7 @@ const activeThisWeek = filteredAttempts.filter(
             <GlowCard padding={24} radius={22}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
                     Student Roster
                   </div>
                   <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)" }}>
@@ -2181,7 +2164,7 @@ const activeThisWeek = filteredAttempts.filter(
                 gap: 12,
                 padding: "0 16px 10px 16px",
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.6,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
@@ -2265,12 +2248,12 @@ const activeThisWeek = filteredAttempts.filter(
                                 background: `linear-gradient(135deg, ${cohortColor}22, ${cohortColor}44)`,
                                 border: `1.5px solid ${cohortColor}55`,
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 12, fontWeight: 900, color: cohortColor,
+                                fontSize: 12, fontWeight: 700, color: cohortColor,
                               }}>
                                 {(row.name || "?")[0].toUpperCase()}
                               </div>
                               <div style={{ minWidth: 0, flex: 1 }}>
-                                <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                                   {row.name}
                                 </div>
                                 <div style={{ marginTop: 1, fontSize: 11, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -2281,9 +2264,9 @@ const activeThisWeek = filteredAttempts.filter(
                                     <span style={{
                                       display: "inline-block",
                                       padding: "2px 7px",
-                                      borderRadius: 999,
+                                      borderRadius: "var(--radius-sm)",
                                       fontSize: 10,
-                                      fontWeight: 900,
+                                      fontWeight: 700,
                                       color: archColor,
                                       background: `${archColor}18`,
                                       border: `1px solid ${archColor}40`,
@@ -2295,7 +2278,7 @@ const activeThisWeek = filteredAttempts.filter(
                                       <span key={sig} style={{
                                         display: "inline-block",
                                         padding: "1px 5px",
-                                        borderRadius: 999,
+                                        borderRadius: "var(--radius-sm)",
                                         fontSize: 9,
                                         fontWeight: 700,
                                         color: "var(--text-muted)",
@@ -2330,10 +2313,10 @@ const activeThisWeek = filteredAttempts.filter(
 
                         {/* Score with cohort pill */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
                             {row.avgScore100 !== null ? `${row.avgScore100}` : " - "}
                           </div>
-                          <div style={{ padding: "2px 6px", borderRadius: 999, background: cohortBg, color: cohortColor, fontSize: 10, fontWeight: 900, display: "inline-block" }}>
+                          <div style={{ padding: "2px 6px", borderRadius: "var(--radius-sm)", background: cohortBg, color: cohortColor, fontSize: 10, fontWeight: 700, display: "inline-block" }}>
                             {cohortLabel}
                           </div>
                         </div>
@@ -2345,7 +2328,7 @@ const activeThisWeek = filteredAttempts.filter(
 
                         {/* Presence */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: presenceAvg === null ? "var(--text-muted)" : presenceAvg >= 7 ? "var(--chart-positive)" : presenceAvg >= 5.5 ? "var(--text-primary)" : "var(--chart-critical)" }}>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: presenceAvg === null ? "var(--text-muted)" : presenceAvg >= 7 ? "var(--chart-positive)" : presenceAvg >= 5.5 ? "var(--text-primary)" : "var(--chart-critical)" }}>
                             {presenceAvg !== null ? `${round1(presenceAvg)}/10` : " - "}
                           </div>
                           {presenceAvg !== null && (
@@ -2357,7 +2340,7 @@ const activeThisWeek = filteredAttempts.filter(
 
                         <div style={{
                           fontSize: 12,
-                          fontWeight: 900,
+                          fontWeight: 700,
                           color: row.trendDelta === null ? "var(--text-muted)"
                             : row.trendDelta > 3 ? "var(--chart-positive)"
                             : row.trendDelta < -3 ? "var(--chart-critical)"
@@ -2377,7 +2360,7 @@ const activeThisWeek = filteredAttempts.filter(
                           const missedColor = prod.missedDeadlines > 0 ? "#EF4444" : "var(--text-muted)";
                           return (
                             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                              <div style={{ fontSize: 12, fontWeight: 900, color: prod.color }}>{grade}</div>
+                              <div style={{ fontSize: 12, fontWeight: 700, color: prod.color }}>{grade}</div>
                               {prod.missedDeadlines > 0 && (
                                 <div style={{ fontSize: 10, fontWeight: 700, color: missedColor }}>
                                   {prod.missedDeadlines} missed
@@ -2425,10 +2408,10 @@ const activeThisWeek = filteredAttempts.filter(
                     {topMovers.map((s) => (
                       <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                         <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{s.name}</div>
                           <div style={{ marginTop: 3, fontSize: 11, color: "var(--text-muted)" }}>{s.attempts} rep{s.attempts !== 1 ? "s" : ""} · Score: {s.avgScore100 ?? " - "}</div>
                         </div>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--chart-positive)", whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--chart-positive)", whiteSpace: "nowrap" }}>
                           ↑ +{s.trendDelta} pts
                         </div>
                       </div>
@@ -2485,7 +2468,7 @@ const activeThisWeek = filteredAttempts.filter(
                       { label: "Avg Time on Completion", value: avgEarly !== null ? (avgEarly >= 0 ? `${avgEarly}d early` : `${Math.abs(avgEarly)}d late`) : "-", sub: "vs deadline", color: avgEarly !== null && avgEarly < 0 ? "#EF4444" : avgEarly !== null && avgEarly >= 1 ? "#10B981" : undefined },
                     ].map((kpi) => (
                       <div key={kpi.label} style={{ padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border-soft)" }}>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: kpi.color ?? "var(--text-primary)" }}>{kpi.value}</div>
+                        <div style={{ fontSize: 20, fontWeight: 700, color: kpi.color ?? "var(--text-primary)" }}>{kpi.value}</div>
                         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>{kpi.label}</div>
                         <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{kpi.sub}</div>
                       </div>
@@ -2495,14 +2478,14 @@ const activeThisWeek = filteredAttempts.filter(
                   {/* Missed deadlines leaderboard */}
                   {missedLeaderboard.length > 0 && (
                     <div style={{ marginBottom: 16 }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>
                         Most Missed Deadlines
                       </div>
                       <div style={{ display: "grid", gap: 6 }}>
                         {missedLeaderboard.map((s) => (
                           <div key={s.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12 }}>
                             <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>{s.name}</span>
-                            <span style={{ color: "#EF4444", fontWeight: 900 }}>{s.productivity!.missedDeadlines} missed</span>
+                            <span style={{ color: "#EF4444", fontWeight: 700 }}>{s.productivity!.missedDeadlines} missed</span>
                           </div>
                         ))}
                       </div>
@@ -2521,8 +2504,8 @@ const activeThisWeek = filteredAttempts.filter(
                             <span>{label}</span>
                             <span style={{ color }}>{count} ({pct}%)</span>
                           </div>
-                          <div style={{ height: 6, borderRadius: 999, background: "var(--card-border-soft)" }}>
-                            <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: color, transition: "width 0.3s" }} />
+                          <div style={{ height: 6, borderRadius: "var(--radius-sm)", background: "var(--card-border-soft)" }}>
+                            <div style={{ width: `${pct}%`, height: "100%", borderRadius: "var(--radius-sm)", background: color, transition: "width 0.3s" }} />
                           </div>
                         </div>
                       );
@@ -2580,7 +2563,7 @@ const activeThisWeek = filteredAttempts.filter(
                   { label: "Skills Extracted", value: `${skillsByUser.length}`, sub: "across cohort" },
                 ].map((kpi) => (
                   <GlowCard key={kpi.label} padding={20} radius={18}>
-                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
                     <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5 }}>{kpi.value}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{kpi.sub}</div>
                   </GlowCard>
@@ -2589,16 +2572,16 @@ const activeThisWeek = filteredAttempts.filter(
 
               {/* Profile completeness heatmap */}
               <GlowCard padding={22} radius={22}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>Profile Completeness</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>Profile Completeness</div>
                 <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Student-by-Category Heatmap</div>
 
                 {/* Header */}
                 <div style={{ display: "grid", gridTemplateColumns: `180px repeat(${COMPLETENESS_COLS.length}, 1fr) 80px`, gap: 4, marginBottom: 6 }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase" }}>Student</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Student</div>
                   {COMPLETENESS_COLS.map((col) => (
-                    <div key={col.key} style={{ fontSize: 9, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", textAlign: "center", lineHeight: 1.3 }}>{col.label}</div>
+                    <div key={col.key} style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", textAlign: "center", lineHeight: 1.3 }}>{col.label}</div>
                   ))}
-                  <div style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", textAlign: "center" }}>Score</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", textAlign: "center" }}>Score</div>
                 </div>
 
                 <div style={{ display: "grid", gap: 3 }}>
@@ -2624,7 +2607,7 @@ const activeThisWeek = filteredAttempts.filter(
                             {filled ? "✓" : ""}
                           </div>
                         ))}
-                        <div style={{ textAlign: "center", fontSize: 12, fontWeight: 900, color: completenessColor }}>{s.completeness}%</div>
+                        <div style={{ textAlign: "center", fontSize: 12, fontWeight: 700, color: completenessColor }}>{s.completeness}%</div>
                       </div>
                     );
                   })}
@@ -2634,7 +2617,7 @@ const activeThisWeek = filteredAttempts.filter(
               {/* At-risk students */}
               {atRisk.length > 0 && (
                 <GlowCard padding={22} radius={22}>
-                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "#EF4444", textTransform: "uppercase", marginBottom: 4 }}>Needs Outreach</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "#EF4444", textTransform: "uppercase", marginBottom: 4 }}>Needs Outreach</div>
                   <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>At-Risk Students ({atRisk.length})</div>
                   <div style={{ display: "grid", gap: 8 }}>
                     {atRisk.map((s) => {
@@ -2645,7 +2628,7 @@ const activeThisWeek = filteredAttempts.filter(
                       return (
                         <div key={s.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 14px", borderRadius: "var(--radius-lg)", border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.04)" }}>
                           <div>
-                            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{s.name}</div>
                             <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{s.email}</div>
                           </div>
                           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
@@ -2669,7 +2652,7 @@ const activeThisWeek = filteredAttempts.filter(
                   { title: "Target Industries", data: topIndustries2 },
                 ].map(({ title, data }) => (
                   <GlowCard key={title} padding={20} radius={18}>
-                    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>{title}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>{title}</div>
                     {data.length === 0 ? (
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No data yet</div>
                     ) : (
@@ -2709,11 +2692,11 @@ const activeThisWeek = filteredAttempts.filter(
                 return (
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <GlowCard padding={20} radius={18}>
-                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Networking</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Networking</div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>
                         {networkingStudents.length} student{networkingStudents.length !== 1 ? "s" : ""} practiced · {attempts.filter((a) => a.evaluationFramework === "networking_pitch").length} total pitches
                       </div>
-                      <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Pitch Style Distribution</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Pitch Style Distribution</div>
                       {Object.keys(pitchStyleCounts).length === 0 ? (
                         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No data yet</div>
                       ) : (
@@ -2733,11 +2716,11 @@ const activeThisWeek = filteredAttempts.filter(
                       )}
                     </GlowCard>
                     <GlowCard padding={20} radius={18}>
-                      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Public Speaking</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Public Speaking</div>
                       <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>
                         {psStudents.length} student{psStudents.length !== 1 ? "s" : ""} practiced · {attempts.filter((a) => a.evaluationFramework === "public_speaking").length} total sessions
                       </div>
-                      <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Delivery Archetype Distribution</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Delivery Archetype Distribution</div>
                       {Object.keys(archetypeCounts).length === 0 ? (
                         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No data yet</div>
                       ) : (
@@ -2762,7 +2745,7 @@ const activeThisWeek = filteredAttempts.filter(
 
               {topCohortSkills.length > 0 && (
                 <GlowCard padding={22} radius={22}>
-                  <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>AI-Extracted</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>AI-Extracted</div>
                   <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Cohort Skills Inventory</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {topCohortSkills.map(({ skill, count, category }) => {
@@ -2774,7 +2757,7 @@ const activeThisWeek = filteredAttempts.filter(
                       return (
                         <div key={skill} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px", borderRadius: 99, border: `1px solid ${color}30`, background: `${color}10` }}>
                           <span style={{ fontSize: 12, fontWeight: 700, color }}>{skill}</span>
-                          <span style={{ fontSize: 10, fontWeight: 900, color, opacity: 0.7 }}>{count}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color, opacity: 0.7 }}>{count}</span>
                         </div>
                       );
                     })}
@@ -2816,107 +2799,94 @@ const activeThisWeek = filteredAttempts.filter(
                 gap: 18,
               }}
             >
-              <Panel eyebrow="Overview" title="Engagement Overview" minHeight={300}>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 12,
-                  }}
-                >
+              <Panel eyebrow="Overview" title="Delivery Snapshot" minHeight={300}>
+                {/* 4-stat grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+                  <SmallMetric label="Avg Score" value={avgScoreDisplay} subtext="Across all speaking sessions." />
+                  <SmallMetric label="Avg Presence" value={avgPresenceDisplay} subtext="Vocal + confidence dimensions." />
+                  <SmallMetric label="Spoken Sessions" value={`${spokenRate}%`} subtext="Sessions with audio analysis." />
                   <SmallMetric
-                    label="Sessions w/ Voice Data"
-                    value={`${spokenRate}%`}
-                    subtext="Share of sessions with speaking analytics."
-                  />
-                  <SmallMetric
-                    label="Avg Speaking Score"
-                    value={avgScoreDisplay}
-                    subtext="Across all speaking modules."
+                    label="Avg WPM"
+                    value={avgWpm !== null ? `${avgWpm}` : "—"}
+                    subtext={avgWpm !== null ? (avgWpm < 100 ? "Slow — encourage faster pace" : avgWpm > 165 ? "Fast — coach to slow down" : "In a good interview range") : "No spoken data yet."}
                   />
                 </div>
 
-                <div
-                  style={{
-                    marginTop: 16,
-                    padding: 18,
-                    borderRadius: 18,
-                    border: "1px solid var(--card-border-soft)",
-                    background:
-                      "linear-gradient(180deg, var(--card-bg-strong), var(--card-bg))",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 900,
-                      color: "var(--text-muted)",
-                      letterSpacing: 0.55,
-                      textTransform: "uppercase",
-                    }}
-                  >
-                    Admin Summary
-                  </div>
-
-                  <div
-                    style={{
-                      marginTop: 10,
-                      fontSize: 14,
-                      color: "var(--text-primary)",
-                      lineHeight: 1.8,
-                    }}
-                  >
-                    {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} average{" "}
-                    <strong>{avgScoreDisplay}</strong> across speaking sessions, with an avg presence score of{" "}
-                    <strong>{avgPresenceDisplay}</strong>.{" "}
-                    Sessions break down as: <strong>{filteredInterviewAttempts.length}</strong> interview,{" "}
-                    <strong>{filteredNetworkingAttempts.length}</strong> networking, and{" "}
-                    <strong>{filteredPsAttempts.length}</strong> public speaking.{" "}
-                    {atRiskPct === 0
-                      ? "No students are currently below the readiness target."
-                      : <><strong>{atRiskPct}%</strong> of students may benefit from targeted coaching support.</>
-                    }
-                  </div>
+                {/* Cohort summary */}
+                <div style={{ padding: "12px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg-strong)", fontSize: 13, color: "var(--text-primary)", lineHeight: 1.7 }}>
+                  {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} average{" "}
+                  <strong>{avgScoreDisplay}</strong> with avg presence{" "}
+                  <strong>{avgPresenceDisplay}</strong>.{" "}
+                  Sessions: <strong>{filteredInterviewAttempts.length}</strong> interview,{" "}
+                  <strong>{filteredNetworkingAttempts.length}</strong> networking,{" "}
+                  <strong>{filteredPsAttempts.length}</strong> public speaking.{" "}
+                  {atRiskPct === 0
+                    ? "No students are currently below the readiness target."
+                    : <><strong>{atRiskPct}%</strong> may benefit from targeted coaching.</>
+                  }
                 </div>
               </Panel>
 
               <Panel eyebrow="Voice Analytics" title="Speaking Metrics" minHeight={300}>
-                <div style={{ display: "grid", gap: 12 }}>
+                <div style={{ display: "grid", gap: 8 }}>
                   <MiniBar
-                    label="Average WPM"
-                    value={avgWpm ?? 0}
-                    max={200}
+                    label="Pace (WPM)"
+                    value={avgWpm}
+                    max={220}
+                    suffix=" wpm"
+                    optimalMin={115}
+                    optimalMax={155}
+                    rangeLabel="Ideal: 115–155 wpm"
                   />
                   <MiniBar
-                    label="Average Filler Rate"
-                    value={avgFillers ?? 0}
-                    max={6}
-                    suffix="/100"
+                    label="Filler Words"
+                    value={avgFillers}
+                    max={8}
+                    suffix="/100w"
+                    optimalMin={0}
+                    optimalMax={2}
+                    lowerIsBetter={true}
+                    rangeLabel="Ideal: ≤2 per 100 words"
                   />
                   <MiniBar
                     label="Monotone Risk"
-                    value={avgMonotone ?? 0}
+                    value={avgMonotone}
                     max={10}
                     suffix="/10"
+                    optimalMin={0}
+                    optimalMax={4}
+                    lowerIsBetter={true}
+                    rangeLabel="Ideal: ≤4 (lower = more varied)"
                   />
                   <MiniBar
-                    label="Pitch Variety (Hz std dev)"
-                    value={avgPitchStd ?? 0}
+                    label="Pitch Variety"
+                    value={avgPitchStd}
                     max={80}
                     suffix=" Hz"
+                    optimalMin={15}
+                    optimalMax={45}
+                    rangeLabel="Ideal: 15–45 Hz std dev"
                   />
                   <MiniBar
                     label="Energy Variation"
-                    value={avgEnergyVariation ?? 0}
-                    max={1}
-                    suffix=""
+                    value={avgEnergyVariation !== null ? Math.round(avgEnergyVariation * 10) : null}
+                    max={10}
+                    suffix="/10"
+                    optimalMin={4}
+                    optimalMax={8}
+                    rangeLabel="Ideal: 4–8 out of 10"
                   />
-                  <MiniBar
-                    label="Avg Pause Duration"
-                    value={avgPauseMs ? Math.round(avgPauseMs / 100) / 10 : 0}
-                    max={3}
-                    suffix=" s"
-                  />
+                  {avgPauseMs !== null && (
+                    <MiniBar
+                      label="Avg Pause Duration"
+                      value={Math.round(avgPauseMs / 100) / 10}
+                      max={4}
+                      suffix=" s"
+                      optimalMin={0.4}
+                      optimalMax={2.0}
+                      rangeLabel="Ideal: 0.4–2.0 s"
+                    />
+                  )}
                 </div>
               </Panel>
             </div>
@@ -2937,7 +2907,7 @@ const activeThisWeek = filteredAttempts.filter(
                         background: score !== null ? color + "18" : "var(--card-bg-strong)",
                         border: `1px solid ${score !== null ? color + "40" : "var(--card-border)"}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, fontWeight: 900, color: score !== null ? color : "var(--text-muted)",
+                        fontSize: 12, fontWeight: 700, color: score !== null ? color : "var(--text-muted)",
                       }}>
                         {score ?? "-"}
                       </div>
@@ -3089,10 +3059,10 @@ const activeThisWeek = filteredAttempts.filter(
                         <div key={band.label} style={{ padding: "10px 12px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
                             <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
-                            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
                           </div>
-                          <div style={{ height: 7, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                            <div style={{ width: `${band.pct}%`, height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))" }} />
+                          <div style={{ height: 7, borderRadius: "var(--radius-sm)", background: "var(--card-border-soft)", overflow: "hidden" }}>
+                            <div style={{ width: `${band.pct}%`, height: "100%", borderRadius: "var(--radius-sm)", background: "linear-gradient(90deg, var(--accent-2-soft), var(--accent-soft))" }} />
                           </div>
                         </div>
                       ))}
@@ -3100,7 +3070,7 @@ const activeThisWeek = filteredAttempts.filter(
                   </Panel>
 
                   <Panel eyebrow="Performance" title="Score Distribution">
-                    <div style={{ display: "flex", height: 18, borderRadius: 999, overflow: "hidden", marginBottom: 14 }}>
+                    <div style={{ display: "flex", height: 18, borderRadius: "var(--radius-sm)", overflow: "hidden", marginBottom: 14 }}>
                       {scoreBands.map((band) =>
                         band.pct > 0 ? (
                           <div key={band.label} title={`${band.label}: ${band.pct}%`} style={{ width: `${band.pct}%`, background: band.color, transition: "width 0.3s ease" }} />
@@ -3111,10 +3081,10 @@ const activeThisWeek = filteredAttempts.filter(
                       {scoreBands.map((band) => (
                         <div key={band.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            <div style={{ width: 8, height: 8, borderRadius: 999, background: band.color, flexShrink: 0 }} />
+                            <div style={{ width: 8, height: 8, borderRadius: "var(--radius-sm)", background: band.color, flexShrink: 0 }} />
                             <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
                           </div>
-                          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{band.count} ({band.pct}%)</div>
                         </div>
                       ))}
                     </div>
@@ -3150,7 +3120,7 @@ const activeThisWeek = filteredAttempts.filter(
                       <div key={r.label} style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: dimRows.length > 0 ? 12 : 0 }}>
                           <div style={{ minWidth: 0, flex: 1 }}>
-                            <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 3 }}>{r.label}</div>
+                            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>{r.label}</div>
                             <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
                               <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.studentIds.size} student{r.studentIds.size !== 1 ? "s" : ""}</span>
                               <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{r.totalAttempts} practice session{r.totalAttempts !== 1 ? "s" : ""}</span>
@@ -3158,7 +3128,7 @@ const activeThisWeek = filteredAttempts.filter(
                             </div>
                           </div>
                           <div style={{ textAlign: "right", flexShrink: 0 }}>
-                            <div style={{ fontSize: 22, fontWeight: 900, color: scoreColor, lineHeight: 1 }}>{r.avgScore !== null ? Math.round(r.avgScore) : "—"}</div>
+                            <div style={{ fontSize: 22, fontWeight: 700, color: scoreColor, lineHeight: 1 }}>{r.avgScore !== null ? Math.round(r.avgScore) : "—"}</div>
                             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>avg score /100</div>
                           </div>
                         </div>
@@ -3188,7 +3158,7 @@ const activeThisWeek = filteredAttempts.filter(
             {/* Per-student role targeting table */}
             <Panel eyebrow="Per-Student" title="Role Targets by Student">
               <div style={{ display: "grid", gap: 6 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px 80px", gap: 10, padding: "0 10px 6px", fontSize: 10, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", borderBottom: "1px solid var(--card-border-soft)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px 80px", gap: 10, padding: "0 10px 6px", fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", borderBottom: "1px solid var(--card-border-soft)" }}>
                   <div>Student</div><div>Target Role</div><div>Industry</div><div>Sessions</div><div>Avg</div>
                 </div>
                 {filteredStudents.map((s) => {
@@ -3277,7 +3247,7 @@ const activeThisWeek = filteredAttempts.filter(
                             <div
                               style={{
                                 fontSize: 13,
-                                fontWeight: 900,
+                                fontWeight: 700,
                                 color: "var(--text-primary)",
                               }}
                             >
@@ -3319,7 +3289,7 @@ const activeThisWeek = filteredAttempts.filter(
                             style={{
                               flexShrink: 0,
                               fontSize: 13,
-                              fontWeight: 900,
+                              fontWeight: 700,
                               color: "var(--text-primary)",
                               textAlign: "right",
                             }}
@@ -3342,7 +3312,7 @@ const activeThisWeek = filteredAttempts.filter(
                           style={{
                             marginTop: 10,
                             height: 6,
-                            borderRadius: 999,
+                            borderRadius: "var(--radius-sm)",
                             background: "var(--card-border-soft)",
                             overflow: "hidden",
                           }}
@@ -3351,7 +3321,7 @@ const activeThisWeek = filteredAttempts.filter(
                             style={{
                               width: `${a.completionPct}%`,
                               height: "100%",
-                              borderRadius: 999,
+                              borderRadius: "var(--radius-sm)",
                               background: "var(--accent)",
                               transition: "width 0.3s ease",
                             }}
@@ -3373,7 +3343,7 @@ const activeThisWeek = filteredAttempts.filter(
               {checkInCount === 0 ? (
                 <div style={{ padding: "28px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>
                   <div style={{ fontSize: 32, marginBottom: 10 }}>📊</div>
-                  <div style={{ fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>No career check-ins yet</div>
+                  <div style={{ fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>No career check-ins yet</div>
                   <div style={{ maxWidth: 400, margin: "0 auto", lineHeight: 1.7 }}>
                     Students submit career check-ins from the Career Guide section. Once they do, you&apos;ll see employment rates, salary distributions, and industry placement data here.
                   </div>

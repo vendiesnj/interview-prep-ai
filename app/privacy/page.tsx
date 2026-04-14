@@ -5,7 +5,7 @@ export const metadata = {
 export default function PrivacyPage() {
   return (
     <main style={{ maxWidth: 900, margin: "0 auto", padding: "40px 18px", color: "var(--text-primary)" }}>
-      <h1 style={{ fontSize: 36, fontWeight: 900, margin: 0 }}>Privacy Policy</h1>
+      <h1 style={{ fontSize: 36, fontWeight: 700, margin: 0 }}>Privacy Policy</h1>
       <p style={{ marginTop: 10, color: "var(--text-muted)", lineHeight: 1.6 }}>
         Last updated: January 1, 2025
       </p>
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           use, and protect your information when you use our interview preparation platform.
         </p>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>What we collect</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>What we collect</h2>
         <ul>
           <li><b>Account info:</b> email and basic profile information when you sign in.</li>
           <li><b>Google account data:</b> if you sign in with Google, we receive your name, email address, and profile picture from Google. We use this only to create and identify your account.</li>
@@ -25,7 +25,7 @@ export default function PrivacyPage() {
           <li><b>Usage data:</b> basic logs to keep the service reliable and secure.</li>
         </ul>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>How we use it</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>How we use it</h2>
         <ul>
           <li>Provide interview practice features (transcription, AI scoring, personalized feedback).</li>
           <li>Save your practice history so you can track progress over time.</li>
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <li>Improve reliability and performance of the service.</li>
         </ul>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>Google user data</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>Google user data</h2>
         <p>
           If you sign in with Google, Signal receives your name, email address, and profile photo.
           We use this information solely to authenticate your account and personalize your experience.
@@ -42,7 +42,7 @@ export default function PrivacyPage() {
           Google Account permissions page.
         </p>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>Third-party services</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>Third-party services</h2>
         <p>
           We use the following third-party providers to deliver core functionality:
         </p>
@@ -53,14 +53,14 @@ export default function PrivacyPage() {
         </ul>
         <p>We do not sell your personal information to any third party.</p>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>Data retention</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>Data retention</h2>
         <p>
           We keep your saved practice attempts and history so you can review your progress.
           You can delete your history from within the app. To request full account deletion,
           contact us at the email below.
         </p>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>Your choices</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>Your choices</h2>
         <ul>
           <li>You can type or paste a transcript instead of recording audio.</li>
           <li>You can clear your saved history from inside the app.</li>
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
           <li>You can revoke Google sign-in access from your Google Account settings.</li>
         </ul>
 
-        <h2 style={{ fontSize: 18, fontWeight: 900, marginTop: 28 }}>Contact</h2>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginTop: 28 }}>Contact</h2>
         <p>
           Questions or data requests: <b>adam@signalhq.us</b>
         </p>

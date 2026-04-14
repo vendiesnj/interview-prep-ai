@@ -241,7 +241,7 @@ function CheckItem({ id, label, checked, onToggle }: { id: string; label: string
         marginTop: 1,
         transition: "all 150ms",
       }}>
-        {checked && <span style={{ color: "#fff", fontSize: 12, fontWeight: 900 }}>✓</span>}
+        {checked && <span style={{ color: "#fff", fontSize: 12, fontWeight: 700 }}>✓</span>}
       </div>
       <span style={{ fontSize: 14, color: checked ? "var(--text-muted)" : "var(--text-primary)", lineHeight: 1.5, textDecoration: checked ? "line-through" : "none" }}>
         {label}
@@ -334,7 +334,7 @@ function FirstYearContent() {
         {/* Progress bar */}
         <div style={{ marginBottom: 32, padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>Overall progress</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>Overall progress</span>
             <span style={{ fontSize: 14, fontWeight: 800, color: "var(--accent)" }}>{completedItems} / {totalItems} completed</span>
           </div>
           <div style={{ height: 8, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>

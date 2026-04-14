@@ -308,7 +308,7 @@ export default function NetworkingPage() {
                     border: `1px solid ${selectedCategory === cat.id ? cat.color : "var(--card-border)"}`,
                     background: selectedCategory === cat.id ? cat.color + "18" : "var(--card-bg)",
                     color: selectedCategory === cat.id ? cat.color : "var(--text-primary)",
-                    fontWeight: 900, fontSize: 13, cursor: "pointer",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer",
                   }}
                 >
                   {cat.icon} {cat.label}
@@ -337,7 +337,7 @@ export default function NetworkingPage() {
 
               {/* Custom */}
               <div style={{ padding: "14px 18px", borderRadius: "var(--radius-xl)", border: `2px solid ${useCustom ? "#0EA5E9" : "var(--card-border)"}`, background: useCustom ? "rgba(14,165,233,0.07)" : "var(--card-bg)" }}>
-                <div style={{ fontSize: 12, fontWeight: 900, color: "#0EA5E9", marginBottom: 8 }}>Custom scenario</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#0EA5E9", marginBottom: 8 }}>Custom scenario</div>
                 <textarea
                   placeholder="Describe your own networking situation…"
                   value={customPrompt}
@@ -349,7 +349,7 @@ export default function NetworkingPage() {
 
             {stage === "ready" && activePrompt && (
               <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: `1px solid ${activeCategoryColor}`, background: activeCategoryColor + "08", marginBottom: 20 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: activeCategoryColor, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Your scenario</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: activeCategoryColor, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Your scenario</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.65 }}>{activePrompt}</div>
                 <div style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)" }}>
                   Aim for 30–60 seconds. Shorter and sharper is better than longer and vague.
@@ -369,7 +369,7 @@ export default function NetworkingPage() {
             {!isPro && (
               <p style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
                 Free plan includes 3 total attempts across all modules.{" "}
-                <Link href="/account" style={{ color: "var(--accent)", fontWeight: 900 }}>Upgrade for unlimited →</Link>
+                <Link href="/account" style={{ color: "var(--accent)", fontWeight: 700 }}>Upgrade for unlimited →</Link>
               </p>
             )}
           </>
@@ -379,7 +379,7 @@ export default function NetworkingPage() {
         {stage === "recording" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
             <div style={{ padding: "28px 36px", borderRadius: "var(--radius-xl)", border: "1px solid #0EA5E9", background: "rgba(14,165,233,0.07)", width: "100%", boxSizing: "border-box" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "#0EA5E9", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Now pitching</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#0EA5E9", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Now pitching</div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.65 }}>{activePrompt}</div>
             </div>
 
@@ -419,11 +419,11 @@ export default function NetworkingPage() {
             {/* Overall + pitch style */}
             <div style={{ padding: "28px 32px", borderRadius: "var(--radius-xl)", border: `1px solid ${styleCol}`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div style={{ flex: "1 1 200px" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch score</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch score</div>
                 <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
               </div>
               <div style={{ flex: "1 1 220px" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch style</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch style</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: styleCol, marginBottom: 8 }}>{pitchStyle}</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: styleCol + "12", borderRadius: "var(--radius-md)", borderLeft: `3px solid ${styleCol}` }}>
                   <strong style={{ color: styleCol }}>Your lever:</strong> {feedback.pitch_coaching}
@@ -478,7 +478,7 @@ export default function NetworkingPage() {
             {/* Transcript */}
             {transcript && (
               <details style={{ padding: "16px 20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <summary style={{ fontSize: 13, fontWeight: 900, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
+                <summary style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
                 <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{transcript}</p>
               </details>
             )}
@@ -493,7 +493,7 @@ export default function NetworkingPage() {
               </button>
               <Link
                 href="/dashboard"
-                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 14, cursor: "pointer", textDecoration: "none", textAlign: "center" }}
+                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 700, fontSize: 14, cursor: "pointer", textDecoration: "none", textAlign: "center" }}
               >
                 Back to Dashboard
               </Link>

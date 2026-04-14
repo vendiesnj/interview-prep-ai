@@ -110,7 +110,7 @@ export default function SignupClient() {
 
           <p style={{ marginTop: 20, fontSize: 13, color: "var(--text-muted, rgba(255,255,255,0.4))", textAlign: "center" }}>
             Already have an account?{" "}
-            <Link href="/login" style={{ color: "#60A5FA", fontWeight: 900, textDecoration: "none" }}>Sign in</Link>
+            <Link href="/login" style={{ color: "#60A5FA", fontWeight: 700, textDecoration: "none" }}>Sign in</Link>
           </p>
           <p style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted, rgba(255,255,255,0.25))", textAlign: "center", lineHeight: 1.5 }}>
             By creating an account you agree to our{" "}

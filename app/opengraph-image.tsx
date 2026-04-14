@@ -71,7 +71,7 @@ export default function OgImage() {
           <div
             style={{
               fontSize: 62,
-              fontWeight: 900,
+              fontWeight: 700,
               color: "#fff",
               lineHeight: 1.05,
               letterSpacing: -2,
@@ -99,7 +99,7 @@ export default function OgImage() {
             { label: "Universities", value: "Growing" },
           ].map((stat) => (
             <div key={stat.label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <span style={{ fontSize: 32, fontWeight: 900, color: "#fff" }}>{stat.value}</span>
+              <span style={{ fontSize: 32, fontWeight: 700, color: "#fff" }}>{stat.value}</span>
               <span style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
                 {stat.label}
               </span>
@@ -109,7 +109,7 @@ export default function OgImage() {
             style={{
               marginLeft: "auto",
               padding: "12px 28px",
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
               background: "#2563EB",
               color: "#fff",
               fontSize: 16,

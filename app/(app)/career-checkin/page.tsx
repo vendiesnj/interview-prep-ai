@@ -252,7 +252,7 @@ export default function CareerCheckInPage() {
 
                   {/* ── Other retirement savings ── */}
                   <div style={{ margin: "4px 0 20px", padding: "18px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg-strong)" }}>
-                    <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", marginBottom: 14 }}>Other retirement & savings accounts</div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>Other retirement & savings accounts</div>
 
                     <SectionLabel>Roth IRA</SectionLabel>
                     <div style={{ display: "flex", gap: 10, marginBottom: form.hasRothIRA === "yes" ? 10 : 20 }}>
@@ -353,7 +353,7 @@ export default function CareerCheckInPage() {
                         onClick={() => set("satisfactionScore", String(n))}
                         style={{ flex: 1, padding: "14px 0", borderRadius: "var(--radius-lg)", border: `2px solid ${form.satisfactionScore === String(n) ? "var(--accent)" : "var(--card-border)"}`, background: form.satisfactionScore === String(n) ? "var(--accent-soft)" : "var(--card-bg)", cursor: "pointer", textAlign: "center" as const, transition: "all 150ms" }}
                       >
-                        <div style={{ fontSize: 16, fontWeight: 900, color: form.satisfactionScore === String(n) ? "var(--accent)" : "var(--text-primary)" }}>{n}</div>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: form.satisfactionScore === String(n) ? "var(--accent)" : "var(--text-primary)" }}>{n}</div>
                         <div style={{ fontSize: 11, marginTop: 4, color: "var(--text-muted)", fontWeight: 700 }}>{["Low", "Okay", "Good", "Great", "Love it"][n - 1]}</div>
                       </div>
                     ))}
@@ -388,7 +388,7 @@ export default function CareerCheckInPage() {
                           onClick={() => set("universitySatisfaction", String(n))}
                           style={{ flex: 1, padding: "14px 0", borderRadius: "var(--radius-lg)", border: `2px solid ${form.universitySatisfaction === String(n) ? "var(--accent)" : "var(--card-border)"}`, background: form.universitySatisfaction === String(n) ? "var(--accent-soft)" : "var(--card-bg)", cursor: "pointer", textAlign: "center" as const, transition: "all 150ms" }}
                         >
-                          <div style={{ fontSize: 16, fontWeight: 900, color: form.universitySatisfaction === String(n) ? "var(--accent)" : "var(--text-primary)" }}>{n}</div>
+                          <div style={{ fontSize: 16, fontWeight: 700, color: form.universitySatisfaction === String(n) ? "var(--accent)" : "var(--text-primary)" }}>{n}</div>
                           <div style={{ fontSize: 11, marginTop: 4, color: "var(--text-muted)", fontWeight: 700 }}>{["Very poor", "Below avg", "Average", "Good", "Excellent"][n - 1]}</div>
                         </div>
                       ))}
@@ -429,10 +429,10 @@ export default function CareerCheckInPage() {
               <Link href="/career-guide/retirement" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 800, fontSize: 14 }}>
                 View retirement projection →
               </Link>
-              <Link href="/career-guide/benchmarks" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, fontSize: 14 }}>
+              <Link href="/career-guide/benchmarks" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
                 Peer benchmarks
               </Link>
-              <Link href="/career-guide" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, fontSize: 14 }}>
+              <Link href="/career-guide" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 700, fontSize: 14 }}>
                 Career Guide
               </Link>
             </div>
@@ -455,7 +455,7 @@ function StepHeader({ title, sub }: { title: string; sub: string }) {
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", letterSpacing: 0.3, marginBottom: 8 }}>{children}</div>;
+  return <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", letterSpacing: 0.3, marginBottom: 8 }}>{children}</div>;
 }
 
 function OptionCard({ children, selected, onClick, compact, style }: { children: React.ReactNode; selected: boolean; onClick: () => void; compact?: boolean; style?: React.CSSProperties }) {
@@ -488,7 +488,7 @@ function OptionCard({ children, selected, onClick, compact, style }: { children:
 function Field({ label, placeholder, value, onChange, prefix }: { label: string; placeholder: string; value: string; onChange: (v: string) => void; prefix?: string }) {
   return (
     <div>
-      {label && <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", marginBottom: 6, letterSpacing: 0.3 }}>{label}</div>}
+      {label && <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6, letterSpacing: 0.3 }}>{label}</div>}
       <div style={{ position: "relative" }}>
         {prefix && <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: 14 }}>{prefix}</span>}
         <input
@@ -506,7 +506,7 @@ function Field({ label, placeholder, value, onChange, prefix }: { label: string;
 function SelectField({ label, value, onChange, children }: { label: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
   return (
     <div>
-      <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", marginBottom: 6, letterSpacing: 0.3 }}>{label}</div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6, letterSpacing: 0.3 }}>{label}</div>
       <select value={value} onChange={(e) => onChange(e.target.value)} style={{ width: "100%", padding: "10px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--input-bg)", color: "var(--text-primary)", fontSize: 14, outline: "none", cursor: "pointer" }}>
         {children}
       </select>
@@ -518,7 +518,7 @@ function NavRow({ onBack, onNext, nextDisabled, nextLabel }: { onBack?: () => vo
   return (
     <div style={{ display: "flex", gap: 10 }}>
       {onBack && (
-        <button onClick={onBack} style={{ padding: "13px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 14, cursor: "pointer" }}>
+        <button onClick={onBack} style={{ padding: "13px 18px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
           ← Back
         </button>
       )}

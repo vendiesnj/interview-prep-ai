@@ -361,24 +361,24 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
 
                     {/* Steps */}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 12 }}>
-                      <div style={{ padding: "4px 10px", borderRadius: 999, background: color, color: "#fff", fontSize: 12, fontWeight: 900 }}>{track.start}</div>
+                      <div style={{ padding: "4px 10px", borderRadius: "var(--radius-sm)", background: color, color: "#fff", fontSize: 12, fontWeight: 700 }}>{track.start}</div>
                       {track.steps.map((step) => (
                         <>
                           <span key={`arrow-${step}`} style={{ color: "var(--text-soft)", fontSize: 14 }}>→</span>
-                          <div key={step} style={{ padding: "4px 10px", borderRadius: 999, border: `1px solid ${color}`, color, fontSize: 12, fontWeight: 700 }}>{step}</div>
+                          <div key={step} style={{ padding: "4px 10px", borderRadius: "var(--radius-sm)", border: `1px solid ${color}`, color, fontSize: 12, fontWeight: 700 }}>{step}</div>
                         </>
                       ))}
                     </div>
 
                     <div style={{ display: "grid", gap: 6 }}>
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                        <span style={{ fontWeight: 900, color: "var(--text-primary)" }}>Common pivot: </span>{track.pivot}
+                        <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>Common pivot: </span>{track.pivot}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                        <span style={{ fontWeight: 900, color: "var(--text-primary)" }}>Salary range: </span>{track.salaryRange}
+                        <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>Salary range: </span>{track.salaryRange}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                        <span style={{ fontWeight: 900, color: "var(--text-primary)" }}>Reality check: </span>{track.notes}
+                        <span style={{ fontWeight: 700, color: "var(--text-primary)" }}>Reality check: </span>{track.notes}
                       </div>
                     </div>
                   </div>
@@ -422,8 +422,8 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
               return (
                 <Link key={occ.id} href={`/career-guide/career-paths/${occ.id}`} style={{ textDecoration: "none" }}>
                   <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", transition: "border-color 150ms" }}>
-                    <div style={{ fontSize: 11, fontWeight: 900, color: risk.color, marginBottom: 3 }}>{occ.aiRisk}% AI risk</div>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", marginBottom: 2, lineHeight: 1.3 }}>{occ.title}</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: risk.color, marginBottom: 3 }}>{occ.aiRisk}% AI risk</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2, lineHeight: 1.3 }}>{occ.title}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>
                   </div>
                 </Link>

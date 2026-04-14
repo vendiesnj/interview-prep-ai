@@ -106,7 +106,7 @@ function StatCard({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.7,
           color: color ?? "var(--accent)",
           textTransform: "uppercase",
@@ -289,7 +289,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
             </div>
 
             {/* Preview of what they'll see */}
-            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 14 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 14 }}>
               When enough responses come in, you'll see:
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>

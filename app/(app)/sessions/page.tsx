@@ -281,7 +281,7 @@ async function ensureSignedUrl(path: string) {
                 style={{
                   height: 14,
                   width: "26%",
-                  borderRadius: 999,
+                  borderRadius: "var(--radius-sm)",
                   background: "var(--card-border-soft)",
                 }}
               />
@@ -411,7 +411,7 @@ async function ensureSignedUrl(path: string) {
             onClick={() => setJobProfileFilter("all")}
             style={{
               padding: "8px 10px",
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
               border: "none",
               background:
                 jobProfileFilter === "all"
@@ -436,7 +436,7 @@ async function ensureSignedUrl(path: string) {
               onClick={() => setJobProfileFilter(profile.key)}
               style={{
                 padding: "8px 10px",
-                borderRadius: 999,
+                borderRadius: "var(--radius-sm)",
                 border: "none",
                 background:
                   jobProfileFilter === profile.key
@@ -466,15 +466,21 @@ async function ensureSignedUrl(path: string) {
       <div style={{ marginTop: 18 }}>
         <PremiumCard>
           {filtered.length === 0 ? (
-  <div
-    style={{
-      color: "var(--text-muted)",
-      lineHeight: 1.6,
-    }}
-  >
-    {jobProfileFilter === "all"
-      ? "No sessions yet. Go record an attempt."
-      : "No sessions found for this job profile yet."}
+  <div style={{ padding: "32px 0", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 12, textAlign: "center" as const }}>
+    <div style={{ fontSize: 28, lineHeight: 1 }}>🎤</div>
+    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+      {jobProfileFilter === "all" ? "No sessions yet" : "No sessions for this role yet"}
+    </div>
+    <div style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 280 }}>
+      {jobProfileFilter === "all"
+        ? "Record your first practice answer to start building your coaching profile."
+        : "Switch to a different job profile or record a new session targeting this role."}
+    </div>
+    {jobProfileFilter === "all" && (
+      <a href="/practice" style={{ marginTop: 4, padding: "8px 20px", borderRadius: "var(--radius-sm)", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 13, textDecoration: "none" }}>
+        Start practicing →
+      </a>
+    )}
   </div>
 ) : (
             <div style={{ display: "grid", gap: 10 }}>
@@ -485,6 +491,7 @@ async function ensureSignedUrl(path: string) {
                 return (
                   <div
   key={attempt.id ?? attempt.ts ?? attempt.question ?? i}
+  className="session-row"
   style={{
     padding: 14,
     borderRadius: "var(--radius-md)",
@@ -493,7 +500,10 @@ async function ensureSignedUrl(path: string) {
     display: "grid",
     gap: 8,
     cursor: "pointer",
+    transition: "background 140ms ease, border-color 140ms ease",
   }}
+  onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.background = "var(--card-bg-strong)"; (e.currentTarget as HTMLDivElement).style.borderColor = "var(--card-border)"; }}
+  onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.background = "var(--card-bg)"; (e.currentTarget as HTMLDivElement).style.borderColor = "var(--card-border-soft)"; }}
   onClick={() => {
                      if (status === "loading") return; 
 
@@ -621,7 +631,7 @@ async function ensureSignedUrl(path: string) {
     <span
       style={{
         padding: "4px 9px",
-        borderRadius: 999,
+        borderRadius: "var(--radius-sm)",
         border: "none",
         background: "var(--card-bg-strong)",
         color: "var(--text-primary)",
@@ -637,7 +647,7 @@ async function ensureSignedUrl(path: string) {
       <span
         style={{
           padding: "4px 9px",
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: "none",
           background: "var(--card-bg-strong)",
           color: "var(--text-muted)",
@@ -666,7 +676,7 @@ async function ensureSignedUrl(path: string) {
       <span
         style={{
           padding: "4px 9px",
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: "none",
           background: "var(--accent-soft)",
           color: "var(--accent)",
@@ -683,7 +693,7 @@ async function ensureSignedUrl(path: string) {
       <span
         style={{
           padding: "4px 9px",
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: "none",
           background: "var(--card-bg-strong)",
           color: "var(--text-primary)",
@@ -699,7 +709,7 @@ async function ensureSignedUrl(path: string) {
       <span
         style={{
           padding: "4px 9px",
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: "none",
           background: "var(--card-bg-strong)",
           color: "var(--text-muted)",

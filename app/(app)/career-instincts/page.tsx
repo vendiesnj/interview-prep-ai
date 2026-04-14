@@ -261,7 +261,7 @@ export default function CareerInstinctsPage() {
             style={{
               width: "100%", padding: "16px 0", borderRadius: 14, border: "none", cursor: "pointer",
               background: "linear-gradient(135deg, var(--accent), #0EA5E9)",
-              color: "#fff", fontSize: 17, fontWeight: 900, letterSpacing: -0.3,
+              color: "#fff", fontSize: 17, fontWeight: 700, letterSpacing: -0.3,
               boxShadow: "0 4px 20px rgba(37,99,235,0.35)", transition: "transform 100ms, box-shadow 100ms",
             }}
             onMouseEnter={(e) => { (e.target as HTMLElement).style.transform = "translateY(-1px)"; (e.target as HTMLElement).style.boxShadow = "0 6px 28px rgba(37,99,235,0.45)"; }}
@@ -314,7 +314,7 @@ export default function CareerInstinctsPage() {
                           {new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                         </div>
                       </div>
-                      <div style={{ background: "var(--accent-soft)", borderRadius: 99, padding: "4px 12px", fontSize: 13, fontWeight: 900, color: "var(--accent)" }}>
+                      <div style={{ background: "var(--accent-soft)", borderRadius: 99, padding: "4px 12px", fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>
                         +{s.xpEarned} XP
                       </div>
                     </div>
@@ -333,7 +333,7 @@ export default function CareerInstinctsPage() {
 
           <button
             onClick={startGame}
-            style={{ width: "100%", marginTop: 24, padding: "14px 0", borderRadius: "var(--radius-lg)", border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 15, fontWeight: 900 }}
+            style={{ width: "100%", marginTop: 24, padding: "14px 0", borderRadius: "var(--radius-lg)", border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 15, fontWeight: 700 }}
           >
             Play Again →
           </button>
@@ -360,7 +360,7 @@ export default function CareerInstinctsPage() {
             </h2>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "var(--accent-soft)", borderRadius: 99, padding: "6px 18px" }}>
               <span style={{ fontSize: 16 }}>⚡</span>
-              <span style={{ fontSize: 15, fontWeight: 900, color: "var(--accent)" }}>+{finalXp} XP earned</span>
+              <span style={{ fontSize: 15, fontWeight: 700, color: "var(--accent)" }}>+{finalXp} XP earned</span>
             </div>
           </div>
 
@@ -373,10 +373,10 @@ export default function CareerInstinctsPage() {
                 borderRadius: "var(--radius-xl)", padding: "18px 16px",
               }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>{DIMENSION_ICONS[d]}</div>
-                <div style={{ fontSize: 11, fontWeight: 900, color: DIMENSION_COLORS[d], letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: DIMENSION_COLORS[d], letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
                   {i === 0 ? "Top Strength" : "Also Strong"}
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>
                   {DIMENSION_LABELS[d]}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
@@ -390,7 +390,7 @@ export default function CareerInstinctsPage() {
           <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: "var(--radius-xl)", padding: "16px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ fontSize: 28 }}>🌱</div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 }}>Growth Opportunity</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 }}>Growth Opportunity</div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{DIMENSION_LABELS[lowest]}</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{DIMENSION_DESCRIPTIONS[lowest]}</div>
             </div>
@@ -398,7 +398,7 @@ export default function CareerInstinctsPage() {
 
           {/* All dimension bars */}
           <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 24 }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>All Dimensions</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>All Dimensions</div>
             {(Object.keys(dims) as Dimension[])
               .sort((a, b) => dims[b] - dims[a])
               .map((d) => (
@@ -410,13 +410,13 @@ export default function CareerInstinctsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <button
               onClick={startGame}
-              style={{ padding: "14px 0", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", cursor: "pointer", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 14, fontWeight: 900 }}
+              style={{ padding: "14px 0", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", cursor: "pointer", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 14, fontWeight: 700 }}
             >
               Play Again
             </button>
             <button
               onClick={loadHistory}
-              style={{ padding: "14px 0", borderRadius: "var(--radius-lg)", border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 14, fontWeight: 900 }}
+              style={{ padding: "14px 0", borderRadius: "var(--radius-lg)", border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 14, fontWeight: 700 }}
             >
               View History
             </button>
@@ -450,7 +450,7 @@ export default function CareerInstinctsPage() {
             )}
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--accent-soft)", borderRadius: 99, padding: "5px 14px" }}>
               <span style={{ fontSize: 14 }}>⚡</span>
-              <span style={{ fontSize: 14, fontWeight: 900, color: "var(--accent)" }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
                 <XPCounter xp={xp} />
               </span>
             </div>
@@ -483,7 +483,7 @@ export default function CareerInstinctsPage() {
           transform: cardAnim ? "translateY(-8px)" : "translateY(0)",
           transition: "opacity 0.2s, transform 0.2s",
         }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.9, textTransform: "uppercase", color: DIMENSION_COLORS[current.category], marginBottom: 12 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.9, textTransform: "uppercase", color: DIMENSION_COLORS[current.category], marginBottom: 12 }}>
             {current.label}
           </div>
           <p style={{ fontSize: 17, color: "var(--text-primary)", lineHeight: 1.65, margin: 0, fontWeight: 500 }}>
@@ -566,7 +566,7 @@ export default function CareerInstinctsPage() {
               padding: "22px 24px",
               marginBottom: 16,
             }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.9, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.9, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 10 }}>
                 This reveals
               </div>
               <p style={{ fontSize: 15, color: "var(--text-primary)", lineHeight: 1.65, margin: "0 0 16px", fontWeight: 500 }}>
@@ -601,7 +601,7 @@ export default function CareerInstinctsPage() {
                 width: "100%", padding: "16px 0", borderRadius: 14, border: "none", cursor: saving ? "default" : "pointer",
                 background: saving ? "var(--card-bg-strong)" : "linear-gradient(135deg, var(--accent), #0EA5E9)",
                 color: saving ? "var(--text-muted)" : "#fff",
-                fontSize: 16, fontWeight: 900, transition: "all 120ms",
+                fontSize: 16, fontWeight: 700, transition: "all 120ms",
               }}
             >
               {saving ? "Saving..." : currentIdx + 1 >= scenarios.length ? "See Results →" : "Next →"}

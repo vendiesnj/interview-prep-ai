@@ -48,7 +48,7 @@ export default function RosterActions({
             background: "rgba(220,38,38,0.08)",
             color: "var(--danger)",
             fontSize: 11,
-            fontWeight: 900,
+            fontWeight: 700,
             cursor: "pointer",
           }}
         >
@@ -84,7 +84,7 @@ export default function RosterActions({
         background: currentStatus === "disabled" ? "rgba(22,163,74,0.07)" : "transparent",
         color: currentStatus === "disabled" ? "#16A34A" : "var(--text-muted)",
         fontSize: 11,
-        fontWeight: 900,
+        fontWeight: 700,
         cursor: loading ? "wait" : "pointer",
         whiteSpace: "nowrap",
       }}

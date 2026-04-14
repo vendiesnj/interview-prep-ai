@@ -131,7 +131,7 @@ function GameCard({
       </div>
 
       <div>
-        <div style={{ fontSize: 16, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>{name}</div>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{name}</div>
         <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>{description}</div>
       </div>
 
@@ -217,7 +217,7 @@ export default function GamesPage() {
       <div style={{ maxWidth: 720, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.2, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1.2, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
             Daily Games
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: -0.5 }}>
@@ -247,7 +247,7 @@ export default function GamesPage() {
           borderRadius: "var(--radius-xl)",
           padding: "22px 24px",
         }}>
-          <h2 style={{ fontSize: 16, fontWeight: 900, color: "var(--text-primary)", margin: "0 0 16px" }}>
+          <h2 style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", margin: "0 0 16px" }}>
             How to Play
           </h2>
 

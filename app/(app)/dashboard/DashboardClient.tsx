@@ -132,12 +132,12 @@ function TrackStep({
                 {item.label}
               </span>
               {isDone && (
-                <span style={{ fontSize: 11, fontWeight: 900, color: item.color, background: item.color + "18", padding: "2px 8px", borderRadius: 99 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: item.color, background: item.color + "18", padding: "2px 8px", borderRadius: 99 }}>
                   Done
                 </span>
               )}
               {item.comingSoon && (
-                <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 8px", borderRadius: 99 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", background: "var(--card-border-soft)", padding: "2px 8px", borderRadius: 99 }}>
                   Coming soon
                 </span>
               )}
@@ -160,7 +160,7 @@ function TrackStep({
                   background: isDone ? "transparent" : item.color,
                   border: isDone ? `1px solid ${item.color}` : "none",
                   color: isDone ? item.color : "#fff",
-                  fontWeight: 900, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap",
+                  fontWeight: 700, fontSize: 13, textDecoration: "none", whiteSpace: "nowrap",
                 }}
               >
                 {isDone ? "Do again →" : item.guideOnly ? "Read →" : "Start →"}
@@ -311,7 +311,7 @@ export default function DashboardPage() {
                 background: "linear-gradient(90deg, #2563EB, #0EA5E9)",
               }} />
             </div>
-            <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", whiteSpace: "nowrap" }}>
               {doneCount} / {track.length} done
             </div>
           </div>
@@ -333,15 +333,15 @@ export default function DashboardPage() {
 
         {/* ── Guides & Resources ── */}
         <div style={{ marginTop: 48 }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
             {(GUIDES[persona] ?? GUIDES.during_college).map((r) => (
               <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
                 <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
                   <span style={{ fontSize: 20, flexShrink: 0 }}>{r.icon}</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
-                    <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: r.tagColor, background: r.tagColor + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
+                    <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 700, color: r.tagColor, background: r.tagColor + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
                   </div>
                   <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2, flexShrink: 0 }}>→</span>
                 </div>

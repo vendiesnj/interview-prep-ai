@@ -54,7 +54,7 @@ export default function DangerZoneDeleteAccount() {
         background: "rgba(252,165,165,0.06)",
       }}
     >
-      <div style={{ fontWeight: 900, color: "#FCA5A5", marginBottom: 8 }}>
+      <div style={{ fontWeight: 700, color: "#FCA5A5", marginBottom: 8 }}>
         Danger zone
       </div>
 
@@ -76,7 +76,7 @@ export default function DangerZoneDeleteAccount() {
             border: "1px solid rgba(252,165,165,0.40)",
             background: "rgba(252,165,165,0.10)",
             color: "#FCA5A5",
-            fontWeight: 900,
+            fontWeight: 700,
             cursor: "pointer",
           }}
         >
@@ -94,12 +94,12 @@ export default function DangerZoneDeleteAccount() {
             background: "rgba(17,24,39,0.55)",
           }}
         >
-          <div style={{ color: "var(--text-primary)", fontWeight: 900, marginBottom: 8 }}>
+          <div style={{ color: "var(--text-primary)", fontWeight: 700, marginBottom: 8 }}>
             Confirm deletion
           </div>
 
           <div style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.5 }}>
-            Type <span style={{ color: "var(--text-primary)", fontWeight: 900 }}>DELETE_MY_ACCOUNT</span> to confirm.
+            Type <span style={{ color: "var(--text-primary)", fontWeight: 700 }}>DELETE_MY_ACCOUNT</span> to confirm.
           </div>
 
           <input
@@ -136,7 +136,7 @@ export default function DangerZoneDeleteAccount() {
                 border: "1px solid rgba(255,255,255,0.12)",
                 background: "rgba(255,255,255,0.04)",
                 color: "var(--text-primary)",
-                fontWeight: 900,
+                fontWeight: 700,
                 cursor: "pointer",
                 opacity: loading ? 0.7 : 1,
               }}
@@ -155,7 +155,7 @@ export default function DangerZoneDeleteAccount() {
                 border: "1px solid rgba(252,165,165,0.45)",
                 background: "rgba(252,165,165,0.12)",
                 color: "#FCA5A5",
-                fontWeight: 900,
+                fontWeight: 700,
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.7 : 1,
               }}

@@ -349,7 +349,7 @@ function WeekView({
           return (
             <div key={key} style={{ textAlign: "center", padding: "8px 4px" }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: isToday ? ACCENT_CAREER : "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{dayName}</div>
-              <div style={{ fontSize: 16, fontWeight: 900, color: isToday ? "#fff" : "var(--text-primary)", background: isToday ? ACCENT_CAREER : "transparent", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", margin: "2px auto 0" }}>{dayNum}</div>
+              <div style={{ fontSize: 16, fontWeight: 700, color: isToday ? "#fff" : "var(--text-primary)", background: isToday ? ACCENT_CAREER : "transparent", borderRadius: "50%", width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", margin: "2px auto 0" }}>{dayNum}</div>
             </div>
           );
         })}
@@ -765,7 +765,7 @@ function PersonalTasksSection({ scheduled }: { scheduled: ScheduleItem[] }) {
 
   return (
     <div style={{ marginBottom: 16 }}>
-      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Personal Tasks</div>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.7, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Personal Tasks</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
         {tasks.map(task => {
           const entry = getScheduledEntry(task.label);
@@ -1108,7 +1108,7 @@ function CareerAssessmentCard({ aptitude }: { aptitude: NonNullable<SignalData["
 
       {profile && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div style={{ fontSize: 28, fontWeight: 900, color: "var(--accent)", letterSpacing: -1, lineHeight: 1 }}>{profile}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: "var(--accent)", letterSpacing: -1, lineHeight: 1 }}>{profile}</div>
           <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
             {profile.split("").map((c: string) => RIASEC_FULL[c] ?? c).join(" · ")}
           </div>
@@ -1184,7 +1184,7 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 40, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: 40, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{score}</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>/100</div>
         </div>
         <div>
@@ -1270,19 +1270,19 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
       {/* Signal score + session count */}
       <div style={{ display: "flex", gap: 10 }}>
         <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
-          <div style={{ fontSize: 26, fontWeight: 900, color: signalColor, lineHeight: 1 }}>
+          <div style={{ fontSize: 26, fontWeight: 700, color: signalColor, lineHeight: 1 }}>
             {signalScore !== null ? signalScore : "—"}
           </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Readiness Index</div>
           <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 1, opacity: 0.7 }}>career + practice</div>
         </div>
         <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
-          <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{totalSessions}</div>
+          <div style={{ fontSize: 26, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{totalSessions}</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Sessions</div>
         </div>
         {avgScore !== null && (
           <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
-            <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{avgScore}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{avgScore}</div>
             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Avg Score</div>
           </div>
         )}
@@ -1703,7 +1703,7 @@ export default function DashboardPage() {
                 {stageConfig && (
                   <div>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                      <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: 0.7, color: stageConfig.accent, textTransform: "uppercase" }}>Stage Checklist</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.7, color: stageConfig.accent, textTransform: "uppercase" }}>Stage Checklist</div>
                       <Link href={stageConfig.guideHref} style={{ fontSize: 11, fontWeight: 700, color: stageConfig.accent, textDecoration: "none" }}>{stageConfig.guideLabel} →</Link>
                     </div>
                     <ChecklistSection key={checklistKey} stage={stageConfig.stageKey} items={checklistItems} accentColor={stageConfig.accent} onProgressChange={setProgress} />
@@ -1720,7 +1720,7 @@ export default function DashboardPage() {
         {isUniversity && data && data.naceScores.some(n => n.score !== null) && (
           <div style={{ padding: "14px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", marginTop: 12 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>NACE Career Readiness</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>NACE Career Readiness</span>
               <Link href="/my-journey?tab=nace" style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>Full breakdown →</Link>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: "7px 18px" }}>
@@ -1728,7 +1728,7 @@ export default function DashboardPage() {
                 <div key={ns.key}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 2 }}>
                     <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{ns.shortLabel}</span>
-                    <span style={{ fontSize: 10, fontWeight: 900, color: ns.score! >= 50 ? "#10B981" : "var(--text-muted)" }}>{ns.score}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: ns.score! >= 50 ? "#10B981" : "var(--text-muted)" }}>{ns.score}</span>
                   </div>
                   <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${ns.score}%`, borderRadius: 99, background: "var(--accent)", transition: "width 0.6s ease" }} />

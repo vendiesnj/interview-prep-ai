@@ -38,7 +38,7 @@ export default function StageSetterClient({
 
   return (
     <div>
-      <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
         Student Stage
       </div>
       <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 12 }}>

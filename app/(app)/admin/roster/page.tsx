@@ -82,7 +82,7 @@ export default async function RosterPage() {
           <Link href="/admin" style={{ textDecoration: "none" }}>
             <div style={{
               padding: "8px 14px",
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
               fontSize: 12,
@@ -95,7 +95,7 @@ export default async function RosterPage() {
           <Link href="/admin/compliance" style={{ textDecoration: "none" }}>
             <div style={{
               padding: "8px 14px",
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
               border: "1px solid rgba(22,163,74,0.25)",
               background: "rgba(22,163,74,0.06)",
               fontSize: 12,
@@ -122,7 +122,7 @@ export default async function RosterPage() {
               background: "var(--card-bg)",
             }}>
               <div style={{ fontSize: 24, fontWeight: 800, color: item.color }}>{item.value}</div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{item.label}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{item.label}</div>
             </div>
           ))}
         </div>
@@ -155,7 +155,7 @@ export default async function RosterPage() {
             gap: 12,
             padding: "12px 18px",
             fontSize: 11,
-            fontWeight: 900,
+            fontWeight: 700,
             letterSpacing: 0.6,
             color: "var(--text-muted)",
             textTransform: "uppercase",
@@ -199,7 +199,7 @@ export default async function RosterPage() {
                       alignItems: "center",
                       justifyContent: "center",
                       fontSize: 12,
-                      fontWeight: 900,
+                      fontWeight: 700,
                       flexShrink: 0,
                     }}>
                       {(student.name || "?")[0].toUpperCase()}
@@ -208,7 +208,7 @@ export default async function RosterPage() {
                       <Link href={`/admin/students/${student.userId}`} style={{ textDecoration: "none" }}>
                         <div style={{
                           fontSize: 13,
-                          fontWeight: 900,
+                          fontWeight: 700,
                           color: "var(--text-primary)",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
@@ -240,7 +240,7 @@ export default async function RosterPage() {
                       padding: "3px 9px",
                       borderRadius: 99,
                       fontSize: 11,
-                      fontWeight: 900,
+                      fontWeight: 700,
                       background: student.status === "active"
                         ? "rgba(22,163,74,0.10)"
                         : student.status === "invited"

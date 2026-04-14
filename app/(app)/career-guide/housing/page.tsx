@@ -163,7 +163,7 @@ export default function HousingPage({ searchParams }: { searchParams: { from?: s
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 32 }}>
           {SECTIONS.map(({ id, icon, title: sTitle, color }) => (
-            <a key={id} href={`#${id}`} style={{ padding: "8px 14px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg)", color, fontSize: 13, fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
+            <a key={id} href={`#${id}`} style={{ padding: "8px 14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color, fontSize: 13, fontWeight: 700, textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
               <span>{icon}</span>{sTitle.split(":")[0]}
             </a>
           ))}

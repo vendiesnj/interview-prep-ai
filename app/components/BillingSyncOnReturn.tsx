@@ -64,7 +64,7 @@ export default function BillingSyncOnReturn() {
         border: "1px solid rgba(34,211,238,0.35)",
         background: "rgba(34,211,238,0.10)",
         color: "#A5F3FC",
-        fontWeight: 900,
+        fontWeight: 700,
         fontSize: 13,
       }}
     >

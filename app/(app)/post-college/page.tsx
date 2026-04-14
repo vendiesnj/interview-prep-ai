@@ -129,7 +129,7 @@ export default function PostCollegePage() {
           <div>
             {/* To-Do's */}
             <div style={{ marginBottom: 48 }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Practice & Tools</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Practice & Tools</div>
               <div style={{ display: "grid", gap: 12 }}>
                 {TODOS.map((todo) => (
                   <div key={todo.id} style={{ padding: "18px 20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
@@ -143,7 +143,7 @@ export default function PostCollegePage() {
                       </div>
                       <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{todo.desc}</p>
                     </div>
-                    <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: "var(--radius-md)", background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
+                    <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: "var(--radius-md)", background: todo.color, color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>Start →</Link>
                   </div>
                 ))}
               </div>
@@ -156,16 +156,16 @@ export default function PostCollegePage() {
 
             {/* Resources */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "#8B5CF6", textTransform: "uppercase", marginBottom: 16 }}>Guides & Resources</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
                 {RESOURCES.map((r) => (
                   <Link key={r.label} href={r.href} style={{ textDecoration: "none" }}>
                     <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 12, alignItems: "flex-start" }}>
                       <r.Icon size={22} color={TAG_COLORS[r.tag] ?? "var(--accent)"} style={{ flexShrink: 0, marginTop: 1 }} />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.4 }}>{r.label}</div>
                         {r.desc && <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 3 }}>{r.desc}</div>}
-                        <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 900, color: TAG_COLORS[r.tag] ?? "var(--accent)", background: (TAG_COLORS[r.tag] ?? "var(--accent)") + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
+                        <div style={{ marginTop: 5, display: "inline-block", fontSize: 10, fontWeight: 700, color: TAG_COLORS[r.tag] ?? "var(--accent)", background: (TAG_COLORS[r.tag] ?? "var(--accent)") + "18", padding: "2px 8px", borderRadius: 99 }}>{r.tag}</div>
                       </div>
                       <span style={{ color: "var(--text-muted)", fontSize: 14, marginTop: 2 }}>→</span>
                     </div>

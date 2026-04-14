@@ -122,7 +122,7 @@ function StatCard({
       <div
         style={{
           fontSize: 11,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.7,
           color: "var(--text-muted)",
           textTransform: "uppercase",
@@ -373,7 +373,7 @@ const trendLabel =
           <div
             style={{
               fontSize: 11,
-              fontWeight: 900,
+              fontWeight: 700,
               letterSpacing: 0.8,
               color: "var(--accent)",
               textTransform: "uppercase",
@@ -489,7 +489,7 @@ const trendLabel =
               <div
                 style={{
                   fontSize: 11,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   letterSpacing: 0.7,
                   color: "var(--accent)",
                   textTransform: "uppercase",
@@ -582,7 +582,7 @@ const trendLabel =
               border: "1px solid var(--card-border-soft)",
               boxShadow: "var(--shadow-card-soft)",
             }}>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
                 Delivery Archetype
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
@@ -598,10 +598,10 @@ const trendLabel =
               )}
               {latestEntry.signals.length > 0 && (
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 18 }}>
-                  <span style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, alignSelf: "center" }}>signals:</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, alignSelf: "center" }}>signals:</span>
                   {latestEntry.signals.map((sig) => (
                     <span key={sig} style={{
-                      padding: "2px 7px", borderRadius: 999, fontSize: 10, fontWeight: 700,
+                      padding: "2px 7px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700,
                       color: latestColor, background: `${latestColor}15`, border: `1px solid ${latestColor}35`,
                     }}>
                       {sig.replace(/_/g, " ")}
@@ -611,7 +611,7 @@ const trendLabel =
               )}
 
               {/* Timeline */}
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
                 Progression across {archetypeTimeline.length} attempt{archetypeTimeline.length !== 1 ? "s" : ""}
               </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
@@ -629,7 +629,7 @@ const trendLabel =
                       )}
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
                         <span style={{
-                          padding: "2px 7px", borderRadius: 999, fontSize: 10, fontWeight: 900,
+                          padding: "2px 7px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700,
                           color, background: `${color}15`, border: `1px solid ${color}${changed ? "60" : "30"}`,
                           whiteSpace: "nowrap",
                         }}>
@@ -653,7 +653,7 @@ const trendLabel =
           border: "1px solid var(--card-border-soft)",
           boxShadow: "var(--shadow-card-soft)",
         }}>
-          <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
             Archetype Reference
           </div>
           <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.25, marginBottom: 16 }}>
@@ -671,7 +671,7 @@ const trendLabel =
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                     <span style={{
-                      padding: "2px 8px", borderRadius: 999, fontSize: 11, fontWeight: 900,
+                      padding: "2px 8px", borderRadius: "var(--radius-sm)", fontSize: 11, fontWeight: 700,
                       color, background: `${color}18`, border: `1px solid ${color}40`,
                     }}>
                       {name}
@@ -699,7 +699,7 @@ const trendLabel =
 
           {isAtRisk && (
   <GlowCard padding={18} radius={22}>
-    <div style={{ color: "var(--danger)", fontWeight: 900 }}>
+    <div style={{ color: "var(--danger)", fontWeight: 700 }}>
       ⚠️ At-Risk Student
     </div>
 
@@ -738,7 +738,7 @@ const trendLabel =
         <div
           style={{
             height: 8,
-            borderRadius: 999,
+            borderRadius: "var(--radius-sm)",
             background: "var(--card-border-soft)",
             overflow: "hidden",
           }}
@@ -748,7 +748,7 @@ const trendLabel =
               width: `${item.value}%`,
               height: "100%",
               background: item.color,
-              borderRadius: 999,
+              borderRadius: "var(--radius-sm)",
             }}
           />
         </div>
@@ -822,7 +822,7 @@ const trendLabel =
       boxShadow: "var(--shadow-card-soft)",
     }}
   >
-    <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
+    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 14 }}>
       Performance by Category
     </div>
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -863,7 +863,7 @@ const trendLabel =
     alignItems: "center",
     padding: "0 14px 8px 14px",
     fontSize: 11,
-    fontWeight: 900,
+    fontWeight: 700,
     letterSpacing: 0.6,
     color: "var(--text-muted)",
     textTransform: "uppercase",
@@ -897,7 +897,7 @@ const trendLabel =
                     <div
                       style={{
                         fontSize: 13,
-                        fontWeight: 900,
+                        fontWeight: 700,
                         color: "var(--text-primary)",
                       }}
                     >
@@ -954,7 +954,7 @@ const trendLabel =
                     const archColor = ARCHETYPE_COLOR[arch as keyof typeof ARCHETYPE_COLOR] ?? "#6B7280";
                     return (
                       <div style={{
-                        padding: "3px 8px", borderRadius: 999, fontSize: 10, fontWeight: 900,
+                        padding: "3px 8px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700,
                         color: archColor, background: `${archColor}15`, border: `1px solid ${archColor}40`,
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                         display: "inline-block", maxWidth: "100%",

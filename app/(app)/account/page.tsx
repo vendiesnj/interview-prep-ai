@@ -19,7 +19,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        fontWeight: 900,
+        fontWeight: 700,
         color: "var(--text-primary)",
         marginBottom: 12,
         fontSize: 15,
@@ -53,7 +53,7 @@ function FieldRow({
       <div
         style={{
           color: valueColor ?? "var(--text-muted)",
-          fontWeight: 900,
+          fontWeight: 700,
           textAlign: "right",
         }}
       >
@@ -190,7 +190,7 @@ export default async function AccountPage() {
                       border: "1px solid var(--accent-strong)",
                       background: "var(--accent-soft)",
                       color: "var(--accent)",
-                      fontWeight: 900,
+                      fontWeight: 700,
                       textDecoration: "none",
                       fontSize: 12,
                       whiteSpace: "nowrap",

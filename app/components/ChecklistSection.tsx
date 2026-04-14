@@ -177,12 +177,12 @@ export default function ChecklistSection({
 
       {/* Progress bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase" }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: accentColor, textTransform: "uppercase" }}>
           Your Checklist
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ fontSize: 11, color: "var(--text-muted)", opacity: 0.7 }}>drag items → calendar</div>
-          <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-muted)" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>
             {doneCount} / {items.length}
           </div>
         </div>
@@ -264,7 +264,7 @@ export default function ChecklistSection({
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                     <div style={{
-                      fontSize: 13, fontWeight: 900,
+                      fontSize: 13, fontWeight: 700,
                       color: checked ? "var(--text-muted)" : "var(--text-primary)",
                       textDecoration: checked ? "line-through" : "none",
                     }}>

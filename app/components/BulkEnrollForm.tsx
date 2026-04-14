@@ -199,7 +199,7 @@ export function BulkEnrollForm() {
           <div
             style={{
               fontSize: 11,
-              fontWeight: 900,
+              fontWeight: 700,
               letterSpacing: 0.7,
               color: "var(--accent)",
               textTransform: "uppercase",
@@ -289,7 +289,7 @@ export function BulkEnrollForm() {
               onClick={downloadTemplate}
               style={{
                 padding: "8px 14px",
-                borderRadius: 999,
+                borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--card-border)",
                 background: "var(--card-bg)",
                 color: "var(--text-primary)",
@@ -309,7 +309,7 @@ export function BulkEnrollForm() {
               <label
                 style={{
                   fontSize: 11,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   letterSpacing: 0.55,
                   color: "var(--text-muted)",
                   textTransform: "uppercase",
@@ -364,7 +364,7 @@ export function BulkEnrollForm() {
                 <div
                   style={{
                     fontSize: 12,
-                    fontWeight: 900,
+                    fontWeight: 700,
                     color: "var(--text-muted)",
                     textTransform: "uppercase",
                     letterSpacing: 0.55,
@@ -412,7 +412,7 @@ export function BulkEnrollForm() {
               <label
                 style={{
                   fontSize: 11,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   letterSpacing: 0.55,
                   color: "var(--text-muted)",
                   textTransform: "uppercase",
@@ -481,7 +481,7 @@ export function BulkEnrollForm() {
                 }
                 style={{
                   padding: "11px 22px",
-                  borderRadius: 999,
+                  borderRadius: "var(--radius-sm)",
                   border: "none",
                   background:
                     !file || totalRows === 0 || !!csvError || status === "uploading"
@@ -492,7 +492,7 @@ export function BulkEnrollForm() {
                       ? "var(--text-muted)"
                       : "#fff",
                   fontSize: 13,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   cursor:
                     !file || totalRows === 0 || !!csvError || status === "uploading"
                       ? "not-allowed"
@@ -514,7 +514,7 @@ export function BulkEnrollForm() {
                   onClick={reset}
                   style={{
                     padding: "11px 18px",
-                    borderRadius: 999,
+                    borderRadius: "var(--radius-sm)",
                     border: "1px solid var(--card-border)",
                     background: "transparent",
                     color: "var(--text-muted)",
@@ -560,7 +560,7 @@ export function BulkEnrollForm() {
                 <div
                   style={{
                     fontSize: 13,
-                    fontWeight: 900,
+                    fontWeight: 700,
                     color: "var(--success)",
                   }}
                 >

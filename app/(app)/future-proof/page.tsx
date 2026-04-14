@@ -118,7 +118,7 @@ export default function FutureProofPage() {
         <div style={{ marginBottom: 48 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "5px 14px", borderRadius: 99, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", marginBottom: 16 }}>
             <Shield size={16} color="#EF4444" />
-            <span style={{ fontSize: 12, fontWeight: 900, color: "#EF4444", letterSpacing: 0.5 }}>AI & FUTURE OF WORK</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#EF4444", letterSpacing: 0.5 }}>AI & FUTURE OF WORK</span>
           </div>
           <h1 style={{ margin: "0 0 14px", fontSize: 36, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.8, lineHeight: 1.15 }}>
             Future-proof your career.
@@ -142,7 +142,7 @@ export default function FutureProofPage() {
               <div key={tier.label} style={{ padding: "20px 24px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ width: 12, height: 12, borderRadius: 2, background: tier.color, flexShrink: 0, marginTop: 4 }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>{tier.label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>{tier.label}</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
                     {tier.examples.map(ex => (
                       <span key={ex} style={{ fontSize: 11, padding: "3px 9px", borderRadius: 99, background: tier.color + "15", color: tier.color, fontWeight: 700 }}>{ex}</span>
@@ -174,14 +174,14 @@ export default function FutureProofPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <skill.Icon size={22} color="var(--accent)" />
-                      <span style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{skill.title}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{skill.title}</span>
                     </div>
                     <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{isOpen ? "▲" : "▼"}</span>
                   </div>
                   <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>{skill.desc}</p>
                   {isOpen && (
                     <div style={{ marginTop: 12, padding: "12px 14px", borderRadius: "var(--radius-md)", background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, color: "#10B981", marginBottom: 4, letterSpacing: 0.5 }}>WHY IT'S AI-RESISTANT</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", marginBottom: 4, letterSpacing: 0.5 }}>WHY IT'S AI-RESISTANT</div>
                       <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>{skill.why}</p>
                     </div>
                   )}
@@ -206,10 +206,10 @@ export default function FutureProofPage() {
                     className="ipc-card-lift"
                     style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", height: "100%" }}
                   >
-                    <div style={{ fontSize: 11, fontWeight: 900, color: risk.color, marginBottom: 6, letterSpacing: 0.5 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: risk.color, marginBottom: 6, letterSpacing: 0.5 }}>
                       {occ.aiRisk}% AI risk
                     </div>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4, lineHeight: 1.3 }}>{occ.title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4, lineHeight: 1.3 }}>{occ.title}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8 }}>{occ.category}</div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "#10B981" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>
                   </div>
@@ -232,7 +232,7 @@ export default function FutureProofPage() {
                   <item.Icon size={18} color="var(--accent)" />
                 </div>
                 <div>
-                  <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>{item.action}</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{item.action}</div>
                   <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>{item.detail}</p>
                 </div>
               </div>
@@ -256,7 +256,7 @@ export default function FutureProofPage() {
                   style={{ padding: "18px 22px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)", cursor: "pointer" }}
                 >
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>{item.scenario}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{item.scenario}</div>
                     <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: 16, flexShrink: 0 }}>{isOpen ? "▲" : "▼"}</span>
                   </div>
                   {isOpen && (
@@ -281,7 +281,7 @@ export default function FutureProofPage() {
               <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
                 Based on your career aptitude profile, we can match side income opportunities that align with your skills and interests - from freelancing to product businesses to trade work.
               </p>
-              <Link href="/aptitude" style={{ display: "inline-block", padding: "9px 18px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>
+              <Link href="/aptitude" style={{ display: "inline-block", padding: "9px 18px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
                 Take Career Assessment →
               </Link>
             </div>
@@ -291,7 +291,7 @@ export default function FutureProofPage() {
               <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
                 For students and graduates with high autonomy drive and risk tolerance, the entrepreneurship track maps business models, funding paths, and early-stage skills to your profile.
               </p>
-              <Link href="/career-guide/career-paths" style={{ display: "inline-block", padding: "9px 18px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", color: "var(--accent)", border: "1px solid var(--accent)", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>
+              <Link href="/career-guide/career-paths" style={{ display: "inline-block", padding: "9px 18px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", color: "var(--accent)", border: "1px solid var(--accent)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
                 Explore career paths →
               </Link>
             </div>
@@ -309,10 +309,10 @@ export default function FutureProofPage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>
-            <Link href="/practice" style={{ padding: "10px 18px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}>
+            <Link href="/practice" style={{ padding: "10px 18px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}>
               Start practicing →
             </Link>
-            <Link href="/networking" style={{ padding: "10px 18px", borderRadius: "var(--radius-md)", background: "transparent", color: "var(--accent)", border: "1px solid var(--accent)", fontWeight: 900, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}>
+            <Link href="/networking" style={{ padding: "10px 18px", borderRadius: "var(--radius-md)", background: "transparent", color: "var(--accent)", border: "1px solid var(--accent)", fontWeight: 700, fontSize: 14, textDecoration: "none", whiteSpace: "nowrap" }}>
               Networking pitch →
             </Link>
           </div>
@@ -328,7 +328,7 @@ export default function FutureProofPage() {
 function SectionHeader({ number, title }: { number: string; title: string }) {
   return (
     <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 16 }}>
-      <span style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", letterSpacing: 1, opacity: 0.6 }}>{number}</span>
+      <span style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: 1, opacity: 0.6 }}>{number}</span>
       <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.4 }}>{title}</h2>
     </div>
   );

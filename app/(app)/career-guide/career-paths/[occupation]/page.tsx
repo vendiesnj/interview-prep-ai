@@ -61,7 +61,7 @@ export default function OccupationProfilePage({ params }: Props) {
         <div style={{ marginBottom: 32 }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
                 {occ.category}
               </div>
               <h1 style={{ margin: "0 0 12px", fontSize: 32, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.6 }}>
@@ -130,12 +130,12 @@ export default function OccupationProfilePage({ params }: Props) {
             <Card style={{ marginBottom: 20 }}>
               <CardHeader title="Education & timeline" />
               <div style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", background: "var(--accent-soft)", marginBottom: 12 }}>
-                <div style={{ fontSize: 13, fontWeight: 900, color: "var(--accent)" }}>{educationLabel(occ.education)}</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>{educationLabel(occ.education)}</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{EDU_TIMELINE[occ.education]}</div>
               </div>
               {occ.trades && (
                 <div style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.2)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 900, color: "#D97706", marginBottom: 4 }}>TRADE / APPRENTICESHIP PATH</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#D97706", marginBottom: 4 }}>TRADE / APPRENTICESHIP PATH</div>
                   <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
                     This occupation is available through trade school or apprenticeship - often faster and less expensive than a 4-year degree, with strong job placement. Many trade workers start earning full wages within 2–4 years.
                   </p>
@@ -150,7 +150,7 @@ export default function OccupationProfilePage({ params }: Props) {
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                   <span style={{ fontSize: 24 }}>🚀</span>
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>{occ.entrepreneurPath}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>{occ.entrepreneurPath}</div>
                     <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65 }}>
                       Many professionals in this field eventually start their own practice, firm, or business. Building experience and a client base as an employee is often the fastest path to entrepreneurship in this area.
                     </p>
@@ -184,18 +184,18 @@ export default function OccupationProfilePage({ params }: Props) {
               <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                 Practice behavioral interviews, networking pitches, and professional communication specific to {occ.category} roles.
               </p>
-              <Link href="/practice" style={{ display: "block", padding: "9px 14px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
+              <Link href="/practice" style={{ display: "block", padding: "9px 14px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
                 Start practicing →
               </Link>
             </Card>
 
             {/* Aptitude CTA */}
             <Card>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", marginBottom: 6 }}>Is this the right fit?</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>Is this the right fit?</div>
               <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                 Take the career aptitude assessment to see how your RIASEC profile matches {occ.title} and 300+ other occupations.
               </p>
-              <Link href="/aptitude" style={{ display: "block", padding: "9px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent)", color: "var(--accent)", fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
+              <Link href="/aptitude" style={{ display: "block", padding: "9px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent)", color: "var(--accent)", fontWeight: 700, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
                 Take assessment →
               </Link>
             </Card>
@@ -206,7 +206,7 @@ export default function OccupationProfilePage({ params }: Props) {
         {/* Related occupations */}
         {related.length > 0 && (
           <div style={{ marginTop: 40 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 16 }}>
               Related careers with similar RIASEC profile
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
@@ -215,8 +215,8 @@ export default function OccupationProfilePage({ params }: Props) {
                 return (
                   <Link key={r.id} href={`/career-guide/career-paths/${r.id}`} style={{ textDecoration: "none" }}>
                     <div className="ipc-card-lift" style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                      <div style={{ fontSize: 11, fontWeight: 900, color: rRisk.color, marginBottom: 4 }}>{r.aiRisk}% AI risk</div>
-                      <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", marginBottom: 2 }}>{r.title}</div>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: rRisk.color, marginBottom: 4 }}>{r.aiRisk}% AI risk</div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>{r.title}</div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)" }}>${r.salary[0]}K–${r.salary[1]}K</div>
                     </div>
                   </Link>
@@ -252,5 +252,5 @@ function Card({ children, style }: { children: React.ReactNode; style?: React.CS
 }
 
 function CardHeader({ title }: { title: string }) {
-  return <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 14 }}>{title}</div>;
+  return <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 14 }}>{title}</div>;
 }

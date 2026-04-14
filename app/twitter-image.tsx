@@ -34,7 +34,7 @@ export default function TwitterImage() {
             />
             <span style={{ fontSize: 22, fontWeight: 800, color: "#fff" }}>Signal HQ</span>
           </div>
-          <div style={{ fontSize: 48, fontWeight: 900, color: "#fff", lineHeight: 1.1, letterSpacing: -1.5 }}>
+          <div style={{ fontSize: 48, fontWeight: 700, color: "#fff", lineHeight: 1.1, letterSpacing: -1.5 }}>
             AI-powered interview coaching
           </div>
           <div style={{ fontSize: 20, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
@@ -58,7 +58,7 @@ export default function TwitterImage() {
           <div style={{ fontSize: 13, fontWeight: 700, color: "#60A5FA", letterSpacing: 1, textTransform: "uppercase" }}>
             Your Signal
           </div>
-          <div style={{ fontSize: 56, fontWeight: 900, color: "#fff", lineHeight: 1 }}>74</div>
+          <div style={{ fontSize: 56, fontWeight: 700, color: "#fff", lineHeight: 1 }}>74</div>
           <div style={{ fontSize: 13, color: "#F59E0B", fontWeight: 700 }}>Developing → Ready</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
             {[

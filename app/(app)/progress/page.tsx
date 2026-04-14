@@ -694,7 +694,7 @@ function ScoreBarRow({
         style={{
           marginTop: 10,
           height: 8,
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           background: "var(--card-border-soft)",
           overflow: "hidden",
         }}
@@ -1981,7 +1981,7 @@ export default function ProgressPage() {
                     <div style={{ padding: "14px 18px", background: "var(--card-bg-strong)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                         <div style={{ textAlign: "center" as const }}>
-                          <div style={{ fontSize: 28, fontWeight: 900, color: c, lineHeight: 1 }}>{score}</div>
+                          <div style={{ fontSize: 28, fontWeight: 700, color: c, lineHeight: 1 }}>{score}</div>
                           <div style={{ fontSize: 9, color: "var(--text-muted)" }}>/100</div>
                         </div>
                         <div>
@@ -2072,7 +2072,7 @@ export default function ProgressPage() {
                               <div key={qi} style={{ paddingBottom: qi < qBreakdowns.length - 1 ? 8 : 0, borderBottom: qi < qBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
                                 <div style={{ display: "grid", gridTemplateColumns: "36px 1fr", gap: 10, alignItems: "start", marginBottom: hasSigs ? 5 : 0 }}>
                                   <div style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)", background: `${qc}15`, border: `1px solid ${qc}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                    <span style={{ fontSize: 12, fontWeight: 900, color: qc }}>{qb.score}</span>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: qc }}>{qb.score}</span>
                                   </div>
                                   <div>
                                     <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.4 }}>{qb.question}</div>
@@ -2138,7 +2138,7 @@ export default function ProgressPage() {
               <div style={{ display: "grid", gridTemplateColumns: "96px 1fr", gap: 28, alignItems: "start" }}>
                 {/* Score column */}
                 <div style={{ textAlign: "center" as const }}>
-                  <div style={{ fontSize: 54, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>
+                  <div style={{ fontSize: 54, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>
                     {overview.avgOverall === null ? "—" : Math.round(overview.avgOverall)}
                   </div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>/100 avg</div>
@@ -2333,8 +2333,13 @@ export default function ProgressPage() {
                       })}
                     </div>
                   ) : (
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                      Dimension scores unlock after your first few sessions.
+                    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                        Dimension scores appear after your first few practice sessions.
+                      </div>
+                      <a href="/practice" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-sm)", background: "var(--accent-soft)", color: "var(--accent)", fontWeight: 600, fontSize: 12, textDecoration: "none", width: "fit-content" }}>
+                        Record your first answer →
+                      </a>
                     </div>
                   )}
                 </div>
@@ -2399,8 +2404,13 @@ export default function ProgressPage() {
                       );
                     })}
                     {overview.avgPace === null && overview.avgFillers === null && (
-                      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                        Delivery signals appear after spoken attempts.
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                          Delivery signals appear after spoken attempts — pace, filler rate, and vocal variety.
+                        </div>
+                        <a href="/practice" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-sm)", background: "var(--accent-soft)", color: "var(--accent)", fontWeight: 600, fontSize: 12, textDecoration: "none", width: "fit-content" }}>
+                          Record a spoken answer →
+                        </a>
                       </div>
                     )}
 
@@ -2625,7 +2635,7 @@ export default function ProgressPage() {
                       </div>
                       <div style={{ textAlign: "center" as const, minWidth: 82 }}>
                         <div style={{
-                          padding: "6px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700,
+                          padding: "6px 14px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 700,
                           background: (row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.12)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.10)" : "rgba(239,68,68,0.08)",
                           color: (row.fitScore ?? 0) >= 7 ? "#10B981" : (row.fitScore ?? 0) >= 6 ? "var(--accent)" : "#EF4444",
                           border: `1px solid ${(row.fitScore ?? 0) >= 7 ? "rgba(16,185,129,0.25)" : (row.fitScore ?? 0) >= 6 ? "rgba(37,99,235,0.20)" : "rgba(239,68,68,0.20)"}`,

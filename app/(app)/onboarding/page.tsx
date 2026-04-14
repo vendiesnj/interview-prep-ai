@@ -118,7 +118,7 @@ export default function OnboardingPage() {
                     {stage.label}
                   </span>
                   {active && (
-                    <span style={{ fontSize: 11, fontWeight: 900, color: stage.color, background: stage.color + "20", padding: "2px 8px", borderRadius: "var(--radius-xs)", letterSpacing: 0.4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: stage.color, background: stage.color + "20", padding: "2px 8px", borderRadius: "var(--radius-xs)", letterSpacing: 0.4 }}>
                       Selected
                     </span>
                   )}

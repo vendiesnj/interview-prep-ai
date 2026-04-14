@@ -552,7 +552,7 @@ async function handleDelete(id: string) {
                               <span
                                 style={{
                                   padding: "3px 8px",
-                                  borderRadius: 999,
+                                  borderRadius: "var(--radius-sm)",
                                   border: "none",
                                   background: "var(--accent-soft)",
                                   color: "var(--accent)",
@@ -581,7 +581,7 @@ async function handleDelete(id: string) {
                               <span
                                 style={{
                                   padding: "3px 8px",
-                                  borderRadius: 999,
+                                  borderRadius: "var(--radius-sm)",
                                   background: "var(--card-bg-strong)",
                                   color: "var(--text-muted)",
                                 }}
@@ -594,7 +594,7 @@ async function handleDelete(id: string) {
                               <span
                                 style={{
                                   padding: "3px 8px",
-                                  borderRadius: 999,
+                                  borderRadius: "var(--radius-sm)",
                                   background: "var(--card-bg-strong)",
                                   color: "var(--text-muted)",
                                 }}

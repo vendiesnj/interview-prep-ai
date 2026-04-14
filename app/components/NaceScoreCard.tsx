@@ -54,7 +54,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                   justifyContent: "center",
                   flexShrink: 0,
                   fontSize: 13,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   // Score number uses quality color
                   color: s.score !== null ? qualityColor : "var(--text-muted)",
                 }}

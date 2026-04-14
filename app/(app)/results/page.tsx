@@ -298,7 +298,7 @@ function MetricBar({
         style={{
           marginTop: 8,
           height: 10,
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           background: "var(--card-border-soft)",
           overflow: "hidden",
           border: "1px solid var(--card-border-soft)",
@@ -308,7 +308,7 @@ function MetricBar({
           style={{
             width: `${pct}%`,
             height: "100%",
-            borderRadius: 999,
+            borderRadius: "var(--radius-sm)",
             background: "linear-gradient(90deg, var(--accent-2), var(--accent))",
             boxShadow: "var(--shadow-glow)",
             transition: "width 250ms ease",
@@ -352,8 +352,8 @@ function DimensionBar({ label, score, isGap, isStrength }: { label: string; scor
         <span style={{ fontSize: 11, color: isGap ? "#EF4444" : isStrength ? "#10B981" : "var(--text-muted)", fontWeight: 600 }}>{label}</span>
         <span style={{ fontSize: 12, fontWeight: 700, color: isGap ? "#EF4444" : isStrength ? "#10B981" : "var(--text-primary)" }}>{score.toFixed(1)}</span>
       </div>
-      <div style={{ height: 5, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", borderRadius: 999, background: color, transition: "width 400ms ease" }} />
+      <div style={{ height: 5, borderRadius: "var(--radius-sm)", background: "var(--card-border-soft)", overflow: "hidden" }}>
+        <div style={{ width: `${pct}%`, height: "100%", borderRadius: "var(--radius-sm)", background: color, transition: "width 400ms ease" }} />
       </div>
     </div>
   );
@@ -600,7 +600,7 @@ return (
                 <div
                   style={{
                     padding: "3px 8px",
-                    borderRadius: 999,
+                    borderRadius: "var(--radius-sm)",
                     border: "1px solid var(--card-border)",
                     background: "var(--card-bg-strong)",
                     color: "var(--text-primary)",
@@ -1217,7 +1217,7 @@ const longPausesPerMin =
           <SectionCard title="Loading results">
             <div style={{ display: "grid", gap: 10 }}>
               {[34, 56, 100].map(w => (
-                <div key={w} style={{ height: 14, width: `${w}%`, borderRadius: 999, background: "var(--card-border-soft)" }} />
+                <div key={w} style={{ height: 14, width: `${w}%`, borderRadius: "var(--radius-sm)", background: "var(--card-border-soft)" }} />
               ))}
             </div>
           </SectionCard>
@@ -1357,17 +1357,17 @@ const longPausesPerMin =
                   </div>
                   <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" as const }}>
                     {stored.questionCategory && (
-                      <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontSize: 11, fontWeight: 600, textTransform: "capitalize" as const }}>
+                      <span style={{ padding: "3px 9px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontSize: 11, fontWeight: 600, textTransform: "capitalize" as const }}>
                         {stored.questionCategory.replace(/_/g, " ")}
                       </span>
                     )}
                     {stored.evaluationFramework && (
-                      <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-muted)", fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const }}>
+                      <span style={{ padding: "3px 9px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-muted)", fontSize: 11, fontWeight: 600, textTransform: "uppercase" as const }}>
                         {stored.evaluationFramework.replace(/_/g, " ")}
                       </span>
                     )}
                     {(ibmMetrics as any)?.questionIntent && (
-                      <span style={{ padding: "3px 9px", borderRadius: 999, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-muted)", fontSize: 11, fontWeight: 500 }}>
+                      <span style={{ padding: "3px 9px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-muted)", fontSize: 11, fontWeight: 500 }}>
                         {String((ibmMetrics as any).questionIntent)}
                       </span>
                     )}
@@ -1418,10 +1418,10 @@ const longPausesPerMin =
                     <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{feedback.delivery_archetype}</div>
                     {(feedback as any).archetype_effort && (feedback as any).archetype_impact && (
                       <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-                        <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 700, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>
+                        <span style={{ padding: "2px 8px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>
                           Effort: {(feedback as any).archetype_effort}
                         </span>
-                        <span style={{ padding: "2px 8px", borderRadius: 999, fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.08)", color: "#10B981", border: "1px solid rgba(16,185,129,0.2)" }}>
+                        <span style={{ padding: "2px 8px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.08)", color: "#10B981", border: "1px solid rgba(16,185,129,0.2)" }}>
                           Impact: {(feedback as any).archetype_impact}
                         </span>
                       </div>
@@ -1448,7 +1448,7 @@ const longPausesPerMin =
                         return (
                           <span key={k} style={{
                             padding: "3px 10px",
-                            borderRadius: 999,
+                            borderRadius: "var(--radius-sm)",
                             fontSize: 11,
                             fontWeight: 600,
                             background: d.isGap ? "rgba(239,68,68,0.08)" : d.isStrength ? "rgba(16,185,129,0.08)" : "var(--card-bg-strong)",
@@ -1504,18 +1504,18 @@ const longPausesPerMin =
                               flexShrink: 0,
                             }} />
                             <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{d.label}</span>
-                            {d.isGap && <span style={{ fontSize: 10, fontWeight: 700, color: "#EF4444", background: "rgba(239,68,68,0.08)", padding: "1px 6px", borderRadius: 999 }}>Gap</span>}
-                            {d.isStrength && <span style={{ fontSize: 10, fontWeight: 700, color: "#10B981", background: "rgba(16,185,129,0.08)", padding: "1px 6px", borderRadius: 999 }}>Strength</span>}
+                            {d.isGap && <span style={{ fontSize: 10, fontWeight: 700, color: "#EF4444", background: "rgba(239,68,68,0.08)", padding: "1px 6px", borderRadius: "var(--radius-sm)" }}>Gap</span>}
+                            {d.isStrength && <span style={{ fontSize: 10, fontWeight: 700, color: "#10B981", background: "rgba(16,185,129,0.08)", padding: "1px 6px", borderRadius: "var(--radius-sm)" }}>Strength</span>}
                           </div>
                           <span style={{ fontSize: 14, fontWeight: 700, color: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--text-primary)" }}>
                             {d.score.toFixed(1)}/10
                           </span>
                         </div>
-                        <div style={{ height: 4, borderRadius: 999, background: "var(--card-border-soft)", marginBottom: 8, overflow: "hidden" }}>
+                        <div style={{ height: 4, borderRadius: "var(--radius-sm)", background: "var(--card-border-soft)", marginBottom: 8, overflow: "hidden" }}>
                           <div style={{
                             width: `${Math.max(0, Math.min(100, d.score * 10))}%`,
                             height: "100%",
-                            borderRadius: 999,
+                            borderRadius: "var(--radius-sm)",
                             background: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--accent)",
                             transition: "width 400ms ease",
                           }} />
@@ -1607,7 +1607,7 @@ const longPausesPerMin =
                           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "capitalize" as const }}>{section}</span>
                           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{displayTenPointAs100(val)}/100</span>
                         </div>
-                        <div style={{ height: 4, borderRadius: 999, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                        <div style={{ height: 4, borderRadius: "var(--radius-sm)", background: "var(--card-border-soft)", overflow: "hidden" }}>
                           <div style={{ width: `${val * 10}%`, height: "100%", background: "linear-gradient(90deg, var(--accent-2), var(--accent))", transition: "width 300ms ease" }} />
                         </div>
                         {advice && <div style={{ marginTop: 6, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{advice}</div>}
@@ -1626,7 +1626,7 @@ const longPausesPerMin =
                       {displayTenPointAs100(asTenPoint(feedback.relevance.relevance_score))}
                       <span style={{ fontSize: 14, fontWeight: 500, color: "var(--text-muted)", marginLeft: 2 }}>/100</span>
                     </div>
-                    <span style={{ padding: "4px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, border: feedback.relevance.answered_question ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(248,113,113,0.3)", background: feedback.relevance.answered_question ? "rgba(16,185,129,0.1)" : "rgba(248,113,113,0.1)", color: feedback.relevance.answered_question ? "#10B981" : "#F87171" }}>
+                    <span style={{ padding: "4px 10px", borderRadius: "var(--radius-sm)", fontSize: 11, fontWeight: 700, border: feedback.relevance.answered_question ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(248,113,113,0.3)", background: feedback.relevance.answered_question ? "rgba(16,185,129,0.1)" : "rgba(248,113,113,0.1)", color: feedback.relevance.answered_question ? "#10B981" : "#F87171" }}>
                       {feedback.relevance.answered_question ? "On question" : "Missed the ask"}
                     </span>
                   </div>

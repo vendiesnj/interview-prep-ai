@@ -225,7 +225,7 @@ export default function JourneySidebar({
           position: "sticky", top: 0, background: "var(--card-bg)", zIndex: 1,
         }}>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
               Your Signal Journey
             </div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
@@ -263,7 +263,7 @@ export default function JourneySidebar({
               {data.signalScore ?? "-"}
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Signal Score</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Signal Score</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>
                 {data.completeness}% profile complete
               </div>
@@ -274,7 +274,7 @@ export default function JourneySidebar({
         {/* Next step highlight */}
         {nextStep && (
           <div style={{ margin: "12px 16px 0", padding: "12px 14px", borderRadius: "var(--radius-lg)", background: `${ACCENT}08`, border: `1px solid ${ACCENT}20` }}>
-            <div style={{ fontSize: 10, fontWeight: 900, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 4 }}>Next up</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 4 }}>Next up</div>
             <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 2 }}>{nextStep.title}</div>
             <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, lineHeight: 1.5 }}>{nextStep.description}</div>
             <Link href={nextStep.href} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontWeight: 800, color: ACCENT, textDecoration: "none" }}>
@@ -308,7 +308,7 @@ export default function JourneySidebar({
                 }}>
                   {step.done
                     ? <CheckCircle2 size={14} color={GREEN} strokeWidth={2.5} />
-                    : <span style={{ fontSize: 10, fontWeight: 900, color: "var(--text-muted)" }}>{idx + 1}</span>
+                    : <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)" }}>{idx + 1}</span>
                   }
                 </div>
 

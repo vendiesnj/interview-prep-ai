@@ -79,7 +79,7 @@ export default function UpgradeModal({
               border: "1px solid var(--card-border)",
               background: "var(--card-bg)",
               color: "var(--text-primary)",
-              fontWeight: 900,
+              fontWeight: 700,
               cursor: "pointer",
             }}
           >
@@ -119,7 +119,7 @@ export default function UpgradeModal({
               border: "1px solid var(--card-border)",
               background: "var(--card-bg)",
               color: "var(--text-primary)",
-              fontWeight: 900,
+              fontWeight: 700,
               cursor: "pointer",
             }}
           >

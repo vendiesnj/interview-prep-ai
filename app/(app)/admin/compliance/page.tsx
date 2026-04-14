@@ -12,7 +12,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       background: "var(--card-bg)",
       padding: "20px 22px",
     }}>
-      <div style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)", marginBottom: 12 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
         {title}
       </div>
       <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75 }}>
@@ -29,7 +29,7 @@ function Badge({ label, color }: { label: string; color: string }) {
       padding: "2px 10px",
       borderRadius: 99,
       fontSize: 11,
-      fontWeight: 900,
+      fontWeight: 700,
       background: color + "18",
       color,
       marginLeft: 8,
@@ -108,7 +108,7 @@ export default async function FerpaCompliancePage() {
         }}>
           <div style={{ fontSize: 18 }}>✓</div>
           <div>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#16A34A" }}>FERPA Compliant</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#16A34A" }}>FERPA Compliant</div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>
               Student data is isolated by institution, access-controlled by role, and never shared across tenants.
             </div>
@@ -129,7 +129,7 @@ export default async function FerpaCompliancePage() {
               background: "var(--card-bg)",
             }}>
               <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)" }}>{item.value}</div>
-              <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", marginTop: 2 }}>{item.label}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", marginTop: 2 }}>{item.label}</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{item.sub}</div>
             </div>
           ))}
@@ -158,7 +158,7 @@ export default async function FerpaCompliancePage() {
                 gap: 12,
               }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{item.field}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{item.field}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{item.source}</div>
                 </div>
                 <Badge label={item.sensitivity} color={item.color} />
@@ -238,7 +238,7 @@ export default async function FerpaCompliancePage() {
                 background: "var(--card-bg)",
               }}>
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{item.name}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{item.name}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{item.purpose}</div>
                 </div>
                 {item.dpa && <Badge label="DPA signed" color="#10B981" />}

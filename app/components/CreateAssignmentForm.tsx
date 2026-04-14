@@ -93,7 +93,7 @@ export default function CreateAssignmentForm() {
           cursor: "pointer",
           color: "var(--text-primary)",
           fontSize: 13,
-          fontWeight: 900,
+          fontWeight: 700,
           letterSpacing: 0.1,
         }}
       >
@@ -124,7 +124,7 @@ export default function CreateAssignmentForm() {
               style={{
                 display: "block",
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.55,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
@@ -159,7 +159,7 @@ export default function CreateAssignmentForm() {
               style={{
                 display: "block",
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.55,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
@@ -194,7 +194,7 @@ export default function CreateAssignmentForm() {
               style={{
                 display: "block",
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.55,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
@@ -224,7 +224,7 @@ export default function CreateAssignmentForm() {
             <div
               style={{
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.55,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
@@ -275,7 +275,7 @@ export default function CreateAssignmentForm() {
               style={{
                 display: "block",
                 fontSize: 11,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.55,
                 color: "var(--text-muted)",
                 textTransform: "uppercase",
@@ -329,7 +329,7 @@ export default function CreateAssignmentForm() {
                 background: "var(--accent-soft)",
                 color: "var(--accent)",
                 fontSize: 13,
-                fontWeight: 900,
+                fontWeight: 700,
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: loading ? 0.7 : 1,
               }}

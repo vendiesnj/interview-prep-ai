@@ -347,7 +347,7 @@ export default function PublicSpeakingPage() {
                     padding: "8px 16px", borderRadius: 99, border: `1px solid ${selectedCategory === cat.id ? cat.color : "var(--card-border)"}`,
                     background: selectedCategory === cat.id ? cat.color + "18" : "var(--card-bg)",
                     color: selectedCategory === cat.id ? cat.color : "var(--text-primary)",
-                    fontWeight: 900, fontSize: 13, cursor: "pointer",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer",
                   }}
                 >
                   {cat.icon} {cat.label}
@@ -382,7 +382,7 @@ export default function PublicSpeakingPage() {
                   background: useCustom ? "var(--accent-soft)" : "var(--card-bg)",
                 }}
               >
-                <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", marginBottom: 8 }}>Custom prompt</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", marginBottom: 8 }}>Custom prompt</div>
                 <textarea
                   placeholder="Write your own speech topic or scenario…"
                   value={customPrompt}
@@ -395,7 +395,7 @@ export default function PublicSpeakingPage() {
             {/* Ready state */}
             {stage === "ready" && activePrompt && (
               <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: `1px solid ${activeCategoryColor}`, background: activeCategoryColor + "08", marginBottom: 20 }}>
-                <div style={{ fontSize: 11, fontWeight: 900, color: activeCategoryColor, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Your prompt</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: activeCategoryColor, letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Your prompt</div>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.65 }}>{activePrompt}</div>
                 <div style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)" }}>
                   Take a moment to gather your thoughts, then hit record when ready. Aim for 60–180 seconds.
@@ -436,7 +436,7 @@ export default function PublicSpeakingPage() {
             {!isPro && (
               <p style={{ marginTop: 12, fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>
                 Free plan includes 3 total attempts across all modules.{" "}
-                <Link href="/account" style={{ color: "var(--accent)", fontWeight: 900 }}>Upgrade for unlimited →</Link>
+                <Link href="/account" style={{ color: "var(--accent)", fontWeight: 700 }}>Upgrade for unlimited →</Link>
               </p>
             )}
           </>
@@ -446,7 +446,7 @@ export default function PublicSpeakingPage() {
         {stage === "recording" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24 }}>
             <div style={{ padding: "28px 36px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", width: "100%", boxSizing: "border-box", position: "relative" }}>
-              <div style={{ fontSize: 12, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Now speaking</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>Now speaking</div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1.65 }}>{activePrompt}</div>
               {webcamEnabled && <WebcamOverlay ref={webcamRef} isRecording={recording} position="bottom-right" />}
             </div>
@@ -485,11 +485,11 @@ export default function PublicSpeakingPage() {
             {/* Overall + archetype */}
             <div style={{ padding: "28px 32px", borderRadius: "var(--radius-xl)", border: `1px solid ${archetypeCol}`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div style={{ flex: "1 1 200px" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Overall score</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Overall score</div>
                 <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
               </div>
               <div style={{ flex: "1 1 220px" }}>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Delivery archetype</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Delivery archetype</div>
                 <div style={{ fontSize: 22, fontWeight: 800, color: archetypeCol, marginBottom: 8 }}>{archetype}</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: archetypeCol + "12", borderRadius: "var(--radius-md)", borderLeft: `3px solid ${archetypeCol}` }}>
                   <strong style={{ color: archetypeCol }}>Your lever:</strong> {feedback.archetype_coaching}
@@ -566,7 +566,7 @@ export default function PublicSpeakingPage() {
                       <div key={label} style={{ marginBottom: 14, opacity: hasData ? 1 : 0.5 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
                           <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{icon} {label}</span>
-                          <span style={{ fontSize: 13, fontWeight: 900, color: pct !== null ? color : "var(--text-muted)" }}>{pct !== null ? `${pct}%` : "-"}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: pct !== null ? color : "var(--text-muted)" }}>{pct !== null ? `${pct}%` : "-"}</span>
                         </div>
                         <div style={{ height: 6, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
                           <div style={{ height: "100%", width: pct !== null ? `${pct}%` : "0%", borderRadius: 99, background: color, transition: "width 600ms ease" }} />
@@ -587,7 +587,7 @@ export default function PublicSpeakingPage() {
             {/* Transcript */}
             {transcript && (
               <details style={{ padding: "16px 20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <summary style={{ fontSize: 13, fontWeight: 900, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
+                <summary style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
                 <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{transcript}</p>
               </details>
             )}
@@ -602,7 +602,7 @@ export default function PublicSpeakingPage() {
               </button>
               <Link
                 href="/dashboard"
-                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 900, fontSize: 14, cursor: "pointer", textDecoration: "none", textAlign: "center" }}
+                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 700, fontSize: 14, cursor: "pointer", textDecoration: "none", textAlign: "center" }}
               >
                 Back to Dashboard
               </Link>

@@ -54,7 +54,7 @@ function Toggle({
         <div
           style={{
             fontSize: 14,
-            fontWeight: 900,
+            fontWeight: 700,
             color: "var(--text-primary)",
           }}
         >
@@ -82,7 +82,7 @@ function Toggle({
         style={{
           width: 46,
           height: 28,
-          borderRadius: 999,
+          borderRadius: "var(--radius-sm)",
           border: value
             ? "1px solid var(--accent-strong)"
             : "1px solid var(--card-border)",
@@ -100,7 +100,7 @@ function Toggle({
             left: value ? 22 : 3,
             width: 22,
             height: 22,
-            borderRadius: 999,
+            borderRadius: "var(--radius-sm)",
             background: value ? "var(--accent)" : "rgba(229,231,235,0.75)",
             transition: "left 140ms ease",
             boxShadow: "0 8px 18px rgba(0,0,0,0.35)",
@@ -287,7 +287,7 @@ export default function SettingsPage() {
                   <div style={{ fontSize: 20, marginBottom: 6 }}>{s.icon}</div>
                   <div style={{ fontSize: 13, fontWeight: active ? 950 : 800, color: active ? s.color : "var(--text-primary)" }}>{s.label}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{s.desc}</div>
-                  {active && <div style={{ marginTop: 8, fontSize: 10, fontWeight: 900, color: s.color, background: s.color + "18", padding: "2px 8px", borderRadius: 99, display: "inline-block" }}>Current</div>}
+                  {active && <div style={{ marginTop: 8, fontSize: 10, fontWeight: 700, color: s.color, background: s.color + "18", padding: "2px 8px", borderRadius: 99, display: "inline-block" }}>Current</div>}
                 </button>
               );
             })}
@@ -319,7 +319,7 @@ export default function SettingsPage() {
               <div
                 style={{
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -361,7 +361,7 @@ export default function SettingsPage() {
               <div
                 style={{
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -404,7 +404,7 @@ export default function SettingsPage() {
               <div
                 style={{
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -447,7 +447,7 @@ export default function SettingsPage() {
               <div
                 style={{
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -490,7 +490,7 @@ export default function SettingsPage() {
               <div
                 style={{
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >
@@ -543,7 +543,7 @@ export default function SettingsPage() {
                 border: "none",
                 background: "var(--accent)",
                 color: "#fff",
-                fontWeight: 900,
+                fontWeight: 700,
                 fontSize: 14,
                 cursor: saving ? "not-allowed" : "pointer",
                 opacity: saving ? 0.7 : 1,
@@ -581,7 +581,7 @@ export default function SettingsPage() {
                   border: entitlement?.isPro ? "1px solid var(--card-border)" : "none",
                   background: entitlement?.isPro ? "var(--card-bg-strong)" : "var(--accent)",
                   color: entitlement?.isPro ? "var(--text-primary)" : "#fff",
-                  fontWeight: 900,
+                  fontWeight: 700,
                   fontSize: 13,
                   cursor: billingLoading || entitlement == null ? "not-allowed" : "pointer",
                   opacity: billingLoading ? 0.7 : 1,
@@ -629,7 +629,7 @@ export default function SettingsPage() {
               <div
                 style={{
                   fontSize: 14,
-                  fontWeight: 900,
+                  fontWeight: 700,
                   color: "var(--text-primary)",
                 }}
               >

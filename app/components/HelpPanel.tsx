@@ -343,7 +343,7 @@ function SectionHeading({ label }: { label: string }) {
     <div
       style={{
         fontSize: 10,
-        fontWeight: 900,
+        fontWeight: 700,
         letterSpacing: 0.8,
         color: "var(--accent)",
         textTransform: "uppercase" as const,
@@ -416,7 +416,7 @@ export default function HelpPanel({ open, onClose, isUniversity = false }: HelpP
             <div
               style={{
                 fontSize: 10,
-                fontWeight: 900,
+                fontWeight: 700,
                 letterSpacing: 0.8,
                 color: "var(--accent)",
                 textTransform: "uppercase" as const,

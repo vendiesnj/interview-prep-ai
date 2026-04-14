@@ -110,7 +110,7 @@ export default function LoginPage() {
               border: "1px solid var(--card-border)",
               background: "var(--card-bg-strong)",
               color: "var(--text-primary)",
-              fontWeight: 900,
+              fontWeight: 700,
               cursor: "pointer",
             }}
           >
@@ -174,7 +174,7 @@ export default function LoginPage() {
                 style={{
                   fontSize: 12,
                   color: "var(--accent)",
-                  fontWeight: 900,
+                  fontWeight: 700,
                   textDecoration: "none",
                 }}
               >
@@ -250,7 +250,7 @@ export default function LoginPage() {
               href="/signup"
               style={{
                 color: "var(--accent)",
-                fontWeight: 900,
+                fontWeight: 700,
                 textDecoration: "none",
               }}
             >

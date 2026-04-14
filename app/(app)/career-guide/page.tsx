@@ -135,10 +135,10 @@ export default async function CareerGuidePage() {
                 }}
               >
                 <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
-                <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color, textTransform: "uppercase", marginBottom: 6 }}>{eyebrow}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color, textTransform: "uppercase", marginBottom: 6 }}>{eyebrow}</div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>{desc}</p>
-                <div style={{ marginTop: 16, fontSize: 13, fontWeight: 900, color }}>Read guide →</div>
+                <div style={{ marginTop: 16, fontSize: 13, fontWeight: 700, color }}>Read guide →</div>
               </div>
             </Link>
           ))}
