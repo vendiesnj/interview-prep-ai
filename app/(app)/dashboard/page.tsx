@@ -1162,6 +1162,16 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
     ? Object.entries(dimScores).sort((a, b) => b[1].score - a[1].score).slice(0, 3)
     : [];
 
+  const presenceScore = (() => {
+    if (!dimScores) return null;
+    const ve = dimScores.vocal_engagement?.score ?? null;
+    const pc = dimScores.presence_confidence?.score ?? null;
+    if (ve === null && pc === null) return null;
+    if (ve === null) return pc;
+    if (pc === null) return ve;
+    return Math.round(((ve + pc) / 2) * 10) / 10;
+  })();
+
   return (
     <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
@@ -1178,8 +1188,16 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>/100</div>
         </div>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
             <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${color}18`, color }}>{readinessLabel[readiness]}</span>
+            {presenceScore !== null && (() => {
+              const pColor = presenceScore >= 7 ? "var(--chart-positive)" : presenceScore >= 5.5 ? "var(--chart-neutral)" : "var(--chart-critical)";
+              return (
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `color-mix(in srgb, ${pColor} 12%, transparent)`, color: pColor, border: `1px solid color-mix(in srgb, ${pColor} 25%, transparent)` }}>
+                  Presence {presenceScore}/10
+                </span>
+              );
+            })()}
           </div>
           <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>{role}</div>
           <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{dateStr}</div>
@@ -1255,7 +1273,8 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
           <div style={{ fontSize: 26, fontWeight: 900, color: signalColor, lineHeight: 1 }}>
             {signalScore !== null ? signalScore : "—"}
           </div>
-          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Signal Score</div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Readiness Index</div>
+          <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 1, opacity: 0.7 }}>career + practice</div>
         </div>
         <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
           <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{totalSessions}</div>
@@ -1286,6 +1305,9 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
               <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{weakNace.score}</span>
             </div>
           )}
+          <Link href="/my-journey" style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600, textDecoration: "none", marginTop: 2, display: "inline-block" }}>
+            Full breakdown →
+          </Link>
         </div>
       )}
 

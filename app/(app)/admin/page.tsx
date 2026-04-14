@@ -279,11 +279,51 @@ function getAttemptScore(a: AttemptRow) {
 }
 
 function getAttemptComm(a: AttemptRow) {
-  return asTenPoint(num(a.communicationScore ?? a.feedback?.communication_score));
+  return num((a as any).communication_score ?? (a.feedback as any)?.communication_score);
 }
 
 function getAttemptConf(a: AttemptRow) {
-  return asTenPoint(num(a.confidenceScore ?? a.feedback?.confidence_score));
+  return num((a as any).confidence_score ?? (a.feedback as any)?.confidence_score);
+}
+
+const DIM_LABELS: Record<string, string> = {
+  narrative_clarity:   "Narrative Clarity",
+  evidence_quality:    "Evidence Quality",
+  ownership_agency:    "Ownership & Agency",
+  vocal_engagement:    "Vocal Engagement",
+  response_control:    "Response Control",
+  cognitive_depth:     "Cognitive Depth",
+  presence_confidence: "Presence & Confidence",
+};
+const DIM_KEYS = Object.keys(DIM_LABELS);
+
+function getAttemptDimScores(a: AttemptRow): Record<string, number> | null {
+  const ds = a.feedback?.dimension_scores;
+  if (!ds) return null;
+  const out: Record<string, number> = {};
+  for (const k of DIM_KEYS) {
+    const v = num(ds[k]?.score);
+    if (v !== null) out[k] = v;
+  }
+  return Object.keys(out).length > 0 ? out : null;
+}
+
+/** Returns the label of the weakest averaged dimension across all attempts, or null if no dim data */
+function getTopGap(attempts: AttemptRow[]): string | null {
+  const totals: Record<string, { sum: number; count: number }> = {};
+  for (const a of attempts) {
+    const ds = getAttemptDimScores(a);
+    if (!ds) continue;
+    for (const [k, v] of Object.entries(ds)) {
+      if (!totals[k]) totals[k] = { sum: 0, count: 0 };
+      totals[k].sum += v;
+      totals[k].count += 1;
+    }
+  }
+  const entries = Object.entries(totals).filter(([, v]) => v.count > 0);
+  if (entries.length === 0) return null;
+  const weakest = entries.reduce((a, b) => (a[1].sum / a[1].count) < (b[1].sum / b[1].count) ? a : b);
+  return DIM_LABELS[weakest[0]] ?? null;
 }
 
 function getAttemptFillers(a: AttemptRow) {
@@ -338,21 +378,23 @@ function getWeaknessBuckets(attempts: AttemptRow[]) {
 
   for (const a of attempts) {
     const score = getAttemptScore(a);
-    const comm = getAttemptComm(a);
-    const conf = getAttemptConf(a);
     const fillers = getAttemptFillers(a);
     const monotone = getAttemptMonotone(a);
     const result = getAttemptStarResult(a);
     const wpm = num(a.wpm);
+    const ds = getAttemptDimScores(a);
 
     if (result !== null && result < 6.5) bump("Weak closing impact");
     if (fillers !== null && fillers >= 3) bump("Filler-heavy delivery");
     if (monotone !== null && monotone >= 6) bump("Flat vocal delivery");
     if (wpm !== null && wpm > 165) bump("Rushed pace");
     if (wpm !== null && wpm < 100) bump("Slow pace");
-    if (comm !== null && comm < 6.8) bump("Weak communication structure");
-    if (conf !== null && conf < 6.8) bump("Low confidence signal");
     if (score !== null && score < 65) bump("Low overall readiness");
+    if (ds) {
+      for (const [k, v] of Object.entries(ds)) {
+        if (v < 5.5) bump(DIM_LABELS[k] ?? k);
+      }
+    }
   }
 
   return Array.from(counts.entries())
@@ -1561,6 +1603,20 @@ const activeThisWeek = filteredAttempts.filter(
   const avgConfidenceDisplay =
     avgConfidence !== null ? `${pctFrom10(avgConfidence)}%` : " - ";
 
+  // Cohort-level presence average (vocal_engagement + presence_confidence from dimension scores)
+  const presenceVals: number[] = [];
+  for (const a of filteredAttempts) {
+    const dims = (a.feedback as any)?.dimension_scores;
+    if (!dims) continue;
+    const ve = typeof dims.vocal_engagement?.score === "number" ? dims.vocal_engagement.score : null;
+    const pc = typeof dims.presence_confidence?.score === "number" ? dims.presence_confidence.score : null;
+    if (ve !== null && pc !== null) presenceVals.push((ve + pc) / 2);
+    else if (ve !== null) presenceVals.push(ve);
+    else if (pc !== null) presenceVals.push(pc);
+  }
+  const avgPresenceVal = presenceVals.length > 0 ? presenceVals.reduce((a, b) => a + b, 0) / presenceVals.length : null;
+  const avgPresenceDisplay = avgPresenceVal !== null ? `${avgPresenceVal.toFixed(1)}/10` : " - ";
+
   // ── 7-dimension cohort aggregation ────────────────────────────────────────
   const DIM_KEYS = [
     { key: "narrative_clarity",   label: "Narrative Clarity" },
@@ -1759,10 +1815,10 @@ const activeThisWeek = filteredAttempts.filter(
         {activeTab === "overview" && (
           <div style={{ display: "grid", gap: 36 }}>
 
-            {/* ══ SECTION 1: HOW MANY STUDENTS ARE USING THE PRODUCT ══════ */}
+            {/* ── Student Engagement ───────────────────────────────────── */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
-                Section 1 — Student Engagement
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                Student Engagement
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.5 }}>
                 How many students are actively using Signal and how deep is their practice habit?
@@ -1855,10 +1911,10 @@ const activeThisWeek = filteredAttempts.filter(
               </div>
             </div>
 
-            {/* ══ SECTION 2: STRENGTHS & WEAKNESSES ════════════════════════ */}
+            {/* ── Cohort Strengths & Weaknesses ────────────────────────── */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
-                Section 2 — Cohort Strengths & Weaknesses
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                Cohort Strengths & Weaknesses
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.5 }}>
                 Where is this cohort excelling and where do they consistently struggle?
@@ -1943,10 +1999,10 @@ const activeThisWeek = filteredAttempts.filter(
               </div>
             </div>
 
-            {/* ══ SECTION 3: WHAT THEY'RE PRACTICING ═══════════════════════ */}
+            {/* ── What They're Practicing ──────────────────────────────── */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
-                Section 3 — What They're Practicing
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                What They&apos;re Practicing
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.5 }}>
                 Which roles and question types are students spending the most time on?
@@ -2035,10 +2091,10 @@ const activeThisWeek = filteredAttempts.filter(
               </div>
             </div>
 
-            {/* ══ SECTION 4: IMPROVEMENT TRENDS ════════════════════════════ */}
+            {/* ── Improvement Trends ───────────────────────────────────── */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
-                Section 4 — First Session → Latest Session Trends
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+                Improvement Trends
               </div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.5 }}>
                 Are students improving over time? Compares each student&apos;s first 3 sessions to their most recent 3.
@@ -2134,8 +2190,8 @@ const activeThisWeek = filteredAttempts.filter(
               }}>
                 <div>Student</div>
                 <div>Score</div>
-                <div>Comm</div>
-                <div>Conf</div>
+                <div>Focus Area</div>
+                <div>Presence</div>
                 <div>Trend</div>
                 <div>Productivity</div>
                 <div>Attempts</div>
@@ -2161,8 +2217,17 @@ const activeThisWeek = filteredAttempts.filter(
                     row.cohort === "high" ? "High" : row.cohort === "mid" ? "Mid" : "At-Risk";
 
                   const userAttempts = row.attemptsRaw;
-                  const commAvg = round1(avg(userAttempts.map(getAttemptComm).filter((v): v is number => v !== null)));
-                  const confAvg = round1(avg(userAttempts.map(getAttemptConf).filter((v): v is number => v !== null)));
+                  const topGap = getTopGap(userAttempts);
+                  const presenceAvg = round1(avg(userAttempts.map(a => {
+                    const ds = getAttemptDimScores(a);
+                    if (!ds) return null;
+                    const ve = ds.vocal_engagement ?? null;
+                    const pc = ds.presence_confidence ?? null;
+                    if (ve === null && pc === null) return null;
+                    if (ve === null) return pc;
+                    if (pc === null) return ve;
+                    return (ve + pc) / 2;
+                  }).filter((v): v is number => v !== null)));
 
                   const daysSince = row.latest
                     ? Math.floor((Date.now() - new Date(row.latest).getTime()) / (1000 * 60 * 60 * 24))
@@ -2273,12 +2338,21 @@ const activeThisWeek = filteredAttempts.filter(
                           </div>
                         </div>
 
-                        <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                          {commAvg !== null ? `${pctFrom10(commAvg)}%` : " - "}
+                        {/* Top Gap */}
+                        <div style={{ fontSize: 11, fontWeight: 700, color: topGap ? "var(--chart-neutral)" : "var(--text-muted)", lineHeight: 1.3 }}>
+                          {topGap ?? " - "}
                         </div>
 
-                        <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
-                          {confAvg !== null ? `${pctFrom10(confAvg)}%` : " - "}
+                        {/* Presence */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                          <div style={{ fontSize: 13, fontWeight: 900, color: presenceAvg === null ? "var(--text-muted)" : presenceAvg >= 7 ? "var(--chart-positive)" : presenceAvg >= 5.5 ? "var(--text-primary)" : "var(--chart-critical)" }}>
+                            {presenceAvg !== null ? `${round1(presenceAvg)}/10` : " - "}
+                          </div>
+                          {presenceAvg !== null && (
+                            <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.4 }}>
+                              {presenceAvg >= 7 ? "Strong" : presenceAvg >= 5.5 ? "Moderate" : "Low"}
+                            </div>
+                          )}
                         </div>
 
                         <div style={{
@@ -2793,9 +2867,8 @@ const activeThisWeek = filteredAttempts.filter(
                     }}
                   >
                     {activeCohort === "all" ? "All students" : `The ${activeCohort} cohort`} average{" "}
-                    <strong>{avgScoreDisplay}</strong> across speaking sessions, with communication at{" "}
-                    <strong>{avgCommunicationDisplay}</strong> and confidence at{" "}
-                    <strong>{avgConfidenceDisplay}</strong>.{" "}
+                    <strong>{avgScoreDisplay}</strong> across speaking sessions, with an avg presence score of{" "}
+                    <strong>{avgPresenceDisplay}</strong>.{" "}
                     Sessions break down as: <strong>{filteredInterviewAttempts.length}</strong> interview,{" "}
                     <strong>{filteredNetworkingAttempts.length}</strong> networking, and{" "}
                     <strong>{filteredPsAttempts.length}</strong> public speaking.{" "}
@@ -2969,8 +3042,7 @@ const activeThisWeek = filteredAttempts.filter(
 
             {/* Coaching Summary pills */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12 }}>
-              <MetricPill label="Communication" value={avgCommunicationDisplay} />
-              <MetricPill label="Confidence" value={avgConfidenceDisplay} />
+              <MetricPill label="Avg Presence" value={avgPresenceDisplay} />
               <MetricPill label="Spoken Attempts" value={`${spokenRate}%`} />
               <MetricPill label="Most Common Gap" value={weaknessRows[0]?.label ?? "Still emerging"} />
               <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : " - "} />

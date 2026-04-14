@@ -44,14 +44,16 @@ function round1(value: number | null) {
 
 
 
-function getAttemptComm(a: any) {
+function getAttemptPresence(a: any): number | null {
   const feedback = feedbackObj(a);
-  return num(a.communicationScore ?? feedback?.communication_score);
-}
-
-function getAttemptConf(a: any) {
-  const feedback = feedbackObj(a);
-  return num(a.confidenceScore ?? feedback?.confidence_score);
+  const ds = feedback?.dimension_scores;
+  if (!ds) return null;
+  const ve = num(ds.vocal_engagement?.score);
+  const pc = num(ds.presence_confidence?.score);
+  if (ve === null && pc === null) return null;
+  if (ve === null) return pc;
+  if (pc === null) return ve;
+  return (ve + pc) / 2;
 }
 
 function getAttemptFillers(a: any) {
@@ -237,18 +239,8 @@ export default async function AdminStudentDetailPage({
     })
     .filter((v): v is number => v !== null);
 
-  const comms = attempts
-    .map((a) => {
-      const feedback = feedbackObj(a);
-      return asTenPoint(a.communicationScore ?? feedback?.communication_score);
-    })
-    .filter((v): v is number => v !== null);
-
-  const confs = attempts
-    .map((a) => {
-      const feedback = feedbackObj(a);
-      return asTenPoint(a.confidenceScore ?? feedback?.confidence_score);
-    })
+  const presenceScores = attempts
+    .map(getAttemptPresence)
     .filter((v): v is number => v !== null);
 
   const wpms = attempts
@@ -272,8 +264,7 @@ export default async function AdminStudentDetailPage({
 
   const avgScore = avgOverall100(overallScores);
   
-  const avgComm = avgTenPoint(comms);
-  const avgConf = avgTenPoint(confs);
+  const avgPresence = round1(avg(presenceScores));
   const avgWpm = round1(avg(wpms));
   const avgFillers = round1(avg(fillers));
   const avgMonotone = round1(avg(monotones));
@@ -439,14 +430,9 @@ const trendLabel =
             subtext="Average overall interview score."
           />
                     <StatCard
-            label="Avg Communication"
-            value={displayTenPointAs100(avgComm)}
-            subtext="Average communication quality."
-          />
-                    <StatCard
-            label="Avg Confidence"
-            value={displayTenPointAs100(avgConf)}
-            subtext="Average confidence signal."
+            label="Avg Presence"
+            value={avgPresence !== null ? `${avgPresence}/10` : "—"}
+            subtext="Vocal engagement + visual confidence, averaged."
           />
           
           <StatCard
@@ -814,9 +800,9 @@ const trendLabel =
     <strong style={{ color: "var(--text-primary)" }}>
       {displayOverall100(avgScore)}
     </strong>
-    . Their communication and confidence levels suggest{" "}
+    . Their presence score suggests{" "}
     <strong style={{ color: "var(--text-primary)" }}>
-      {avgComm !== null && avgComm >= 7 ? "strong delivery" : "developing communication skills"}
+      {avgPresence !== null && avgPresence >= 7 ? "strong delivery presence" : "developing vocal and visual presence"}
     </strong>
     , while delivery metrics indicate{" "}
     <strong style={{ color: "var(--text-primary)" }}>

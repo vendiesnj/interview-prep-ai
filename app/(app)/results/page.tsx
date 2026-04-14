@@ -1710,11 +1710,18 @@ const longPausesPerMin =
                   { label: "Brow Engagement",  raw: fm.browEngagement != null ? fm.browEngagement * 100 : null, display: fm.browEngagement != null ? `${Math.round(fm.browEngagement * 100)}%` : "—", hint: fm.browEngagement > 0.12 ? "Animated" : fm.browEngagement > 0.05 ? "Moderate" : "Frozen brows",  goodHigh: true,  max: 100 },
                   { label: "Look-Away Rate",   raw: fm.lookAwayRate   != null ? fm.lookAwayRate   * 100 : null, display: fm.lookAwayRate   != null ? `${Math.round(fm.lookAwayRate   * 100)}%` : "—", hint: fm.lookAwayRate <= 0.12 ? "Minimal" : fm.lookAwayRate <= 0.3 ? "Occasional" : "Frequent",      goodHigh: false, max: 100 },
                 ];
+                const visibleRows = rows.filter(row => row.raw !== null);
+                if (visibleRows.length === 0) return (
+                  <PremiumCard>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>Visual Presence</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>Camera metrics unavailable for this session.</div>
+                  </PremiumCard>
+                );
                 return (
                   <PremiumCard>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Visual Presence</div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
-                      {rows.map(row => {
+                      {visibleRows.map(row => {
                         const hasVal = row.raw !== null;
                         const isGood = hasVal && (row.goodHigh ? row.raw! >= (row.max * 0.55) : row.raw! <= (row.max * 0.4));
                         const isBad  = hasVal && (row.goodHigh ? row.raw! < (row.max * 0.3) : row.raw! > (row.max * 0.65));

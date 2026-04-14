@@ -2515,67 +2515,13 @@ return;
 
 return (
   <PremiumShell hideHeader>
-<div style={{
-  marginTop: 6, marginBottom: 28,
-  padding: "28px 32px",
-  borderRadius: "var(--radius-lg, 12px)",
-  background: "linear-gradient(135deg, var(--accent-soft) 0%, transparent 100%)",
-  border: "1px solid var(--card-border)",
-  borderLeft: "3px solid var(--accent)",
-  position: "relative" as const,
-  overflow: "hidden" as const,
-}}>
-  {/* Decorative orb */}
-  <div style={{
-    position: "absolute", top: -40, right: -40,
-    width: 180, height: 180,
-    borderRadius: "50%",
-    background: "radial-gradient(circle, var(--accent-soft), transparent 70%)",
-    pointerEvents: "none" as const,
-  }} />
-
-  <div style={{
-    display: "inline-flex", alignItems: "center", gap: 6,
-    padding: "3px 10px", borderRadius: "var(--radius-xs)",
-    background: "var(--accent-soft)", border: "1px solid var(--card-border)",
-    fontSize: 11, fontWeight: 600, color: "var(--accent)", letterSpacing: 0.4,
-    marginBottom: 14,
-  }}>
-    <span style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--accent)", display: "inline-block" }} />
-    AI-Powered Analysis
-  </div>
-
-  <div style={{
-    fontSize: 32, fontWeight: 700,
-    color: "var(--text-primary)",
-    letterSpacing: -0.6, lineHeight: 1.1,
-    marginBottom: 10,
-  }}>
-    Practice interviews with AI feedback
-  </div>
-
-  <div style={{
-    fontSize: 15, color: "var(--text-muted)", maxWidth: 680, lineHeight: 1.6, marginBottom: 18,
-  }}>
-    Record your answers, get scored across seven communication dimensions, and follow a targeted coaching plan for your next attempt.
-  </div>
-
-  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
-    {[
-      "7 communication dimensions",
-      "15 coaching archetypes",
-      "Vocal & pace analysis",
-      "Eye contact tracking",
-    ].map(chip => (
-      <span key={chip} style={{
-        padding: "4px 12px", borderRadius: "var(--radius-xs)",
-        background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)",
-        fontSize: 12, fontWeight: 500, color: "var(--text-muted)",
-      }}>
-        {chip}
-      </span>
-    ))}
-  </div>
+<div style={{ marginTop: 6, marginBottom: 20, display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" as const }}>
+  <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.3 }}>
+    Practice
+  </h1>
+  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+    Record your answer and get scored across seven dimensions.
+  </span>
 </div>
     
 {mode === "answer" ? (

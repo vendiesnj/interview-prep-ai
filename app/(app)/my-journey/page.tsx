@@ -941,7 +941,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
       color: "#2563EB",
     },
     {
-      id: "nace",
+      id: "skills",
       icon: <BarChart2 size={16} />,
       title: "NACE Scores",
       stat: signalScore !== null ? `Signal: ${signalScore}` : "Building…",
@@ -957,7 +957,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
       color: "#8B5CF6",
     },
     {
-      id: "instincts",
+      id: "skills",
       icon: <Zap size={16} />,
       title: "Career Instincts",
       stat: `${data.instincts?.sessions?.length ?? 0} session${(data.instincts?.sessions?.length ?? 0) !== 1 ? "s" : ""}`,
@@ -1440,27 +1440,17 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
         extra={
           speaking.interview.count > 0 ? (
             <div style={{ display: "flex", gap: 20, marginBottom: 14, flexWrap: "wrap" }}>
-              {(["avgComm", "avgConf", "avgWpm"] as const).map((key) => {
-                const seg = speaking.interview as InterviewSegment;
-                const val = seg[key];
-                const labels: Record<string, string> = {
-                  avgComm: "Avg Comm",
-                  avgConf: "Avg Confidence",
-                  avgWpm: "Avg WPM",
-                };
-                return (
-                  <div key={key}>
-                    <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 2 }}>
-                      {labels[key]}
-                    </div>
-                    <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
-                      {val !== null && val !== undefined ? val : "-"}
-                      {key === "avgWpm" && val !== null ? <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}> wpm</span> : null}
-                      {(key === "avgComm" || key === "avgConf") && val !== null ? <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>/10</span> : null}
-                    </div>
+              {speaking.interview.avgWpm !== null && speaking.interview.avgWpm !== undefined && (
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.7, marginBottom: 2 }}>
+                    Avg WPM
                   </div>
-                );
-              })}
+                  <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
+                    {(speaking.interview as InterviewSegment).avgWpm}
+                    <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}> wpm</span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : null
         }
@@ -2395,9 +2385,7 @@ export default function MyJourneyPage() {
     { id: "speaking", label: "Speaking" },
     { id: "resume", label: "Resume" },
     { id: "financial", label: "Financial" },
-    { id: "skills", label: "Skills" },
-    { id: "instincts", label: "Instincts" },
-    { id: "nace", label: "NACE" },
+    { id: "skills", label: "Skills & Competencies" },
     { id: "pipeline", label: "Pipeline" },
   ];
 
@@ -2455,10 +2443,12 @@ export default function MyJourneyPage() {
               {activeTab === "resume" && <ResumeTab data={data} />}
               {activeTab === "financial" && <FinancialTab data={data} />}
               {activeTab === "skills" && (
-                <SkillsTab data={data} onExtract={handleExtractSkills} extracting={extracting} />
+                <>
+                  <SkillsTab data={data} onExtract={handleExtractSkills} extracting={extracting} />
+                  <NaceTab data={data} />
+                  <InstinctsTab data={data} />
+                </>
               )}
-              {activeTab === "instincts" && <InstinctsTab data={data} />}
-              {activeTab === "nace" && <NaceTab data={data} />}
             </>
           )}
         </>

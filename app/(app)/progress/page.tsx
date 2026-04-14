@@ -2276,9 +2276,16 @@ export default function ProgressPage() {
             {/* ── FULL COMMUNICATION SCORECARD ────────────────────────────────────── */}
             <PremiumCard>
               <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>Communication Scorecard</div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: biggestGap ? 12 : 20 }}>
                 Content, delivery, and presence — every signal in one view.
               </div>
+              {biggestGap && (
+                <div style={{ marginBottom: 20, padding: "10px 14px", borderRadius: "var(--radius-md)", background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.18)", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#EF4444", textTransform: "uppercase" as const, letterSpacing: 0.4, whiteSpace: "nowrap" as const }}>Top Priority</span>
+                  <span style={{ fontSize: 13, color: "var(--text-primary)", fontWeight: 600 }}>{biggestGap.label}</span>
+                  <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: "auto", whiteSpace: "nowrap" as const }}>{biggestGap.value.toFixed(1)}/10</span>
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
                 {/* Left: 7 communication dimensions */}
                 <div>

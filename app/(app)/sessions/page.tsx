@@ -336,12 +336,13 @@ async function ensureSignedUrl(path: string) {
     marginLeft: "auto",
     padding: "8px 14px",
     borderRadius: "var(--radius-sm)",
-    border: "none",
+    border: "1px solid var(--card-border)",
     background: "transparent",
-    color: history.length === 0 ? "var(--text-muted)" : "var(--danger)",
-    fontWeight: 700,
+    color: "var(--text-muted)",
+    fontWeight: 600,
+    fontSize: 12,
     cursor: history.length === 0 ? "not-allowed" : "pointer",
-    textDecoration: history.length === 0 ? "none" : "underline",
+    opacity: history.length === 0 ? 0.4 : 1,
   }}
 >
   Clear history
@@ -754,16 +755,8 @@ async function ensureSignedUrl(path: string) {
         )
       ) : attempt.audioId ? (
         <AudioPlayer audioId={attempt.audioId} />
-      ) : (
-        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          No recording attached to this attempt.
-        </div>
-      )
-    ) : (
-      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-        No audio for pasted responses.
-      </div>
-    )}
+      ) : null
+    ) : null}
   </div>
 
   <button
@@ -771,18 +764,23 @@ async function ensureSignedUrl(path: string) {
       e.stopPropagation();
       deleteAttempt(attempt);
     }}
+    title="Delete attempt"
     style={{
       background: "none",
       border: "none",
-      color: "var(--danger)",
-      fontWeight: 600,
+      color: "var(--text-muted)",
       cursor: "pointer",
       flex: "0 0 auto",
-      whiteSpace: "nowrap",
-      textDecoration: "underline",
+      padding: "4px 6px",
+      borderRadius: "var(--radius-sm)",
+      fontSize: 16,
+      lineHeight: 1,
+      opacity: 0.5,
     }}
+    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; (e.currentTarget as HTMLButtonElement).style.color = "var(--danger)"; }}
+    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.5"; (e.currentTarget as HTMLButtonElement).style.color = "var(--text-muted)"; }}
   >
-    Delete
+    ✕
   </button>
 </div>
                   </div>
