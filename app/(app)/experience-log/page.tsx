@@ -584,6 +584,7 @@ export default function ExperienceLogPage() {
   const totalPractices = entries.reduce((acc, e) => acc + e.practiceCount, 0);
 
   return (
+    <>
     <PremiumShell title="Experience Log" subtitle="Organize and practice your career stories.">
       <div style={{ maxWidth: 900, margin: "0 auto" }}>
 
@@ -744,5 +745,6 @@ export default function ExperienceLogPage() {
       )}
     </PremiumShell>
     <ToastContainer toasts={toasts} onDismiss={dismiss} />
+    </>
   );
 }

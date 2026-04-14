@@ -149,6 +149,7 @@ async function handleDelete(id: string) {
   }
 
   return (
+    <>
     <PremiumShell
       title="Job Profiles"
       subtitle="Save target roles once, reuse them in practice, and build role-specific interview analytics over time."
@@ -696,5 +697,6 @@ async function handleDelete(id: string) {
       </div>
     </PremiumShell>
     <ToastContainer toasts={toasts} onDismiss={dismiss} />
+    </>
   );
 }

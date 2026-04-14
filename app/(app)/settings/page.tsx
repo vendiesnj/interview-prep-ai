@@ -255,6 +255,7 @@ export default function SettingsPage() {
   const s = profile?.settings;
 
   return (
+    <>
     <PremiumShell
       title="Settings"
       subtitle="Control scoring behavior, timing, and the app experience."
@@ -672,5 +673,6 @@ export default function SettingsPage() {
       </div>
     </PremiumShell>
     <ToastContainer toasts={toasts} onDismiss={dismiss} />
+    </>
   );
 }
