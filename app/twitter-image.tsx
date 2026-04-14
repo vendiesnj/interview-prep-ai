@@ -28,7 +28,7 @@ export default function TwitterImage() {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 background: "linear-gradient(135deg, #2563EB, #7C3AED)",
               }}
             />

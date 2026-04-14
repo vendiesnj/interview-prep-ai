@@ -352,7 +352,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
               key={label}
               onClick={() => { setViewMonth(mIdx); setView("month"); }}
               style={{
-                padding: "10px 6px", borderRadius: 10, cursor: "pointer", textAlign: "center" as const,
+                padding: "10px 6px", borderRadius: "var(--radius-md)", cursor: "pointer", textAlign: "center" as const,
                 border: isCurrentMonth ? `1.5px solid ${accentColor}` : "1px solid var(--card-border-soft)",
                 background: isCurrentMonth ? accentColor + "10" : "var(--card-bg)",
               }}
@@ -403,7 +403,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
 
         {/* Google Calendar connection status */}
         {gcalConnected === false && (
-          <div style={{ marginBottom: 10, padding: "8px 12px", borderRadius: 10, background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={{ marginBottom: 10, padding: "8px 12px", borderRadius: "var(--radius-md)", background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
             <span style={{ fontSize: 11, color: "#4285F4", fontWeight: 600 }}>Connect Google Calendar to sync tasks</span>
             <button
               onClick={() => signIn("google", { callbackUrl: window.location.href })}
@@ -456,7 +456,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
           {selectedGcal.length > 0 && (
             <div style={{ marginBottom: 8, display: "grid", gap: 5 }}>
               {selectedGcal.map(ev => (
-                <a key={ev.id} href={ev.htmlLink ?? "#"} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 10, background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", textDecoration: "none" }}>
+                <a key={ev.id} href={ev.htmlLink ?? "#"} target="_blank" rel="noopener noreferrer" style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: "var(--radius-md)", background: "rgba(66,133,244,0.07)", border: "1px solid rgba(66,133,244,0.2)", textDecoration: "none" }}>
                   <div style={{ width: 8, height: 8, borderRadius: 99, background: "#4285F4", flexShrink: 0 }} />
                   <span style={{ fontSize: 12, flex: 1, color: "var(--text-primary)", lineHeight: 1.4 }}>{ev.summary}</span>
                   <span style={{ fontSize: 10, color: "#4285F4", flexShrink: 0 }}>↗</span>
@@ -468,7 +468,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
           {selectedItems.length > 0 ? (
             <div style={{ display: "grid", gap: 6 }}>
               {selectedItems.map(item => (
-                <div key={item.itemId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)" }}>
+                <div key={item.itemId} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border-soft)" }}>
                   <span style={{ fontSize: 12, flex: 1, color: item.done ? "var(--text-muted)" : "var(--text-primary)", textDecoration: item.done ? "line-through" : "none", lineHeight: 1.4 }}>
                     {item.label}
                   </span>
@@ -503,14 +503,14 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
           {unscheduled.length > 0 && (
             <div style={{ marginTop: 10 }}>
               {!schedulingOpen ? (
-                <button onClick={() => setSchedulingOpen(true)} style={{ fontSize: 11, fontWeight: 700, color: accentColor, background: "none", border: `1px dashed ${accentColor}60`, borderRadius: 8, padding: "6px 12px", cursor: "pointer", width: "100%" }}>
+                <button onClick={() => setSchedulingOpen(true)} style={{ fontSize: 11, fontWeight: 700, color: accentColor, background: "none", border: `1px dashed ${accentColor}60`, borderRadius: "var(--radius-sm)", padding: "6px 12px", cursor: "pointer", width: "100%" }}>
                   + Schedule a task here
                 </button>
               ) : (
                 <div style={{ display: "grid", gap: 5 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>Select a task:</div>
                   {unscheduled.map(item => (
-                    <button key={item.itemId} onClick={() => { onSchedule(item.itemId, selectedDay); persistToStorage(item.itemId, selectedDay!, item.label, item.stage); setSchedulingOpen(false); }} style={{ textAlign: "left" as const, fontSize: 12, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", cursor: "pointer" }}>
+                    <button key={item.itemId} onClick={() => { onSchedule(item.itemId, selectedDay); persistToStorage(item.itemId, selectedDay!, item.label, item.stage); setSchedulingOpen(false); }} style={{ textAlign: "left" as const, fontSize: 12, padding: "7px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", cursor: "pointer" }}>
                       {item.label}
                     </button>
                   ))}
@@ -535,7 +535,7 @@ export default function MiniCalendar({ items, accentColor = "#10B981", onSchedul
                 const overdue = item.scheduledDate!.slice(0, 10) < todayKey;
                 return (
                   <div key={item.itemId} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: overdue ? "#EF4444" : accentColor, minWidth: 40, textAlign: "center" as const, padding: "3px 5px", borderRadius: 6, background: overdue ? "rgba(239,68,68,0.1)" : accentColor + "15" }}>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: overdue ? "#EF4444" : accentColor, minWidth: 40, textAlign: "center" as const, padding: "3px 5px", borderRadius: "var(--radius-xs)", background: overdue ? "rgba(239,68,68,0.1)" : accentColor + "15" }}>
                       {d.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                     </div>
                     <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, lineHeight: 1.4 }}>{item.label}</span>

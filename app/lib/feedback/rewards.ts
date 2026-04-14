@@ -90,7 +90,7 @@ export function computeRewards(
   const currScore100 = typeof currFeedback.score === "number"
     ? (currFeedback.score > 10 ? currFeedback.score : currFeedback.score * 10)
     : null;
-  check("score", "Overall Score", prevScore100, currScore100, "up");
+  check("score", "Signal Score", prevScore100, currScore100, "up");
 
   // Communication + Confidence (0–10)
   check("communication", "Communication", prevEntry.communication_score, currFeedback.communication_score, "up");

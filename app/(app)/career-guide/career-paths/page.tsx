@@ -302,7 +302,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
           <div style={{ display: "grid", gap: 16 }}>
             {PRE_COLLEGE_CONTENT.map(({ id, title: sTitle, body }) => (
               <div key={id} style={{ padding: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
-                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>{sTitle}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>{sTitle}</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75 }}>{body}</p>
               </div>
             ))}
@@ -322,7 +322,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
           <div style={{ display: "grid", gap: 16 }}>
             {DURING_COLLEGE_CONTENT.map(({ id, title: sTitle, body }) => (
               <div key={id} style={{ padding: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
-                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>{sTitle}</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>{sTitle}</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75 }}>{body}</p>
               </div>
             ))}
@@ -350,12 +350,12 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
             <div key={industry} style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))", overflow: "hidden" }}>
               <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--card-border-soft)", display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 22 }}>{icon}</span>
-                <div style={{ fontSize: 17, fontWeight: 950, color }}>{industry}</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color }}>{industry}</div>
               </div>
               <div style={{ padding: 24, display: "grid", gap: 24 }}>
                 {tracks.map((track) => (
                   <div key={track.start} style={{ padding: 18, borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                    <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>
                       Starting point: <span style={{ color }}>{track.start}</span>
                     </div>
 
@@ -390,11 +390,11 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
 
         {/* Universal lessons */}
         <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16 }}>THINGS THAT APPLY TO EVERY PATH</div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16 }}>THINGS THAT APPLY TO EVERY PATH</div>
           <div style={{ display: "grid", gap: 12 }}>
             {UNIVERSAL_LESSONS.map(({ title: lessonTitle, body }) => (
               <div key={lessonTitle} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
-                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{lessonTitle}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>{lessonTitle}</div>
                 <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{body}</p>
               </div>
             ))}
@@ -403,7 +403,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
 
         <div style={{ marginTop: 28, padding: "18px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ fontSize: 14, color: "var(--text-muted)" }}>Tell us where you landed - help build the salary benchmarks for your peers.</div>
-          <Link href="/career-checkin" style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 950, fontSize: 13, whiteSpace: "nowrap" }}>
+          <Link href="/career-checkin" style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 800, fontSize: 13, whiteSpace: "nowrap" }}>
             Career check-in →
           </Link>
         </div>
@@ -411,7 +411,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
         {/* Occupation browser */}
         <div style={{ marginTop: 40 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
-            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)" }}>BROWSE ALL OCCUPATIONS</div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, color: "var(--accent)" }}>BROWSE ALL OCCUPATIONS</div>
             <Link href="/aptitude" style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", textDecoration: "none" }}>
               Take Career Assessment to find your match →
             </Link>
@@ -421,7 +421,7 @@ export default function CareerPathsPage({ searchParams }: { searchParams?: { fro
               const risk = aiRiskLabel(occ.aiRisk);
               return (
                 <Link key={occ.id} href={`/career-guide/career-paths/${occ.id}`} style={{ textDecoration: "none" }}>
-                  <div style={{ padding: "12px 14px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", transition: "border-color 150ms" }}>
+                  <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", transition: "border-color 150ms" }}>
                     <div style={{ fontSize: 11, fontWeight: 900, color: risk.color, marginBottom: 3 }}>{occ.aiRisk}% AI risk</div>
                     <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", marginBottom: 2, lineHeight: 1.3 }}>{occ.title}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)" }}>${occ.salary[0]}K–${occ.salary[1]}K</div>

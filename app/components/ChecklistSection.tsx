@@ -246,7 +246,7 @@ export default function ChecklistSection({
                 <div
                   onClick={() => { if (!loaded) return; toggle(item.id); }}
                   style={{
-                    width: 22, height: 22, borderRadius: 6,
+                    width: 22, height: 22, borderRadius: "var(--radius-xs)",
                     border: `2px solid ${checked ? accentColor : "var(--card-border)"}`,
                     background: checked ? accentColor : "transparent",
                     display: "flex", alignItems: "center", justifyContent: "center",
@@ -300,7 +300,7 @@ export default function ChecklistSection({
                         setExpanded(item.id);
                       }}
                       style={{
-                        padding: "4px 10px", borderRadius: 6, border: "1px solid var(--card-border)",
+                        padding: "4px 10px", borderRadius: "var(--radius-xs)", border: "1px solid var(--card-border)",
                         background: "transparent", color: "var(--text-muted)", fontSize: 11,
                         fontWeight: 700, cursor: "pointer",
                       }}
@@ -339,7 +339,7 @@ export default function ChecklistSection({
                           rows={3}
                           style={{
                             width: "100%", boxSizing: "border-box", padding: "8px 10px",
-                            borderRadius: 8, border: "1px solid var(--card-border)",
+                            borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)",
                             background: "var(--card-bg)", color: "var(--text-primary)",
                             fontSize: 13, resize: "vertical",
                           }}
@@ -354,7 +354,7 @@ export default function ChecklistSection({
                             placeholder="https://..."
                             style={{
                               width: "100%", boxSizing: "border-box", padding: "7px 10px",
-                              borderRadius: 8, border: "1px solid var(--card-border)",
+                              borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)",
                               background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13,
                             }}
                           />
@@ -367,7 +367,7 @@ export default function ChecklistSection({
                             placeholder="Learn more →"
                             style={{
                               width: "100%", boxSizing: "border-box", padding: "7px 10px",
-                              borderRadius: 8, border: "1px solid var(--card-border)",
+                              borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)",
                               background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13,
                             }}
                           />
@@ -378,7 +378,7 @@ export default function ChecklistSection({
                           onClick={() => saveEdit(item.id)}
                           disabled={saving}
                           style={{
-                            padding: "7px 16px", borderRadius: 8, border: "none",
+                            padding: "7px 16px", borderRadius: "var(--radius-sm)", border: "none",
                             background: accentColor, color: "#fff", fontWeight: 800,
                             fontSize: 13, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1,
                           }}
@@ -388,7 +388,7 @@ export default function ChecklistSection({
                         <button
                           onClick={() => setEditingId(null)}
                           style={{
-                            padding: "7px 14px", borderRadius: 8,
+                            padding: "7px 14px", borderRadius: "var(--radius-sm)",
                             border: "1px solid var(--card-border)",
                             background: "transparent", color: "var(--text-muted)",
                             fontWeight: 700, fontSize: 13, cursor: "pointer",

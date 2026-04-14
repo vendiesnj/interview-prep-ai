@@ -69,7 +69,7 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{label}</span>
-        <span style={{ fontSize: 13, fontWeight: 950, color }}>{value.toFixed(1)}/10</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color }}>{value.toFixed(1)}/10</span>
       </div>
       <div style={{ height: 7, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width 0.6s ease" }} />
@@ -117,7 +117,7 @@ function WaveformCanvas({ analyserRef }: { analyserRef: React.RefObject<Analyser
       ref={canvasRef}
       width={500}
       height={60}
-      style={{ width: "100%", height: 60, borderRadius: 10, background: "var(--input-bg)", border: "1px solid var(--card-border)" }}
+      style={{ width: "100%", height: 60, borderRadius: "var(--radius-md)", background: "var(--input-bg)", border: "1px solid var(--card-border)" }}
     />
   );
 }
@@ -284,7 +284,7 @@ export default function NetworkingPage() {
         </Link>
 
         {error && (
-          <div style={{ marginBottom: 20, padding: "14px 18px", borderRadius: 12, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, fontWeight: 800 }}>
+          <div style={{ marginBottom: 20, padding: "14px 18px", borderRadius: "var(--radius-lg)", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, fontWeight: 800 }}>
             {error}
           </div>
         )}
@@ -342,7 +342,7 @@ export default function NetworkingPage() {
                   placeholder="Describe your own networking situation…"
                   value={customPrompt}
                   onChange={(e) => { setCustomPrompt(e.target.value); setUseCustom(true); if (e.target.value) setStage("ready"); }}
-                  style={{ width: "100%", minHeight: 72, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--input-bg)", color: "var(--text-primary)", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", minHeight: 72, padding: "10px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--input-bg)", color: "var(--text-primary)", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box" }}
                 />
               </div>
             </div>
@@ -360,7 +360,7 @@ export default function NetworkingPage() {
             {stage === "ready" && activePrompt && (
               <button
                 onClick={startRecording}
-                style={{ width: "100%", padding: "18px", borderRadius: "var(--radius-xl)", border: "none", background: "#0EA5E9", color: "#fff", fontWeight: 950, fontSize: 16, cursor: "pointer", boxShadow: "0 4px 24px rgba(14,165,233,0.35)" }}
+                style={{ width: "100%", padding: "18px", borderRadius: "var(--radius-xl)", border: "none", background: "#0EA5E9", color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: "0 4px 24px rgba(14,165,233,0.35)" }}
               >
                 🎙 Start Recording
               </button>
@@ -385,7 +385,7 @@ export default function NetworkingPage() {
 
             <WaveformCanvas analyserRef={analyserRef} />
 
-            <div style={{ fontSize: 36, fontWeight: 950, color: "var(--text-primary)", letterSpacing: 1, fontVariantNumeric: "tabular-nums" }}>
+            <div style={{ fontSize: 36, fontWeight: 800, color: "var(--text-primary)", letterSpacing: 1, fontVariantNumeric: "tabular-nums" }}>
               {formatTime(elapsed)}
             </div>
             <div style={{ fontSize: 13, color: elapsed > 60 ? "#EF4444" : "var(--text-muted)", fontWeight: elapsed > 60 ? 900 : 400 }}>
@@ -394,7 +394,7 @@ export default function NetworkingPage() {
 
             <button
               onClick={stopAndProcess}
-              style={{ padding: "16px 40px", borderRadius: "var(--radius-xl)", border: "none", background: "#EF4444", color: "#fff", fontWeight: 950, fontSize: 15, cursor: "pointer" }}
+              style={{ padding: "16px 40px", borderRadius: "var(--radius-xl)", border: "none", background: "#EF4444", color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer" }}
             >
               ⏹ Stop & Analyze
             </button>
@@ -405,7 +405,7 @@ export default function NetworkingPage() {
         {stage === "processing" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, paddingTop: 60 }}>
             <div style={{ fontSize: 40 }}>🤝</div>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>Analyzing your pitch</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>Analyzing your pitch</div>
             <div style={{ fontSize: 14, color: "var(--text-muted)" }}>{processingStep}</div>
             <div style={{ width: 200, height: 4, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
               <div style={{ height: "100%", width: "60%", background: "#0EA5E9", borderRadius: 99, animation: "pulse 1.5s ease-in-out infinite" }} />
@@ -420,12 +420,12 @@ export default function NetworkingPage() {
             <div style={{ padding: "28px 32px", borderRadius: "var(--radius-xl)", border: `1px solid ${styleCol}`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div style={{ flex: "1 1 200px" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch score</div>
-                <div style={{ fontSize: 56, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
+                <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
               </div>
               <div style={{ flex: "1 1 220px" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch style</div>
-                <div style={{ fontSize: 22, fontWeight: 950, color: styleCol, marginBottom: 8 }}>{pitchStyle}</div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: styleCol + "12", borderRadius: 10, borderLeft: `3px solid ${styleCol}` }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: styleCol, marginBottom: 8 }}>{pitchStyle}</div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: styleCol + "12", borderRadius: "var(--radius-md)", borderLeft: `3px solid ${styleCol}` }}>
                   <strong style={{ color: styleCol }}>Your lever:</strong> {feedback.pitch_coaching}
                 </div>
               </div>
@@ -434,7 +434,7 @@ export default function NetworkingPage() {
             {/* Dimension scores */}
             {np && (
               <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 16 }}>Pitch dimensions</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>Pitch dimensions</div>
                 <ScoreBar label="Hook Strength" value={np.hook_strength} color={styleCol} />
                 <ScoreBar label="Clarity of Ask" value={np.clarity_of_ask} color={styleCol} />
                 <ScoreBar label="Credibility" value={np.credibility} color={styleCol} />
@@ -447,7 +447,7 @@ export default function NetworkingPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {feedback.pitch_strengths?.length > 0 && (
                 <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 950, color: "#10B981", marginBottom: 12 }}>What landed</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#10B981", marginBottom: 12 }}>What landed</div>
                   <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
                     {feedback.pitch_strengths.map((s: string, i: number) => (
                       <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
@@ -457,7 +457,7 @@ export default function NetworkingPage() {
               )}
               {feedback.pitch_improvements?.length > 0 && (
                 <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 950, color: "#F59E0B", marginBottom: 12 }}>To sharpen</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 12 }}>To sharpen</div>
                   <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
                     {feedback.pitch_improvements.map((s: string, i: number) => (
                       <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
@@ -470,7 +470,7 @@ export default function NetworkingPage() {
             {/* Better version */}
             {feedback.better_answer && (
               <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 13, fontWeight: 950, color: "#0EA5E9", marginBottom: 10 }}>A sharper version would sound like this</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#0EA5E9", marginBottom: 10 }}>A sharper version would sound like this</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
               </div>
             )}
@@ -487,7 +487,7 @@ export default function NetworkingPage() {
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button
                 onClick={reset}
-                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "none", background: "#0EA5E9", color: "#fff", fontWeight: 950, fontSize: 14, cursor: "pointer" }}
+                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "none", background: "#0EA5E9", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
               >
                 Try another scenario →
               </button>

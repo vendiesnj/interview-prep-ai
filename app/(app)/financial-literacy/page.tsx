@@ -244,7 +244,7 @@ export default function FinancialLiteracyPage() {
 
         {/* Overall progress */}
         <div style={{
-          padding: "20px 24px", borderRadius: 16, marginBottom: 28,
+          padding: "20px 24px", borderRadius: "var(--radius-xl)", marginBottom: 28,
           border: "1px solid var(--card-border-soft)", background: "var(--card-bg)",
           display: "grid", gridTemplateColumns: "1fr auto", gap: 16, alignItems: "center",
         }}>
@@ -257,7 +257,7 @@ export default function FinancialLiteracyPage() {
               <div style={{ height: "100%", width: `${overallPct}%`, background: "linear-gradient(90deg, #10B981, #2563EB)", borderRadius: 99, transition: "width 0.5s ease" }} />
             </div>
           </div>
-          <div style={{ fontSize: 28, fontWeight: 950, color: "#10B981", minWidth: 56, textAlign: "right" }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: "#10B981", minWidth: 56, textAlign: "right" }}>
             {overallPct}%
           </div>
         </div>
@@ -274,7 +274,7 @@ export default function FinancialLiteracyPage() {
               <div
                 key={mod.id}
                 style={{
-                  borderRadius: 16,
+                  borderRadius: "var(--radius-xl)",
                   border: `1px solid ${isComplete ? mod.color + "40" : "var(--card-border-soft)"}`,
                   background: isComplete ? mod.color + "06" : "var(--card-bg)",
                   overflow: "hidden",
@@ -286,7 +286,7 @@ export default function FinancialLiteracyPage() {
                   style={{ display: "flex", gap: 14, alignItems: "center", padding: "16px 20px", cursor: "pointer" }}
                 >
                   <div style={{
-                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                    width: 44, height: 44, borderRadius: "var(--radius-lg)", flexShrink: 0,
                     background: mod.color + "18", border: `1px solid ${mod.color}30`,
                     display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
                   }}>
@@ -342,7 +342,7 @@ export default function FinancialLiteracyPage() {
                               onClick={() => toggleStep(mod.id, step.id)}
                               style={{
                                 display: "flex", gap: 12, alignItems: "center",
-                                padding: "10px 12px", borderRadius: 10, cursor: "pointer",
+                                padding: "10px 12px", borderRadius: "var(--radius-md)", cursor: "pointer",
                                 border: `1px solid ${checked ? mod.color + "35" : "var(--card-border)"}`,
                                 background: checked ? mod.color + "06" : "var(--card-bg)",
                                 transition: "all 150ms",

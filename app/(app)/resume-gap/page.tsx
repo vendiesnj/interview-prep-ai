@@ -140,7 +140,7 @@ export default function ResumeGapPage() {
               onClick={() => !fileLoading && fileInputRef.current?.click()}
               style={{
                 border: "1.5px dashed var(--card-border)",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 padding: "16px 20px",
                 cursor: fileLoading ? "default" : "pointer",
                 background: "var(--card-bg)",
@@ -153,7 +153,7 @@ export default function ResumeGapPage() {
             >
               {/* Icon area */}
               <div style={{
-                width: 36, height: 36, borderRadius: 10,
+                width: 36, height: 36, borderRadius: "var(--radius-md)",
                 background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.15)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0, fontSize: 17,
@@ -191,7 +191,7 @@ export default function ResumeGapPage() {
 
             {fileError && (
               <div style={{
-                marginBottom: 8, padding: "8px 12px", borderRadius: 8,
+                marginBottom: 8, padding: "8px 12px", borderRadius: "var(--radius-sm)",
                 background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
                 color: "#EF4444", fontSize: 12,
               }}>
@@ -206,7 +206,7 @@ export default function ResumeGapPage() {
               rows={10}
               style={{
                 width: "100%", boxSizing: "border-box", padding: "12px 14px",
-                borderRadius: 12, border: "1px solid var(--card-border)",
+                borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)",
                 background: "var(--card-bg)", color: "var(--text-primary)",
                 fontSize: 13, lineHeight: 1.6, resize: "vertical",
                 fontFamily: "inherit",
@@ -224,7 +224,7 @@ export default function ResumeGapPage() {
               rows={14}
               style={{
                 width: "100%", boxSizing: "border-box", padding: "12px 14px",
-                borderRadius: 12, border: "1px solid var(--card-border)",
+                borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)",
                 background: "var(--card-bg)", color: "var(--text-primary)",
                 fontSize: 13, lineHeight: 1.6, resize: "vertical",
                 fontFamily: "inherit",
@@ -237,7 +237,7 @@ export default function ResumeGapPage() {
           onClick={analyze}
           disabled={!resume.trim() || loading}
           style={{
-            padding: "14px 28px", borderRadius: 12, border: "none",
+            padding: "14px 28px", borderRadius: "var(--radius-lg)", border: "none",
             background: resume.trim() && !loading ? "var(--accent)" : "var(--card-border-soft)",
             color: resume.trim() && !loading ? "#fff" : "var(--text-muted)",
             fontWeight: 900, fontSize: 15, cursor: resume.trim() && !loading ? "pointer" : "not-allowed",
@@ -248,7 +248,7 @@ export default function ResumeGapPage() {
         </button>
 
         {error && (
-          <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444", fontSize: 13 }}>
+          <div style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#EF4444", fontSize: 13 }}>
             {error}
           </div>
         )}
@@ -275,7 +275,7 @@ export default function ResumeGapPage() {
                   {result.summary}
                 </p>
                 <div style={{
-                  padding: "10px 14px", borderRadius: 10,
+                  padding: "10px 14px", borderRadius: "var(--radius-md)",
                   background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)",
                   fontSize: 13, fontWeight: 700, color: "var(--accent)",
                 }}>
@@ -286,7 +286,7 @@ export default function ResumeGapPage() {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
               {/* Strengths */}
-              <div style={{ padding: "20px 22px", borderRadius: 16, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#10B981", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 14 }}>
                   Strengths
                 </div>
@@ -301,7 +301,7 @@ export default function ResumeGapPage() {
               </div>
 
               {/* Keywords */}
-              <div style={{ padding: "20px 22px", borderRadius: 16, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#2563EB", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 14 }}>
                   Keywords Present
                 </div>
@@ -322,7 +322,7 @@ export default function ResumeGapPage() {
             </div>
 
             {/* Gaps */}
-            <div style={{ padding: "20px 22px", borderRadius: 16, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+            <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: "#EF4444", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 16 }}>
                 Gaps to Address ({result.gaps.length})
               </div>

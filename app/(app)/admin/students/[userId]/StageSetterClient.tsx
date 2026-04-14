@@ -56,7 +56,7 @@ export default function StageSetterClient({
             onClick={() => setStudentStage(opt.value)}
             style={{
               padding: "7px 16px",
-              borderRadius: 8,
+              borderRadius: "var(--radius-sm)",
               fontSize: 12,
               fontWeight: 800,
               border: `1px solid ${stage === opt.value ? opt.color : "var(--card-border)"}`,
@@ -75,7 +75,7 @@ export default function StageSetterClient({
             type="button"
             disabled={saving}
             onClick={() => setStudentStage(null)}
-            style={{ padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 800, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
+            style={{ padding: "7px 16px", borderRadius: "var(--radius-sm)", fontSize: 12, fontWeight: 800, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.6 : 1 }}
           >
             Clear
           </button>

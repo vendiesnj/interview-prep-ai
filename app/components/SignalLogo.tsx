@@ -75,7 +75,7 @@ export function SignalWordmark({ height = 18 }: { height?: number }) {
     <span
       style={{
         fontSize: height,
-        fontWeight: 950,
+        fontWeight: 800,
         letterSpacing: -0.4,
         background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
         WebkitBackgroundClip: "text",

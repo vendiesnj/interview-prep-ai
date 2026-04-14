@@ -254,12 +254,12 @@ export default function JourneySidebar({
           <div style={{
             margin: "16px 16px 0",
             padding: "12px 16px",
-            borderRadius: 12,
+            borderRadius: "var(--radius-lg)",
             background: data.signalScore !== null ? `${ACCENT}09` : "var(--card-bg-strong)",
             border: `1px solid ${data.signalScore !== null ? ACCENT + "20" : "var(--card-border)"}`,
             display: "flex", alignItems: "center", gap: 12,
           }}>
-            <div style={{ fontSize: 28, fontWeight: 950, color: data.signalScore !== null ? ACCENT : "var(--text-muted)", lineHeight: 1 }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: data.signalScore !== null ? ACCENT : "var(--text-muted)", lineHeight: 1 }}>
               {data.signalScore ?? "-"}
             </div>
             <div>
@@ -273,7 +273,7 @@ export default function JourneySidebar({
 
         {/* Next step highlight */}
         {nextStep && (
-          <div style={{ margin: "12px 16px 0", padding: "12px 14px", borderRadius: 12, background: `${ACCENT}08`, border: `1px solid ${ACCENT}20` }}>
+          <div style={{ margin: "12px 16px 0", padding: "12px 14px", borderRadius: "var(--radius-lg)", background: `${ACCENT}08`, border: `1px solid ${ACCENT}20` }}>
             <div style={{ fontSize: 10, fontWeight: 900, color: ACCENT, textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 4 }}>Next up</div>
             <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 2 }}>{nextStep.title}</div>
             <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 8, lineHeight: 1.5 }}>{nextStep.description}</div>
@@ -293,7 +293,7 @@ export default function JourneySidebar({
             >
               <div style={{
                 display: "flex", alignItems: "flex-start", gap: 12,
-                padding: "10px 12px", borderRadius: 10,
+                padding: "10px 12px", borderRadius: "var(--radius-md)",
                 background: step.done ? `${GREEN}08` : "transparent",
                 border: `1px solid ${step.done ? GREEN + "20" : "var(--card-border-soft)"}`,
                 transition: "background 120ms",

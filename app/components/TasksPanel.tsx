@@ -165,7 +165,7 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
       }}
       onDragEnd={() => { if (rowRef.current) rowRef.current.draggable = false; }}
       style={{
-        borderRadius: 8,
+        borderRadius: "var(--radius-sm)",
         border: `1px solid ${rowBorder}`,
         background: rowBg,
         transition: "border-color 120ms, background 120ms",
@@ -283,7 +283,7 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
                   onClick={() => setPriority(p)}
                   style={{
                     display: "flex", alignItems: "center", gap: 4,
-                    padding: "4px 9px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer",
+                    padding: "4px 9px", borderRadius: "var(--radius-xs)", fontSize: 11, fontWeight: 700, cursor: "pointer",
                     border: `1px solid ${priority === p ? PRIORITY_COLOR[p] : "var(--card-border)"}`,
                     background: priority === p ? PRIORITY_BG[p] : "transparent",
                     color: priority === p ? PRIORITY_COLOR[p] : "var(--text-muted)",
@@ -302,7 +302,7 @@ function TaskRow({ task, onRefresh }: { task: Task; onRefresh: () => void }) {
                 value={dueDate}
                 onChange={e => setDueDate(e.target.value)}
                 style={{
-                  padding: "3px 8px", borderRadius: 6, border: "1px solid var(--card-border)",
+                  padding: "3px 8px", borderRadius: "var(--radius-xs)", border: "1px solid var(--card-border)",
                   background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 12,
                   outline: "none", cursor: "pointer",
                 }}
@@ -410,7 +410,7 @@ function InlineAdd({ defaultDate, onAdd }: { defaultDate?: string; onAdd: (task:
         onClick={() => setOpen(true)}
         style={{
           display: "flex", alignItems: "center", gap: 6,
-          width: "100%", padding: "8px 10px", borderRadius: 8,
+          width: "100%", padding: "8px 10px", borderRadius: "var(--radius-sm)",
           border: "1px dashed var(--card-border)", background: "transparent",
           color: "var(--text-muted)", fontSize: 13, fontWeight: 500,
           cursor: "pointer", textAlign: "left",
@@ -422,7 +422,7 @@ function InlineAdd({ defaultDate, onAdd }: { defaultDate?: string; onAdd: (task:
   }
 
   return (
-    <div style={{ borderRadius: 8, border: "1px solid var(--accent)", background: "var(--card-bg)", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ borderRadius: "var(--radius-sm)", border: "1px solid var(--accent)", background: "var(--card-bg)", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
       <input
         ref={inputRef}
         value={title}
@@ -439,7 +439,7 @@ function InlineAdd({ defaultDate, onAdd }: { defaultDate?: string; onAdd: (task:
             onClick={() => setPriority(p)}
             style={{
               display: "flex", alignItems: "center", gap: 4,
-              padding: "3px 8px", borderRadius: 6, fontSize: 11, fontWeight: 700, cursor: "pointer",
+              padding: "3px 8px", borderRadius: "var(--radius-xs)", fontSize: 11, fontWeight: 700, cursor: "pointer",
               border: `1px solid ${priority === p ? PRIORITY_COLOR[p] : "var(--card-border)"}`,
               background: priority === p ? PRIORITY_BG[p] : "transparent",
               color: priority === p ? PRIORITY_COLOR[p] : "var(--text-muted)",
@@ -455,7 +455,7 @@ function InlineAdd({ defaultDate, onAdd }: { defaultDate?: string; onAdd: (task:
             type="date"
             value={dueDate}
             onChange={e => setDueDate(e.target.value)}
-            style={{ padding: "2px 6px", borderRadius: 6, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 11, outline: "none" }}
+            style={{ padding: "2px 6px", borderRadius: "var(--radius-xs)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 11, outline: "none" }}
           />
         </div>
       </div>

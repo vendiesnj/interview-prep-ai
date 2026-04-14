@@ -97,7 +97,7 @@ export interface MockScoreResult {
     warmupEffect: boolean;       // Q1 score notably below avg
     fatigueSigns: boolean;       // last 2 Qs notably below first 2
     consistencyScore: number;    // 0-100, lower = more variable performance
-    pitchDrift: "stable" | "building" | "declining" | "volatile";
+    pitchDrift?: "stable" | "building" | "declining" | "volatile"; // derived from qualityArc, not AI-generated
     openingNote: string;         // observation about first answer
     closingNote: string;         // observation about final answer
   };
@@ -260,7 +260,25 @@ async function handleScore(body: ScoreBody): Promise<NextResponse> {
     messages: [
       {
         role: "system",
-        content: `You are an expert interview coach scoring a mock interview for a ${role} position in ${industry}. Score rigorously but fairly — a score of 75+ means genuinely ready to interview.`,
+        content: `You are an expert interview coach scoring a mock interview for a ${role} position in ${industry}.
+
+Score everything based strictly on what you observe in the transcript — not on what a typical candidate would say.
+
+DIMENSION SCORING (1–10 scale, use the full range):
+- 1–3: Critically absent or harmful (e.g., no structure, completely off-topic, entirely passive language)
+- 4–5: Below expectations — present but weak, vague, or mostly missing the mark
+- 6–6.9: Adequate — demonstrated but with clear gaps or missed opportunities
+- 7–7.9: Solid — clear, owned, and structured with only minor gaps
+- 8–8.9: Strong — specific, well-evidenced, interview-ready at most companies
+- 9–10: Exceptional — polished, memorable, sets a high bar
+
+QUESTION SCORE (0–100 scale):
+- Map proportionally: a dimension average of 7.0 should produce roughly 70/100. 8.5 → 85. 5.0 → 50.
+- A question with all STAR parts, specific I-language, and a quantified result should score 75–90.
+- A question with vague answers, "we" language, or missing result should score 40–60.
+- Do not compress scores toward 70–80. Use the full range.
+
+DO NOT anchor scores around any particular threshold. Score what you see.`,
       },
       {
         role: "user",
@@ -272,11 +290,20 @@ ${questionList}
 FULL TRANSCRIPT:
 ${transcript}
 
+DIMENSION WEIGHTS (use these to inform overall score):
+- narrative_clarity: 18% — did answers tell a coherent, easy-to-follow story?
+- evidence_quality: 18% — were claims backed by specific, concrete examples?
+- ownership_agency: 16% — did the candidate use "I" language and own their contributions?
+- cognitive_depth: 16% — did answers show analytical thinking, tradeoffs, or reasoning?
+- response_control: 14% — were answers appropriately scoped (not too long, not too short)?
+- presence_confidence: 10% — did the candidate project conviction and assertiveness?
+- vocal_engagement: 8% — was delivery varied and engaging (based on transcript patterns)?
+
 Respond with JSON only:
 {
-  "overallScore": <0-100>,
+  "overallScore": <0-100, computed as weighted average of dimension scores * 10, then adjusted ±5 for interview-wide signals like arc, consistency, warmup effect>,
   "dimensionScores": {
-    "narrative_clarity": { "score": <1-10>, "label": "Narrative Clarity", "coaching": "<one specific coaching sentence>" },
+    "narrative_clarity": { "score": <1-10>, "label": "Narrative Clarity", "coaching": "<one specific coaching sentence grounded in a transcript moment>" },
     "evidence_quality": { "score": <1-10>, "label": "Evidence Quality", "coaching": "<one specific coaching sentence>" },
     "ownership_agency": { "score": <1-10>, "label": "Ownership & Agency", "coaching": "<one specific coaching sentence>" },
     "response_control": { "score": <1-10>, "label": "Response Control", "coaching": "<one specific coaching sentence>" },
@@ -290,8 +317,8 @@ Respond with JSON only:
     "action": <0-100>,
     "result": <0-100>
   },
-  "strengths": ["<specific strength with evidence from transcript>", "<specific strength>", "<specific strength>"],
-  "improvements": ["<specific improvement with evidence>", "<specific improvement>"],
+  "strengths": ["<specific strength with exact transcript evidence>", "<specific strength>", "<specific strength>"],
+  "improvements": ["<specific improvement with exact transcript moment>", "<specific improvement>"],
   "coachingSummary": "<3-4 sentence personalized coaching note referencing specific moments from the interview>",
   "readinessLevel": "not_ready" | "developing" | "ready" | "strong",
   "questionBreakdowns": [
@@ -299,25 +326,24 @@ Respond with JSON only:
       "question": "<question text>",
       "competency": "<competency>",
       "score": <0-100>,
-      "note": "<one sentence on this specific answer>",
-      "wordCount": <estimated word count of candidate's answer>,
-      "starComplete": <true if answer contained all 4 STAR parts, false otherwise>,
-      "confidenceSignal": <1-10, how confident this specific answer sounded>,
-      "ownershipScore": <1-10, how well they used I-language and claimed their contribution>,
-      "fillerEstimate": <estimated number of filler words in this answer>
+      "note": "<one sentence on this specific answer with evidence>",
+      "wordCount": <word count of candidate's answer>,
+      "starComplete": <true if answer contained all 4 STAR parts>,
+      "confidenceSignal": <1-10>,
+      "ownershipScore": <1-10>,
+      "fillerEstimate": <estimated filler count>
     }
   ],
   "interviewArc": {
-    "qualityArc": [<score for Q1>, <score for Q2>, ...],
-    "confidenceArc": [<confidence 1-10 for Q1>, <confidence for Q2>, ...],
-    "ownershipArc": [<ownership 1-10 for Q1>, ...],
-    "wordCountArc": [<word count Q1>, <word count Q2>, ...],
-    "warmupEffect": <true if Q1 score was notably below the average>,
+    "qualityArc": [<score Q1 0-100>, <score Q2>, ...],
+    "confidenceArc": [<confidence 1-10 Q1>, ...],
+    "ownershipArc": [<ownership 1-10 Q1>, ...],
+    "wordCountArc": [<word count Q1>, ...],
+    "warmupEffect": <true if Q1 score was notably below average>,
     "fatigueSigns": <true if last 2 questions scored notably lower than first 2>,
-    "consistencyScore": <0-100, 100 = very consistent, 0 = wildly variable>,
-    "pitchDrift": "<stable|building|declining|volatile> — overall energy/confidence arc across the interview",
-    "openingNote": "<one sentence observation about the first answer>",
-    "closingNote": "<one sentence observation about the final answer>"
+    "consistencyScore": <0-100, 100=very consistent>,
+    "openingNote": "<one sentence about the first answer>",
+    "closingNote": "<one sentence about the final answer>"
   }
 }`,
       },
@@ -327,6 +353,74 @@ Respond with JSON only:
   });
 
   const scored = JSON.parse(res.choices[0].message.content ?? "{}") as MockScoreResult;
+
+  // Derive pitchDrift deterministically from qualityArc — never inferred by AI
+  const arc = scored.interviewArc?.qualityArc;
+  if (scored.interviewArc && Array.isArray(arc) && arc.length >= 2) {
+    const mid = Math.ceil(arc.length / 2);
+    const firstAvg = arc.slice(0, mid).reduce((a, b) => a + b, 0) / mid;
+    const lastHalf = arc.slice(Math.floor(arc.length / 2));
+    const lastAvg  = lastHalf.reduce((a, b) => a + b, 0) / lastHalf.length;
+    const mean = arc.reduce((a, b) => a + b, 0) / arc.length;
+    const variance = arc.reduce((sum, s) => sum + Math.pow(s - mean, 2), 0) / arc.length;
+    const diff = lastAvg - firstAvg;
+    if (variance > 200) scored.interviewArc.pitchDrift = "volatile";
+    else if (diff > 6)  scored.interviewArc.pitchDrift = "building";
+    else if (diff < -6) scored.interviewArc.pitchDrift = "declining";
+    else                scored.interviewArc.pitchDrift = "stable";
+  }
+
+  // ── Deterministic overallScore — never accept AI's free-form number directly ──
+  // Compute from dimension scores (weighted) and question breakdowns (weighted).
+  // The AI's overallScore is treated as advisory and constrained to ±8 of this.
+  const DIM_WEIGHTS: Record<string, number> = {
+    narrative_clarity:  0.18,
+    evidence_quality:   0.18,
+    ownership_agency:   0.16,
+    cognitive_depth:    0.16,
+    response_control:   0.14,
+    presence_confidence: 0.10,
+    vocal_engagement:   0.08,
+  };
+
+  const dims = scored.dimensionScores ?? {};
+  let dimWeightedSum = 0;
+  let dimWeightTotal = 0;
+  for (const [key, weight] of Object.entries(DIM_WEIGHTS)) {
+    const s = dims[key]?.score;
+    if (typeof s === "number" && s >= 1 && s <= 10) {
+      dimWeightedSum += s * weight;
+      dimWeightTotal += weight;
+    }
+  }
+  // Normalize in case some dimensions are missing, convert 1-10 → 0-100
+  const dimScore = dimWeightTotal > 0 ? (dimWeightedSum / dimWeightTotal) * 10 : 0;
+
+  // Question breakdown average (0-100 scale)
+  const qbScores = (scored.questionBreakdowns ?? [])
+    .map(q => q.score)
+    .filter(s => typeof s === "number" && s >= 0 && s <= 100) as number[];
+  const qbScore = qbScores.length > 0
+    ? qbScores.reduce((a, b) => a + b, 0) / qbScores.length
+    : dimScore; // fallback to dim score if no breakdowns
+
+  // Weighted blend: question content (55%) + dimension delivery (45%)
+  const deterministicScore = Math.round(qbScore * 0.55 + dimScore * 0.45);
+
+  // Soft-constrain AI's overallScore to ±8 of the deterministic result
+  const aiScore = typeof scored.overallScore === "number" ? scored.overallScore : deterministicScore;
+  const constrainedScore = Math.round(Math.max(0, Math.min(100,
+    Math.max(deterministicScore - 8, Math.min(deterministicScore + 8, aiScore))
+  )));
+
+  scored.overallScore = constrainedScore;
+
+  // Constrain readinessLevel to match final overallScore
+  if (constrainedScore >= 82) scored.readinessLevel = "strong";
+  else if (constrainedScore >= 72) scored.readinessLevel = "ready";
+  else if (constrainedScore >= 55) scored.readinessLevel = "developing";
+  else scored.readinessLevel = "not_ready";
+
   return NextResponse.json(scored);
 }
 
@@ -349,7 +443,7 @@ async function handleSave(
       label: val.label,
       score: val.score,
       coaching: val.coaching,
-      isStrength: val.score >= 7.5,
+      isStrength: val.score >= 7.0,
       isGap: val.score < 5.5,
     };
   }

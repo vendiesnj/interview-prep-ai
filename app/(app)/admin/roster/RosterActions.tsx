@@ -43,7 +43,7 @@ export default function RosterActions({
           disabled={loading}
           style={{
             padding: "5px 10px",
-            borderRadius: 8,
+            borderRadius: "var(--radius-sm)",
             border: "1px solid var(--danger)",
             background: "rgba(220,38,38,0.08)",
             color: "var(--danger)",
@@ -58,7 +58,7 @@ export default function RosterActions({
           onClick={() => setConfirm(false)}
           style={{
             padding: "5px 10px",
-            borderRadius: 8,
+            borderRadius: "var(--radius-sm)",
             border: "1px solid var(--card-border-soft)",
             background: "transparent",
             color: "var(--text-muted)",
@@ -79,7 +79,7 @@ export default function RosterActions({
       disabled={loading}
       style={{
         padding: "5px 12px",
-        borderRadius: 8,
+        borderRadius: "var(--radius-sm)",
         border: `1px solid ${currentStatus === "disabled" ? "rgba(22,163,74,0.30)" : "var(--card-border-soft)"}`,
         background: currentStatus === "disabled" ? "rgba(22,163,74,0.07)" : "transparent",
         color: currentStatus === "disabled" ? "#16A34A" : "var(--text-muted)",

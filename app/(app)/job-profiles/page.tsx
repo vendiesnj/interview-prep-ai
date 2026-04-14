@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import PremiumShell from "@/app/components/PremiumShell";
+import { ToastContainer, useToast } from "@/app/components/Toast";
 import PremiumCard from "@/app/components/PremiumCard";
 import {
   clearActiveJobProfileId,
@@ -33,6 +34,8 @@ export default function JobProfilesPage() {
   const [jobDescription, setJobDescription] = useState("");
 
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const { toasts, show: showToast, dismiss } = useToast();
 
 async function reload() {
   const res = await fetch("/api/job-profiles", { cache: "no-store" });
@@ -81,9 +84,11 @@ async function handleSave() {
   const json = await res.json();
 
   if (!res.ok || !json?.ok) {
-    alert(json?.error ?? "Failed to save profile");
+    setFormError(json?.error ?? "Failed to save profile");
     return;
   }
+  setFormError(null);
+  showToast(editingId ? "Profile updated" : "Profile created");
 
   if (!activeId && json?.profile?.id) {
     setActiveJobProfileId(json.profile.id);
@@ -115,9 +120,11 @@ async function handleDelete(id: string) {
   const json = await res.json();
 
   if (!res.ok || !json?.ok) {
-    alert(json?.error ?? "Failed to delete profile");
+    setFormError(json?.error ?? "Failed to delete profile");
     return;
   }
+
+  showToast("Profile deleted");
 
   if (editingId === id) {
     resetForm();
@@ -377,6 +384,11 @@ async function handleDelete(id: string) {
                 Required: title + job description
               </div>
             </div>
+            {formError && (
+              <div style={{ marginTop: 8, fontSize: 13, color: "var(--danger)", fontWeight: 600, padding: "8px 12px", background: "var(--danger-soft)", borderRadius: "var(--radius-sm)", border: "1px solid var(--danger)" }}>
+                {formError}
+              </div>
+            )}
           </div>
         </PremiumCard>
 
@@ -683,5 +695,6 @@ async function handleDelete(id: string) {
         </div>
       </div>
     </PremiumShell>
+    <ToastContainer toasts={toasts} onDismiss={dismiss} />
   );
 }

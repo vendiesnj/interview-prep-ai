@@ -182,13 +182,13 @@ export default function BudgetPage() {
           flexWrap: "wrap",
         }}>
           <div style={{ flex: "1 1 280px" }}>
-            <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>Monthly Take-Home Pay</div>
+            <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>Monthly Take-Home Pay</div>
             <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
               Enter your income after taxes and 401k deductions. That's your real number to budget from.
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
-            <span style={{ fontSize: 22, fontWeight: 950, color: "var(--accent)" }}>$</span>
+            <span style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)" }}>$</span>
             <input
               type="number"
               min={0}
@@ -203,7 +203,7 @@ export default function BudgetPage() {
                 background: "var(--card-bg)",
                 color: "var(--text-primary)",
                 fontSize: 22,
-                fontWeight: 950,
+                fontWeight: 800,
                 outline: "none",
                 textAlign: "right",
               }}
@@ -228,12 +228,12 @@ export default function BudgetPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 20 }}>{cfg.icon}</span>
                       <div>
-                        <div style={{ fontSize: 15, fontWeight: 950, color: cfg.color }}>{cfg.label}</div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: cfg.color }}>{cfg.label}</div>
                         <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{cfg.desc}</div>
                       </div>
                     </div>
                     <div style={{ textAlign: "right", flexShrink: 0 }}>
-                      <div style={{ fontSize: 18, fontWeight: 950, color: over ? "#EF4444" : cfg.color }}>{pct}%</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: over ? "#EF4444" : cfg.color }}>{pct}%</div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>ideal: {cfg.ideal}%</div>
                     </div>
                   </div>
@@ -264,7 +264,7 @@ export default function BudgetPage() {
                             style={{
                               width: 100,
                               padding: "6px 10px",
-                              borderRadius: 8,
+                              borderRadius: "var(--radius-sm)",
                               border: "1px solid var(--card-border)",
                               background: "var(--card-bg-strong)",
                               color: "var(--text-primary)",
@@ -305,7 +305,7 @@ export default function BudgetPage() {
                   textAlign: "center",
                 }}>
                   <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5 }}>TOTAL</div>
-                  <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)" }}>{fmt(totalSpent)}</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)" }}>{fmt(totalSpent)}</div>
                 </div>
               </div>
 
@@ -333,10 +333,10 @@ export default function BudgetPage() {
               border: `1px solid ${remaining >= 0 ? "#10B981" : "#EF4444"}`,
               background: remaining >= 0 ? "rgba(16,185,129,0.06)" : "rgba(239,68,68,0.06)",
             }}>
-              <div style={{ fontSize: 11, fontWeight: 950, letterSpacing: 0.8, color: remaining >= 0 ? "#10B981" : "#EF4444", textTransform: "uppercase", marginBottom: 4 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.8, color: remaining >= 0 ? "#10B981" : "#EF4444", textTransform: "uppercase", marginBottom: 4 }}>
                 {remaining >= 0 ? "Monthly Surplus" : "Monthly Deficit"}
               </div>
-              <div style={{ fontSize: 36, fontWeight: 950, color: remaining >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>
+              <div style={{ fontSize: 36, fontWeight: 800, color: remaining >= 0 ? "#10B981" : "#EF4444", lineHeight: 1 }}>
                 {fmt(remaining)}
               </div>
               <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
@@ -358,7 +358,7 @@ export default function BudgetPage() {
                 border: "1px solid var(--card-border)",
                 background: "var(--card-bg)",
               }}>
-                <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 12 }}>50/30/20 Check</div>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 12 }}>50/30/20 Check</div>
                 {(["needs", "wants", "savings"] as Category[]).map((cat) => {
                   const cfg = CAT[cat];
                   const pct = income > 0 ? Math.round((catTotals[cat] / income) * 100) : 0;
@@ -396,7 +396,7 @@ export default function BudgetPage() {
                 textDecoration: "none",
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 950, color: "var(--accent)" }}>See your retirement projection →</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--accent)" }}>See your retirement projection →</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>Based on your savings rate and salary</div>
             </Link>
           </div>
@@ -404,7 +404,7 @@ export default function BudgetPage() {
 
         {/* Tips */}
         <div style={{ marginTop: 32 }}>
-          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 14 }}>BUDGETING TIPS THAT ACTUALLY WORK</div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 14 }}>BUDGETING TIPS THAT ACTUALLY WORK</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12 }}>
             {[
               { title: "Budget from take-home, not salary", body: "Your gross salary minus taxes, 401k, and insurance is your real number. Budgeting from gross is why people always run short." },
@@ -413,7 +413,7 @@ export default function BudgetPage() {
               { title: "Review your budget quarterly", body: "Rent changes, subscriptions pile up, income grows. A budget that's 6 months stale isn't a budget - it's a wish. Review it every 3 months and adjust." },
             ].map(({ title, body }) => (
               <div key={title} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
-                <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{title}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>{title}</div>
                 <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{body}</p>
               </div>
             ))}

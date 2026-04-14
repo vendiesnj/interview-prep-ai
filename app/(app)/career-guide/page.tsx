@@ -110,7 +110,7 @@ export default async function CareerGuidePage() {
 
         {/* Header */}
         <div style={{ marginBottom: 36 }}>
-          <h1 style={{ fontSize: 30, fontWeight: 950, letterSpacing: -0.5, color: "var(--text-primary)", margin: 0 }}>
+          <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: -0.5, color: "var(--text-primary)", margin: 0 }}>
             Hey {firstName} - landing the job is just the start.
           </h1>
           <p style={{ marginTop: 10, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 680 }}>
@@ -136,7 +136,7 @@ export default async function CareerGuidePage() {
               >
                 <div style={{ fontSize: 32, marginBottom: 12 }}>{icon}</div>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color, textTransform: "uppercase", marginBottom: 6 }}>{eyebrow}</div>
-                <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)", marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", marginBottom: 8, lineHeight: 1.3 }}>{title}</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.7 }}>{desc}</p>
                 <div style={{ marginTop: 16, fontSize: 13, fontWeight: 900, color }}>Read guide →</div>
               </div>
@@ -158,7 +158,7 @@ export default async function CareerGuidePage() {
           flexWrap: "wrap",
         }}>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 950, color: "var(--accent)" }}>Already in the workforce?</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "var(--accent)" }}>Already in the workforce?</div>
             <div style={{ marginTop: 4, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
               Complete your career check-in - it takes 2 minutes and helps track your progress and benchmark your salary against peers.
             </div>
@@ -172,7 +172,7 @@ export default async function CareerGuidePage() {
               background: "var(--accent)",
               color: "#fff",
               textDecoration: "none",
-              fontWeight: 950,
+              fontWeight: 800,
               fontSize: 14,
               whiteSpace: "nowrap",
               flexShrink: 0,

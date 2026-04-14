@@ -76,7 +76,7 @@ export default function SetPasswordClient() {
             INTERVIEW PERFORMANCE COACH
           </div>
 
-          <h1 style={{ marginTop: 8, fontSize: 22, fontWeight: 950 }}>Set a password</h1>
+          <h1 style={{ marginTop: 8, fontSize: 22, fontWeight: 800 }}>Set a password</h1>
 
           <p style={{ marginTop: 8, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
             If you signed up with Google, you can optionally set a password so you can also sign in
@@ -142,7 +142,7 @@ export default function SetPasswordClient() {
                 border: "1px solid rgba(34,211,238,0.35)",
                 background: loading ? "rgba(34,211,238,0.10)" : "rgba(34,211,238,0.14)",
                 color: "#A5F3FC",
-                fontWeight: 950,
+                fontWeight: 800,
                 cursor: loading ? "not-allowed" : "pointer",
               }}
             >

@@ -262,7 +262,7 @@ function SegmentedTabBar({
         flexWrap: "wrap",
         marginBottom: 20,
         padding: "4px",
-        borderRadius: 12,
+        borderRadius: "var(--radius-lg)",
         background: "var(--card-bg-strong)",
         border: "1px solid var(--card-border-soft)",
         width: "fit-content",
@@ -490,7 +490,7 @@ function SkeletonBlock({ width = "100%", height = 18 }: { width?: string | numbe
       style={{
         width,
         height,
-        borderRadius: 8,
+        borderRadius: "var(--radius-sm)",
         background: "var(--card-border-soft)",
         animation: "pulse 1.5s ease-in-out infinite",
       }}
@@ -549,7 +549,7 @@ function EmptyState({
             alignItems: "center",
             gap: 6,
             padding: "10px 20px",
-            borderRadius: 10,
+            borderRadius: "var(--radius-md)",
             background: "var(--accent)",
             color: "#fff",
             fontWeight: 700,
@@ -609,7 +609,7 @@ function SpeakingCard({
           style={{
             width: 36,
             height: 36,
-            borderRadius: 10,
+            borderRadius: "var(--radius-md)",
             background: accentColor + "18",
             border: `1px solid ${accentColor}35`,
             display: "flex",
@@ -697,7 +697,7 @@ function SpeakingCard({
                         style={{
                           minWidth: 34,
                           height: 34,
-                          borderRadius: 8,
+                          borderRadius: "var(--radius-sm)",
                           background: sc !== null ? c + "18" : "var(--card-border-soft)",
                           border: `1px solid ${sc !== null ? c + "40" : "var(--card-border-soft)"}`,
                           display: "flex",
@@ -1057,7 +1057,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               Signal Score
             </span>
           </div>
-          <div style={{ fontSize: 52, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
+          <div style={{ fontSize: 52, fontWeight: 800, color: signalColor, lineHeight: 1 }}>
             {signalScore ?? "-"}
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: signalColor }}>{signalLabel}</div>
@@ -1154,7 +1154,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 background: "var(--accent-soft)",
                 display: "flex",
                 alignItems: "center",
@@ -1364,7 +1364,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
                         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{ns.label}</span>
-                        <span style={{ fontSize: 13, fontWeight: 950, color: barColor, marginLeft: 12, flexShrink: 0 }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: barColor, marginLeft: 12, flexShrink: 0 }}>
                           {ns.score !== null ? ns.score : "-"}
                         </span>
                       </div>
@@ -1649,7 +1649,7 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
                     <div
                       style={{
                         padding: "6px 10px",
-                        borderRadius: 8,
+                        borderRadius: "var(--radius-sm)",
                         background: "var(--card-bg-strong)",
                         border: "1px solid var(--card-border-soft)",
                         fontSize: 11,
@@ -1838,7 +1838,7 @@ function SkillsTab({
           disabled={extracting}
           style={{
             padding: "9px 16px",
-            borderRadius: 10,
+            borderRadius: "var(--radius-md)",
             border: "none",
             background: "var(--accent)",
             color: "#fff",
@@ -2003,7 +2003,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 24, fontWeight: 950, color: "var(--accent)" }}>{instincts.totalXp}</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--accent)" }}>{instincts.totalXp}</div>
           <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Total XP</div>
         </div>
         <div
@@ -2015,7 +2015,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
           <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Sessions</div>
         </div>
         <div
@@ -2053,7 +2053,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
               <div style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)" }}>
                 {INSTINCT_LABELS[d]}
               </div>
-              <div style={{ fontSize: 20, fontWeight: 950, color: INSTINCT_COLORS[d], marginTop: 4 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: INSTINCT_COLORS[d], marginTop: 4 }}>
                 {Math.round(dims[d] * 100)}
               </div>
             </div>
@@ -2103,7 +2103,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
           style={{
             width: 38,
             height: 38,
-            borderRadius: 10,
+            borderRadius: "var(--radius-md)",
             background: "#10B98118",
             border: "1px solid #10B98135",
             display: "flex",
@@ -2291,7 +2291,7 @@ function NaceTab({ data }: { data: ProfilePayload }) {
             <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--text-muted)", marginBottom: 6 }}>
               Signal Score
             </div>
-            <div style={{ fontSize: 40, fontWeight: 950, color: signalColor, lineHeight: 1 }}>
+            <div style={{ fontSize: 40, fontWeight: 800, color: signalColor, lineHeight: 1 }}>
               {data.signalScore}
             </div>
           </div>
@@ -2318,7 +2318,7 @@ function NaceTab({ data }: { data: ProfilePayload }) {
             disabled={exporting}
             style={{
               padding: "8px 16px",
-              borderRadius: 10,
+              borderRadius: "var(--radius-md)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
               color: "var(--text-primary)",
@@ -2421,7 +2421,7 @@ export default function MyJourneyPage() {
             <div
               style={{
                 padding: "14px 18px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 background: "rgba(239,68,68,0.08)",
                 border: "1px solid rgba(239,68,68,0.3)",
                 color: "#EF4444",

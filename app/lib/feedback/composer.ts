@@ -98,11 +98,11 @@ function extractSignals(args: ComposeArgs) {
   const weCount = (transcript.match(/\bwe\b/g) || []).length;
 
   return {
-    overall: num(normalized.score) ?? 6.5,
-    communication: num(normalized.communication_score) ?? 6.5,
-    confidence: num(normalized.confidence_score) ?? 6.5,
-    directness: num(relevance.directness_score) ?? 6.8,
-    completeness: num(relevance.completeness_score) ?? 6.8,
+    overall: num(normalized.score) ?? 5.5,
+    communication: num(normalized.communication_score) ?? 5.5,
+    confidence: num(normalized.confidence_score) ?? 5.5,
+    directness: num(relevance.directness_score) ?? 6.0,
+    completeness: num(relevance.completeness_score) ?? 6.0,
     answeredQuestion: relevance.answered_question !== false,
     wpm: num(delivery.wpm) ?? num(normalized.wpm),
     fillersPer100: num(args.fillerStats?.fillersPer100Words) ?? 0,
@@ -214,33 +214,33 @@ function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeA
   const structureSignal = args.framework === "technical_explanation" && s.techStructure !== null
     ? s.techStructure
     : s.communication;
-  if (structureSignal >= 7.8) structure = "strong";
-  else if (structureSignal <= 6.2) structure = "weak";
+  if (structureSignal >= 7.2) structure = "strong";
+  else if (structureSignal <= 5.8) structure = "weak";
 
   let directness: "direct" | "delayed" | "wandering" = "direct";
-  if (s.directness <= 6.0) directness = "wandering";
-  else if (s.directness <= 6.7) directness = "delayed";
+  if (s.directness <= 5.5) directness = "wandering";
+  else if (s.directness <= 6.5) directness = "delayed";
 
   let completeness: "complete" | "partial" = "complete";
-  if (!s.answeredQuestion || s.completeness <= 6.3) completeness = "partial";
+  if (!s.answeredQuestion || s.completeness <= 6.0) completeness = "partial";
 
   let ownership: "strong" | "moderate" | "soft" = "moderate";
-  if (s.iCount >= s.weCount * 1.5) ownership = "strong";
-  else if (s.weCount > s.iCount * 1.3 || s.confidence <= 6.2) ownership = "soft";
+  if (s.iCount >= s.weCount * 1.3) ownership = "strong";
+  else if (s.weCount > s.iCount * 1.3 || s.confidence <= 5.8) ownership = "soft";
 
   let outcomeStrength: "strong" | "moderate" | "weak" = "moderate";
   const outcomeSignal = args.framework === "star" ? s.starResult : args.framework === "technical_explanation" ? s.techPracticalReasoning : s.expImpact;
-  if ((outcomeSignal ?? 6.5) >= 7.8) outcomeStrength = "strong";
-  else if ((outcomeSignal ?? 6.5) <= 6.2) outcomeStrength = "weak";
+  if ((outcomeSignal ?? 5.5) >= 7.2) outcomeStrength = "strong";
+  else if ((outcomeSignal ?? 5.5) <= 5.8) outcomeStrength = "weak";
 
   // Specificity - expExampleQuality sharpens this for experience answers
   let specificity: "specific" | "mixed" | "generalized" = "mixed";
   const hasMetrics = /\b\d+%|\b\d+\b|\$|\bpercent\b|\bmetric\b|\bkpi\b/.test(s.transcript);
   const specificityScore = args.framework === "experience_depth" && s.expExampleQuality !== null
-    ? (s.expSpecificity ?? 6.5) * 0.5 + s.expExampleQuality * 0.5
-    : s.expSpecificity ?? 6.5;
-  if (hasMetrics || specificityScore >= 7.4) specificity = "specific";
-  else if (specificityScore <= 6.2 && !hasMetrics) specificity = "generalized";
+    ? (s.expSpecificity ?? 5.5) * 0.5 + s.expExampleQuality * 0.5
+    : s.expSpecificity ?? 5.5;
+  if (hasMetrics || specificityScore >= 7.0) specificity = "specific";
+  else if (specificityScore <= 5.8 && !hasMetrics) specificity = "generalized";
 
   let evidenceMode: "metrics_forward" | "example_forward" | "process_forward" | "generalized" = "generalized";
   if (hasMetrics) evidenceMode = "metrics_forward";
@@ -261,8 +261,8 @@ function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeA
   } else {
     depthSignal = s.communication;
   }
-  if ((depthSignal ?? 6.5) >= 7.6) depthMode = "deep";
-  else if ((depthSignal ?? 6.5) <= 6.1) depthMode = "thin";
+  if ((depthSignal ?? 5.5) >= 7.2) depthMode = "deep";
+  else if ((depthSignal ?? 5.5) <= 5.5) depthMode = "thin";
 
   return { structure, directness, completeness, ownership, outcomeStrength, specificity, evidenceMode, depthMode };
 }

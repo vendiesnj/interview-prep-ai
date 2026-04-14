@@ -68,14 +68,14 @@ export default function LoginPage() {
         <div style={{ padding: 6 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
             <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💬</div>
-            <span style={{ fontSize: 17, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.3 }}>Signal</span>
+            <span style={{ fontSize: 17, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>Signal</span>
           </div>
 
           <h1
             style={{
               margin: "0 0 6px",
               fontSize: 22,
-              fontWeight: 950,
+              fontWeight: 800,
               letterSpacing: -0.2,
               color: "var(--text-primary)",
             }}
@@ -228,7 +228,7 @@ export default function LoginPage() {
                   ? "var(--card-bg-strong)"
                   : "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
                 color: "var(--text-primary)",
-                fontWeight: 950,
+                fontWeight: 800,
                 cursor: loading ? "not-allowed" : "pointer",
                 boxShadow: loading ? "none" : "var(--shadow-glow)",
               }}

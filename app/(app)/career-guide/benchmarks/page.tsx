@@ -63,7 +63,7 @@ function BarRow({
         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
           {label}
         </span>
-        <span style={{ fontSize: 13, fontWeight: 950, color }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color }}>
           {p}%{suffix && ` · ${suffix}`}
         </span>
       </div>
@@ -115,7 +115,7 @@ function StatCard({
       >
         {label}
       </div>
-      <div style={{ fontSize: 32, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>
+      <div style={{ fontSize: 32, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>
         {value}
       </div>
       {sub && (
@@ -243,7 +243,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
 
         {/* Header */}
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ fontSize: 28, fontWeight: 950, letterSpacing: -0.5, color: "var(--text-primary)", margin: "0 0 8px" }}>
+          <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: -0.5, color: "var(--text-primary)", margin: "0 0 8px" }}>
             Career Outcomes: Your Cohort
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7 }}>
@@ -264,7 +264,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
               marginBottom: 28,
             }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
-              <div style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>
                 Not enough data yet
               </div>
               <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, maxWidth: 520, margin: "0 auto 28px" }}>
@@ -280,7 +280,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
                   background: "var(--accent)",
                   color: "#fff",
                   textDecoration: "none",
-                  fontWeight: 950,
+                  fontWeight: 800,
                   fontSize: 15,
                 }}
               >
@@ -312,7 +312,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
                   }}
                 >
                   <div style={{ fontSize: 24, marginBottom: 8 }}>{icon}</div>
-                  <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 4 }}>{label}</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{desc}</div>
                 </div>
               ))}
@@ -344,7 +344,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
 
             {/* Employment status breakdown */}
             <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-              <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 18 }}>Employment status</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 18 }}>Employment status</div>
               {Object.entries(statusCounts)
                 .sort((a, b) => b[1] - a[1])
                 .map(([status, count]) => (
@@ -362,7 +362,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
             {/* Salary distribution */}
             {salaryRows.length > 0 && (
               <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 18 }}>Salary distribution</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 18 }}>Salary distribution</div>
                 {salaryRows.map((key) => (
                   <BarRow
                     key={key}
@@ -379,7 +379,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
             {/* Top industries */}
             {topIndustries.length > 0 && (
               <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 18 }}>Top industries</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 18 }}>Top industries</div>
                 {topIndustries.map(([industry, count]) => (
                   <BarRow
                     key={industry}
@@ -394,7 +394,7 @@ export default async function BenchmarksPage({ searchParams }: { searchParams?: 
             )}
 
             {/* Privacy note */}
-            <div style={{ padding: "14px 18px", borderRadius: 12, background: "var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
+            <div style={{ padding: "14px 18px", borderRadius: "var(--radius-lg)", background: "var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
               All data is anonymized and aggregated. Individual responses are never shown. Minimum 3 responses are required before any data is displayed.
             </div>
           </div>

@@ -77,12 +77,12 @@ export default function OnboardingPage() {
     >
       {/* Brand mark */}
       <div style={{ marginBottom: 36, display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💬</div>
-        <span style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>Signal</span>
+        <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💬</div>
+        <span style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>Signal</span>
       </div>
 
       <div style={{ maxWidth: 600, width: "100%", textAlign: "center", marginBottom: 36 }}>
-        <h1 style={{ margin: "0 0 12px", fontSize: 32, fontWeight: 950, color: "var(--text-primary, #fff)", letterSpacing: -0.7, lineHeight: 1.2 }}>
+        <h1 style={{ margin: "0 0 12px", fontSize: 32, fontWeight: 800, color: "var(--text-primary, #fff)", letterSpacing: -0.7, lineHeight: 1.2 }}>
           Welcome, {firstName} 👋
         </h1>
         <p style={{ margin: 0, fontSize: 16, color: "var(--text-muted, rgba(255,255,255,0.5))", lineHeight: 1.7 }}>
@@ -114,11 +114,11 @@ export default function OnboardingPage() {
               <div style={{ fontSize: 32, flexShrink: 0, marginTop: 2 }}>{stage.icon}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                  <span style={{ fontSize: 17, fontWeight: 950, color: active ? stage.color : "var(--text-primary, #fff)" }}>
+                  <span style={{ fontSize: 17, fontWeight: 800, color: active ? stage.color : "var(--text-primary, #fff)" }}>
                     {stage.label}
                   </span>
                   {active && (
-                    <span style={{ fontSize: 11, fontWeight: 900, color: stage.color, background: stage.color + "20", padding: "2px 8px", borderRadius: 6, letterSpacing: 0.4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 900, color: stage.color, background: stage.color + "20", padding: "2px 8px", borderRadius: "var(--radius-xs)", letterSpacing: 0.4 }}>
                       Selected
                     </span>
                   )}
@@ -130,7 +130,7 @@ export default function OnboardingPage() {
                   {stage.examples.map((ex) => (
                     <span
                       key={ex}
-                      style={{ fontSize: 11, fontWeight: 800, color: active ? stage.color : "rgba(255,255,255,0.3)", background: active ? stage.color + "15" : "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: 6 }}
+                      style={{ fontSize: 11, fontWeight: 800, color: active ? stage.color : "rgba(255,255,255,0.3)", background: active ? stage.color + "15" : "rgba(255,255,255,0.05)", padding: "3px 10px", borderRadius: "var(--radius-xs)" }}
                     >
                       {ex}
                     </span>
@@ -154,7 +154,7 @@ export default function OnboardingPage() {
             border: "none",
             background: selected ? "linear-gradient(135deg, #2563EB, #0EA5E9)" : "rgba(255,255,255,0.05)",
             color: selected ? "#fff" : "rgba(255,255,255,0.25)",
-            fontWeight: 950,
+            fontWeight: 800,
             fontSize: 16,
             cursor: selected && !saving ? "pointer" : "not-allowed",
             boxShadow: selected ? "0 4px 24px rgba(37,99,235,0.35)" : "none",

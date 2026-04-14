@@ -51,7 +51,7 @@ export default function UpgradeModal({
             <div
               style={{
                 fontSize: 18,
-                fontWeight: 950,
+                fontWeight: 800,
                 color: "var(--text-primary)",
               }}
             >
@@ -134,7 +134,7 @@ export default function UpgradeModal({
               border: "1px solid var(--accent-strong)",
               background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
               color: "var(--text-primary)",
-              fontWeight: 950,
+              fontWeight: 800,
               cursor: "pointer",
               boxShadow: "var(--shadow-glow)",
             }}

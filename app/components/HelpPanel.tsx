@@ -280,7 +280,7 @@ function AccordionItem({ item }: { item: HelpItem }) {
   return (
     <div
       style={{
-        borderRadius: 10,
+        borderRadius: "var(--radius-md)",
         border: "1px solid var(--card-border-soft)",
         background: open ? "var(--card-bg)" : "transparent",
         marginBottom: 6,
@@ -424,7 +424,7 @@ export default function HelpPanel({ open, onClose, isUniversity = false }: HelpP
             >
               Help &amp; Guide
             </div>
-            <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginTop: 2 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginTop: 2 }}>
               {isUniversity ? "Everything in Signal" : "How Signal works"}
             </div>
           </div>
@@ -434,7 +434,7 @@ export default function HelpPanel({ open, onClose, isUniversity = false }: HelpP
             style={{
               width: 32,
               height: 32,
-              borderRadius: 8,
+              borderRadius: "var(--radius-sm)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
               color: "var(--text-muted)",

@@ -49,7 +49,7 @@ export default function DangerZoneDeleteAccount() {
     <div
       style={{
         padding: 16,
-        borderRadius: 16,
+        borderRadius: "var(--radius-xl)",
         border: "1px solid rgba(252,165,165,0.25)",
         background: "rgba(252,165,165,0.06)",
       }}
@@ -72,7 +72,7 @@ export default function DangerZoneDeleteAccount() {
           }}
           style={{
             padding: "10px 14px",
-            borderRadius: 12,
+            borderRadius: "var(--radius-lg)",
             border: "1px solid rgba(252,165,165,0.40)",
             background: "rgba(252,165,165,0.10)",
             color: "#FCA5A5",
@@ -110,7 +110,7 @@ export default function DangerZoneDeleteAccount() {
               marginTop: 10,
               width: "100%",
               padding: "10px 12px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-lg)",
               border: "1px solid rgba(255,255,255,0.12)",
               background: "rgba(17,24,39,0.55)",
               color: "var(--text-primary)",
@@ -132,7 +132,7 @@ export default function DangerZoneDeleteAccount() {
               disabled={loading}
               style={{
                 padding: "10px 12px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid rgba(255,255,255,0.12)",
                 background: "rgba(255,255,255,0.04)",
                 color: "var(--text-primary)",
@@ -151,7 +151,7 @@ export default function DangerZoneDeleteAccount() {
               style={{
                 marginLeft: "auto",
                 padding: "10px 12px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid rgba(252,165,165,0.45)",
                 background: "rgba(252,165,165,0.12)",
                 color: "#FCA5A5",

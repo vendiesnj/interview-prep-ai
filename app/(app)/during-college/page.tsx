@@ -113,7 +113,7 @@ export default function DuringCollegePage() {
       <div style={{ maxWidth: 1120, margin: "0 auto", paddingBottom: 80 }}>
 
         <div style={{ marginBottom: 36 }}>
-          <h1 style={{ margin: "0 0 10px", fontSize: 32, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.7, lineHeight: 1.2 }}>
+          <h1 style={{ margin: "0 0 10px", fontSize: 32, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.7, lineHeight: 1.2 }}>
             Build skills that land opportunities.
           </h1>
           <p style={{ margin: 0, fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 600 }}>
@@ -132,18 +132,18 @@ export default function DuringCollegePage() {
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "#2563EB", textTransform: "uppercase", marginBottom: 16 }}>Practice & Tools</div>
               <div style={{ display: "grid", gap: 12 }}>
                 {TODOS.map((todo) => (
-                  <div key={todo.id} style={{ padding: "18px 20px", borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div key={todo.id} style={{ padding: "18px 20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", display: "flex", gap: 16, alignItems: "center" }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "var(--radius-lg)", background: todo.color + "18", border: `1px solid ${todo.color}40`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <todo.Icon size={22} color={todo.color} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-                        <span style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>{todo.label}</span>
+                        <span style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{todo.label}</span>
                         <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>{todo.time}</span>
                       </div>
                       <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55 }}>{todo.desc}</p>
                     </div>
-                    <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: 10, background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
+                    <Link href={todo.href} style={{ flexShrink: 0, padding: "9px 18px", borderRadius: "var(--radius-md)", background: todo.color, color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none" }}>Start →</Link>
                   </div>
                 ))}
               </div>

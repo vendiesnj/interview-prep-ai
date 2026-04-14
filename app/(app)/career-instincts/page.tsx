@@ -231,7 +231,7 @@ export default function CareerInstinctsPage() {
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "24px 16px", background: "var(--page-bg)" }}>
         <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
           <div style={{ fontSize: 56, marginBottom: 16, lineHeight: 1 }}>🎯</div>
-          <h1 style={{ fontSize: 32, fontWeight: 950, color: "var(--text-primary)", margin: "0 0 12px", letterSpacing: -1 }}>
+          <h1 style={{ fontSize: 32, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 12px", letterSpacing: -1 }}>
             Career Instincts
           </h1>
           <p style={{ fontSize: 16, color: "var(--text-muted)", margin: "0 0 8px", lineHeight: 1.6 }}>
@@ -246,7 +246,7 @@ export default function CareerInstinctsPage() {
             {(Object.keys(DIMENSION_LABELS) as Dimension[]).map((dim) => (
               <div key={dim} style={{
                 background: "var(--card-bg)", border: "1px solid var(--card-border-soft)",
-                borderRadius: 12, padding: "12px 10px", textAlign: "center",
+                borderRadius: "var(--radius-lg)", padding: "12px 10px", textAlign: "center",
               }}>
                 <div style={{ fontSize: 20, marginBottom: 4 }}>{DIMENSION_ICONS[dim]}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>
@@ -290,14 +290,14 @@ export default function CareerInstinctsPage() {
           <button onClick={() => setPhase("intro")} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 14, fontWeight: 700, marginBottom: 24, padding: 0 }}>
             ← Back
           </button>
-          <h2 style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)", margin: "0 0 24px", letterSpacing: -0.5 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 24px", letterSpacing: -0.5 }}>
             Your Session History
           </h2>
 
           {loadingSessions ? (
             <div style={{ color: "var(--text-muted)", textAlign: "center", padding: 40 }}>Loading...</div>
           ) : pastSessions.length === 0 ? (
-            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
+            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: "var(--radius-xl)", padding: 40, textAlign: "center", color: "var(--text-muted)" }}>
               No sessions yet. Play your first round!
             </div>
           ) : (
@@ -306,7 +306,7 @@ export default function CareerInstinctsPage() {
                 const dims = s.dimensions as Record<Dimension, number>;
                 const top = getTopDimensions(dims, 2);
                 return (
-                  <div key={s.id} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: 20 }}>
+                  <div key={s.id} style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: "var(--radius-xl)", padding: 20 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                       <div>
                         <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 700 }}>Session {pastSessions.length - i}</div>
@@ -333,7 +333,7 @@ export default function CareerInstinctsPage() {
 
           <button
             onClick={startGame}
-            style={{ width: "100%", marginTop: 24, padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 15, fontWeight: 900 }}
+            style={{ width: "100%", marginTop: 24, padding: "14px 0", borderRadius: "var(--radius-lg)", border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 15, fontWeight: 900 }}
           >
             Play Again →
           </button>
@@ -355,7 +355,7 @@ export default function CareerInstinctsPage() {
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
             <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
-            <h2 style={{ fontSize: 28, fontWeight: 950, color: "var(--text-primary)", margin: "0 0 8px", letterSpacing: -0.8 }}>
+            <h2 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 8px", letterSpacing: -0.8 }}>
               Your Instinct Profile
             </h2>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "var(--accent-soft)", borderRadius: 99, padding: "6px 18px" }}>
@@ -370,7 +370,7 @@ export default function CareerInstinctsPage() {
               <div key={d} style={{
                 background: DIMENSION_COLORS[d] + "12",
                 border: `1px solid ${DIMENSION_COLORS[d]}35`,
-                borderRadius: 16, padding: "18px 16px",
+                borderRadius: "var(--radius-xl)", padding: "18px 16px",
               }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>{DIMENSION_ICONS[d]}</div>
                 <div style={{ fontSize: 11, fontWeight: 900, color: DIMENSION_COLORS[d], letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 4 }}>
@@ -387,7 +387,7 @@ export default function CareerInstinctsPage() {
           </div>
 
           {/* Growth area */}
-          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: "16px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: "var(--radius-xl)", padding: "16px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ fontSize: 28 }}>🌱</div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 2 }}>Growth Opportunity</div>
@@ -397,7 +397,7 @@ export default function CareerInstinctsPage() {
           </div>
 
           {/* All dimension bars */}
-          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: 16, padding: "20px 22px", marginBottom: 24 }}>
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 16 }}>All Dimensions</div>
             {(Object.keys(dims) as Dimension[])
               .sort((a, b) => dims[b] - dims[a])
@@ -410,13 +410,13 @@ export default function CareerInstinctsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <button
               onClick={startGame}
-              style={{ padding: "14px 0", borderRadius: 12, border: "1px solid var(--card-border-soft)", cursor: "pointer", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 14, fontWeight: 900 }}
+              style={{ padding: "14px 0", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", cursor: "pointer", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 14, fontWeight: 900 }}
             >
               Play Again
             </button>
             <button
               onClick={loadHistory}
-              style={{ padding: "14px 0", borderRadius: 12, border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 14, fontWeight: 900 }}
+              style={{ padding: "14px 0", borderRadius: "var(--radius-lg)", border: "none", cursor: "pointer", background: "var(--accent)", color: "#fff", fontSize: 14, fontWeight: 900 }}
             >
               View History
             </button>
@@ -500,7 +500,7 @@ export default function CareerInstinctsPage() {
                 onClick={() => handleChoiceSelect(idx)}
                 style={{
                   padding: "18px 16px",
-                  borderRadius: 16,
+                  borderRadius: "var(--radius-xl)",
                   border: "1.5px solid var(--card-border-soft)",
                   background: "var(--card-bg)",
                   cursor: "pointer",
@@ -542,7 +542,7 @@ export default function CareerInstinctsPage() {
                   key={idx}
                   style={{
                     padding: "18px 16px",
-                    borderRadius: 16,
+                    borderRadius: "var(--radius-xl)",
                     border: idx === selectedChoice ? `2px solid var(--accent)` : "1.5px solid var(--card-border-soft)",
                     background: idx === selectedChoice ? "var(--accent-soft)" : "var(--card-bg-strong)",
                     fontSize: 14,

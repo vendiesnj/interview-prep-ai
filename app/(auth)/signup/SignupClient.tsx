@@ -59,8 +59,8 @@ export default function SignupClient() {
         {/* Brand */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💬</div>
-            <span style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>Signal</span>
+            <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "linear-gradient(135deg, var(--accent, #2563EB), #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>💬</div>
+            <span style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>Signal</span>
           </Link>
           <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--text-muted, rgba(255,255,255,0.45))" }}>
             Communication & career platform
@@ -69,7 +69,7 @@ export default function SignupClient() {
 
         {/* Card */}
         <div style={{ borderRadius: 20, border: "1px solid var(--card-border, rgba(255,255,255,0.08))", background: "var(--card-bg, rgba(255,255,255,0.03))", backdropFilter: "blur(20px)", padding: "32px 28px" }}>
-          <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 950, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>
+          <h1 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 800, color: "var(--text-primary, #fff)", letterSpacing: -0.3 }}>
             Create your account
           </h1>
           <p style={{ margin: "0 0 24px", fontSize: 13, color: "var(--text-muted, rgba(255,255,255,0.45))", lineHeight: 1.6 }}>
@@ -89,12 +89,12 @@ export default function SignupClient() {
                 value={value}
                 onChange={(e) => setter(e.target.value)}
                 required
-                style={{ width: "100%", padding: "13px 14px", borderRadius: 12, border: "1px solid var(--input-border, rgba(255,255,255,0.1))", background: "var(--input-bg, rgba(255,255,255,0.05))", color: "var(--text-primary, #fff)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+                style={{ width: "100%", padding: "13px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--input-border, rgba(255,255,255,0.1))", background: "var(--input-bg, rgba(255,255,255,0.05))", color: "var(--text-primary, #fff)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
               />
             ))}
 
             {error && (
-              <div style={{ fontSize: 13, color: "#EF4444", fontWeight: 800, padding: "10px 14px", background: "rgba(239,68,68,0.08)", borderRadius: 10, border: "1px solid rgba(239,68,68,0.2)" }}>
+              <div style={{ fontSize: 13, color: "#EF4444", fontWeight: 800, padding: "10px 14px", background: "rgba(239,68,68,0.08)", borderRadius: "var(--radius-md)", border: "1px solid rgba(239,68,68,0.2)" }}>
                 {error}
               </div>
             )}
@@ -102,7 +102,7 @@ export default function SignupClient() {
             <button
               type="submit"
               disabled={loading}
-              style={{ padding: "13px", borderRadius: 12, border: "none", background: loading ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #2563EB, #0EA5E9)", color: "#fff", fontWeight: 950, fontSize: 15, cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : "0 4px 20px rgba(37,99,235,0.35)", marginTop: 4 }}
+              style={{ padding: "13px", borderRadius: "var(--radius-lg)", border: "none", background: loading ? "var(--card-bg-strong)" : "linear-gradient(135deg, var(--accent, #2563EB), #0EA5E9)", color: "#fff", fontWeight: 800, fontSize: 15, cursor: loading ? "not-allowed" : "pointer", boxShadow: loading ? "none" : "0 4px 20px rgba(37,99,235,0.35)", marginTop: 4 }}
             >
               {loading ? "Creating your account…" : "Create account →"}
             </button>

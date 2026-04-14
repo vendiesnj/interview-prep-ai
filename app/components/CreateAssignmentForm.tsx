@@ -142,7 +142,7 @@ export default function CreateAssignmentForm() {
               style={{
                 width: "100%",
                 padding: "10px 12px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid var(--input-border)",
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
@@ -176,7 +176,7 @@ export default function CreateAssignmentForm() {
               style={{
                 width: "100%",
                 padding: "10px 12px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid var(--input-border)",
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
@@ -209,7 +209,7 @@ export default function CreateAssignmentForm() {
               onChange={(e) => setDueDate(e.target.value)}
               style={{
                 padding: "10px 12px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid var(--input-border)",
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
@@ -244,7 +244,7 @@ export default function CreateAssignmentForm() {
                       alignItems: "center",
                       gap: 6,
                       padding: "8px 12px",
-                      borderRadius: 10,
+                      borderRadius: "var(--radius-md)",
                       border: checked
                         ? "1px solid var(--accent-strong)"
                         : "1px solid var(--card-border-soft)",
@@ -293,7 +293,7 @@ export default function CreateAssignmentForm() {
               style={{
                 width: 80,
                 padding: "10px 12px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid var(--input-border)",
                 background: "var(--input-bg)",
                 color: "var(--text-primary)",
@@ -307,7 +307,7 @@ export default function CreateAssignmentForm() {
             <div
               style={{
                 padding: "10px 14px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 background: "var(--danger-soft, var(--accent-soft))",
                 color: "var(--danger, var(--accent))",
                 fontSize: 12,
@@ -324,7 +324,7 @@ export default function CreateAssignmentForm() {
               disabled={loading}
               style={{
                 padding: "11px 22px",
-                borderRadius: 12,
+                borderRadius: "var(--radius-lg)",
                 border: "1px solid var(--accent-strong)",
                 background: "var(--accent-soft)",
                 color: "var(--accent)",

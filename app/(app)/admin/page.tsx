@@ -422,7 +422,7 @@ function KpiCard({
         style={{
           marginTop: 10,
           fontSize: 30,
-          fontWeight: 950,
+          fontWeight: 800,
           letterSpacing: -0.5,
           color: "var(--text-primary)",
           lineHeight: 1.08,
@@ -485,7 +485,7 @@ function Panel({
         <div
           style={{
             fontSize: 18,
-            fontWeight: 950,
+            fontWeight: 800,
             color: "var(--text-primary)",
             letterSpacing: -0.25,
           }}
@@ -512,7 +512,7 @@ function SmallMetric({
     <div
       style={{
         padding: 14,
-        borderRadius: 16,
+        borderRadius: "var(--radius-xl)",
         border: "1px solid var(--card-border-soft)",
         background: "var(--card-bg)",
       }}
@@ -533,7 +533,7 @@ function SmallMetric({
         style={{
           marginTop: 8,
           fontSize: 24,
-          fontWeight: 950,
+          fontWeight: 800,
           color: "var(--text-primary)",
           letterSpacing: -0.35,
         }}
@@ -1658,7 +1658,7 @@ const activeThisWeek = filteredAttempts.filter(
             display: "flex",
             gap: 3,
             padding: "5px",
-            borderRadius: 16,
+            borderRadius: "var(--radius-xl)",
             border: "1px solid var(--card-border-soft)",
             background: "var(--card-bg)",
             flexWrap: "wrap",
@@ -1831,7 +1831,7 @@ const activeThisWeek = filteredAttempts.filter(
                         {steps.map((step, i) => {
                           const pct = total > 0 ? Math.round((step.count / total) * 100) : 0;
                           return (
-                            <div key={step.label} style={{ padding: "9px 12px", borderRadius: 10, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                            <div key={step.label} style={{ padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
                                 <div>
                                   <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{step.label}</span>
@@ -1876,7 +1876,7 @@ const activeThisWeek = filteredAttempts.filter(
                         const color = score >= 7.5 ? "var(--chart-positive)" : score >= 6 ? "#F59E0B" : "var(--chart-critical)";
                         const tag = score >= 7.5 ? "Strength" : score < 5.5 ? "Gap" : null;
                         return (
-                          <div key={d.key} style={{ padding: "10px 14px", borderRadius: 12, border: `1px solid ${score >= 7.5 ? "rgba(34,197,94,0.18)" : score < 5.5 ? "rgba(239,68,68,0.18)" : "var(--card-border-soft)"}`, background: "var(--card-bg)" }}>
+                          <div key={d.key} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: `1px solid ${score >= 7.5 ? "rgba(34,197,94,0.18)" : score < 5.5 ? "rgba(239,68,68,0.18)" : "var(--card-border-soft)"}`, background: "var(--card-bg)" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{d.label}</span>
@@ -1906,7 +1906,7 @@ const activeThisWeek = filteredAttempts.filter(
                           const maxCount = weaknessRows[0].count;
                           const pct = Math.round((w.count / (totalAttempts || 1)) * 100);
                           return (
-                            <div key={w.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                            <div key={w.label} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{w.label}</span>
                                 <span style={{ fontSize: 12, fontWeight: 700, color: "var(--chart-critical)" }}>{pct}% of sessions</span>
@@ -1926,7 +1926,7 @@ const activeThisWeek = filteredAttempts.filter(
                     ) : (
                       <div style={{ display: "grid", gap: 8 }}>
                         {atRiskStudentRows.slice(0, 4).map((s) => (
-                          <div key={s.id} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(239,68,68,0.15)", background: "var(--card-bg)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div key={s.id} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid rgba(239,68,68,0.15)", background: "var(--card-bg)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                             <div>
                               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{s.name}</div>
                               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{getIntervention(s)}</div>
@@ -1968,7 +1968,7 @@ const activeThisWeek = filteredAttempts.filter(
                           response_control:"Response Control", cognitive_depth:"Cognitive Depth", presence_confidence:"Presence & Confidence", vocal_engagement:"Vocal Engagement",
                         };
                         return (
-                          <div key={r.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                          <div key={r.label} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                               <div style={{ minWidth: 0, flex: 1 }}>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.label}</div>
@@ -1997,7 +1997,7 @@ const activeThisWeek = filteredAttempts.filter(
                   ) : (
                     <div style={{ display: "grid", gap: 8 }}>
                       {questionMix.map((q) => (
-                        <div key={q.label} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div key={q.label} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{q.label}</span>
                             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{q.pct}% · {q.count}</span>
@@ -2007,7 +2007,7 @@ const activeThisWeek = filteredAttempts.filter(
                           </div>
                         </div>
                       ))}
-                      <div style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                      <div style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>Mock Interviews</span>
                           <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{filteredAttempts.filter((a) => a.evaluationFramework === "mock_interview").length} sessions</span>
@@ -2024,7 +2024,7 @@ const activeThisWeek = filteredAttempts.filter(
                   ) : (
                     <div style={{ display: "grid", gap: 8 }}>
                       {topQuestions.map((q, i) => (
-                        <div key={i} style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                        <div key={i} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                           <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5, minWidth: 0 }}>{q.q}</div>
                           <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", flexShrink: 0 }}>{q.count}×</div>
                         </div>
@@ -2059,7 +2059,7 @@ const activeThisWeek = filteredAttempts.filter(
                       const color = positive ? "var(--chart-positive)" : negative ? "var(--chart-critical)" : "var(--text-muted)";
                       const barWidth = Math.min(Math.abs(r.trendDelta) * 3, 100);
                       return (
-                        <div key={r.name} style={{ padding: "12px 16px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 16 }}>
+                        <div key={r.name} style={{ padding: "12px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", display: "flex", alignItems: "center", gap: 16 }}>
                           <div style={{ width: 140, flexShrink: 0 }}>
                             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{r.name}</div>
                             <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{r.attempts} sessions · avg {r.avgScore100 ?? "—"}</div>
@@ -2095,7 +2095,7 @@ const activeThisWeek = filteredAttempts.filter(
                   <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
                     Student Roster
                   </div>
-                  <div style={{ fontSize: 20, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)" }}>
+                  <div style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)" }}>
                     {filteredStudents.length} student{filteredStudents.length !== 1 ? "s" : ""}
                     {activeCohort !== "all" ? ` · ${activeCohort} cohort` : ""}
                   </div>
@@ -2182,7 +2182,7 @@ const activeThisWeek = filteredAttempts.filter(
                         gap: 12,
                         alignItems: "flex-start",
                         padding: "12px 16px",
-                        borderRadius: 12,
+                        borderRadius: "var(--radius-lg)",
                         border: "1px solid var(--card-border-soft)",
                         background: rowIndex % 2 === 0 ? "var(--card-bg)" : "var(--card-bg-strong)",
                         cursor: "pointer",
@@ -2410,7 +2410,7 @@ const activeThisWeek = filteredAttempts.filter(
                       { label: "Avg Days Scheduled Ahead", value: avgAdvance !== null ? `${avgAdvance}d` : "-", sub: "before due date" },
                       { label: "Avg Time on Completion", value: avgEarly !== null ? (avgEarly >= 0 ? `${avgEarly}d early` : `${Math.abs(avgEarly)}d late`) : "-", sub: "vs deadline", color: avgEarly !== null && avgEarly < 0 ? "#EF4444" : avgEarly !== null && avgEarly >= 1 ? "#10B981" : undefined },
                     ].map((kpi) => (
-                      <div key={kpi.label} style={{ padding: "10px 12px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)" }}>
+                      <div key={kpi.label} style={{ padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border-soft)" }}>
                         <div style={{ fontSize: 20, fontWeight: 900, color: kpi.color ?? "var(--text-primary)" }}>{kpi.value}</div>
                         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>{kpi.label}</div>
                         <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{kpi.sub}</div>
@@ -2507,7 +2507,7 @@ const activeThisWeek = filteredAttempts.filter(
                 ].map((kpi) => (
                   <GlowCard key={kpi.label} padding={20} radius={18}>
                     <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>{kpi.label}</div>
-                    <div style={{ fontSize: 28, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>{kpi.value}</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5 }}>{kpi.value}</div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{kpi.sub}</div>
                   </GlowCard>
                 ))}
@@ -2516,7 +2516,7 @@ const activeThisWeek = filteredAttempts.filter(
               {/* Profile completeness heatmap */}
               <GlowCard padding={22} radius={22}>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>Profile Completeness</div>
-                <div style={{ fontSize: 18, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Student-by-Category Heatmap</div>
+                <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Student-by-Category Heatmap</div>
 
                 {/* Header */}
                 <div style={{ display: "grid", gridTemplateColumns: `180px repeat(${COMPLETENESS_COLS.length}, 1fr) 80px`, gap: 4, marginBottom: 6 }}>
@@ -2561,7 +2561,7 @@ const activeThisWeek = filteredAttempts.filter(
               {atRisk.length > 0 && (
                 <GlowCard padding={22} radius={22}>
                   <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "#EF4444", textTransform: "uppercase", marginBottom: 4 }}>Needs Outreach</div>
-                  <div style={{ fontSize: 18, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>At-Risk Students ({atRisk.length})</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>At-Risk Students ({atRisk.length})</div>
                   <div style={{ display: "grid", gap: 8 }}>
                     {atRisk.map((s) => {
                       const reasons: string[] = [];
@@ -2569,7 +2569,7 @@ const activeThisWeek = filteredAttempts.filter(
                       if (s.daysSinceActive !== null && s.daysSinceActive > 30) reasons.push(`inactive ${s.daysSinceActive}d`);
                       if (s.attempts < 5) reasons.push(`only ${s.attempts} session${s.attempts !== 1 ? "s" : ""}`);
                       return (
-                        <div key={s.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 14px", borderRadius: 12, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.04)" }}>
+                        <div key={s.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 14px", borderRadius: "var(--radius-lg)", border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.04)" }}>
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)" }}>{s.name}</div>
                             <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{s.email}</div>
@@ -2636,7 +2636,7 @@ const activeThisWeek = filteredAttempts.filter(
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     <GlowCard padding={20} radius={18}>
                       <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Networking</div>
-                      <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>
                         {networkingStudents.length} student{networkingStudents.length !== 1 ? "s" : ""} practiced · {attempts.filter((a) => a.evaluationFramework === "networking_pitch").length} total pitches
                       </div>
                       <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Pitch Style Distribution</div>
@@ -2660,7 +2660,7 @@ const activeThisWeek = filteredAttempts.filter(
                     </GlowCard>
                     <GlowCard padding={20} radius={18}>
                       <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 4 }}>Public Speaking</div>
-                      <div style={{ fontSize: 16, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>
                         {psStudents.length} student{psStudents.length !== 1 ? "s" : ""} practiced · {attempts.filter((a) => a.evaluationFramework === "public_speaking").length} total sessions
                       </div>
                       <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 8 }}>Delivery Archetype Distribution</div>
@@ -2689,7 +2689,7 @@ const activeThisWeek = filteredAttempts.filter(
               {topCohortSkills.length > 0 && (
                 <GlowCard padding={22} radius={22}>
                   <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 4 }}>AI-Extracted</div>
-                  <div style={{ fontSize: 18, fontWeight: 950, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Cohort Skills Inventory</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: -0.3, color: "var(--text-primary)", marginBottom: 16 }}>Cohort Skills Inventory</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                     {topCohortSkills.map(({ skill, count, category }) => {
                       const catColors: Record<string, string> = {
@@ -2728,7 +2728,7 @@ const activeThisWeek = filteredAttempts.filter(
                 <div key={label} style={{ padding: "16px 18px", borderRadius: 14, border: `1px solid ${color}25`, background: `${color}08` }}>
                   <div style={{ fontSize: 18, marginBottom: 4 }}>{icon}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>{label}</div>
-                  <div style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{count}</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{count}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{desc}</div>
                 </div>
               ))}
@@ -2860,7 +2860,7 @@ const activeThisWeek = filteredAttempts.filter(
                   return (
                     <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <div style={{
-                        width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+                        width: 36, height: 36, borderRadius: "var(--radius-sm)", flexShrink: 0,
                         background: score !== null ? color + "18" : "var(--card-bg-strong)",
                         border: `1px solid ${score !== null ? color + "40" : "var(--card-border)"}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
@@ -3037,7 +3037,7 @@ const activeThisWeek = filteredAttempts.filter(
                     </div>
                     <div style={{ display: "grid", gap: 6 }}>
                       {scoreBands.map((band) => (
-                        <div key={band.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                        <div key={band.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <div style={{ width: 8, height: 8, borderRadius: 999, background: band.color, flexShrink: 0 }} />
                             <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{band.label}</div>
@@ -3122,7 +3122,7 @@ const activeThisWeek = filteredAttempts.filter(
                 {filteredStudents.map((s) => {
                   const scoreColor = s.avgScore100 !== null ? (s.avgScore100 >= 70 ? "var(--chart-positive)" : s.avgScore100 >= 50 ? "#F59E0B" : "var(--chart-critical)") : "var(--text-muted)";
                   return (
-                    <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px 80px", gap: 10, padding: "10px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", alignItems: "center" }}>
+                    <div key={s.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px 80px", gap: 10, padding: "10px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", alignItems: "center" }}>
                       <div>
                         <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{s.name}</div>
                         {s.major && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>{s.major}</div>}
@@ -3318,7 +3318,7 @@ const activeThisWeek = filteredAttempts.filter(
                       { label: "Avg satisfaction", value: avgSatisfaction ? `${avgSatisfaction}/5` : "-", sub: "career satisfaction", color: "#8B5CF6" },
                     ].map((stat) => (
                       <div key={stat.label} style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" }}>
-                        <div style={{ fontSize: 26, fontWeight: 950, color: stat.color }}>{stat.value}</div>
+                        <div style={{ fontSize: 26, fontWeight: 800, color: stat.color }}>{stat.value}</div>
                         <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 4 }}>{stat.label}</div>
                         <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{stat.sub}</div>
                       </div>
@@ -3328,7 +3328,7 @@ const activeThisWeek = filteredAttempts.filter(
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
                     {/* Employment status breakdown */}
                     <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Employment status</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>Employment status</div>
                       {(["employed", "employed_part", "job_searching", "graduate_school", "freelance", "other"] as const).map((status) => {
                         const count = uniqueCheckIns.filter((c) => c.employmentStatus === status).length;
                         if (count === 0) return null;
@@ -3350,7 +3350,7 @@ const activeThisWeek = filteredAttempts.filter(
 
                     {/* Salary distribution */}
                     <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                      <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 12 }}>Salary distribution</div>
+                      <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>Salary distribution</div>
                       {salaryBands.length === 0 ? (
                         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>No salary data yet.</div>
                       ) : salaryBands.map(([band, count]) => {
@@ -3374,7 +3374,7 @@ const activeThisWeek = filteredAttempts.filter(
                     {/* Top industries */}
                     {topIndustries.length > 0 && (
                       <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                        <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>Top industries</div>
                         <div style={{ display: "grid", gap: 8 }}>
                           {topIndustries.map(([industry, count]) => {
                             const pct = Math.round((count / checkInCount) * 100);
@@ -3396,7 +3396,7 @@ const activeThisWeek = filteredAttempts.filter(
                     {/* Top employers */}
                     {topEmployers.length > 0 && (
                       <div style={{ padding: 16, borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                        <div style={{ fontSize: 12, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>Top employers</div>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>Top employers</div>
                         <div style={{ display: "grid", gap: 6 }}>
                           {topEmployers.map(([company, count]) => (
                             <div key={company} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13 }}>

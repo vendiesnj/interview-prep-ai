@@ -119,7 +119,7 @@ function TrackStep({
       {/* Content */}
       <div style={{
         flex: 1, paddingBottom: isLast ? 0 : 24,
-        padding: "14px 18px", borderRadius: 16,
+        padding: "14px 18px", borderRadius: "var(--radius-xl)",
         border: `1px solid ${isDone ? item.color + "40" : "var(--card-border)"}`,
         background: isDone ? item.color + "08" : "var(--card-bg)",
         marginBottom: isLast ? 0 : 8,
@@ -128,7 +128,7 @@ function TrackStep({
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 14, fontWeight: 950, color: isDone ? item.color : "var(--text-primary)" }}>
+              <span style={{ fontSize: 14, fontWeight: 800, color: isDone ? item.color : "var(--text-primary)" }}>
                 {item.label}
               </span>
               {isDone && (
@@ -156,7 +156,7 @@ function TrackStep({
               <Link
                 href={item.href}
                 style={{
-                  padding: "8px 16px", borderRadius: 10,
+                  padding: "8px 16px", borderRadius: "var(--radius-md)",
                   background: isDone ? "transparent" : item.color,
                   border: isDone ? `1px solid ${item.color}` : "none",
                   color: isDone ? item.color : "#fff",
@@ -291,7 +291,7 @@ export default function DashboardPage() {
 
         {/* ── Greeting + progress ── */}
         <div style={{ marginBottom: 32 }}>
-          <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.5 }}>
+          <h1 style={{ margin: "0 0 6px", fontSize: 26, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5 }}>
             Good morning, {firstName} 👋
           </h1>
           <p style={{ margin: "0 0 16px", fontSize: 14, color: "var(--text-muted)" }}>

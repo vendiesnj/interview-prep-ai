@@ -176,7 +176,7 @@ function EventModal({
 
         <input ref={inputRef} value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSave()}
           placeholder="Event title"
-          style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, outline: "none", boxSizing: "border-box", marginBottom: 14 }} />
+          style={{ width: "100%", padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 14, fontWeight: 600, outline: "none", boxSizing: "border-box", marginBottom: 14 }} />
 
         <div style={{ marginBottom: 14 }}>
           <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Date</label>
@@ -232,7 +232,7 @@ function EventModal({
         </div>
 
         {/* Complete toggle */}
-        <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, marginBottom: 14, cursor: "pointer", background: completed ? "rgba(16,185,129,0.08)" : "var(--card-bg)", border: `1px solid ${completed ? "rgba(16,185,129,0.3)" : "var(--card-border)"}`, transition: "all 150ms" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: "var(--radius-md)", marginBottom: 14, cursor: "pointer", background: completed ? "rgba(16,185,129,0.08)" : "var(--card-bg)", border: `1px solid ${completed ? "rgba(16,185,129,0.3)" : "var(--card-border)"}`, transition: "all 150ms" }}>
           <input type="checkbox" checked={completed} onChange={e => setCompleted(e.target.checked)} style={{ accentColor: "#10B981", width: 15, height: 15 }} />
           <span style={{ fontSize: 13, fontWeight: 600, color: completed ? "#10B981" : "var(--text-muted)" }}>
             {completed ? "Marked complete ✓" : "Mark as complete"}
@@ -242,16 +242,16 @@ function EventModal({
         <div style={{ display: "flex", gap: 10 }}>
           {isEdit && (
             <button type="button" onClick={() => { onDelete(state.event!.id); onClose(); }}
-              style={{ padding: "10px 16px", borderRadius: 10, border: "1px solid #EF444430", background: "#EF444410", color: "#EF4444", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+              style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", border: "1px solid #EF444430", background: "#EF444410", color: "#EF4444", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
               <Trash2 size={14} /> Delete
             </button>
           )}
           <button type="button" onClick={onClose}
-            style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            style={{ flex: 1, padding: "10px 0", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             Cancel
           </button>
           <button type="button" onClick={handleSave}
-            style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: "none", background: color, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            style={{ flex: 1, padding: "10px 0", borderRadius: "var(--radius-md)", border: "none", background: color, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             {isEdit ? "Save" : "Add event"}
           </button>
         </div>
@@ -312,7 +312,7 @@ function ProductivityStats({ events }: { events: CalEvent[] }) {
     label: string; value: string; sub?: string; color?: string; bar?: number;
   }) {
     return (
-      <div style={{ background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "16px 18px", boxShadow: "var(--shadow-card-soft)" }}>
+      <div style={{ background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "16px 18px", boxShadow: "var(--shadow-card-soft)" }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>{label}</div>
         <div style={{ fontSize: 26, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
         {sub && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 5 }}>{sub}</div>}
@@ -368,7 +368,7 @@ function ProductivityStats({ events }: { events: CalEvent[] }) {
 
       {/* 7-day sparkline */}
       {last7Events.length > 0 && (
-        <div style={{ marginTop: 14, background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "14px 18px" }}>
+        <div style={{ marginTop: 14, background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "14px 18px" }}>
           <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>Completions per day</div>
           <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 48 }}>
             {last7.map((day, i) => {
@@ -489,7 +489,7 @@ function WeekPlanner({ events, onSave, onDelete }: {
       <div style={{ background: "var(--card-bg-strong)", border: "1px solid var(--card-border)", borderRadius: 18, overflow: "hidden", display: "flex", flexDirection: "column", boxShadow: "var(--shadow-card)" }}>
         {/* Header bar */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 20px", borderBottom: "1px solid var(--card-border)", flexShrink: 0 }}>
-          <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "6px 9px", display: "flex", alignItems: "center", transition: "background 120ms" }}>
+          <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "6px 9px", display: "flex", alignItems: "center", transition: "background 120ms" }}>
             <ChevronLeft size={15} />
           </button>
           <div style={{ flex: 1, fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>
@@ -499,12 +499,12 @@ function WeekPlanner({ events, onSave, onDelete }: {
             style={{ fontSize: 12, fontWeight: 700, color: "#2563EB", background: "#2563EB12", border: "1px solid #2563EB30", borderRadius: 7, padding: "6px 14px", cursor: "pointer" }}>
             Today
           </button>
-          <button type="button" onClick={() => navWeek(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "6px 9px", display: "flex", alignItems: "center", transition: "background 120ms" }}>
+          <button type="button" onClick={() => navWeek(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "6px 9px", display: "flex", alignItems: "center", transition: "background 120ms" }}>
             <ChevronRight size={15} />
           </button>
           <button type="button"
             onClick={() => setModal({ mode: "add", date: todayKey, hour: new Date().getHours(), min: 0 })}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 8, border: "none", background: "#2563EB", color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: "var(--radius-sm)", border: "none", background: "#2563EB", color: "#fff", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
             <Plus size={13} /> Add
           </button>
         </div>
@@ -581,7 +581,7 @@ function WeekPlanner({ events, onSave, onDelete }: {
                             left: 2, right: 2,
                             height: getHeight(e),
                             background: e.color,
-                            borderRadius: 6,
+                            borderRadius: "var(--radius-xs)",
                             padding: "4px 6px",
                             boxSizing: "border-box",
                             overflow: "hidden",
@@ -1084,7 +1084,7 @@ export default function LifeBuddyPage() {
         </div>
 
         {/* Tab bar */}
-        <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: 4, width: "fit-content" }}>
+        <div style={{ display: "flex", gap: 4, marginBottom: 24, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: 4, width: "fit-content" }}>
           {TABS.map(t => (
             <button key={t.id} type="button" onClick={() => setTab(t.id)}
               style={{ display: "flex", alignItems: "center", gap: 7, padding: "8px 18px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700,

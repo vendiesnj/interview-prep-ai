@@ -57,7 +57,7 @@ function PracticeTopNav() {
             style={{
               fontSize: 16,
               color: "var(--text-primary)",
-              fontWeight: 950,
+              fontWeight: 800,
             }}
           >
             Tools
@@ -80,7 +80,7 @@ function PracticeTopNav() {
                   alignItems: "center",
                   gap: 10,
                   padding: "10px 12px",
-                  borderRadius: 12,
+                  borderRadius: "var(--radius-lg)",
                   border: active
                     ? "1px solid var(--accent-strong)"
                     : "1px solid var(--card-border)",

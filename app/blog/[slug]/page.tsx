@@ -71,8 +71,8 @@ export default async function ArticlePage({ params }: Props) {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "#0d1e3a",
-      color: "#fff",
+      background: "var(--app-bg, #0d1e3a)",
+      color: "var(--text-primary, #fff)",
       fontFamily: "var(--font-inter, ui-sans-serif, system-ui, sans-serif)",
     }}>
       <script
@@ -85,14 +85,14 @@ export default async function ArticlePage({ params }: Props) {
         position: "sticky", top: 0, zIndex: 100,
         height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        borderBottom: "1px solid var(--card-border)",
         background: "rgba(13,30,58,0.9)",
         backdropFilter: "blur(16px)",
       }}>
         <Link href="/" style={{ fontSize: 17, fontWeight: 800, color: "#fff", textDecoration: "none", letterSpacing: -0.4 }}>Signal</Link>
         <div style={{ display: "flex", gap: 8 }}>
-          <Link href="/login" style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>Log in</Link>
-          <Link href="/signup" style={{ padding: "7px 16px", borderRadius: 8, background: "#2563EB", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 800 }}>Get started</Link>
+          <Link href="/login" style={{ padding: "7px 16px", borderRadius: "var(--radius-sm)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>Log in</Link>
+          <Link href="/signup" style={{ padding: "7px 16px", borderRadius: "var(--radius-sm)", background: "#2563EB", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 800 }}>Get started</Link>
         </div>
       </nav>
 
@@ -167,7 +167,7 @@ export default async function ArticlePage({ params }: Props) {
         <div style={{
           marginTop: 64,
           padding: "32px",
-          borderRadius: 16,
+          borderRadius: "var(--radius-xl)",
           border: "1px solid rgba(37,99,235,0.25)",
           background: "rgba(37,99,235,0.06)",
           textAlign: "center",
@@ -181,7 +181,7 @@ export default async function ArticlePage({ params }: Props) {
           </p>
           <Link href="/signup" style={{
             display: "inline-block",
-            padding: "13px 32px", borderRadius: 10,
+            padding: "13px 32px", borderRadius: "var(--radius-md)",
             background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
             color: "#fff", textDecoration: "none",
             fontWeight: 700, fontSize: 15,

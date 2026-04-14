@@ -395,12 +395,12 @@ export default function FinancesPage({ searchParams }: { searchParams: { from?: 
             <div key={id} id={id} style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))", overflow: "hidden" }}>
               <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--card-border-soft)", display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 24 }}>{icon}</span>
-                <div style={{ fontSize: 17, fontWeight: 950, color }}>{sTitle}</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color }}>{sTitle}</div>
               </div>
               <div style={{ padding: 24, display: "grid", gap: 20 }}>
                 {content.map(({ heading, body }) => (
                   <div key={heading}>
-                    <div style={{ fontSize: 13, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{heading}</div>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>{heading}</div>
                     <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75 }}>{body}</p>
                   </div>
                 ))}

@@ -102,13 +102,13 @@ export default function LandingPage() {
         <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.4, color: "#fff" }}>Signal</div>
         <div style={{ display: "flex", gap: 8 }}>
           <Link href="/login" style={{
-            padding: "7px 16px", borderRadius: 8,
+            padding: "7px 16px", borderRadius: "var(--radius-sm)",
             border: "1px solid rgba(255,255,255,0.1)",
             color: "rgba(255,255,255,0.7)", textDecoration: "none",
             fontSize: 13, fontWeight: 700,
           }}>Log in</Link>
           <Link href="/signup" style={{
-            padding: "7px 16px", borderRadius: 8,
+            padding: "7px 16px", borderRadius: "var(--radius-sm)",
             background: "#2563EB", color: "#fff",
             textDecoration: "none", fontSize: 13, fontWeight: 800,
           }}>Get started</Link>
@@ -186,7 +186,7 @@ export default function LandingPage() {
 
           <div ref={dims.ref} style={{
             padding: "28px 24px",
-            borderRadius: 16,
+            borderRadius: "var(--radius-xl)",
             border: "1px solid rgba(255,255,255,0.08)",
             background: "rgba(255,255,255,0.03)",
             display: "grid", gap: 18,
@@ -209,7 +209,7 @@ export default function LandingPage() {
           <div ref={arch.ref}>
             <div style={{
               padding: "28px 24px",
-              borderRadius: 16,
+              borderRadius: "var(--radius-xl)",
               border: "1px solid rgba(139,92,246,0.25)",
               background: "rgba(139,92,246,0.06)",
               opacity: arch.visible ? 1 : 0,
@@ -224,14 +224,14 @@ export default function LandingPage() {
                 Sharp thinking, softened delivery
               </div>
 
-              <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 16 }}>
+              <div style={{ padding: "14px 16px", borderRadius: "var(--radius-md)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 16 }}>
                 <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>What interviewers hear</div>
                 <div style={{ fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.6)", fontStyle: "italic" }}>
                   "A well-prepared candidate who seems uncertain whether they deserve the credit."
                 </div>
               </div>
 
-              <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)" }}>
+              <div style={{ padding: "14px 16px", borderRadius: "var(--radius-md)", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)" }}>
                 <div style={{ fontSize: 11, fontWeight: 500, color: "#93C5FD", marginBottom: 8 }}>Coaching action</div>
                 <div style={{ fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.6)" }}>
                   Replace "I helped with" → "I owned". Replace "we kind of" → "I drove".
@@ -241,7 +241,7 @@ export default function LandingPage() {
 
               <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
                 {["Ownership & Agency", "Presence & Confidence"].map(d => (
-                  <div key={d} style={{ padding: "4px 10px", borderRadius: 6, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.2)", fontSize: 11, fontWeight: 700, color: "#F87171" }}>{d}</div>
+                  <div key={d} style={{ padding: "4px 10px", borderRadius: "var(--radius-xs)", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.2)", fontSize: 11, fontWeight: 700, color: "#F87171" }}>{d}</div>
                 ))}
               </div>
             </div>
@@ -288,20 +288,20 @@ export default function LandingPage() {
             <Fade delay={80}>
               <div style={{
                 padding: "24px",
-                borderRadius: 16,
+                borderRadius: "var(--radius-xl)",
                 border: "1px solid rgba(14,165,233,0.25)",
                 background: "rgba(14,165,233,0.06)",
               }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: "#93C5FD", marginBottom: 10 }}>Delivery archetype</div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Flat Articulate</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 18 }}>Clear words, flat delivery</div>
-                <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 12 }}>
+                <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 12 }}>
                   <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>What interviewers hear</div>
                   <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)", fontStyle: "italic" }}>
                     "Smart candidate, but hard to stay engaged with. Everything sounds the same."
                   </div>
                 </div>
-                <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)" }}>
+                <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)" }}>
                   <div style={{ fontSize: 11, fontWeight: 600, color: "#60A5FA", marginBottom: 6 }}>One fix</div>
                   <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)" }}>
                     Pick the single most important outcome in your answer and hit it louder, slower, and with a half-second pause before it. Record yourself doing it once.
@@ -355,7 +355,7 @@ export default function LandingPage() {
               ].map(m => (
                 <div key={m.label} style={{
                   padding: "16px",
-                  borderRadius: 12,
+                  borderRadius: "var(--radius-lg)",
                   border: `1px solid ${m.color}22`,
                   background: `${m.color}08`,
                   opacity: visual.visible ? 1 : 0,
@@ -388,7 +388,7 @@ export default function LandingPage() {
               <Fade delay={220}>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {["Eye contact %", "Smile rate", "Brow engagement", "Head stability", "Blink rate", "Look-away detection", "Presence score"].map(tag => (
-                    <span key={tag} style={{ padding: "4px 10px", borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{tag}</span>
+                    <span key={tag} style={{ padding: "4px 10px", borderRadius: "var(--radius-xs)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{tag}</span>
                   ))}
                 </div>
               </Fade>
@@ -432,7 +432,7 @@ export default function LandingPage() {
                 <Fade key={item.label} delay={i * 60}>
                   <div style={{
                     padding: "14px 16px",
-                    borderRadius: 10,
+                    borderRadius: "var(--radius-md)",
                     border: `1px solid ${item.bad ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)"}`,
                     background: item.bad ? "rgba(239,68,68,0.04)" : "rgba(16,185,129,0.04)",
                     display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
@@ -486,7 +486,7 @@ export default function LandingPage() {
               <Fade key={tool.label} delay={tool.delay}>
                 <div style={{
                   padding: "28px 24px",
-                  borderRadius: 16,
+                  borderRadius: "var(--radius-xl)",
                   border: `1px solid ${tool.color}20`,
                   background: "rgba(255,255,255,0.02)",
                   height: "100%",
@@ -529,7 +529,7 @@ export default function LandingPage() {
         <Fade delay={160}>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="/signup" style={{
-              padding: "15px 36px", borderRadius: 12,
+              padding: "15px 36px", borderRadius: "var(--radius-lg)",
               background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
               color: "#fff", textDecoration: "none",
               fontWeight: 800, fontSize: 15,
@@ -538,7 +538,7 @@ export default function LandingPage() {
               Start for free
             </Link>
             <Link href="/login" style={{
-              padding: "15px 36px", borderRadius: 12,
+              padding: "15px 36px", borderRadius: "var(--radius-lg)",
               border: "1px solid rgba(255,255,255,0.1)",
               color: "rgba(255,255,255,0.65)", textDecoration: "none",
               fontWeight: 800, fontSize: 15,
@@ -618,7 +618,7 @@ function MockInterviewCard({ visible }: { visible: boolean }) {
 
       {/* Main card */}
       <div style={{
-        borderRadius: 16,
+        borderRadius: "var(--radius-xl)",
         border: "1px solid rgba(255,255,255,0.10)",
         background: "rgba(15,28,58,0.85)",
         backdropFilter: "blur(20px)",
@@ -742,7 +742,7 @@ function HeroContent() {
       <div style={{ textAlign: "left" as const }}>
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 7,
-          padding: "5px 12px", borderRadius: 6,
+          padding: "5px 12px", borderRadius: "var(--radius-xs)",
           border: "1px solid rgba(59,130,246,0.3)",
           background: "rgba(59,130,246,0.08)",
           fontSize: 12, fontWeight: 600,
@@ -789,7 +789,7 @@ function HeroContent() {
           transition: "opacity 0.65s ease 300ms, transform 0.65s ease 300ms",
         }}>
           <Link href="/signup" style={{
-            padding: "14px 32px", borderRadius: 10,
+            padding: "14px 32px", borderRadius: "var(--radius-md)",
             background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
             color: "#fff", textDecoration: "none",
             fontWeight: 700, fontSize: 15,
@@ -799,7 +799,7 @@ function HeroContent() {
             Start for free
           </Link>
           <Link href="/login" style={{
-            padding: "14px 32px", borderRadius: 10,
+            padding: "14px 32px", borderRadius: "var(--radius-md)",
             border: "1px solid rgba(255,255,255,0.12)",
             color: "rgba(255,255,255,0.7)", textDecoration: "none",
             fontWeight: 700, fontSize: 15,

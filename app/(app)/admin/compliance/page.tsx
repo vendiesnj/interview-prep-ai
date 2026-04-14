@@ -7,7 +7,7 @@ import PremiumShell from "@/app/components/PremiumShell";
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{
-      borderRadius: 16,
+      borderRadius: "var(--radius-xl)",
       border: "1px solid var(--card-border-soft)",
       background: "var(--card-bg)",
       padding: "20px 22px",
@@ -128,7 +128,7 @@ export default async function FerpaCompliancePage() {
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
             }}>
-              <div style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)" }}>{item.value}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)" }}>{item.value}</div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", marginTop: 2 }}>{item.label}</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{item.sub}</div>
             </div>
@@ -152,7 +152,7 @@ export default async function FerpaCompliancePage() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "10px 12px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 border: "1px solid var(--card-border-soft)",
                 background: "var(--card-bg)",
                 gap: 12,
@@ -181,7 +181,7 @@ export default async function FerpaCompliancePage() {
                 gap: 14,
                 alignItems: "flex-start",
                 padding: "10px 12px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 border: "1px solid var(--card-border-soft)",
                 background: "var(--card-bg)",
               }}>
@@ -233,7 +233,7 @@ export default async function FerpaCompliancePage() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "10px 12px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 border: "1px solid var(--card-border-soft)",
                 background: "var(--card-bg)",
               }}>
@@ -259,7 +259,7 @@ export default async function FerpaCompliancePage() {
                   justifyContent: "space-between",
                   alignItems: "center",
                   padding: "8px 10px",
-                  borderRadius: 8,
+                  borderRadius: "var(--radius-sm)",
                   border: "1px solid var(--card-border-soft)",
                   background: "var(--card-bg)",
                 }}>

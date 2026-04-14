@@ -53,11 +53,11 @@ export default function UpgradeButton({
         disabled={loading}
         style={{
           padding: "10px 14px",
-          borderRadius: 12,
+          borderRadius: "var(--radius-lg)",
           border: "1px solid rgba(34,211,238,0.45)",
           background: "rgba(34,211,238,0.18)",
           color: "#A5F3FC",
-          fontWeight: 950,
+          fontWeight: 800,
           cursor: loading ? "not-allowed" : "pointer",
           opacity: loading ? 0.7 : 1,
         }}

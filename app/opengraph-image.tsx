@@ -41,7 +41,7 @@ export default function OgImage() {
             style={{
               width: 44,
               height: 44,
-              borderRadius: 12,
+              borderRadius: "var(--radius-lg)",
               background: "linear-gradient(135deg, #2563EB, #7C3AED)",
               display: "flex",
               alignItems: "center",

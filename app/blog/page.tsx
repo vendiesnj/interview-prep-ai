@@ -21,8 +21,8 @@ export default function BlogIndex() {
   return (
     <main style={{
       minHeight: "100vh",
-      background: "#0d1e3a",
-      color: "#fff",
+      background: "var(--app-bg, #0d1e3a)",
+      color: "var(--text-primary, #fff)",
       fontFamily: "var(--font-inter, ui-sans-serif, system-ui, sans-serif)",
     }}>
       {/* Nav */}
@@ -30,14 +30,14 @@ export default function BlogIndex() {
         position: "sticky", top: 0, zIndex: 100,
         height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        borderBottom: "1px solid var(--card-border)",
         background: "rgba(13,30,58,0.9)",
         backdropFilter: "blur(16px)",
       }}>
-        <Link href="/" style={{ fontSize: 17, fontWeight: 800, color: "#fff", textDecoration: "none", letterSpacing: -0.4 }}>Signal</Link>
+        <Link href="/" style={{ fontSize: 17, fontWeight: 800, color: "var(--text-primary, #fff)", textDecoration: "none", letterSpacing: -0.4 }}>Signal</Link>
         <div style={{ display: "flex", gap: 8 }}>
-          <Link href="/login" style={{ padding: "7px 16px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>Log in</Link>
-          <Link href="/signup" style={{ padding: "7px 16px", borderRadius: 8, background: "#2563EB", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 800 }}>Get started</Link>
+          <Link href="/login" style={{ padding: "7px 16px", borderRadius: "var(--radius-sm)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", textDecoration: "none", fontSize: 13, fontWeight: 700 }}>Log in</Link>
+          <Link href="/signup" style={{ padding: "7px 16px", borderRadius: "var(--radius-sm)", background: "#2563EB", color: "#fff", textDecoration: "none", fontSize: 13, fontWeight: 800 }}>Get started</Link>
         </div>
       </nav>
 

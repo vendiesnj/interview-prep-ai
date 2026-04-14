@@ -172,7 +172,7 @@ export default function CareerOfTheDayPage() {
             onClick={() => setDateOffset(o => o - 1)}
             style={{
               display: "flex", alignItems: "center", gap: 4,
-              padding: "7px 14px", borderRadius: 10,
+              padding: "7px 14px", borderRadius: "var(--radius-md)",
               background: "var(--card-bg)", border: "1px solid var(--card-border)",
               color: "var(--text-primary)", fontWeight: 800, fontSize: 13, cursor: "pointer",
             }}
@@ -192,7 +192,7 @@ export default function CareerOfTheDayPage() {
             disabled={isFuture}
             style={{
               display: "flex", alignItems: "center", gap: 4,
-              padding: "7px 14px", borderRadius: 10,
+              padding: "7px 14px", borderRadius: "var(--radius-md)",
               background: isFuture ? "var(--card-bg)" : "var(--card-bg)",
               border: "1px solid var(--card-border)",
               color: isFuture ? "var(--text-muted)" : "var(--text-primary)",
@@ -209,14 +209,14 @@ export default function CareerOfTheDayPage() {
         {/* Hero section */}
         <div style={{
           background: "var(--card-bg)", border: "1px solid var(--card-border)",
-          borderRadius: 16, padding: "24px", marginBottom: 16,
+          borderRadius: "var(--radius-xl)", padding: "24px", marginBottom: 16,
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 6 }}>
                 Career of the Day
               </div>
-              <h1 style={{ fontSize: 28, fontWeight: 950, color: "var(--text-primary)", margin: "0 0 10px", letterSpacing: -0.5, lineHeight: 1.2 }}>
+              <h1 style={{ fontSize: 28, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 10px", letterSpacing: -0.5, lineHeight: 1.2 }}>
                 {occupation.title}
               </h1>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
@@ -252,7 +252,7 @@ export default function CareerOfTheDayPage() {
             <button
               onClick={toggleSave}
               style={{
-                width: 40, height: 40, borderRadius: 10,
+                width: 40, height: 40, borderRadius: "var(--radius-md)",
                 background: isSaved ? "#EF444415" : "var(--card-bg)",
                 border: isSaved ? "1px solid #EF444430" : "1px solid var(--card-border)",
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -312,7 +312,7 @@ export default function CareerOfTheDayPage() {
         {/* Is this for me? */}
         <div style={{
           background: "var(--card-bg)", border: "1px solid var(--card-border)",
-          borderRadius: 16, padding: "20px 22px", marginBottom: 16,
+          borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 16,
         }}>
           <h2 style={{ fontSize: 15, fontWeight: 900, color: "var(--text-primary)", margin: "0 0 14px" }}>
             Is this for me?
@@ -324,7 +324,7 @@ export default function CareerOfTheDayPage() {
               return (
                 <div key={code} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
                   <div style={{
-                    width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                    width: 28, height: 28, borderRadius: "var(--radius-sm)", flexShrink: 0,
                     background: info.color + "15", border: `1px solid ${info.color}30`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 13, fontWeight: 900, color: info.color,
@@ -345,7 +345,7 @@ export default function CareerOfTheDayPage() {
         {occupation.sideHustles.length > 0 && (
           <div style={{
             background: "var(--card-bg)", border: "1px solid var(--card-border)",
-            borderRadius: 16, padding: "20px 22px", marginBottom: 16,
+            borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 16,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <TrendingUp size={16} color="#F59E0B" />
@@ -373,7 +373,7 @@ export default function CareerOfTheDayPage() {
         {occupation.entrepreneurPath && (
           <div style={{
             background: "var(--card-bg)", border: "1px solid var(--card-border)",
-            borderRadius: 16, padding: "20px 22px", marginBottom: 16,
+            borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 16,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <Rocket size={16} color="#8B5CF6" />
@@ -391,7 +391,7 @@ export default function CareerOfTheDayPage() {
         {similarCareers.length > 0 && (
           <div style={{
             background: "var(--card-bg)", border: "1px solid var(--card-border)",
-            borderRadius: 16, padding: "20px 22px", marginBottom: 16,
+            borderRadius: "var(--radius-xl)", padding: "20px 22px", marginBottom: 16,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <Briefcase size={16} color="#2563EB" />
@@ -402,7 +402,7 @@ export default function CareerOfTheDayPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {similarCareers.map(occ => (
                 <div key={occ.id} style={{
-                  padding: "12px 14px", borderRadius: 10,
+                  padding: "12px 14px", borderRadius: "var(--radius-md)",
                   background: "var(--card-bg-strong, rgba(255,255,255,0.03))",
                   border: "1px solid var(--card-border)",
                   display: "flex", justifyContent: "space-between", alignItems: "center",
@@ -423,7 +423,7 @@ export default function CareerOfTheDayPage() {
         {/* Saved careers note */}
         {isSaved && (
           <div style={{
-            padding: "10px 14px", borderRadius: 10,
+            padding: "10px 14px", borderRadius: "var(--radius-md)",
             background: "#EF444410", border: "1px solid #EF444430",
             fontSize: 12, fontWeight: 700, color: "#EF4444",
             display: "flex", alignItems: "center", gap: 6,

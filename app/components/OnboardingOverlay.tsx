@@ -28,7 +28,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
             style={{
               width: 56,
               height: 56,
-              borderRadius: 16,
+              borderRadius: "var(--radius-xl)",
               background: "var(--accent-soft)",
               border: "1px solid var(--accent-strong)",
               display: "flex",
@@ -44,7 +44,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
       <h2
         style={{
           fontSize: 22,
-          fontWeight: 950,
+          fontWeight: 800,
           color: "var(--text-primary)",
           margin: "0 0 10px",
           letterSpacing: -0.4,
@@ -88,7 +88,7 @@ function StepStage({ onNext }: { onNext: () => void }) {
       <h2
         style={{
           fontSize: 20,
-          fontWeight: 950,
+          fontWeight: 800,
           color: "var(--text-primary)",
           margin: "0 0 6px",
           letterSpacing: -0.3,
@@ -108,7 +108,7 @@ function StepStage({ onNext }: { onNext: () => void }) {
               alignItems: "center",
               gap: 14,
               padding: "14px 16px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-lg)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
             }}
@@ -118,7 +118,7 @@ function StepStage({ onNext }: { onNext: () => void }) {
                 color: "var(--accent)",
                 width: 40,
                 height: 40,
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 background: "var(--accent-soft)",
                 display: "flex",
                 alignItems: "center",
@@ -170,7 +170,7 @@ function StepSignalScore({ onNext }: { onNext: () => void }) {
       <h2
         style={{
           fontSize: 20,
-          fontWeight: 950,
+          fontWeight: 800,
           color: "var(--text-primary)",
           margin: "0 0 6px",
           letterSpacing: -0.3,
@@ -190,7 +190,7 @@ function StepSignalScore({ onNext }: { onNext: () => void }) {
               alignItems: "flex-start",
               gap: 14,
               padding: "13px 16px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-lg)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
             }}
@@ -200,7 +200,7 @@ function StepSignalScore({ onNext }: { onNext: () => void }) {
                 color: "var(--accent)",
                 width: 38,
                 height: 38,
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 background: "var(--accent-soft)",
                 display: "flex",
                 alignItems: "center",
@@ -227,7 +227,7 @@ function StepSignalScore({ onNext }: { onNext: () => void }) {
           color: "var(--text-muted)",
           background: "var(--accent-soft)",
           border: "1px solid var(--accent-strong)",
-          borderRadius: 10,
+          borderRadius: "var(--radius-md)",
           padding: "10px 14px",
           marginBottom: 20,
           lineHeight: 1.5,
@@ -268,7 +268,7 @@ function StepDailyLoop({ onFinish }: { onFinish: () => void }) {
       <h2
         style={{
           fontSize: 20,
-          fontWeight: 950,
+          fontWeight: 800,
           color: "var(--text-primary)",
           margin: "0 0 6px",
           letterSpacing: -0.3,
@@ -288,7 +288,7 @@ function StepDailyLoop({ onFinish }: { onFinish: () => void }) {
               alignItems: "flex-start",
               gap: 14,
               padding: "13px 16px",
-              borderRadius: 12,
+              borderRadius: "var(--radius-lg)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
             }}
@@ -298,7 +298,7 @@ function StepDailyLoop({ onFinish }: { onFinish: () => void }) {
                 color: "var(--accent)",
                 width: 38,
                 height: 38,
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 background: "var(--accent-soft)",
                 display: "flex",
                 alignItems: "center",
@@ -342,11 +342,11 @@ function StepDailyLoop({ onFinish }: { onFinish: () => void }) {
 const primaryBtn: React.CSSProperties = {
   width: "100%",
   padding: "13px 16px",
-  borderRadius: 12,
+  borderRadius: "var(--radius-lg)",
   border: "1px solid var(--accent-strong)",
   background: "linear-gradient(135deg, var(--accent-2-soft, var(--accent-soft)), var(--accent-soft))",
   color: "var(--accent)",
-  fontWeight: 950,
+  fontWeight: 800,
   fontSize: 14,
   cursor: "pointer",
   boxShadow: "var(--shadow-glow)",
@@ -438,7 +438,7 @@ export default function OnboardingOverlay() {
             right: 16,
             width: 30,
             height: 30,
-            borderRadius: 8,
+            borderRadius: "var(--radius-sm)",
             border: "1px solid var(--card-border-soft)",
             background: "var(--card-bg)",
             color: "var(--text-muted)",

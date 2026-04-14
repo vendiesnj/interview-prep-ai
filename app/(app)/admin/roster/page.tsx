@@ -121,7 +121,7 @@ export default async function RosterPage() {
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
             }}>
-              <div style={{ fontSize: 24, fontWeight: 950, color: item.color }}>{item.value}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: item.color }}>{item.value}</div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", marginTop: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>{item.label}</div>
             </div>
           ))}
@@ -130,7 +130,7 @@ export default async function RosterPage() {
         {/* Enrollment note */}
         <div style={{
           padding: "12px 16px",
-          borderRadius: 12,
+          borderRadius: "var(--radius-lg)",
           background: "rgba(37,99,235,0.06)",
           border: "1px solid rgba(37,99,235,0.15)",
           fontSize: 13,

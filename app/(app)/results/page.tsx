@@ -387,7 +387,7 @@ function StarChip({
         style={{
           width: 26,
           height: 26,
-          borderRadius: 10,
+          borderRadius: "var(--radius-md)",
           display: "grid",
           placeItems: "center",
           fontWeight: 700,

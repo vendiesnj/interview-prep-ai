@@ -231,7 +231,7 @@ function CheckItem({ id, label, checked, onToggle }: { id: string; label: string
       <div style={{
         width: 20,
         height: 20,
-        borderRadius: 6,
+        borderRadius: "var(--radius-xs)",
         border: `2px solid ${checked ? "var(--accent)" : "var(--card-border)"}`,
         background: checked ? "var(--accent)" : "transparent",
         display: "flex",
@@ -335,7 +335,7 @@ function FirstYearContent() {
         <div style={{ marginBottom: 32, padding: 20, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <span style={{ fontSize: 14, fontWeight: 900, color: "var(--text-primary)" }}>Overall progress</span>
-            <span style={{ fontSize: 14, fontWeight: 950, color: "var(--accent)" }}>{completedItems} / {totalItems} completed</span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: "var(--accent)" }}>{completedItems} / {totalItems} completed</span>
           </div>
           <div style={{ height: 8, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${pct}%`, background: "var(--accent)", borderRadius: 99, transition: "width 300ms" }} />
@@ -348,7 +348,7 @@ function FirstYearContent() {
           return (
             <div key={phase} style={{ marginBottom: 24, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", overflow: "hidden" }}>
               <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--card-border-soft)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div style={{ fontSize: 15, fontWeight: 950, color, display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color, display: "flex", alignItems: "center", gap: 8 }}>
                   {phase}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 700 }}>
@@ -366,12 +366,12 @@ function FirstYearContent() {
 
         {/* Tips */}
         <div style={{ marginTop: 12 }}>
-          <div style={{ fontSize: 12, fontWeight: 950, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16 }}>{content.tipsHeading}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.8, color: "var(--accent)", marginBottom: 16 }}>{content.tipsHeading}</div>
           <div style={{ display: "grid", gap: 12 }}>
             {content.tipsStyled
               ? (content.tips as unknown as { title: string; body: string }[]).map(({ title, body }) => (
                   <div key={title} style={{ padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "linear-gradient(160deg, var(--card-bg-strong), var(--card-bg))" }}>
-                    <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 6 }}>{title}</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 6 }}>{title}</div>
                     <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>{body}</p>
                   </div>
                 ))
@@ -386,7 +386,7 @@ function FirstYearContent() {
 
         <div style={{ marginTop: 28, padding: "18px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div style={{ fontSize: 14, color: "var(--text-muted)" }}>Ready to log your career status and benchmark your salary against peers?</div>
-          <Link href="/career-checkin" style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 950, fontSize: 13, whiteSpace: "nowrap" }}>
+          <Link href="/career-checkin" style={{ padding: "10px 16px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 800, fontSize: 13, whiteSpace: "nowrap" }}>
             Career check-in →
           </Link>
         </div>

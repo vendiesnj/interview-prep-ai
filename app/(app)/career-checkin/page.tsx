@@ -251,7 +251,7 @@ export default function CareerCheckInPage() {
                   )}
 
                   {/* ── Other retirement savings ── */}
-                  <div style={{ margin: "4px 0 20px", padding: "18px 20px", borderRadius: 12, border: "1px solid var(--card-border-soft)", background: "var(--card-bg-strong)" }}>
+                  <div style={{ margin: "4px 0 20px", padding: "18px 20px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg-strong)" }}>
                     <div style={{ fontSize: 12, fontWeight: 900, color: "var(--text-primary)", marginBottom: 14 }}>Other retirement & savings accounts</div>
 
                     <SectionLabel>Roth IRA</SectionLabel>
@@ -421,12 +421,12 @@ export default function CareerCheckInPage() {
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
             <CheckCircle2 size={48} color="#10B981" />
           </div>
-            <h2 style={{ margin: "0 0 10px", fontSize: 24, fontWeight: 950, color: "var(--text-primary)" }}>Check-in complete</h2>
+            <h2 style={{ margin: "0 0 10px", fontSize: 24, fontWeight: 800, color: "var(--text-primary)" }}>Check-in complete</h2>
             <p style={{ margin: "0 0 24px", fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7 }}>
               Your data has been saved. Check your retirement projection and see how you compare to peers.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/career-guide/retirement" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 950, fontSize: 14 }}>
+              <Link href="/career-guide/retirement" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", textDecoration: "none", fontWeight: 800, fontSize: 14 }}>
                 View retirement projection →
               </Link>
               <Link href="/career-guide/benchmarks" style={{ padding: "12px 20px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", textDecoration: "none", fontWeight: 900, fontSize: 14 }}>
@@ -448,7 +448,7 @@ export default function CareerCheckInPage() {
 function StepHeader({ title, sub }: { title: string; sub: string }) {
   return (
     <div style={{ marginBottom: 20 }}>
-      <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{title}</h2>
+      <h2 style={{ margin: "0 0 6px", fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{title}</h2>
       <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)" }}>{sub}</p>
     </div>
   );
@@ -523,7 +523,7 @@ function NavRow({ onBack, onNext, nextDisabled, nextLabel }: { onBack?: () => vo
         </button>
       )}
       {onNext && (
-        <button onClick={onNext} disabled={nextDisabled} style={{ flex: 1, padding: "13px", borderRadius: "var(--radius-md)", border: "none", background: nextDisabled ? "var(--card-border)" : "var(--accent)", color: nextDisabled ? "var(--text-muted)" : "#fff", fontWeight: 950, fontSize: 14, cursor: nextDisabled ? "not-allowed" : "pointer", opacity: nextDisabled ? 0.7 : 1 }}>
+        <button onClick={onNext} disabled={nextDisabled} style={{ flex: 1, padding: "13px", borderRadius: "var(--radius-md)", border: "none", background: nextDisabled ? "var(--card-border)" : "var(--accent)", color: nextDisabled ? "var(--text-muted)" : "#fff", fontWeight: 800, fontSize: 14, cursor: nextDisabled ? "not-allowed" : "pointer", opacity: nextDisabled ? 0.7 : 1 }}>
           {nextLabel ?? "Continue →"}
         </button>
       )}

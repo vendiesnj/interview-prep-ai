@@ -97,7 +97,7 @@ const WebcamOverlay = forwardRef<WebcamOverlayHandle, Props>(
       >
         {/* Webcam preview */}
         <div style={{
-          width: 100, height: 75, borderRadius: 12,
+          width: 100, height: 75, borderRadius: "var(--radius-lg)",
           overflow: "hidden",
           border: status === "active" ? "2px solid rgba(16,185,129,0.7)" : "2px solid rgba(255,255,255,0.15)",
           background: "#000",

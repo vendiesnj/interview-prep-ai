@@ -524,16 +524,19 @@ You are an interview evaluator for a production SaaS coaching product.
 
 You must return valid JSON only and exactly match the provided schema.
 
-Scoring calibration rules:
-- Be honest, somewhat strict, and discriminating.
-- A decent first attempt usually lands in the upper 5s or low-to-mid 6s.
-- Scores above 8.0 should be uncommon and must feel clearly earned.
-- Scores above 9.0 should be very rare.
-- Polished but vague answers should not score highly.
-- Use one decimal place when useful.
-- Behavioral questions must use STAR.
-- Technical questions must NOT use STAR.
-- Experience questions must NOT use STAR.
+Scoring calibration — use the FULL 1–10 range based strictly on what you observe:
+- 1.0–3.0: No genuine attempt, completely off-topic, or incomprehensible
+- 3.1–4.9: Attempted but with major failures — missing core STAR parts, factually wrong, entirely vague, or mostly irrelevant
+- 5.0–6.4: Partial — some relevant content but with clearly observable gaps (e.g., no quantified result, "we" language throughout, answer drifts, structure breaks down halfway)
+- 6.5–7.4: Solid — real attempt, identifiable structure and ownership, minor gaps only
+- 7.5–8.4: Strong — specific, well-structured, clearly owned, demonstrates the competency with evidence
+- 8.5–9.0: Excellent — polished, memorable, would stand out at competitive companies
+- 9.1–10.0: Exceptional — rare, reserved for responses that demonstrate mastery and set a new bar
+Score what you actually observe in the transcript. Do not default to any band. A strong answer should score strongly. A weak answer should score weakly. Do not compress scores toward the middle.
+Use one decimal place when useful.
+Behavioral questions must use STAR.
+Technical questions must NOT use STAR.
+Experience questions must NOT use STAR.
 
 Evidence rules:
 - Use concise, specific evidence.
@@ -584,9 +587,11 @@ ESL / International speaker mode is ACTIVE. Apply these adjustments:
 
 Behavioral rules:
 - Evaluate Situation, Task, Action, and Result.
-- Overall quality should be driven mostly by STAR completeness, ownership, and specificity.
-- Weak or missing Result should keep the answer from scoring like a strong answer.
-- If STAR average is below 6.0, the answer should not look strong overall.
+- Drive scores from STAR completeness, ownership language, specificity, and quantified outcomes.
+- A missing or vague Result is the single strongest signal of an incomplete answer — cap STAR scores accordingly.
+- An answer with all 4 STAR parts present, specific actions in first-person, and a measurable outcome should score well (7.5+). Reward completeness.
+- An answer missing 2+ STAR components should not exceed 6.0 on any STAR dimension.
+- Generic answers ("I worked with the team", "we solved it together") without ownership should score 4.0–5.5 on ownership_agency.
 `;
   }
 
@@ -596,7 +601,9 @@ Behavioral rules:
 Technical explanation rules:
 - Do NOT use STAR framing.
 - Evaluate clarity, accuracy, structure, depth, and practical reasoning.
-- Buzzword-heavy but shallow answers should stay in the 5s or low 6s.
+- Buzzword-heavy but shallow answers with no concrete mechanics should score 4.0–5.5.
+- Clear, accurate, well-structured explanations with practical reasoning should score 7.5–8.5.
+- Score each sub-dimension based on what is literally present in the answer, not on what an average candidate would say.
 `;
   }
 
@@ -635,7 +642,9 @@ Networking pitch rules:
 Experience depth rules:
 - Do NOT use STAR framing.
 - Evaluate depth, specificity, tool fluency, business impact, and example quality.
-- Generic claims without concrete examples should not score highly.
+- Generic claims ("I've worked with various teams", "I have experience in...") with no concrete examples should score 3.0–5.0 on specificity and example_quality.
+- Named tools, technologies, or methodologies with a concrete outcome should score 7.0+.
+- Let the actual level of detail, not assumed candidate level, determine the score.
 `;
 }
 
@@ -698,6 +707,45 @@ function buildUserMessage(args: {
       }
     : {};
 
+  // Extract acoustic + IBM signals to ground the AI's vocal/language coaching
+  const dm = (deliveryMetrics ?? {}) as any;
+  const acoustics = (dm.acoustics ?? {}) as any;
+  const prosody   = (dm.prosody ?? {}) as any;
+
+  const pitchRangeHz    = acoustics.pitchRange ?? acoustics.pitch_range ?? prosody.pitchRange ?? null;
+  const monotoneScore   = acoustics.monotoneScore ?? prosody.monotoneScore ?? null;
+  const energyVariation = acoustics.energyVariation ?? acoustics.energy_variation ?? null;
+  const avgPauseMs      = dm.avgPauseMs ?? dm.avg_pause_ms ?? null;
+  const longPauseCount  = dm.longPauseCount ?? dm.long_pause_count ?? null;
+  const wpm             = dm.wpm ?? null;
+
+  // IBM text-derived signals (computed client-side from transcript)
+  const hedgingDensity      = dm.hedgingDensity ?? null;
+  const cognitiveMarkers    = dm.cognitiveMarkers ?? null;
+  const behavioralPhrases   = dm.behavioralPhraseCount ?? null;
+  const fragmentationRatio  = dm.fragmentationRatio ?? null;
+
+  const acousticContext = (
+    pitchRangeHz !== null || monotoneScore !== null || energyVariation !== null ||
+    avgPauseMs !== null || wpm !== null || hedgingDensity !== null
+  ) ? {
+    note: "Use these measured signals to ground coaching on vocal_engagement, response_control, and confidence_score. Do not contradict them.",
+    ...(wpm !== null            ? { speaking_pace_wpm: wpm } : {}),
+    ...(pitchRangeHz !== null   ? { pitch_range_hz: round1(pitchRangeHz), pitch_note: pitchRangeHz < 70 ? "narrow — flat delivery" : pitchRangeHz > 140 ? "wide — dynamic delivery" : "moderate range" } : {}),
+    ...(monotoneScore !== null  ? { monotone_score: round1(monotoneScore), monotone_note: monotoneScore >= 6.5 ? "high monotony — vocal variety is low" : monotoneScore <= 3.5 ? "low monotony — good vocal variety" : "moderate" } : {}),
+    ...(energyVariation !== null ? { energy_variation: round1(energyVariation), energy_note: energyVariation < 0.8 ? "low amplitude variation — delivery lacks emphasis contrast" : energyVariation > 2.0 ? "high variation — energy is inconsistent" : "healthy range" } : {}),
+    ...(avgPauseMs !== null     ? { avg_pause_ms: Math.round(avgPauseMs) } : {}),
+    ...(longPauseCount !== null ? { long_pause_count: longPauseCount, long_pause_note: longPauseCount >= 3 ? "multiple long pauses detected — signals hesitation" : "minimal long pauses" } : {}),
+  } : null;
+
+  const ibmContext = (hedgingDensity !== null || cognitiveMarkers !== null) ? {
+    note: "These are measured from the transcript. Reference specific counts in coaching when relevant.",
+    ...(hedgingDensity !== null     ? { hedging_per_100_words: round1(hedgingDensity), hedging_note: hedgingDensity >= 4.0 ? "above threshold — weakens ownership language" : "within normal range" } : {}),
+    ...(cognitiveMarkers !== null   ? { cognitive_complexity_markers: cognitiveMarkers, cognitive_note: cognitiveMarkers === 0 ? "no tradeoff/reasoning language detected" : cognitiveMarkers >= 3 ? "strong reasoning depth" : "some analytical depth present" } : {}),
+    ...(behavioralPhrases !== null  ? { behavioral_ownership_phrases: behavioralPhrases } : {}),
+    ...(fragmentationRatio !== null ? { fragmentation_ratio: round1(fragmentationRatio), fragmentation_note: fragmentationRatio > 0.35 ? "high — answer structure is fragmented" : "acceptable" } : {}),
+  } : null;
+
   return JSON.stringify(
     {
       framework,
@@ -710,6 +758,8 @@ function buildUserMessage(args: {
         fillers_per_100_words: round1(fillerStats.fillersPer100Words),
       },
       delivery_metrics: deliveryMetrics ?? null,
+      ...(acousticContext ? { acoustic_signals: acousticContext } : {}),
+      ...(ibmContext ? { language_signals: ibmContext } : {}),
       ...(presenceSignals ? { presence_signals: presenceSignals } : {}),
       ...profileContext,
       grading_instructions: {
@@ -1057,9 +1107,9 @@ function buildSchema(framework: EvaluationFramework) {
 
 function normalizeBaseFeedback(json: any): BaseFeedbackJSON {
   return {
-    score: toScore1dp(json.score, 5.8, 1, 10),
-    communication_score: toScore1dp(json.communication_score, 5.8, 1, 10),
-    confidence_score: toScore1dp(json.confidence_score, 5.8, 1, 10),
+    score: toScore1dp(json.score, 5.0, 1, 10),
+    communication_score: toScore1dp(json.communication_score, 5.0, 1, 10),
+    confidence_score: toScore1dp(json.confidence_score, 5.0, 1, 10),
     communication_evidence: ensureStringArray(json.communication_evidence, 2, 4, [
       "The answer had some structure but could be easier to follow.",
       "Clearer signposting would improve flow.",
@@ -1073,10 +1123,10 @@ function normalizeBaseFeedback(json: any): BaseFeedbackJSON {
       : "Confidence evidence was limited.",
     relevance: {
       answered_question: Boolean(json?.relevance?.answered_question),
-      relevance_score: toScore1dp(json?.relevance?.relevance_score, 5.8, 1, 10),
-      directness_score: toScore1dp(json?.relevance?.directness_score, 5.8, 1, 10),
-      completeness_score: toScore1dp(json?.relevance?.completeness_score, 5.8, 1, 10),
-      off_topic_score: toScore1dp(json?.relevance?.off_topic_score, 5.8, 1, 10),
+      relevance_score: toScore1dp(json?.relevance?.relevance_score, 5.0, 1, 10),
+      directness_score: toScore1dp(json?.relevance?.directness_score, 5.0, 1, 10),
+      completeness_score: toScore1dp(json?.relevance?.completeness_score, 5.0, 1, 10),
+      off_topic_score: toScore1dp(json?.relevance?.off_topic_score, 5.0, 1, 10),
       missed_parts: ensureStringArray(json?.relevance?.missed_parts, 0, 6),
       relevance_explanation: isNonEmptyString(json?.relevance?.relevance_explanation)
         ? json.relevance.relevance_explanation.trim()
@@ -1297,7 +1347,8 @@ function computeHeadlineScore(
 
   const penalty = deliveryPenalty(deliveryMetrics, fillerStats);
 
-  let raw = 5.8;
+  // raw is always overwritten below — no default seed
+  let raw: number;
 
   if (framework === "star") {
     const n = normalized as StarFeedbackJSON;
@@ -1311,16 +1362,7 @@ function computeHeadlineScore(
       deliveryAvg * 0.14 -
       penalty;
 
-    let capped = raw;
-
-    if (!n.relevance.answered_question) capped = Math.min(capped, 5.8);
-    if (n.relevance.completeness_score < 5.8) capped = Math.min(capped, 6.1);
-    if (starAvg < 6.0) capped = Math.min(capped, 6.4);
-    if (n.star.result < 5.5) capped = Math.min(capped, 7.7);
-    if (n.star.action < 5.8) capped = Math.min(capped, 6.8);
-    if (n.star_missing.length >= 2) capped = Math.min(capped, 6.5);
-
-    return round1(clamp(capped, 1, 10));
+    return round1(clamp(raw, 1, 10));
   }
 
   if (framework === "technical_explanation") {
@@ -1339,15 +1381,7 @@ function computeHeadlineScore(
       deliveryAvg * 0.14 -
       penalty;
 
-    let capped = raw;
-
-    if (!n.relevance.answered_question) capped = Math.min(capped, 5.8);
-    if (n.relevance.completeness_score < 5.8) capped = Math.min(capped, 6.2);
-    if (n.technical_explanation.depth < 5.8) capped = Math.min(capped, 6.8);
-    if (n.technical_explanation.technical_accuracy < 6.0) capped = Math.min(capped, 6.6);
-    if (n.technical_explanation.practical_reasoning < 5.8) capped = Math.min(capped, 6.9);
-
-    return round1(clamp(capped, 1, 10));
+    return round1(clamp(raw, 1, 10));
   }
 
   if (framework === "public_speaking") {
@@ -1359,12 +1393,7 @@ function computeHeadlineScore(
 
     raw = psAvg * 0.72 + deliveryAvg * 0.28 - penalty;
 
-    let capped = raw;
-    if (ps.hook_impact < 4.5) capped = Math.min(capped, 6.0);
-    if (ps.structure < 5.0) capped = Math.min(capped, 6.5);
-    if (ps.vocal_variety < 4.5) capped = Math.min(capped, 7.0);
-
-    return round1(clamp(capped, 1, 10));
+    return round1(clamp(raw, 1, 10));
   }
 
   if (framework === "networking_pitch") {
@@ -1376,12 +1405,7 @@ function computeHeadlineScore(
 
     raw = npAvg * 0.75 + deliveryAvg * 0.25 - penalty;
 
-    let capped = raw;
-    if (np.clarity_of_ask < 4.5) capped = Math.min(capped, 5.8);
-    if (np.hook_strength < 4.5) capped = Math.min(capped, 6.2);
-    if (np.memorability < 4.5) capped = Math.min(capped, 6.8);
-
-    return round1(clamp(capped, 1, 10));
+    return round1(clamp(raw, 1, 10));
   }
 
   const n = normalized as ExperienceFeedbackJSON;
@@ -1399,15 +1423,7 @@ function computeHeadlineScore(
     deliveryAvg * 0.14 -
     penalty;
 
-  let capped = raw;
-
-  if (!n.relevance.answered_question) capped = Math.min(capped, 5.8);
-  if (n.relevance.completeness_score < 5.8) capped = Math.min(capped, 6.2);
-  if (n.experience_depth.specificity < 5.8) capped = Math.min(capped, 6.6);
-  if (n.experience_depth.example_quality < 5.8) capped = Math.min(capped, 6.8);
-  if (n.experience_depth.business_impact < 5.5) capped = Math.min(capped, 7.2);
-
-  return round1(clamp(capped, 1, 10));
+  return round1(clamp(raw, 1, 10));
 }
 
 function applyDeterministicCalibration(
@@ -1420,8 +1436,8 @@ function applyDeterministicCalibration(
   return {
     ...normalized,
     score,
-    communication_score: toScore1dp(normalized.communication_score, 5.8, 1, 10),
-    confidence_score: toScore1dp(normalized.confidence_score, 5.8, 1, 10),
+    communication_score: toScore1dp(normalized.communication_score, 5.0, 1, 10),
+    confidence_score: toScore1dp(normalized.confidence_score, 5.0, 1, 10),
   };
 }
 

@@ -106,7 +106,7 @@ function GameCard({
     <div style={{
       background: "var(--card-bg)",
       border: "1px solid var(--card-border)",
-      borderRadius: 16,
+      borderRadius: "var(--radius-xl)",
       padding: "20px 22px",
       display: "flex",
       flexDirection: "column",
@@ -114,7 +114,7 @@ function GameCard({
     }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
         <div style={{
-          width: 48, height: 48, borderRadius: 12,
+          width: 48, height: 48, borderRadius: "var(--radius-lg)",
           background: color + "15",
           border: `1px solid ${color}30`,
           display: "flex", alignItems: "center", justifyContent: "center",
@@ -139,7 +139,7 @@ function GameCard({
         {status.played ? (
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "8px 14px", borderRadius: 10,
+            padding: "8px 14px", borderRadius: "var(--radius-md)",
             background: "#10B98115", border: "1px solid #10B98130",
           }}>
             <span style={{ fontSize: 13, fontWeight: 800, color: "#10B981" }}>Played ✓</span>
@@ -150,7 +150,7 @@ function GameCard({
         ) : (
           <Link href={href} style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "8px 14px", borderRadius: 10,
+            padding: "8px 14px", borderRadius: "var(--radius-md)",
             background: color, color: "#fff",
             textDecoration: "none", fontWeight: 800, fontSize: 13,
           }}>
@@ -220,7 +220,7 @@ export default function GamesPage() {
           <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 1.2, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>
             Daily Games
           </div>
-          <h1 style={{ fontSize: 26, fontWeight: 950, color: "var(--text-primary)", margin: 0, letterSpacing: -0.5 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "var(--text-primary)", margin: 0, letterSpacing: -0.5 }}>
             Play Today&apos;s Games
           </h1>
           <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 6, lineHeight: 1.6 }}>
@@ -244,7 +244,7 @@ export default function GamesPage() {
         <div style={{
           background: "var(--card-bg)",
           border: "1px solid var(--card-border)",
-          borderRadius: 16,
+          borderRadius: "var(--radius-xl)",
           padding: "22px 24px",
         }}>
           <h2 style={{ fontSize: 16, fontWeight: 900, color: "var(--text-primary)", margin: "0 0 16px" }}>
@@ -253,7 +253,7 @@ export default function GamesPage() {
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "flex", gap: 14 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#8B5CF615", border: "1px solid #8B5CF630", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "#8B5CF615", border: "1px solid #8B5CF630", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Grid3x3 size={16} color="#8B5CF6" />
               </div>
               <div>
@@ -267,7 +267,7 @@ export default function GamesPage() {
             <div style={{ borderTop: "1px solid var(--card-border-soft)" }} />
 
             <div style={{ display: "flex", gap: 14 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#10B98115", border: "1px solid #10B98130", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "#10B98115", border: "1px solid #10B98130", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Type size={16} color="#10B981" />
               </div>
               <div>
@@ -281,7 +281,7 @@ export default function GamesPage() {
             <div style={{ borderTop: "1px solid var(--card-border-soft)" }} />
 
             <div style={{ display: "flex", gap: 14 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "#2563EB15", border: "1px solid #2563EB30", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "#2563EB15", border: "1px solid #2563EB30", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Briefcase size={16} color="#2563EB" />
               </div>
               <div>

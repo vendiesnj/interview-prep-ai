@@ -205,7 +205,7 @@ function GaugeBar({ label, value, max, color }: { label: string; value: number; 
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{label}</span>
-        <span style={{ fontSize: 13, fontWeight: 950, color }}>{formatCurrency(value)}</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color }}>{formatCurrency(value)}</span>
       </div>
       <div style={{ height: 8, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width 0.8s ease" }} />
@@ -249,7 +249,7 @@ function RetirementContent() {
       <PremiumShell title="Retirement Projection" subtitle="Your path to financial independence">
         <div style={{ maxWidth: 600, margin: "60px auto", textAlign: "center" }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>📊</div>
-          <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", marginBottom: 10 }}>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", marginBottom: 10 }}>
             Complete your career check-in first
           </div>
           <p style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 28 }}>
@@ -264,7 +264,7 @@ function RetirementContent() {
               background: "var(--accent)",
               color: "#fff",
               textDecoration: "none",
-              fontWeight: 950,
+              fontWeight: 800,
               fontSize: 15,
             }}
           >
@@ -313,7 +313,7 @@ function RetirementContent() {
               onClick={() => setAggressive(agg)}
               style={{
                 padding: "6px 16px",
-                borderRadius: 8,
+                borderRadius: "var(--radius-sm)",
                 border: "1px solid var(--card-border)",
                 background: aggressive === agg ? VIVID : "var(--card-bg)",
                 color: aggressive === agg ? "#fff" : "var(--text-primary)",
@@ -344,7 +344,7 @@ function RetirementContent() {
             <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 0.8, color: VIVID, textTransform: "uppercase", marginBottom: 8 }}>
               Projected nest egg at {proj.retirementAge}
             </div>
-            <div style={{ fontSize: 56, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1, marginBottom: 6 }}>
+            <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1, marginBottom: 6 }}>
               {nestLabel}
             </div>
             <div style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
@@ -356,15 +356,15 @@ function RetirementContent() {
           <div style={{ flex: "1 1 220px", display: "grid", gap: 14 }}>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Current age (est.)</div>
-              <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{proj.currentAge}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{proj.currentAge}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Monthly 401k contribution</div>
-              <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{formatCurrency(proj.monthly401k)}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{formatCurrency(proj.monthly401k)}</div>
             </div>
             <div>
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.6, textTransform: "uppercase", marginBottom: 2 }}>Annual salary (est.)</div>
-              <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{formatCurrency(proj.annualSalary)}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{formatCurrency(proj.annualSalary)}</div>
             </div>
           </div>
         </div>
@@ -378,19 +378,19 @@ function RetirementContent() {
           boxShadow: "var(--shadow-card-soft)",
           marginBottom: 24,
         }}>
-          <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)", marginBottom: 18 }}>Where you stand today</div>
+          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 18 }}>Where you stand today</div>
           <GaugeBar label="Current savings" value={proj.currentSavings} max={proj.projectedNest} color={VIVID} />
           <GaugeBar label="Projected nest egg" value={proj.projectedNest} max={proj.projectedNest} color={VIVID} />
           {proj.studentDebt > 0 && (
             <GaugeBar label="Student loan balance" value={proj.studentDebt} max={Math.max(proj.projectedNest, proj.studentDebt * 2)} color="#F59E0B" />
           )}
-          <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: 10, background: "var(--accent-soft)", fontSize: 13, color: "var(--accent)", fontWeight: 800 }}>
+          <div style={{ marginTop: 14, padding: "12px 16px", borderRadius: "var(--radius-md)", background: "var(--accent-soft)", fontSize: 13, color: "var(--accent)", fontWeight: 800 }}>
             You're {(currentPct).toFixed(1)}% of the way to your projected retirement goal. Small actions now compound dramatically over time.
           </div>
         </div>
 
         {/* Fast-track levers */}
-        <div style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary)", marginBottom: 14 }}>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)", marginBottom: 14 }}>
           Fast-track levers 🚀
         </div>
         <div style={{ display: "grid", gap: 14, marginBottom: 36 }}>
@@ -410,7 +410,7 @@ function RetirementContent() {
             >
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                  <div style={{ fontSize: 15, fontWeight: 950, color: "var(--text-primary)" }}>{lever.title}</div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{lever.title}</div>
                   <span style={{
                     fontSize: 10,
                     fontWeight: 900,
@@ -418,7 +418,7 @@ function RetirementContent() {
                     color: lever.tagColor,
                     background: lever.tagColor + "18",
                     padding: "2px 8px",
-                    borderRadius: 6,
+                    borderRadius: "var(--radius-xs)",
                     textTransform: "uppercase",
                     whiteSpace: "nowrap",
                   }}>{lever.tag}</span>
@@ -427,14 +427,14 @@ function RetirementContent() {
               </div>
               <div style={{ flexShrink: 0, textAlign: "right" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, color: "var(--text-muted)", letterSpacing: 0.5, textTransform: "uppercase" }}>Impact</div>
-                <div style={{ fontSize: 14, fontWeight: 950, color: lever.tagColor, marginTop: 2 }}>{lever.impact}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: lever.tagColor, marginTop: 2 }}>{lever.impact}</div>
               </div>
             </div>
           ))}
         </div>
 
         {/* Disclaimer */}
-        <div style={{ padding: "16px 20px", borderRadius: 12, background: "var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
+        <div style={{ padding: "16px 20px", borderRadius: "var(--radius-lg)", background: "var(--card-border-soft)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
           <strong>Disclaimer:</strong> These projections are for educational purposes only. They use simplified compound interest models and midpoint estimates from salary/savings ranges. Actual results will differ based on investment allocation, market performance, inflation, tax changes, and life events. Consult a licensed financial advisor for personalized advice.
         </div>
       </div>

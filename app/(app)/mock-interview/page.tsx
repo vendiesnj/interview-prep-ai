@@ -200,7 +200,7 @@ function SetupScreen({
   }
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "10px 14px", borderRadius: 10, fontSize: 14, fontWeight: 500,
+    width: "100%", padding: "10px 14px", borderRadius: "var(--radius-md)", fontSize: 14, fontWeight: 500,
     border: "1px solid var(--card-border)", background: "var(--input-bg)",
     color: "var(--text-primary)", outline: "none", boxSizing: "border-box",
   };
@@ -224,7 +224,7 @@ function SetupScreen({
         </p>
       </div>
 
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, marginBottom: 16, display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: 24, marginBottom: 16, display: "flex", flexDirection: "column", gap: 20 }}>
 
         {/* ── Role Selection ── */}
         <div>
@@ -234,7 +234,7 @@ function SetupScreen({
 
           {/* Selected role chip */}
           {(selectedOcc || customRole) ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, border: "1px solid var(--accent)", background: "var(--accent-soft)", marginBottom: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent)", background: "var(--accent-soft)", marginBottom: 8 }}>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "var(--accent)" }}>
                   {roleLabel}
@@ -292,7 +292,7 @@ function SetupScreen({
                 />
               </div>
               {showSearch && filteredOccs.length > 0 && (
-                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 50, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 10, overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+                <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, zIndex: 50, background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-md)", overflow: "hidden", boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
                   {filteredOccs.map(occ => (
                     <button
                       key={occ.id}
@@ -366,7 +366,7 @@ function SetupScreen({
                 key={n}
                 onClick={() => setNumQuestions(n)}
                 style={{
-                  flex: 1, padding: "10px 0", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  flex: 1, padding: "10px 0", borderRadius: "var(--radius-md)", fontSize: 14, fontWeight: 700,
                   border: `1px solid ${numQuestions === n ? "var(--accent)" : "var(--card-border)"}`,
                   background: numQuestions === n ? "var(--accent-soft)" : "transparent",
                   color: numQuestions === n ? "var(--accent)" : "var(--text-muted)",
@@ -393,7 +393,7 @@ function SetupScreen({
                 key={t}
                 onClick={() => toggleType(t)}
                 style={{
-                  flex: 1, padding: "9px 0", borderRadius: 10, fontSize: 13, fontWeight: 600,
+                  flex: 1, padding: "9px 0", borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 600,
                   border: `1px solid ${types.includes(t) ? "var(--accent)" : "var(--card-border)"}`,
                   background: types.includes(t) ? "var(--accent-soft)" : "transparent",
                   color: types.includes(t) ? "var(--accent)" : "var(--text-muted)",
@@ -412,7 +412,7 @@ function SetupScreen({
       </div>
 
       {/* What to expect */}
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 12, padding: "14px 18px", marginBottom: 24 }}>
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: "14px 18px", marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 10 }}>What to expect</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
           {[
@@ -440,7 +440,7 @@ function SetupScreen({
         })}
         disabled={loadingCompetency}
         style={{
-          width: "100%", padding: "15px 0", borderRadius: 12,
+          width: "100%", padding: "15px 0", borderRadius: "var(--radius-lg)",
           background: loadingCompetency ? "var(--card-border)" : "linear-gradient(135deg, var(--accent), #0EA5E9)",
           color: "#fff", fontWeight: 800, fontSize: 16, border: "none",
           cursor: loadingCompetency ? "not-allowed" : "pointer", letterSpacing: -0.3,
@@ -480,7 +480,7 @@ function ResultsScreen({
   return (
     <div style={{ maxWidth: 860, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Header */}
-      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 28 }}>
+      <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: 28 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
           <div>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
@@ -502,7 +502,7 @@ function ResultsScreen({
               <button
                 onClick={onSave}
                 style={{
-                  padding: "9px 20px", borderRadius: 10, background: "var(--accent)",
+                  padding: "9px 20px", borderRadius: "var(--radius-md)", background: "var(--accent)",
                   color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer",
                 }}
               >
@@ -514,7 +514,7 @@ function ResultsScreen({
             <button
               onClick={onRetry}
               style={{
-                padding: "9px 20px", borderRadius: 10, background: "transparent",
+                padding: "9px 20px", borderRadius: "var(--radius-md)", background: "transparent",
                 color: "var(--text-muted)", fontWeight: 600, fontSize: 13,
                 border: "1px solid var(--card-border)", cursor: "pointer",
               }}
@@ -525,7 +525,7 @@ function ResultsScreen({
         </div>
 
         {/* Coaching summary */}
-        <div style={{ marginTop: 20, padding: "14px 18px", borderRadius: 10, background: "var(--card-bg-strong)", borderLeft: "3px solid var(--accent)" }}>
+        <div style={{ marginTop: 20, padding: "14px 18px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", borderLeft: "3px solid var(--accent)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 6 }}>Coaching Summary</div>
           <div style={{ fontSize: 14, color: "var(--text-primary)", lineHeight: 1.7 }}>{score.coachingSummary}</div>
         </div>
@@ -580,7 +580,7 @@ function ResultsScreen({
               const v = score.starScores[k];
               const c = v >= 70 ? "#10B981" : v >= 50 ? "#F59E0B" : "#EF4444";
               return (
-                <div key={k} style={{ textAlign: "center", padding: "14px 10px", borderRadius: 10, background: "var(--card-bg-strong)", border: `1px solid ${c}22` }}>
+                <div key={k} style={{ textAlign: "center", padding: "14px 10px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: `1px solid ${c}22` }}>
                   <div style={{ fontSize: 24, fontWeight: 900, color: c, lineHeight: 1 }}>{v}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, textTransform: "capitalize", fontWeight: 600 }}>{k}</div>
                 </div>
@@ -644,11 +644,11 @@ function ResultsScreen({
 
           {/* Opening / closing notes */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--card-bg-strong)", borderLeft: "2px solid #10B981" }}>
+            <div style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", borderLeft: "2px solid #10B981" }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: "#10B981", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Opening</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{score.interviewArc.openingNote}</div>
             </div>
-            <div style={{ padding: "10px 14px", borderRadius: 10, background: "var(--card-bg-strong)", borderLeft: "2px solid var(--accent)" }}>
+            <div style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", borderLeft: "2px solid var(--accent)" }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Closing</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{score.interviewArc.closingNote}</div>
             </div>
@@ -667,7 +667,7 @@ function ResultsScreen({
               return (
                 <div key={i} style={{ padding: "14px 0", borderBottom: i < score.questionBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 14, alignItems: "start", marginBottom: hasSigs ? 10 : 0 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 10, background: `${c}15`, border: `1px solid ${c}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: `${c}15`, border: `1px solid ${c}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 15, fontWeight: 900, color: c }}>{qb.score}</span>
                     </div>
                     <div>
@@ -1096,13 +1096,13 @@ function MockInterviewPageInner() {
         <style>{`@keyframes mockPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }`}</style>
         {/* Add-to-targets banner */}
         {addTargetOcc && (
-          <div style={{ maxWidth: 860, margin: "0 auto 16px", padding: "12px 18px", borderRadius: 12, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ maxWidth: 860, margin: "0 auto 16px", padding: "12px 18px", borderRadius: "var(--radius-lg)", background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ flex: 1, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.5 }}>
               <strong>Track your progress for {addTargetOcc.title}.</strong> Add it to your Role Prep targets so your readiness score updates after each session.
             </div>
             <button
               onClick={addToTargets}
-              style={{ padding: "8px 16px", borderRadius: 8, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", whiteSpace: "nowrap" }}
+              style={{ padding: "8px 16px", borderRadius: "var(--radius-sm)", background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", whiteSpace: "nowrap" }}
             >
               Add to targets →
             </button>
@@ -1165,7 +1165,7 @@ function MockInterviewPageInner() {
           </div>
 
           {/* Question card */}
-          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 28, minHeight: 140 }}>
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: 28, minHeight: 140 }}>
             {isFollowup && (
               <div style={{ marginBottom: 10, display: "inline-block", fontSize: 11, fontWeight: 700, color: "#F59E0B", background: "rgba(245,158,11,0.12)", padding: "3px 10px", borderRadius: 99, border: "1px solid rgba(245,158,11,0.25)" }}>
                 Follow-up
@@ -1242,7 +1242,7 @@ function MockInterviewPageInner() {
                 <button
                   onClick={() => setPhase("question")}
                   style={{
-                    padding: "12px 32px", borderRadius: 12,
+                    padding: "12px 32px", borderRadius: "var(--radius-lg)",
                     background: "linear-gradient(135deg, var(--accent), #0EA5E9)",
                     color: "#fff", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer",
                   }}
@@ -1298,7 +1298,7 @@ function MockInterviewPageInner() {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {conversationLog.map((turn, i) => (
                   <div key={i} style={{
-                    padding: "9px 11px", borderRadius: 8,
+                    padding: "9px 11px", borderRadius: "var(--radius-sm)",
                     background: turn.speaker === "interviewer" ? "var(--card-bg-strong)" : "var(--accent-soft)",
                     borderLeft: `2px solid ${turn.speaker === "interviewer" ? "var(--card-border)" : "var(--accent)"}`,
                   }}>

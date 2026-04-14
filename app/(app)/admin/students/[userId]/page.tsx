@@ -133,7 +133,7 @@ function StatCard({
         style={{
           marginTop: 10,
           fontSize: value.length > 8 ? 18 : 30,
-          fontWeight: 950,
+          fontWeight: 800,
           letterSpacing: -0.5,
           color: "var(--text-primary)",
           lineHeight: 1.2,
@@ -395,7 +395,7 @@ const trendLabel =
             style={{
               marginTop: 8,
               fontSize: 34,
-              fontWeight: 950,
+              fontWeight: 800,
               letterSpacing: -0.8,
               color: "var(--text-primary)",
               lineHeight: 1.05,
@@ -515,7 +515,7 @@ const trendLabel =
               <div
                 style={{
                   fontSize: 18,
-                  fontWeight: 950,
+                  fontWeight: 800,
                   color: "var(--text-primary)",
                   letterSpacing: -0.25,
                   marginBottom: 12,
@@ -600,7 +600,7 @@ const trendLabel =
                 Delivery Archetype
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <div style={{ fontSize: 22, fontWeight: 950, letterSpacing: -0.3, color: latestColor }}>
+                <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: -0.3, color: latestColor }}>
                   {latestEntry.archetype}
                 </div>
                 <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>current</div>
@@ -670,7 +670,7 @@ const trendLabel =
           <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.7, color: "var(--accent)", textTransform: "uppercase", marginBottom: 6 }}>
             Archetype Reference
           </div>
-          <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.25, marginBottom: 16 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.25, marginBottom: 16 }}>
             What each archetype means
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
@@ -724,7 +724,7 @@ const trendLabel =
   </GlowCard>
 )}
 <GlowCard padding={20} radius={22}>
-  <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>
     Cohort Distribution
   </div>
 
@@ -772,7 +772,7 @@ const trendLabel =
 </GlowCard>
 
           <GlowCard padding={18} radius={22}>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>
               Voice Metrics
             </div>
             <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
@@ -798,7 +798,7 @@ const trendLabel =
           </GlowCard>
 
           <GlowCard padding={18} radius={22}>
-  <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>
+  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>
     Student Summary
   </div>
 
@@ -861,7 +861,7 @@ const trendLabel =
           <div
             style={{
               fontSize: 18,
-              fontWeight: 950,
+              fontWeight: 800,
               color: "var(--text-primary)",
             }}
           >

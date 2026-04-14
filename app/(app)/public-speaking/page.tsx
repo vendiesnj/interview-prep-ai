@@ -78,7 +78,7 @@ function ScoreBar({ label, value, color }: { label: string; value: number; color
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
         <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{label}</span>
-        <span style={{ fontSize: 13, fontWeight: 950, color }}>{value.toFixed(1)}/10</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color }}>{value.toFixed(1)}/10</span>
       </div>
       <div style={{ height: 7, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
         <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99, transition: "width 0.6s ease" }} />
@@ -127,7 +127,7 @@ function WaveformCanvas({ analyserRef }: { analyserRef: React.RefObject<Analyser
       ref={canvasRef}
       width={500}
       height={60}
-      style={{ width: "100%", height: 60, borderRadius: 10, background: "var(--input-bg)", border: "1px solid var(--card-border)" }}
+      style={{ width: "100%", height: 60, borderRadius: "var(--radius-md)", background: "var(--input-bg)", border: "1px solid var(--card-border)" }}
     />
   );
 }
@@ -329,7 +329,7 @@ export default function PublicSpeakingPage() {
         </Link>
 
         {error && (
-          <div style={{ marginBottom: 20, padding: "14px 18px", borderRadius: 12, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, fontWeight: 800 }}>
+          <div style={{ marginBottom: 20, padding: "14px 18px", borderRadius: "var(--radius-lg)", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", color: "#EF4444", fontSize: 14, fontWeight: 800 }}>
             {error}
           </div>
         )}
@@ -387,7 +387,7 @@ export default function PublicSpeakingPage() {
                   placeholder="Write your own speech topic or scenario…"
                   value={customPrompt}
                   onChange={(e) => { setCustomPrompt(e.target.value); setUseCustom(true); if (e.target.value) setStage("ready"); }}
-                  style={{ width: "100%", minHeight: 72, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--input-bg)", color: "var(--text-primary)", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box" }}
+                  style={{ width: "100%", minHeight: 72, padding: "10px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--input-bg)", color: "var(--text-primary)", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box" }}
                 />
               </div>
             </div>
@@ -406,13 +406,13 @@ export default function PublicSpeakingPage() {
             {stage === "ready" && activePrompt && (
               <>
                 {/* Webcam opt-in */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 12, border: `1px solid ${webcamEnabled ? "rgba(16,185,129,0.4)" : "var(--card-border-soft)"}`, background: webcamEnabled ? "rgba(16,185,129,0.06)" : "var(--card-bg)", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: "var(--radius-lg)", border: `1px solid ${webcamEnabled ? "rgba(16,185,129,0.4)" : "var(--card-border-soft)"}`, background: webcamEnabled ? "rgba(16,185,129,0.06)" : "var(--card-bg)", marginBottom: 12 }}>
                   <button
                     type="button"
                     onClick={() => setWebcamEnabled((v) => !v)}
-                    style={{ width: 36, height: 20, borderRadius: 10, border: "none", background: webcamEnabled ? "#10B981" : "var(--card-border)", position: "relative", cursor: "pointer", flexShrink: 0, transition: "background 150ms" }}
+                    style={{ width: 36, height: 20, borderRadius: "var(--radius-md)", border: "none", background: webcamEnabled ? "#10B981" : "var(--card-border)", position: "relative", cursor: "pointer", flexShrink: 0, transition: "background 150ms" }}
                   >
-                    <span style={{ position: "absolute", top: 2, left: webcamEnabled ? 18 : 2, width: 16, height: 16, borderRadius: 8, background: "#fff", transition: "left 150ms" }} />
+                    <span style={{ position: "absolute", top: 2, left: webcamEnabled ? 18 : 2, width: 16, height: 16, borderRadius: "var(--radius-sm)", background: "#fff", transition: "left 150ms" }} />
                   </button>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: webcamEnabled ? "#10B981" : "var(--text-muted)" }}>
@@ -426,7 +426,7 @@ export default function PublicSpeakingPage() {
 
                 <button
                   onClick={startRecording}
-                  style={{ width: "100%", padding: "18px", borderRadius: "var(--radius-xl)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 950, fontSize: 16, cursor: "pointer", boxShadow: "var(--shadow-glow)" }}
+                  style={{ width: "100%", padding: "18px", borderRadius: "var(--radius-xl)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: "var(--shadow-glow)" }}
                 >
                   🎙 Start Recording
                 </button>
@@ -453,14 +453,14 @@ export default function PublicSpeakingPage() {
 
             <WaveformCanvas analyserRef={analyserRef} />
 
-            <div style={{ fontSize: 36, fontWeight: 950, color: "var(--text-primary)", letterSpacing: 1, fontVariantNumeric: "tabular-nums" }}>
+            <div style={{ fontSize: 36, fontWeight: 800, color: "var(--text-primary)", letterSpacing: 1, fontVariantNumeric: "tabular-nums" }}>
               {formatTime(elapsed)}
             </div>
             <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Aim for 60–180 seconds</div>
 
             <button
               onClick={stopAndProcess}
-              style={{ padding: "16px 40px", borderRadius: "var(--radius-xl)", border: "none", background: "#EF4444", color: "#fff", fontWeight: 950, fontSize: 15, cursor: "pointer" }}
+              style={{ padding: "16px 40px", borderRadius: "var(--radius-xl)", border: "none", background: "#EF4444", color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer" }}
             >
               ⏹ Stop & Analyze
             </button>
@@ -471,7 +471,7 @@ export default function PublicSpeakingPage() {
         {stage === "processing" && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, paddingTop: 60 }}>
             <div style={{ fontSize: 40 }}>🎙️</div>
-            <div style={{ fontSize: 18, fontWeight: 950, color: "var(--text-primary)" }}>Analyzing your delivery</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "var(--text-primary)" }}>Analyzing your delivery</div>
             <div style={{ fontSize: 14, color: "var(--text-muted)" }}>{processingStep}</div>
             <div style={{ width: 200, height: 4, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
               <div style={{ height: "100%", width: "60%", background: "var(--accent)", borderRadius: 99, animation: "pulse 1.5s ease-in-out infinite" }} />
@@ -486,12 +486,12 @@ export default function PublicSpeakingPage() {
             <div style={{ padding: "28px 32px", borderRadius: "var(--radius-xl)", border: `1px solid ${archetypeCol}`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
               <div style={{ flex: "1 1 200px" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Overall score</div>
-                <div style={{ fontSize: 56, fontWeight: 950, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
+                <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
               </div>
               <div style={{ flex: "1 1 220px" }}>
                 <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Delivery archetype</div>
-                <div style={{ fontSize: 22, fontWeight: 950, color: archetypeCol, marginBottom: 8 }}>{archetype}</div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: archetypeCol + "12", borderRadius: 10, borderLeft: `3px solid ${archetypeCol}` }}>
+                <div style={{ fontSize: 22, fontWeight: 800, color: archetypeCol, marginBottom: 8 }}>{archetype}</div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: archetypeCol + "12", borderRadius: "var(--radius-md)", borderLeft: `3px solid ${archetypeCol}` }}>
                   <strong style={{ color: archetypeCol }}>Your lever:</strong> {feedback.archetype_coaching}
                 </div>
               </div>
@@ -500,7 +500,7 @@ export default function PublicSpeakingPage() {
             {/* Dimension scores */}
             {ps && (
               <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)", marginBottom: 16 }}>Delivery dimensions</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>Delivery dimensions</div>
                 <ScoreBar label="Hook & Opening" value={ps.hook_impact} color={archetypeCol} />
                 <ScoreBar label="Structure (Intro → Body → Close)" value={ps.structure} color={archetypeCol} />
                 <ScoreBar label="Vocal Variety (Pitch & Pace)" value={ps.vocal_variety} color={archetypeCol} />
@@ -514,7 +514,7 @@ export default function PublicSpeakingPage() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
               {feedback.speaking_strengths?.length > 0 && (
                 <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 950, color: "#10B981", marginBottom: 12 }}>What worked</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#10B981", marginBottom: 12 }}>What worked</div>
                   <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
                     {feedback.speaking_strengths.map((s: string, i: number) => (
                       <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
@@ -524,7 +524,7 @@ export default function PublicSpeakingPage() {
               )}
               {feedback.speaking_improvements?.length > 0 && (
                 <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 950, color: "#F59E0B", marginBottom: 12 }}>To improve</div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 12 }}>To improve</div>
                   <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
                     {feedback.speaking_improvements.map((s: string, i: number) => (
                       <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
@@ -537,7 +537,7 @@ export default function PublicSpeakingPage() {
             {/* Better answer */}
             {feedback.better_answer && (
               <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 13, fontWeight: 950, color: "var(--accent)", marginBottom: 10 }}>A stronger version would sound like this</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--accent)", marginBottom: 10 }}>A stronger version would sound like this</div>
                 <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
               </div>
             )}
@@ -554,7 +554,7 @@ export default function PublicSpeakingPage() {
               return (
                 <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                    <div style={{ fontSize: 14, fontWeight: 950, color: "var(--text-primary)" }}>📷 Visual Delivery · Webcam Analysis</div>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>📷 Visual Delivery · Webcam Analysis</div>
                     {hasData && <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{face!.framesAnalyzed} frames · {face!.durationSeconds}s</div>}
                   </div>
                   <div style={{ marginBottom: 16 }} />
@@ -576,7 +576,7 @@ export default function PublicSpeakingPage() {
                     );
                   })}
                   {!hasData && (
-                    <div style={{ marginTop: 4, padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                    <div style={{ marginTop: 4, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                       Enable webcam before your next recording to get eye contact, expressiveness, and head stability scores.
                     </div>
                   )}
@@ -596,7 +596,7 @@ export default function PublicSpeakingPage() {
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button
                 onClick={reset}
-                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent)", color: "#fff", fontWeight: 950, fontSize: 14, cursor: "pointer" }}
+                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
               >
                 Practice again →
               </button>

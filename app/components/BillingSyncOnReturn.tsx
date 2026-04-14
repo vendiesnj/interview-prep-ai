@@ -60,7 +60,7 @@ export default function BillingSyncOnReturn() {
       style={{
         marginTop: 14,
         padding: 12,
-        borderRadius: 12,
+        borderRadius: "var(--radius-lg)",
         border: "1px solid rgba(34,211,238,0.35)",
         background: "rgba(34,211,238,0.10)",
         color: "#A5F3FC",

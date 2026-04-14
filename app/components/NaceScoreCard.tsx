@@ -22,7 +22,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
           <div
             key={s.key}
             style={{
-              borderRadius: 12,
+              borderRadius: "var(--radius-lg)",
               border: "1px solid var(--card-border-soft)",
               borderLeft: "3px solid var(--accent)",
               background: "var(--card-bg)",
@@ -46,7 +46,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                 style={{
                   width: 40,
                   height: 40,
-                  borderRadius: 10,
+                  borderRadius: "var(--radius-md)",
                   background: s.score !== null ? qualityColor + "18" : "var(--card-bg-strong)",
                   border: `1px solid ${s.score !== null ? qualityColor + "40" : "var(--card-border)"}`,
                   display: "flex",
@@ -177,7 +177,7 @@ export default function NaceScoreCard({ scores }: { scores: NaceScore[] }) {
                 )}
 
                 {/* Signal quality note */}
-                <div style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                <div style={{ padding: "8px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
                   <div style={{
                     fontSize: 10,
                     fontWeight: 800,

@@ -279,7 +279,7 @@ export default function InterviewActivityTracker() {
           <div
             style={{
               fontSize: 17,
-              fontWeight: 950,
+              fontWeight: 800,
               color: "var(--text-primary)",
               letterSpacing: -0.2,
             }}
@@ -307,7 +307,7 @@ export default function InterviewActivityTracker() {
               border: "none",
               background: "var(--accent)",
               color: "#fff",
-              fontWeight: 950,
+              fontWeight: 800,
               fontSize: 13,
               cursor: "pointer",
               whiteSpace: "nowrap",
@@ -332,7 +332,7 @@ export default function InterviewActivityTracker() {
           <div
             style={{
               fontSize: 14,
-              fontWeight: 950,
+              fontWeight: 800,
               color: "var(--text-primary)",
               marginBottom: 16,
             }}
@@ -360,7 +360,7 @@ export default function InterviewActivityTracker() {
                   border: "none",
                   background: addSubmitting ? "var(--card-border)" : "var(--accent)",
                   color: addSubmitting ? "var(--text-muted)" : "#fff",
-                  fontWeight: 950,
+                  fontWeight: 800,
                   fontSize: 14,
                   cursor: addSubmitting ? "not-allowed" : "pointer",
                   opacity: addSubmitting ? 0.7 : 1,
@@ -474,7 +474,7 @@ export default function InterviewActivityTracker() {
                   <div
                     style={{
                       fontSize: 13,
-                      fontWeight: 950,
+                      fontWeight: 800,
                       color: "var(--text-primary)",
                       marginBottom: 14,
                     }}
@@ -502,7 +502,7 @@ export default function InterviewActivityTracker() {
                           border: "none",
                           background: editSubmitting ? "var(--card-border)" : "var(--accent)",
                           color: editSubmitting ? "var(--text-muted)" : "#fff",
-                          fontWeight: 950,
+                          fontWeight: 800,
                           fontSize: 14,
                           cursor: editSubmitting ? "not-allowed" : "pointer",
                           opacity: editSubmitting ? 0.7 : 1,
@@ -622,7 +622,7 @@ function ActivityCard({
           <div
             style={{
               fontSize: 15,
-              fontWeight: 950,
+              fontWeight: 800,
               color: "var(--text-primary)",
               whiteSpace: "nowrap",
               overflow: "hidden",

@@ -56,7 +56,7 @@ function MiniCard({ icon: Icon, name, href, status, color, label }: MiniCardProp
       <div style={{
         background: "var(--card-bg)",
         border: `1px solid ${status.played ? color + "40" : "var(--card-border)"}`,
-        borderRadius: 12,
+        borderRadius: "var(--radius-lg)",
         padding: "10px 12px",
         display: "flex",
         alignItems: "center",

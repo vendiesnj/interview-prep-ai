@@ -105,7 +105,7 @@ function GaugeTile({
   return (
     <details
       style={{
-        borderRadius: 16,
+        borderRadius: "var(--radius-xl)",
         border: "1px solid var(--card-border-soft)",
         background: "var(--card-bg)",
         padding: 14,
@@ -337,7 +337,7 @@ function CollapsibleNoteCard({
     <div
       style={{
         marginTop: 16,
-        borderRadius: 16,
+        borderRadius: "var(--radius-xl)",
         border: "1px solid var(--card-border-soft)",
         background: "var(--card-bg)",
         overflow: "hidden",
@@ -2536,7 +2536,7 @@ return (
 
   <div style={{
     display: "inline-flex", alignItems: "center", gap: 6,
-    padding: "3px 10px", borderRadius: 6,
+    padding: "3px 10px", borderRadius: "var(--radius-xs)",
     background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)",
     fontSize: 11, fontWeight: 600, color: "#93C5FD", letterSpacing: 0.4,
     marginBottom: 14,
@@ -2568,7 +2568,7 @@ return (
       "Eye contact tracking",
     ].map(chip => (
       <span key={chip} style={{
-        padding: "4px 12px", borderRadius: 6,
+        padding: "4px 12px", borderRadius: "var(--radius-xs)",
         background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.10)",
         fontSize: 12, fontWeight: 500, color: "var(--text-muted)",
       }}>
@@ -2715,7 +2715,7 @@ return (
 
 {/* ===== SECTION: Target Role Quick-Start ===== */}
 {practiceTargetRoles.length > 0 && (
-  <div style={{ marginTop: 24, padding: "14px 16px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+  <div style={{ marginTop: 24, padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
     <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
       Quick-start from your target roles
     </div>
@@ -3714,7 +3714,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
   style={{
     height: 30,
     padding: "0 10px",
-    borderRadius: 10,
+    borderRadius: "var(--radius-md)",
     border: "none",
     background: "transparent",
     color: "var(--text-muted)",
@@ -3738,7 +3738,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
       style={{
         width: 36,
         height: 20,
-        borderRadius: 10,
+        borderRadius: "var(--radius-md)",
         border: "none",
         background: webcamEnabled ? "#10B981" : "var(--card-border)",
         position: "relative",
@@ -3753,7 +3753,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         left: webcamEnabled ? 18 : 2,
         width: 16,
         height: 16,
-        borderRadius: 8,
+        borderRadius: "var(--radius-sm)",
         background: "#fff",
         transition: "left 150ms",
       }} />
@@ -4199,7 +4199,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
         height={sparkH}
         viewBox={`0 0 ${sparkW} ${sparkH}`}
         style={{
-          borderRadius: 12,
+          borderRadius: "var(--radius-lg)",
           border: "1px solid var(--card-border-soft)",
           background:
             "radial-gradient(900px 420px at 15% -10%, var(--accent-soft), transparent 60%), var(--card-bg)",
@@ -4429,7 +4429,7 @@ onMouseLeave={(e) =>
               alignItems: "flex-start",
               gap: 16,
               padding: "14px 16px",
-              borderRadius: 16,
+              borderRadius: "var(--radius-xl)",
               border: "1px solid var(--card-border-soft)",
               background: "var(--card-bg)",
               marginBottom: 14,
@@ -4658,7 +4658,7 @@ onMouseLeave={(e) =>
             max={100}
             subtitle="Overall answer quality"
           >
-            <MetricBar label="Overall Score" value={overallScore100} max={100} />
+            <MetricBar label="Signal Score" value={overallScore100} max={100} />
           </GaugeTile>
         )}
       </div>

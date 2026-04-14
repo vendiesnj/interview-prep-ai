@@ -219,20 +219,20 @@ export default function TopNav() {
         {/* Mobile drawer */}
         {drawerOpen && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200 }}>
-            <div onClick={() => setDrawerOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+            <div onClick={() => setDrawerOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", cursor: "pointer" }} />
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "var(--card-bg)", borderTop: "1px solid var(--card-border-soft)", borderRadius: "20px 20px 0 0", padding: "20px 16px 40px", maxHeight: "80vh", overflowY: "auto" }}>
               <button onClick={() => setDrawerOpen(false)} style={{ position: "absolute", right: 16, top: 16, background: "transparent", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
                 <X size={20} />
               </button>
               <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 12 }}>More</div>
               {(isUniversity ? MOBILE_DRAWER_LINKS_UNIVERSITY : MOBILE_DRAWER_LINKS_CONSUMER).map((item) => (
-                <Link key={item.href} href={item.href} onClick={() => setDrawerOpen(false)} style={{ display: "flex", alignItems: "center", padding: "11px 16px", borderRadius: 12, textDecoration: "none", color: isActive(item.href) ? "var(--accent)" : "var(--text-primary)", background: isActive(item.href) ? "var(--accent-soft)" : "transparent", fontWeight: 800, fontSize: 14, marginBottom: 2 }}>
+                <Link key={item.href} href={item.href} onClick={() => setDrawerOpen(false)} style={{ display: "flex", alignItems: "center", padding: "11px 16px", borderRadius: "var(--radius-lg)", textDecoration: "none", color: isActive(item.href) ? "var(--accent)" : "var(--text-primary)", background: isActive(item.href) ? "var(--accent-soft)" : "transparent", fontWeight: 800, fontSize: 14, marginBottom: 2 }}>
                   {item.label}
                 </Link>
               ))}
               <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
                 {!isAdmin && !tenantName && <BillingSidebarButton collapsed={false} />}
-                <div style={{ borderRadius: 12, overflow: "hidden" }}><LogoutButton /></div>
+                <div style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}><LogoutButton /></div>
               </div>
             </div>
           </div>
@@ -342,7 +342,7 @@ export default function TopNav() {
                 key={item.href}
                 href={item.href}
                 style={{
-                  padding: "6px 12px", borderRadius: 6,
+                  padding: "6px 12px", borderRadius: "var(--radius-xs)",
                   fontSize: 12, fontWeight: active ? 800 : 600,
                   color: active ? "var(--accent)" : "var(--text-muted)",
                   background: active ? "var(--accent-soft)" : "transparent",

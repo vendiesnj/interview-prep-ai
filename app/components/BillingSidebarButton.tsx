@@ -59,11 +59,11 @@ export default function BillingSidebarButton({
       style={{
         textDecoration: "none",
         padding: collapsed ? "10px 6px" : "10px 12px",
-        borderRadius: 12,
+        borderRadius: "var(--radius-lg)",
         border: "1px solid var(--card-border)",
         background: "linear-gradient(90deg, rgba(99,102,241,0.35), rgba(34,211,238,0.22))",
         color: "var(--text-primary)",
-        fontWeight: 950,
+        fontWeight: 800,
         fontSize: 13,
         textAlign: "center",
         cursor: loading ? "not-allowed" : "pointer",

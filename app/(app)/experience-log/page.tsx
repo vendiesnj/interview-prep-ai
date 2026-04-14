@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import PremiumShell from "../../components/PremiumShell";
+import { ToastContainer, useToast } from "@/app/components/Toast";
 import {
   type ExperienceEntry,
   loadExperiences,
@@ -62,9 +63,9 @@ function StarBadges({ count }: { count: number }) {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: i < count ? "rgba(99,102,241,0.15)" : "var(--card-border-soft)",
-            color: i < count ? "rgba(99,102,241,0.9)" : "var(--text-muted)",
-            border: `1px solid ${i < count ? "rgba(99,102,241,0.25)" : "transparent"}`,
+            background: i < count ? "var(--accent-soft)" : "var(--card-border-soft)",
+            color: i < count ? "var(--accent)" : "var(--text-muted)",
+            border: `1px solid ${i < count ? "var(--accent-strong)" : "transparent"}`,
           }}
         >
           {l}
@@ -157,7 +158,7 @@ function ExperienceCard({
           {hasScore && (
             <span style={{
               fontSize: 13, fontWeight: 800,
-              color: entry.bestScore! >= 75 ? "rgba(34,197,94,0.9)" : entry.bestScore! >= 55 ? "rgba(251,191,36,0.9)" : "rgba(248,113,113,0.9)",
+              color: entry.bestScore! >= 75 ? "var(--success)" : entry.bestScore! >= 55 ? "#F59E0B" : "var(--danger)",
             }}>
               Best {scoreLabel(entry.bestScore)}
             </span>
@@ -170,13 +171,13 @@ function ExperienceCard({
         <div style={{
           padding: "10px 12px",
           borderRadius: 9,
-          background: "rgba(99,102,241,0.05)",
-          border: "1px solid rgba(99,102,241,0.12)",
+          background: "var(--accent-soft)",
+          border: "1px solid var(--accent-strong)",
           fontSize: 12,
           color: "var(--text-primary)",
           lineHeight: 1.6,
         }}>
-          <span style={{ fontWeight: 700, color: "rgba(99,102,241,0.8)", marginRight: 6 }}>Result:</span>
+          <span style={{ fontWeight: 700, color: "var(--accent)", marginRight: 6 }}>Result:</span>
           {entry.result.length > 160 ? entry.result.slice(0, 157) + "…" : entry.result}
         </div>
       )}
@@ -219,9 +220,9 @@ function ExperienceCard({
           style={{
             padding: "8px 12px",
             borderRadius: 9,
-            border: "1px solid rgba(248,113,113,0.25)",
-            background: "rgba(248,113,113,0.07)",
-            color: "rgba(248,113,113,0.9)",
+            border: "1px solid var(--danger-soft)",
+            background: "var(--danger-soft)",
+            color: "var(--danger)",
             fontSize: 12,
             fontWeight: 600,
             cursor: "pointer",
@@ -271,7 +272,7 @@ function ExperienceModal({
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "9px 11px",
-    borderRadius: 8,
+    borderRadius: "var(--radius-sm)",
     border: "1px solid var(--card-border)",
     background: "var(--card-bg-strong)",
     color: "var(--text-primary)",
@@ -311,7 +312,7 @@ function ExperienceModal({
         width: "100%", maxWidth: 560,
         maxHeight: "90vh",
         overflowY: "auto",
-        borderRadius: 16,
+        borderRadius: "var(--radius-xl)",
         background: "var(--card-bg)",
         border: "1px solid var(--card-border)",
         boxShadow: "0 24px 60px rgba(0,0,0,0.4)",
@@ -395,7 +396,7 @@ function ExperienceModal({
                   />
                   <button
                     onClick={addSkill}
-                    style={{ padding: "9px 14px", borderRadius: 8, border: "none", background: "var(--accent)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                    style={{ padding: "9px 14px", borderRadius: "var(--radius-sm)", border: "none", background: "var(--accent)", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
                   >
                     Add
                   </button>
@@ -406,7 +407,7 @@ function ExperienceModal({
                       <span
                         key={s}
                         onClick={() => removeSkill(s)}
-                        style={{ padding: "3px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", color: "rgba(99,102,241,0.9)", cursor: "pointer" }}
+                        style={{ padding: "3px 8px", borderRadius: 999, fontSize: 11, fontWeight: 600, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", color: "var(--accent)", cursor: "pointer" }}
                       >
                         {s} ×
                       </span>
@@ -425,7 +426,7 @@ function ExperienceModal({
               {STAR_FIELDS.map((field, i) => (
                 <div key={field}>
                   <label style={labelStyle}>
-                    <span style={{ color: "rgba(99,102,241,0.8)", marginRight: 4 }}>[{STAR_LABELS[i]}]</span>
+                    <span style={{ color: "var(--accent)", marginRight: 4 }}>[{STAR_LABELS[i]}]</span>
                     {STAR_FULL[i]}
                   </label>
                   <textarea
@@ -499,6 +500,7 @@ function ExperienceModal({
 export default function ExperienceLogPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { toasts, show: showToast, dismiss } = useToast();
   const [entries, setEntries] = useState<ExperienceEntry[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -519,10 +521,12 @@ export default function ExperienceLogPage() {
         e.id === editingId ? { ...e, ...data, updatedAt: Date.now() } : e
       );
       persist(updated);
+      showToast("Story updated");
     } else {
       if (!session) return;
-      const newEntry = addExperience(session, data);
+      addExperience(session, data);
       setEntries(loadExperiences(session));
+      showToast("Story added");
     }
     setShowModal(false);
     setEditingId(null);
@@ -542,6 +546,7 @@ export default function ExperienceLogPage() {
     if (session) deleteExperience(session, id);
     setEntries(entries.filter(e => e.id !== id));
     setConfirmDeleteId(null);
+    showToast("Story deleted", "info");
   }
 
   function handlePractice(entry: ExperienceEntry) {
@@ -619,7 +624,7 @@ export default function ExperienceLogPage() {
             onClick={openAdd}
             style={{
               padding: "10px 18px",
-              borderRadius: 10,
+              borderRadius: "var(--radius-md)",
               border: "none",
               background: "var(--accent)",
               color: "#fff",
@@ -654,7 +659,7 @@ export default function ExperienceLogPage() {
               style={{
                 marginTop: 18,
                 padding: "10px 22px",
-                borderRadius: 10,
+                borderRadius: "var(--radius-md)",
                 border: "none",
                 background: "var(--accent)",
                 color: "#fff",
@@ -693,7 +698,7 @@ export default function ExperienceLogPage() {
           <div style={{
             marginTop: 20,
             padding: "12px 16px",
-            borderRadius: 10,
+            borderRadius: "var(--radius-md)",
             border: "1px solid var(--card-border-soft)",
             background: "var(--card-bg)",
             fontSize: 12,
@@ -727,10 +732,10 @@ export default function ExperienceLogPage() {
               This will delete the story and its practice history. This cannot be undone.
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-              <button onClick={() => setConfirmDeleteId(null)} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+              <button onClick={() => setConfirmDeleteId(null)} style={{ padding: "8px 16px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
                 Cancel
               </button>
-              <button onClick={() => handleDelete(confirmDeleteId)} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "rgba(248,113,113,0.85)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+              <button onClick={() => handleDelete(confirmDeleteId)} style={{ padding: "8px 16px", borderRadius: "var(--radius-sm)", border: "none", background: "var(--danger)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
                 Delete
               </button>
             </div>
@@ -738,5 +743,6 @@ export default function ExperienceLogPage() {
         </div>
       )}
     </PremiumShell>
+    <ToastContainer toasts={toasts} onDismiss={dismiss} />
   );
 }

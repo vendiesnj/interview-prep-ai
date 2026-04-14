@@ -357,7 +357,7 @@ function keyStyle(state: LetterState): React.CSSProperties {
     height: 56,
     minWidth: 36,
     padding: "0 8px",
-    borderRadius: 6,
+    borderRadius: "var(--radius-xs)",
     border: "none",
     cursor: "pointer",
     fontWeight: 900,
@@ -603,7 +603,7 @@ export default function HustlePage() {
       <div style={{ maxWidth: 500, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
         {/* Header */}
         <div style={{ textAlign: "center", width: "100%" }}>
-          <h1 style={{ fontSize: 24, fontWeight: 950, color: "var(--text-primary)", margin: "0 0 2px", letterSpacing: -0.4 }}>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 2px", letterSpacing: -0.4 }}>
             Hustle
           </h1>
           <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 4px" }}>Guess today&apos;s career word</p>
@@ -666,7 +666,7 @@ export default function HustlePage() {
         {gameOver && (
           <div style={{
             background: "var(--card-bg)", border: "1px solid var(--card-border)",
-            borderRadius: 16, padding: "24px", textAlign: "center", width: "100%",
+            borderRadius: "var(--radius-xl)", padding: "24px", textAlign: "center", width: "100%",
           }}>
             <div style={{ fontSize: 36, marginBottom: 8 }}>{won ? "🎉" : "😞"}</div>
             <div style={{ fontSize: 18, fontWeight: 900, color: "var(--text-primary)", marginBottom: 4 }}>
@@ -681,15 +681,15 @@ export default function HustlePage() {
             {stats && (
               <div style={{ display: "flex", justifyContent: "center", gap: 20, marginBottom: 16 }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary)" }}>{stats.streak}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>{stats.streak}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>Streak</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary)" }}>{stats.gamesWon}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>{stats.gamesWon}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>Won</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 20, fontWeight: 950, color: "var(--text-primary)" }}>{stats.totalPlayed}</div>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: "var(--text-primary)" }}>{stats.totalPlayed}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>Played</div>
                 </div>
               </div>
@@ -697,7 +697,7 @@ export default function HustlePage() {
 
             {funFact && (
               <div style={{
-                padding: "12px 14px", borderRadius: 10,
+                padding: "12px 14px", borderRadius: "var(--radius-md)",
                 background: "#10B98110", border: "1px solid #10B98130",
                 fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6,
                 textAlign: "left", marginBottom: 14,
@@ -709,7 +709,7 @@ export default function HustlePage() {
             <button
               onClick={copyResults}
               style={{
-                padding: "10px 22px", borderRadius: 10,
+                padding: "10px 22px", borderRadius: "var(--radius-md)",
                 background: "var(--accent)", color: "#fff",
                 border: "none", fontWeight: 900, fontSize: 13, cursor: "pointer",
               }}
@@ -725,7 +725,7 @@ export default function HustlePage() {
 
         {alreadyPlayed && !gameOver && (
           <div style={{
-            padding: "12px 16px", borderRadius: 12,
+            padding: "12px 16px", borderRadius: "var(--radius-lg)",
             background: "#10B98110", border: "1px solid #10B98130",
             fontSize: 13, color: "#10B981", fontWeight: 700, textAlign: "center", width: "100%",
           }}>

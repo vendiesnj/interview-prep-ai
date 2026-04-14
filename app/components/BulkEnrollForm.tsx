@@ -210,7 +210,7 @@ export function BulkEnrollForm() {
           <div
             style={{
               fontSize: 16,
-              fontWeight: 950,
+              fontWeight: 800,
               color: "var(--text-primary)",
               letterSpacing: -0.2,
             }}
@@ -328,7 +328,7 @@ export function BulkEnrollForm() {
                   color: "var(--text-primary)",
                   background: "var(--input-bg)",
                   border: "1px solid var(--input-border)",
-                  borderRadius: 12,
+                  borderRadius: "var(--radius-lg)",
                   padding: "10px 12px",
                   cursor: "pointer",
                   width: "100%",
@@ -433,7 +433,7 @@ export function BulkEnrollForm() {
                     color: "var(--text-primary)",
                     background: "var(--input-bg)",
                     border: "1px solid var(--input-border)",
-                    borderRadius: 12,
+                    borderRadius: "var(--radius-lg)",
                     padding: "10px 44px 10px 12px",
                   }}
                 />
@@ -533,7 +533,7 @@ export function BulkEnrollForm() {
               <div
                 style={{
                   padding: "12px 16px",
-                  borderRadius: 12,
+                  borderRadius: "var(--radius-lg)",
                   border: "1px solid var(--card-border-soft)",
                   background: "var(--card-bg)",
                   fontSize: 13,
@@ -621,7 +621,7 @@ export function BulkEnrollForm() {
               <div
                 style={{
                   padding: "12px 16px",
-                  borderRadius: 12,
+                  borderRadius: "var(--radius-lg)",
                   border: "1px solid var(--danger)",
                   background: "var(--danger-soft, var(--card-bg))",
                   fontSize: 13,

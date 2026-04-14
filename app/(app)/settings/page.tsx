@@ -3,14 +3,16 @@
 import React from "react";
 import { useSession } from "next-auth/react";
 import PremiumShell from "../../components/PremiumShell";
+import { STAGE_COLORS } from "@/app/lib/stages";
 import PremiumCard from "../../components/PremiumCard";
 import { getProfile, saveProfile, type UserProfile } from "../../lib/profileStore";
 import type { AttemptEntitlement } from "../../lib/entitlements";
+import { ToastContainer, useToast } from "@/app/components/Toast";
 
 const STAGES = [
-  { id: "pre_college",    label: "Pre-College",    icon: "🎓", color: "#10B981", desc: "High school → college prep" },
-  { id: "during_college", label: "During College",  icon: "📚", color: "#2563EB", desc: "Internships, interviews, campus life" },
-  { id: "post_college",   label: "Post-College",    icon: "🚀", color: "#8B5CF6", desc: "First job, finances, career growth" },
+  { id: "pre_college",    label: "Pre-College",    icon: "🎓", color: STAGE_COLORS.pre_college,    desc: "High school → college prep" },
+  { id: "during_college", label: "During College",  icon: "📚", color: STAGE_COLORS.during_college, desc: "Internships, interviews, campus life" },
+  { id: "post_college",   label: "Post-College",    icon: "🚀", color: STAGE_COLORS.post_college,   desc: "First job, finances, career growth" },
 ] as const;
 
 const TARGET_INDUSTRY_OPTIONS = [
@@ -114,7 +116,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
     <div
       style={{
         fontSize: 16,
-        fontWeight: 950,
+        fontWeight: 800,
         letterSpacing: -0.2,
         color: "var(--text-primary)",
       }}
@@ -140,8 +142,8 @@ export default function SettingsPage() {
     targetRole: "",
     targetIndustry: "",
   });
+  const { toasts, show: showToast, dismiss } = useToast();
   const [saving, setSaving] = React.useState(false);
-  const [savedMsg, setSavedMsg] = React.useState(false);
 
   // Stage state
   const [stageSaving, setStageSaving] = React.useState(false);
@@ -227,8 +229,7 @@ export default function SettingsPage() {
           targetIndustry: careerProfile.targetIndustry || undefined,
         }),
       });
-      setSavedMsg(true);
-      setTimeout(() => setSavedMsg(false), 2000);
+      showToast("Profile saved");
     } catch {
       // silently fail
     } finally {
@@ -274,7 +275,7 @@ export default function SettingsPage() {
                   onClick={() => switchStage(s.id)}
                   disabled={stageSaving}
                   style={{
-                    padding: "14px 12px", borderRadius: 12, textAlign: "left",
+                    padding: "14px 12px", borderRadius: "var(--radius-lg)", textAlign: "left",
                     border: `2px solid ${active ? s.color : "var(--card-border)"}`,
                     background: active ? s.color + "12" : "var(--card-bg-strong)",
                     cursor: stageSaving ? "wait" : "pointer",
@@ -549,17 +550,6 @@ export default function SettingsPage() {
             >
               {saving ? "Saving…" : "Save"}
             </button>
-            {savedMsg && (
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  color: "var(--accent)",
-                }}
-              >
-                Saved!
-              </span>
-            )}
           </div>
         </PremiumCard>
 
@@ -681,5 +671,6 @@ export default function SettingsPage() {
         </PremiumCard>
       </div>
     </PremiumShell>
+    <ToastContainer toasts={toasts} onDismiss={dismiss} />
   );
 }

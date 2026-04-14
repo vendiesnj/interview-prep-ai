@@ -724,7 +724,7 @@ function MiniSparkline({
       <div
         style={{
           height,
-          borderRadius: 12,
+          borderRadius: "var(--radius-lg)",
           border: "1px solid var(--card-border-soft)",
           background: "var(--card-bg)",
           display: "grid",
@@ -759,7 +759,7 @@ function MiniSparkline({
       style={{
         marginTop: 12,
         padding: 10,
-        borderRadius: 12,
+        borderRadius: "var(--radius-lg)",
         border: "1px solid var(--card-border-soft)",
         background: "var(--card-bg)",
       }}
@@ -915,7 +915,7 @@ function InsightsTabButton({
       onClick={onClick}
       style={{
         padding: "9px 14px",
-        borderRadius: 10,
+        borderRadius: "var(--radius-md)",
         border: "none",
         background: active ? "var(--accent-soft)" : "transparent",
         color: active ? "var(--text-primary)" : "var(--text-muted)",
@@ -1937,7 +1937,7 @@ export default function ProgressPage() {
 
         {/* ── Session Filter ──────────────────────────────────────────────── */}
         {history.length > 0 && (
-          <div style={{ display: "flex", gap: 6, padding: "4px", borderRadius: 12, background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: "flex-start" }}>
+          <div style={{ display: "flex", gap: 6, padding: "4px", borderRadius: "var(--radius-lg)", background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: "flex-start" }}>
             {(["all", "mock_interview"] as const).map(f => (
               <button
                 key={f}
@@ -1976,7 +1976,7 @@ export default function ProgressPage() {
                 const dimScores = fb?.dimension_scores as Record<string, { score: number; label: string }> | null;
 
                 return (
-                  <div key={idx} style={{ borderRadius: 12, border: "1px solid var(--card-border)", overflow: "hidden" }}>
+                  <div key={idx} style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", overflow: "hidden" }}>
                     {/* Header */}
                     <div style={{ padding: "14px 18px", background: "var(--card-bg-strong)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -2052,8 +2052,8 @@ export default function ProgressPage() {
                           </div>
                           {(arc.openingNote || arc.closingNote) && (
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 10 }}>
-                              {arc.openingNote && <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "7px 10px", borderRadius: 8, background: "var(--card-bg-strong)", borderLeft: "2px solid #10B981" }}><strong style={{ color: "#10B981" }}>Opening:</strong> {arc.openingNote}</div>}
-                              {arc.closingNote && <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "7px 10px", borderRadius: 8, background: "var(--card-bg-strong)", borderLeft: "2px solid var(--accent)" }}><strong style={{ color: "var(--accent)" }}>Closing:</strong> {arc.closingNote}</div>}
+                              {arc.openingNote && <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "7px 10px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", borderLeft: "2px solid #10B981" }}><strong style={{ color: "#10B981" }}>Opening:</strong> {arc.openingNote}</div>}
+                              {arc.closingNote && <div style={{ fontSize: 11, color: "var(--text-muted)", padding: "7px 10px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", borderLeft: "2px solid var(--accent)" }}><strong style={{ color: "var(--accent)" }}>Closing:</strong> {arc.closingNote}</div>}
                             </div>
                           )}
                         </div>
@@ -2071,7 +2071,7 @@ export default function ProgressPage() {
                             return (
                               <div key={qi} style={{ paddingBottom: qi < qBreakdowns.length - 1 ? 8 : 0, borderBottom: qi < qBreakdowns.length - 1 ? "1px solid var(--card-border-soft)" : "none" }}>
                                 <div style={{ display: "grid", gridTemplateColumns: "36px 1fr", gap: 10, alignItems: "start", marginBottom: hasSigs ? 5 : 0 }}>
-                                  <div style={{ width: 36, height: 36, borderRadius: 8, background: `${qc}15`, border: `1px solid ${qc}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                  <div style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)", background: `${qc}15`, border: `1px solid ${qc}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                     <span style={{ fontSize: 12, fontWeight: 900, color: qc }}>{qb.score}</span>
                                   </div>
                                   <div>
@@ -2114,7 +2114,7 @@ export default function ProgressPage() {
           <PremiumCard>
             <div style={{ display: "grid", gap: 10 }}>
               {[28, 52, 100].map((w, i) => (
-                <div key={i} style={{ height: i === 2 ? 96 : 14, width: `${w}%`, borderRadius: i === 2 ? "var(--radius-md)" : 999, background: "var(--card-border-soft)" }} />
+                <div key={i} className="skeleton" style={{ height: i === 2 ? 96 : 14, width: `${w}%`, borderRadius: i === 2 ? "var(--radius-md)" : 999 }} />
               ))}
             </div>
           </PremiumCard>
@@ -2656,7 +2656,7 @@ export default function ProgressPage() {
                     {scored.length > 0 && (
                       <button
                         onClick={() => downloadNacePdf({ scores: naceScores, studentName: session?.user?.name ?? session?.user?.email ?? "Student" })}
-                        style={{ padding: "7px 14px", borderRadius: 8, border: "1px solid var(--accent)", background: "transparent", color: "var(--accent)", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" as const }}
+                        style={{ padding: "7px 14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--accent)", background: "transparent", color: "var(--accent)", fontWeight: 700, fontSize: 12, cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" as const }}
                       >
                         Export PDF
                       </button>

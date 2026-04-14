@@ -4,13 +4,14 @@ import React from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { GraduationCap, BookOpen, Rocket } from "lucide-react";
+import { STAGE_COLORS } from "@/app/lib/stages";
 
 // ── Stage banner config ───────────────────────────────────────────────────────
 
 const STAGE_CONFIG: Record<string, { label: string; Icon: React.ElementType; color: string; href: string }> = {
-  pre_college:     { label: "Starting Your Journey",   Icon: GraduationCap, color: "#10B981", href: "/pre-college" },
-  during_college:  { label: "Building Your Future",    Icon: BookOpen,      color: "#2563EB", href: "/during-college" },
-  post_college:    { label: "Developing Your Career",  Icon: Rocket,        color: "#8B5CF6", href: "/post-college" },
+  pre_college:     { label: "Starting Your Journey",   Icon: GraduationCap, color: STAGE_COLORS.pre_college,    href: "/pre-college" },
+  during_college:  { label: "Building Your Future",    Icon: BookOpen,      color: STAGE_COLORS.during_college, href: "/during-college" },
+  post_college:    { label: "Developing Your Career",  Icon: Rocket,        color: STAGE_COLORS.post_college,   href: "/post-college" },
 };
 
 export default function PremiumShell({

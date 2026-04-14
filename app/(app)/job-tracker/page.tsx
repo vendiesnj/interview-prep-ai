@@ -21,7 +21,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
   return (
     <div style={{
       padding: "16px 20px",
-      borderRadius: 12,
+      borderRadius: "var(--radius-lg)",
       border: "1px solid var(--card-border)",
       background: "var(--card-bg)",
       display: "flex",
@@ -29,7 +29,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string |
       gap: 4,
     }}>
       <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 950, color: color ?? "var(--text-primary)", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 26, fontWeight: 800, color: color ?? "var(--text-primary)", lineHeight: 1 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{sub}</div>}
     </div>
   );
@@ -69,7 +69,7 @@ export default function JobTrackerPage() {
   return (
     <div style={{ padding: "0 0 40px" }}>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", margin: 0 }}>Job Tracker</h1>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", margin: 0 }}>Job Tracker</h1>
         <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "4px 0 0" }}>
           Track applications, monitor your funnel, and stay organized through every stage.
         </p>

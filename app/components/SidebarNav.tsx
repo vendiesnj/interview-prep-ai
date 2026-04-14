@@ -95,7 +95,7 @@ function NavLink({ item, active, collapsed }: { item: NavItem; active: boolean; 
         justifyContent: collapsed ? "center" : "flex-start",
         gap: 10,
         padding: collapsed ? "9px 6px" : "9px 12px",
-        borderRadius: 10,
+        borderRadius: "var(--radius-md)",
         background: active ? "var(--accent-soft)" : "transparent",
         color: active ? "var(--accent)" : item.comingSoon ? "var(--text-muted)" : "var(--text-primary)",
         fontWeight: active ? 900 : 800,
@@ -187,7 +187,7 @@ export default function SidebarNav() {
 
         {drawerOpen && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", flexDirection: "column" }}>
-            <div onClick={() => setDrawerOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+            <div onClick={() => setDrawerOpen(false)} style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", cursor: "pointer" }} />
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "var(--card-bg)", borderTop: "1px solid var(--card-border-soft)", borderRadius: "20px 20px 0 0", padding: "12px 16px 40px", display: "flex", flexDirection: "column", gap: 4, maxHeight: "80vh", overflowY: "auto" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                 <div style={{ width: 36, height: 4, borderRadius: 2, background: "var(--card-border)", margin: "0 auto" }} />
@@ -220,7 +220,7 @@ export default function SidebarNav() {
 
               <div style={{ marginTop: 8, padding: "0 4px", display: "grid", gap: 8 }}>
                 {!isTenantUser && <BillingSidebarButton collapsed={false} />}
-                <div style={{ borderRadius: 12, overflow: "hidden" }}><LogoutButton /></div>
+                <div style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}><LogoutButton /></div>
               </div>
             </div>
           </div>
@@ -237,7 +237,7 @@ export default function SidebarNav() {
       <div style={{ padding: collapsed ? "10px 6px 12px 6px" : "10px 10px 16px 10px", borderBottom: "1px solid var(--card-border-soft)", display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between", gap: 10 }}>
         {!collapsed ? (
           <Link href="/dashboard" style={{ textDecoration: "none" }}>
-            <div style={{ fontSize: 15, fontWeight: 950, letterSpacing: -0.3, color: "var(--accent)" }}>
+            <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: -0.3, color: "var(--accent)" }}>
               {isAdmin ? "Career Center" : "Signal"}
             </div>
             <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>
@@ -245,12 +245,12 @@ export default function SidebarNav() {
             </div>
           </Link>
         ) : (
-          <Link href="/dashboard" style={{ textDecoration: "none", fontSize: 15, color: "var(--accent)", fontWeight: 950 }}>
+          <Link href="/dashboard" style={{ textDecoration: "none", fontSize: 15, color: "var(--accent)", fontWeight: 800 }}>
             {isAdmin ? "A" : "S"}
           </Link>
         )}
 
-        <button type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} style={{ width: 36, height: 36, borderRadius: 12, border: "none", background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontSize: 18, fontWeight: 900, lineHeight: "34px", textAlign: "center", flex: "0 0 auto" }}>
+        <button type="button" onClick={toggleSidebar} aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} style={{ width: 36, height: 36, borderRadius: "var(--radius-lg)", border: "none", background: "transparent", color: "var(--text-primary)", cursor: "pointer", fontSize: 18, fontWeight: 900, lineHeight: "34px", textAlign: "center", flex: "0 0 auto" }}>
           <span aria-hidden style={{ display: "inline-block", fontSize: 18, lineHeight: 1, opacity: 0.9 }}>≡</span>
         </button>
       </div>
@@ -290,7 +290,7 @@ export default function SidebarNav() {
         {!isAdmin && (
           <NavLink item={{ label: "Account", href: "/account", icon: <User size={18} /> }} active={isActive("/account")} collapsed={collapsed} />
         )}
-        <div style={{ borderRadius: 12, overflow: "hidden" }}>
+        <div style={{ borderRadius: "var(--radius-lg)", overflow: "hidden" }}>
           <LogoutButton />
         </div>
       </div>

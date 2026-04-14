@@ -109,7 +109,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
         </div>
         <div style={{ display: "flex", gap: 12 }}>
           {[1, 2].map((i) => (
-            <div key={i} style={{ flex: 1, height: 140, borderRadius: 16, background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: 0.5 }} />
+            <div key={i} style={{ flex: 1, height: 140, borderRadius: "var(--radius-xl)", background: "var(--card-bg)", border: "1px solid var(--card-border)", opacity: 0.5 }} />
           ))}
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
         </div>
         <button
           onClick={() => setShowRolePicker(!showRolePicker)}
-          style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: `1px solid ${accentColor}40`, background: `${accentColor}12`, color: accentColor, fontWeight: 700, fontSize: 13, cursor: "pointer" }}
+          style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--radius-md)", border: `1px solid ${accentColor}40`, background: `${accentColor}12`, color: accentColor, fontWeight: 700, fontSize: 13, cursor: "pointer" }}
         >
           <Plus size={14} />
           {showRolePicker ? "Done" : "Add Role"}
@@ -144,7 +144,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
 
       {/* Role Picker */}
       {showRolePicker && (
-        <div style={{ marginBottom: 20, padding: 18, borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+        <div style={{ marginBottom: 20, padding: 18, borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
             Search 200+ roles from the O*NET database
           </div>
@@ -154,7 +154,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by title or industry (e.g. 'financial analyst', 'tech')"
-              style={{ width: "100%", padding: "10px 12px 10px 34px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13, boxSizing: "border-box" }}
+              style={{ width: "100%", padding: "10px 12px 10px 34px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13, boxSizing: "border-box" }}
             />
           </div>
 
@@ -185,7 +185,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                     key={occ.id}
                     onClick={() => toggleRole(occ.id)}
                     disabled={saving}
-                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 10, border: `1px solid ${isAdded ? accentColor + "40" : "var(--card-border)"}`, background: isAdded ? `${accentColor}10` : "transparent", cursor: "pointer", textAlign: "left" }}
+                    style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--radius-md)", border: `1px solid ${isAdded ? accentColor + "40" : "var(--card-border)"}`, background: isAdded ? `${accentColor}10` : "transparent", cursor: "pointer", textAlign: "left" }}
                   >
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>{occ.title}</div>
@@ -214,7 +214,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
 
       {/* No roles yet */}
       {!hasRoles && !showRolePicker && (
-        <div style={{ padding: "28px 24px", borderRadius: 16, border: "1px dashed var(--card-border)", textAlign: "center" }}>
+        <div style={{ padding: "28px 24px", borderRadius: "var(--radius-xl)", border: "1px dashed var(--card-border)", textAlign: "center" }}>
           <Target size={28} color="var(--text-muted)" style={{ marginBottom: 10 }} />
           <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>No target roles set</div>
           <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, maxWidth: 360, margin: "0 auto 16px" }}>
@@ -222,7 +222,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
           </div>
           <button
             onClick={() => setShowRolePicker(true)}
-            style={{ padding: "10px 20px", borderRadius: 10, background: accentColor, color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}
+            style={{ padding: "10px 20px", borderRadius: "var(--radius-md)", background: accentColor, color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}
           >
             Add your first role
           </button>
@@ -241,7 +241,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
             return (
               <div
                 key={cluster.clusterKey}
-                style={{ borderRadius: 16, border: "1px solid var(--card-border)", background: "var(--card-bg)", overflow: "hidden" }}
+                style={{ borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", overflow: "hidden" }}
               >
                 {/* Card Header */}
                 <div
@@ -297,14 +297,14 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                     <Link
                       href="/practice"
                       onClick={(e) => e.stopPropagation()}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, background: accentColor, color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--radius-md)", background: accentColor, color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
                     >
                       <Zap size={12} /> Practice
                     </Link>
                     <Link
                       href="/mock-interview"
                       onClick={(e) => e.stopPropagation()}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "1px solid var(--card-border)", color: "var(--text-muted)", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", color: "var(--text-muted)", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
                     >
                       Mock Interview
                     </Link>
@@ -350,7 +350,7 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
                       {cluster.nextQuestions.length > 0 ? (
                         <div style={{ display: "grid", gap: 8 }}>
                           {cluster.nextQuestions.map((q, i) => (
-                            <div key={i} style={{ padding: "10px 12px", borderRadius: 10, border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                            <div key={i} style={{ padding: "10px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
                               {q.question}
                               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{q.type}</div>
                             </div>

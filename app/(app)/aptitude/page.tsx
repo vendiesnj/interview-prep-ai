@@ -118,7 +118,7 @@ function SectionIntro({ sectionIdx, onContinue }: { sectionIdx: number; onContin
       <p style={{ fontSize: 16, fontWeight: 500, color: "var(--text-muted)", marginBottom: 8 }}>{info.subtitle}</p>
       <p style={{ fontSize: 14, color: "var(--text-muted)", maxWidth: 480, margin: "0 auto 28px" }}>{info.desc}</p>
       <button onClick={onContinue} style={{
-        background: "var(--accent)", color: "#fff", border: "none", borderRadius: 10,
+        background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--radius-md)",
         padding: "12px 32px", fontSize: 15, fontWeight: 600, cursor: "pointer",
       }}>
         Let's go →
@@ -131,7 +131,7 @@ function ScaleRow({ prompt, value, onChange }: { prompt: string; value: number |
   return (
     <div style={{
       padding: "16px 20px",
-      borderRadius: 12,
+      borderRadius: "var(--radius-lg)",
       border: `1px solid var(--card-border)`,
       background: "var(--card-bg)",
       marginBottom: 10,
@@ -181,7 +181,7 @@ function ChoiceRow({ prompt, options, value, onChange }: {
               key={key}
               onClick={() => onChange(key)}
               style={{
-                textAlign: "left", padding: "11px 16px", borderRadius: 10,
+                textAlign: "left", padding: "11px 16px", borderRadius: "var(--radius-md)",
                 border: `2px solid ${selected ? "var(--accent)" : "var(--card-border)"}`,
                 background: selected ? "rgba(var(--accent-rgb, 99,102,241),0.08)" : "transparent",
                 color: selected ? "var(--accent)" : "inherit",
@@ -312,14 +312,14 @@ function Results({ answers }: { answers: Answers }) {
       </div>
 
       {/* RIASEC Profile Card */}
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Your Personality Profile</h3>
         {sorted.slice(0, 3).map(([dim, score]) => (
           <MiniBar key={dim} label={`${dim} - ${DIMENSION_LABELS[dim as RiasecDimension]}`} value={score} />
         ))}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 20 }}>
           {[topDimension, secondDimension].map((dim) => (
-            <div key={dim} style={{ background: "rgba(99,102,241,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+            <div key={dim} style={{ background: "rgba(99,102,241,0.05)", borderRadius: "var(--radius-lg)", padding: "14px 16px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>{DIMENSION_LABELS[dim]}</div>
               <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55, margin: 0 }}>{DIMENSION_DESCRIPTIONS[dim]}</p>
             </div>
@@ -337,13 +337,13 @@ function Results({ answers }: { answers: Answers }) {
       </div>
 
       {/* Side Hustles */}
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Side Hustles & Side Income</h3>
         <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 18 }}>Income ideas that align with your strengths and interests.</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
           {sideHustles.slice(0, 10).map((hustle, i) => (
             <div key={i} style={{
-              padding: "10px 14px", borderRadius: 10, border: "1px solid var(--card-border)",
+              padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)",
               fontSize: 13, fontWeight: 500, background: "var(--card-bg)",
             }}>
               {hustle}
@@ -353,7 +353,7 @@ function Results({ answers }: { answers: Answers }) {
       </div>
 
       {/* Entrepreneurship */}
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Entrepreneurship Profile</h3>
           {entrepreneurProfile.overall >= 50 && (
@@ -388,7 +388,7 @@ function Results({ answers }: { answers: Answers }) {
       </div>
 
       {/* Work Values */}
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Your Core Work Value</h3>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <span style={{
@@ -407,7 +407,7 @@ function Results({ answers }: { answers: Answers }) {
       <div style={{ textAlign: "center", paddingBottom: 16 }}>
         {saved ? (
           <div style={{
-            display: "inline-block", padding: "12px 28px", borderRadius: 12,
+            display: "inline-block", padding: "12px 28px", borderRadius: "var(--radius-lg)",
             background: "rgba(16,185,129,0.12)", color: "#10B981", fontSize: 15, fontWeight: 600,
           }}>
             Results saved to your profile.
@@ -417,7 +417,7 @@ function Results({ answers }: { answers: Answers }) {
             onClick={handleSave}
             disabled={saving}
             style={{
-              background: "var(--accent)", color: "#fff", border: "none", borderRadius: 12,
+              background: "var(--accent)", color: "#fff", border: "none", borderRadius: "var(--radius-lg)",
               padding: "13px 36px", fontSize: 15, fontWeight: 600, cursor: saving ? "default" : "pointer",
               opacity: saving ? 0.7 : 1,
             }}
@@ -466,14 +466,14 @@ function ResultsFromStored({ riasecScores, workValues, entrepreneurProfile: ep }
         </p>
       </div>
 
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Your Personality Profile</h3>
         {sorted.slice(0, 3).map(([dim, score]) => (
           <MiniBar key={dim} label={`${dim} - ${DIMENSION_LABELS[dim as RiasecDimension]}`} value={score} />
         ))}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 20 }}>
           {[topDimension, secondDimension].map((dim) => (
-            <div key={dim} style={{ background: "rgba(99,102,241,0.05)", borderRadius: 12, padding: "14px 16px" }}>
+            <div key={dim} style={{ background: "rgba(99,102,241,0.05)", borderRadius: "var(--radius-lg)", padding: "14px 16px" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--accent)", marginBottom: 6 }}>{DIMENSION_LABELS[dim]}</div>
               <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.55, margin: 0 }}>{DIMENSION_DESCRIPTIONS[dim]}</p>
             </div>
@@ -489,17 +489,17 @@ function ResultsFromStored({ riasecScores, workValues, entrepreneurProfile: ep }
         </div>
       </div>
 
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Side Hustles & Side Income</h3>
         <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 18 }}>Income ideas that align with your strengths and interests.</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
           {sideHustles.slice(0, 10).map((hustle, i) => (
-            <div key={i} style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid var(--card-border)", fontSize: 13, fontWeight: 500, background: "var(--card-bg)" }}>{hustle}</div>
+            <div key={i} style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", fontSize: 13, fontWeight: 500, background: "var(--card-bg)" }}>{hustle}</div>
           ))}
         </div>
       </div>
 
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Entrepreneurship Profile</h3>
           {ep.overall >= 50 && <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 12px", borderRadius: 99, background: "rgba(16,185,129,0.12)", color: "#10B981" }}>Entrepreneur Track</span>}
@@ -521,7 +521,7 @@ function ResultsFromStored({ riasecScores, workValues, entrepreneurProfile: ep }
         </div>
       </div>
 
-      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: 16, padding: "24px 28px" }}>
+      <div style={{ border: "1px solid var(--card-border)", background: "var(--card-bg)", borderRadius: "var(--radius-xl)", padding: "24px 28px" }}>
         <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Your Core Work Value</h3>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <span style={{ fontSize: 15, fontWeight: 700, padding: "6px 14px", borderRadius: 99, background: "rgba(99,102,241,0.1)", color: "var(--accent)" }}>{VALUE_LABELS[topValue]}</span>
@@ -530,7 +530,7 @@ function ResultsFromStored({ riasecScores, workValues, entrepreneurProfile: ep }
       </div>
 
       <div style={{ textAlign: "center", paddingBottom: 16 }}>
-        <Link href="/aptitude" style={{ display: "inline-block", padding: "13px 36px", borderRadius: 12, background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 15, textDecoration: "none" }}>
+        <Link href="/aptitude" style={{ display: "inline-block", padding: "13px 36px", borderRadius: "var(--radius-lg)", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 15, textDecoration: "none" }}>
           Retake Assessment →
         </Link>
       </div>
@@ -815,7 +815,7 @@ function AptitudePageInner() {
                   onClick={back}
                   disabled={section === 1 && step === 0}
                   style={{
-                    background: "transparent", border: "1px solid var(--card-border)", borderRadius: 10,
+                    background: "transparent", border: "1px solid var(--card-border)", borderRadius: "var(--radius-md)",
                     padding: "10px 24px", fontSize: 14, fontWeight: 500, cursor: section === 1 && step === 0 ? "default" : "pointer",
                     opacity: section === 1 && step === 0 ? 0.4 : 1, color: "inherit",
                   }}
@@ -831,7 +831,7 @@ function AptitudePageInner() {
                   style={{
                     background: canAdvance() ? "var(--accent)" : "var(--card-border)",
                     color: canAdvance() ? "#fff" : "var(--text-muted)",
-                    border: "none", borderRadius: 10, padding: "10px 28px",
+                    border: "none", borderRadius: "var(--radius-md)", padding: "10px 28px",
                     fontSize: 14, fontWeight: 600, cursor: canAdvance() ? "pointer" : "default",
                     transition: "background 0.2s",
                   }}

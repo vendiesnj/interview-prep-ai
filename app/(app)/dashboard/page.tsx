@@ -18,6 +18,7 @@ import JourneySidebar from "@/app/components/JourneySidebar";
 import TasksPanel, { type Task as DbTask } from "@/app/components/TasksPanel";
 import { useIsUniversity } from "@/app/hooks/usePlan";
 import RoleClusterSection from "@/app/components/RoleClusterSection";
+import { STAGE_COLORS } from "@/app/lib/stages";
 
 // ── Stage-specific checklist items ────────────────────────────────────────────
 
@@ -67,9 +68,9 @@ const STAGE_MAP: Record<string, {
   guideLabel: string;
   checklist: typeof PRE_COLLEGE_CHECKLIST;
 }> = {
-  pre_college:    { accent: "#10B981", stageKey: "pre_college",    guideHref: "/pre-college",    guideLabel: "Pre-College Guide",    checklist: PRE_COLLEGE_CHECKLIST },
-  during_college: { accent: "#2563EB", stageKey: "during_college", guideHref: "/during-college", guideLabel: "During-College Guide", checklist: DURING_COLLEGE_CHECKLIST },
-  post_college:   { accent: "#8B5CF6", stageKey: "post_college",   guideHref: "/post-college",   guideLabel: "Post-College Guide",   checklist: POST_COLLEGE_CHECKLIST },
+  pre_college:    { accent: STAGE_COLORS.pre_college,    stageKey: "pre_college",    guideHref: "/pre-college",    guideLabel: "Pre-College Guide",    checklist: PRE_COLLEGE_CHECKLIST },
+  during_college: { accent: STAGE_COLORS.during_college, stageKey: "during_college", guideHref: "/during-college", guideLabel: "During-College Guide", checklist: DURING_COLLEGE_CHECKLIST },
+  post_college:   { accent: STAGE_COLORS.post_college,   stageKey: "post_college",   guideHref: "/post-college",   guideLabel: "Post-College Guide",   checklist: POST_COLLEGE_CHECKLIST },
 };
 
 const RIASEC_LABELS: Record<string, string> = {
@@ -325,17 +326,17 @@ function WeekView({
   const COL_WIDTH = "calc((100% - 56px) / 7)";
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden" }}>
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", overflow: "hidden" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--card-border)" }}>
-        <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronLeft size={16} /></button>
+        <button type="button" onClick={() => navWeek(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronLeft size={16} /></button>
         <div style={{ flex: 1, textAlign: "center", fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>
           {startLabel} – {endLabel}
         </div>
         <button type="button" onClick={() => { const d = new Date(); const s = new Date(d); s.setDate(d.getDate() - d.getDay()); setWeekStart(s); }} style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>
           Today
         </button>
-        <button type="button" onClick={() => navWeek(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronRight size={16} /></button>
+        <button type="button" onClick={() => navWeek(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronRight size={16} /></button>
       </div>
 
       {/* Day column headers */}
@@ -436,16 +437,16 @@ function DayView({
   const allDay = scheduled.filter(i => i.date === dateKey && !i.scheduledTime);
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden" }}>
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", overflow: "hidden" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--card-border)" }}>
-        <button type="button" onClick={() => navDay(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronLeft size={16} /></button>
+        <button type="button" onClick={() => navDay(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronLeft size={16} /></button>
         <div style={{ flex: 1, textAlign: "center" }}>
           <span style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{dateLabel}</span>
           {isToday && <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "15", padding: "2px 7px", borderRadius: 5 }}>Today</span>}
         </div>
         <button type="button" onClick={() => setViewDate(new Date(today))} style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>Today</button>
-        <button type="button" onClick={() => navDay(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronRight size={16} /></button>
+        <button type="button" onClick={() => navDay(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}><ChevronRight size={16} /></button>
       </div>
 
       {/* All-day */}
@@ -537,9 +538,9 @@ function TaskModal({
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }} onClick={onClose}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
-      <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, padding: 24, width: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ position: "relative", background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: 24, width: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.25)" }}>
         <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>
           {isEdit ? "Edit Task" : "Add Task"}
         </div>
@@ -557,11 +558,11 @@ function TaskModal({
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4 }}>Date</label>
-            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, display: "block", marginBottom: 4 }}>Time (optional)</label>
-            <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
+            <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "7px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--app-bg, #F9FAFB)", color: "var(--text-primary)", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
           </div>
         </div>
 
@@ -570,20 +571,20 @@ function TaskModal({
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {(["Career","Finance","Learning","Mindset","Personal"] as const).map(cat => {
               const color = CATEGORY_COLORS[cat];
-              return <button key={cat} type="button" onClick={() => setCategory(cat)} style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${category === cat ? color : "var(--card-border)"}`, background: category === cat ? color + "20" : "transparent", color: category === cat ? color : "var(--text-muted)", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>{cat}</button>;
+              return <button key={cat} type="button" onClick={() => setCategory(cat)} style={{ padding: "4px 12px", borderRadius: "var(--radius-xs)", border: `1px solid ${category === cat ? color : "var(--card-border)"}`, background: category === cat ? color + "20" : "transparent", color: category === cat ? color : "var(--text-muted)", fontWeight: 700, fontSize: 11, cursor: "pointer" }}>{cat}</button>;
             })}
           </div>
         </div>
 
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {isEdit && (
-            <button type="button" onClick={() => { onDelete(existing!.itemId); onClose(); }} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #EF444430", background: "#EF444408", color: "#EF4444", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            <button type="button" onClick={() => { onDelete(existing!.itemId); onClose(); }} style={{ padding: "8px 14px", borderRadius: "var(--radius-sm)", border: "1px solid #EF444430", background: "#EF444408", color: "#EF4444", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
               Delete
             </button>
           )}
           <div style={{ flex: 1 }} />
-          <button type="button" onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Cancel</button>
-          <button type="button" onClick={commit} disabled={!label.trim()} style={{ padding: "8px 20px", borderRadius: 8, border: "none", background: label.trim() ? ACCENT_CAREER : "var(--card-border)", color: label.trim() ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: label.trim() ? "pointer" : "not-allowed" }}>
+          <button type="button" onClick={onClose} style={{ padding: "8px 16px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Cancel</button>
+          <button type="button" onClick={commit} disabled={!label.trim()} style={{ padding: "8px 20px", borderRadius: "var(--radius-sm)", border: "none", background: label.trim() ? ACCENT_CAREER : "var(--card-border)", color: label.trim() ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 13, cursor: label.trim() ? "pointer" : "not-allowed" }}>
             {isEdit ? "Save" : "Add Task"}
           </button>
         </div>
@@ -641,10 +642,10 @@ function FullMonthCalendar({
   }
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 16, overflow: "hidden", width: "100%" }}>
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", overflow: "hidden", width: "100%" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 20px", borderBottom: "1px solid var(--card-border)" }}>
-        <button type="button" onClick={() => navMonth(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
+        <button type="button" onClick={() => navMonth(-1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
           <ChevronLeft size={16} />
         </button>
         <div style={{ flex: 1, textAlign: "center" }}>
@@ -655,7 +656,7 @@ function FullMonthCalendar({
         <button type="button" onClick={() => { setViewYear(today.getFullYear()); setViewMonth(today.getMonth()); }} style={{ fontSize: 12, fontWeight: 700, color: ACCENT_CAREER, background: ACCENT_CAREER + "12", border: `1px solid ${ACCENT_CAREER}30`, borderRadius: 7, padding: "5px 12px", cursor: "pointer" }}>
           Today
         </button>
-        <button type="button" onClick={() => navMonth(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: 8, cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
+        <button type="button" onClick={() => navMonth(1)} style={{ background: "none", border: "1px solid var(--card-border)", borderRadius: "var(--radius-sm)", cursor: "pointer", color: "var(--text-muted)", padding: "5px 8px", display: "flex", alignItems: "center" }}>
           <ChevronRight size={16} />
         </button>
       </div>
@@ -803,13 +804,13 @@ function PersonalTasksSection({ scheduled }: { scheduled: ScheduleItem[] }) {
             onChange={e => setNewLabel(e.target.value)}
             onKeyDown={e => { if (e.key === "Enter") addTask(); if (e.key === "Escape") { setAdding(false); setNewLabel(""); } }}
             placeholder="Add a personal task..."
-            style={{ flex: 1, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }}
+            style={{ flex: 1, padding: "7px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }}
           />
-          <button type="button" onClick={addTask} style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
-          <button type="button" onClick={() => { setAdding(false); setNewLabel(""); }} style={{ padding: "7px 9px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
+          <button type="button" onClick={addTask} style={{ padding: "7px 14px", borderRadius: "var(--radius-sm)", border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
+          <button type="button" onClick={() => { setAdding(false); setNewLabel(""); }} style={{ padding: "7px 9px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
         </div>
       ) : (
-        <button type="button" onClick={() => setAdding(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6, background: "transparent", border: "1px dashed var(--card-border)", borderRadius: 8, padding: "6px 12px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+        <button type="button" onClick={() => setAdding(true)} style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6, background: "transparent", border: "1px dashed var(--card-border)", borderRadius: "var(--radius-sm)", padding: "6px 12px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
           <Plus size={13} /> Add task
         </button>
       )}
@@ -839,9 +840,9 @@ function HabitRow({ habit, completedDates, onToggle }: { habit: HabitDef; comple
   const catColor  = CATEGORY_COLORS[habit.category] ?? ACCENT_CAREER;
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, height: 48, padding: "0 12px 0 0", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)", overflow: "hidden" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 10, height: 48, padding: "0 12px 0 0", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)", overflow: "hidden" }}>
       <div style={{ width: 3, height: "100%", background: catColor, flexShrink: 0, borderRadius: "10px 0 0 10px" }} />
-      <div style={{ width: 26, height: 26, borderRadius: 6, background: catColor + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <div style={{ width: 26, height: 26, borderRadius: "var(--radius-xs)", background: catColor + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
         <CategoryIcon category={habit.category} size={12} />
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 6, minWidth: 0, flex: "0 0 auto", maxWidth: 180 }}>
@@ -916,7 +917,7 @@ function HabitsTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Daily Habits</div>
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{doneCount} of {habits.length} today</div>
@@ -932,13 +933,13 @@ function HabitsTab() {
       {habits.map(habit => <HabitRow key={habit.id} habit={habit} completedDates={getCompletedDates(habit.id)} onToggle={handleToggle} />)}
 
       {addingHabit ? (
-        <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
-          <input autoFocus type="text" value={newHabitLabel} onChange={e => setNewHabitLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") { setAddingHabit(false); setNewHabitLabel(""); } }} placeholder="New habit name..." style={{ flex: 1, padding: "6px 10px", borderRadius: 8, border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }} />
-          <button type="button" onClick={handleAddHabit} style={{ padding: "6px 14px", borderRadius: 8, border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
-          <button type="button" onClick={() => { setAddingHabit(false); setNewHabitLabel(""); }} style={{ padding: "6px", borderRadius: 8, border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+          <input autoFocus type="text" value={newHabitLabel} onChange={e => setNewHabitLabel(e.target.value)} onKeyDown={e => { if (e.key === "Enter") handleAddHabit(); if (e.key === "Escape") { setAddingHabit(false); setNewHabitLabel(""); } }} placeholder="New habit name..." style={{ flex: 1, padding: "6px 10px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "var(--app-bg)", color: "var(--text-primary)", fontSize: 13, outline: "none" }} />
+          <button type="button" onClick={handleAddHabit} style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: "none", background: ACCENT_CAREER, color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Add</button>
+          <button type="button" onClick={() => { setAddingHabit(false); setNewHabitLabel(""); }} style={{ padding: "6px", borderRadius: "var(--radius-sm)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center" }}><X size={14} /></button>
         </div>
       ) : (
-        <button type="button" onClick={() => setAddingHabit(true)} style={{ display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-start", background: "var(--card-bg)", border: "1px dashed var(--card-border)", borderRadius: 10, padding: "7px 12px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+        <button type="button" onClick={() => setAddingHabit(true)} style={{ display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-start", background: "var(--card-bg)", border: "1px dashed var(--card-border)", borderRadius: "var(--radius-md)", padding: "7px 12px", color: ACCENT_CAREER, fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
           <Plus size={13} />Add habit
         </button>
       )}
@@ -972,7 +973,7 @@ function GoalCategoryBlock({
   }
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 10, overflow: "hidden" }}>
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-md)", overflow: "hidden" }}>
       <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--card-border)", display: "flex", alignItems: "center", gap: 8 }}>
         <div style={{ width: 3, height: 18, borderRadius: 2, background: category.color, flexShrink: 0 }} />
         <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", flex: 1 }}>{category.label}</span>
@@ -1032,7 +1033,7 @@ function GoalsTab() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Milestone Goals</div>
           <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{doneGoals} of {totalGoals} goals complete</div>
@@ -1127,7 +1128,7 @@ function CareerAssessmentCard({ aptitude }: { aptitude: NonNullable<SignalData["
       </div>
 
       {topValue && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: 8, background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
           <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Core value:</span>
           <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{VALUE_LABELS[topValue] ?? topValue}</span>
         </div>
@@ -1186,7 +1187,7 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
       </div>
 
       {feedback?.coaching_summary && (
-        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 12, padding: "8px 10px", background: "var(--card-bg-strong)", borderRadius: 8, borderLeft: "2px solid var(--accent)" }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 12, padding: "8px 10px", background: "var(--card-bg-strong)", borderRadius: "var(--radius-sm)", borderLeft: "2px solid var(--accent)" }}>
           {feedback.coaching_summary.slice(0, 180)}{feedback.coaching_summary.length > 180 ? "..." : ""}
         </div>
       )}
@@ -1250,18 +1251,18 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
 
       {/* Signal score + session count */}
       <div style={{ display: "flex", gap: 10 }}>
-        <div style={{ flex: 1, padding: "10px 12px", borderRadius: 10, background: "var(--card-bg-strong)", textAlign: "center" }}>
+        <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
           <div style={{ fontSize: 26, fontWeight: 900, color: signalColor, lineHeight: 1 }}>
             {signalScore !== null ? signalScore : "—"}
           </div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Signal Score</div>
         </div>
-        <div style={{ flex: 1, padding: "10px 12px", borderRadius: 10, background: "var(--card-bg-strong)", textAlign: "center" }}>
+        <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
           <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{totalSessions}</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Sessions</div>
         </div>
         {avgScore !== null && (
-          <div style={{ flex: 1, padding: "10px 12px", borderRadius: 10, background: "var(--card-bg-strong)", textAlign: "center" }}>
+          <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
             <div style={{ fontSize: 26, fontWeight: 900, color: "var(--text-primary)", lineHeight: 1 }}>{avgScore}</div>
             <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Avg Score</div>
           </div>
@@ -1442,9 +1443,9 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             {/* Dashboard / Planner toggle — university only */}
             {isUniversity && (
-              <div style={{ display: "flex", padding: "3px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+              <div style={{ display: "flex", padding: "3px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 {(["dashboard", "planner"] as const).map(v => (
-                  <button key={v} type="button" onClick={() => setDashView(v)} style={{ padding: "6px 16px", borderRadius: 8, border: "none", background: dashView === v ? "var(--accent)" : "transparent", color: dashView === v ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer", textTransform: "capitalize", transition: "all 140ms" }}>
+                  <button key={v} type="button" onClick={() => setDashView(v)} style={{ padding: "6px 16px", borderRadius: "var(--radius-sm)", border: "none", background: dashView === v ? "var(--accent)" : "transparent", color: dashView === v ? "#fff" : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer", textTransform: "capitalize", transition: "all 140ms" }}>
                     {v === "dashboard" ? "Overview" : "Planner"}
                   </button>
                 ))}
@@ -1453,7 +1454,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setJourneyOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 10, border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-md)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
             >
               My Journey →
             </button>
@@ -1485,12 +1486,12 @@ export default function DashboardPage() {
             </div>
 
             {needsReassessment && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 16px", borderRadius: "var(--radius-lg)", background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.3)", flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <RefreshCw size={16} color="#92400E" />
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#92400E" }}>Time to retake your Career Assessment</div>
                 </div>
-                <Link href="/aptitude" style={{ padding: "6px 14px", borderRadius: 8, background: "#F59E0B", color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none" }}>Retake →</Link>
+                <Link href="/aptitude" style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", background: "#F59E0B", color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none" }}>Retake →</Link>
               </div>
             )}
 
@@ -1498,7 +1499,20 @@ export default function DashboardPage() {
             <RoleClusterSection accentColor="var(--accent)" />
 
             {/* Career assessment + last mock interview + practice stats */}
-            {(data?.aptitude || lastMockInterview || data) && (
+            {loading && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", padding: "18px 20px", minHeight: 140, display: "flex", flexDirection: "column", gap: 10 }}>
+                    <div className="skeleton" style={{ height: 14, width: "55%", borderRadius: "var(--radius-xs)" }} />
+                    <div className="skeleton" style={{ height: 10, width: "80%", borderRadius: 5 }} />
+                    <div className="skeleton" style={{ height: 10, width: "65%", borderRadius: 5 }} />
+                    <div style={{ flex: 1 }} />
+                    <div className="skeleton" style={{ height: 28, width: 90, borderRadius: 7, marginTop: 6 }} />
+                  </div>
+                ))}
+              </div>
+            )}
+            {!loading && (data?.aptitude || lastMockInterview || data) && (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, alignItems: "stretch" }}>
                 {data?.aptitude ? (
                   <Link href="/aptitude?view=results" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column" }}>
@@ -1528,7 +1542,7 @@ export default function DashboardPage() {
 
             {/* Onboarding nudge */}
             {!loading && data && !hasAptitude && !hasAnySessions && (
-              <div style={{ padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ padding: "14px 18px", borderRadius: "var(--radius-lg)", background: "linear-gradient(135deg, rgba(37,99,235,0.07), rgba(139,92,246,0.07))", border: "1px solid rgba(37,99,235,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>Welcome to Signal — let's get you set up</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Start with the Career Assessment to unlock your Signal Score, career matches, and personalized plan.</div>
@@ -1566,7 +1580,7 @@ export default function DashboardPage() {
                 }} />
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(37,99,235,0.25)", border: "1px solid rgba(37,99,235,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "rgba(37,99,235,0.25)", border: "1px solid rgba(37,99,235,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <Mic size={18} color="#93C5FD" />
                     </div>
                     <span style={{ fontSize: 11, fontWeight: 600, color: "#93C5FD", letterSpacing: 0.4 }}>Most popular</span>
@@ -1582,7 +1596,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div style={{ flexShrink: 0 }}>
-                  <div style={{ padding: "12px 28px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(37,99,235,0.4)", whiteSpace: "nowrap" as const }}>
+                  <div style={{ padding: "12px 28px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 14, boxShadow: "0 4px 20px rgba(37,99,235,0.4)", whiteSpace: "nowrap" as const }}>
                     Start practicing →
                   </div>
                 </div>
@@ -1646,7 +1660,7 @@ export default function DashboardPage() {
 
           {/* Right panel: Tasks / Habits / Goals */}
           <div>
-            <div style={{ display: "flex", gap: 4, marginBottom: 16, padding: "4px", borderRadius: 10, background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
+            <div style={{ display: "flex", gap: 4, marginBottom: 16, padding: "4px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
               {TABS.map(tab => (
                 <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} style={{ flex: 1, padding: "7px 10px", borderRadius: 7, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 800, background: activeTab === tab.id ? "var(--accent)" : "transparent", color: activeTab === tab.id ? "#fff" : "var(--text-muted)", transition: "background 150ms, color 150ms" }}>
                   {tab.label}
@@ -1657,7 +1671,7 @@ export default function DashboardPage() {
             {activeTab === "tasks" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                 {tasks.length === 0 && !stageConfig && (
-                  <div style={{ textAlign: "center", padding: "28px 16px", borderRadius: 12, border: "1px dashed var(--card-border)", color: "var(--text-muted)" }}>
+                  <div style={{ textAlign: "center", padding: "28px 16px", borderRadius: "var(--radius-lg)", border: "1px dashed var(--card-border)", color: "var(--text-muted)" }}>
                     <div style={{ fontSize: 22, marginBottom: 8 }}>📋</div>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>No tasks yet</div>
                     <div style={{ fontSize: 12 }}>Add a task below or drag a checklist item onto the calendar.</div>

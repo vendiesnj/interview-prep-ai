@@ -64,7 +64,7 @@ export default function OccupationProfilePage({ params }: Props) {
               <div style={{ fontSize: 11, fontWeight: 900, color: "var(--accent)", letterSpacing: 0.8, textTransform: "uppercase", marginBottom: 8 }}>
                 {occ.category}
               </div>
-              <h1 style={{ margin: "0 0 12px", fontSize: 32, fontWeight: 950, color: "var(--text-primary)", letterSpacing: -0.6 }}>
+              <h1 style={{ margin: "0 0 12px", fontSize: 32, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.6 }}>
                 {occ.title}
               </h1>
               <p style={{ margin: 0, fontSize: 16, color: "var(--text-muted)", lineHeight: 1.7, maxWidth: 620 }}>
@@ -90,8 +90,8 @@ export default function OccupationProfilePage({ params }: Props) {
               <CardHeader title="Personality fit (RIASEC)" />
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 {riasecLetters.map((letter, i) => (
-                  <div key={letter} style={{ padding: "8px 16px", borderRadius: 10, background: (RIASEC_COLORS[letter] ?? "#888") + "15", border: `1px solid ${(RIASEC_COLORS[letter] ?? "#888")}30` }}>
-                    <div style={{ fontSize: 16, fontWeight: 950, color: RIASEC_COLORS[letter] ?? "#888" }}>{letter}</div>
+                  <div key={letter} style={{ padding: "8px 16px", borderRadius: "var(--radius-md)", background: (RIASEC_COLORS[letter] ?? "#888") + "15", border: `1px solid ${(RIASEC_COLORS[letter] ?? "#888")}30` }}>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: RIASEC_COLORS[letter] ?? "#888" }}>{letter}</div>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>{RIASEC_LABELS[letter]}</div>
                     {i === 0 && <div style={{ fontSize: 10, color: "var(--text-muted)" }}>Primary</div>}
                   </div>
@@ -112,7 +112,7 @@ export default function OccupationProfilePage({ params }: Props) {
                     <div style={{ height: "100%", width: `${occ.aiRisk}%`, borderRadius: 99, background: risk.color, transition: "width 0.6s ease" }} />
                   </div>
                 </div>
-                <div style={{ fontSize: 16, fontWeight: 950, color: risk.color, minWidth: 48 }}>{occ.aiRisk}%</div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: risk.color, minWidth: 48 }}>{occ.aiRisk}%</div>
               </div>
               <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7 }}>
                 {occ.aiRisk < 25
@@ -129,12 +129,12 @@ export default function OccupationProfilePage({ params }: Props) {
             {/* Education & Timeline */}
             <Card style={{ marginBottom: 20 }}>
               <CardHeader title="Education & timeline" />
-              <div style={{ padding: "12px 16px", borderRadius: 10, background: "var(--accent-soft)", marginBottom: 12 }}>
+              <div style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", background: "var(--accent-soft)", marginBottom: 12 }}>
                 <div style={{ fontSize: 13, fontWeight: 900, color: "var(--accent)" }}>{educationLabel(occ.education)}</div>
                 <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 2 }}>{EDU_TIMELINE[occ.education]}</div>
               </div>
               {occ.trades && (
-                <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.2)" }}>
+                <div style={{ padding: "12px 16px", borderRadius: "var(--radius-md)", background: "rgba(217,119,6,0.06)", border: "1px solid rgba(217,119,6,0.2)" }}>
                   <div style={{ fontSize: 12, fontWeight: 900, color: "#D97706", marginBottom: 4 }}>TRADE / APPRENTICESHIP PATH</div>
                   <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
                     This occupation is available through trade school or apprenticeship - often faster and less expensive than a 4-year degree, with strong job placement. Many trade workers start earning full wages within 2–4 years.
@@ -170,7 +170,7 @@ export default function OccupationProfilePage({ params }: Props) {
                 <CardHeader title="Side income ideas" />
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {occ.sideHustles.map(hustle => (
-                    <div key={hustle} style={{ padding: "8px 12px", borderRadius: 8, background: "var(--card-bg-strong)", fontSize: 13, color: "var(--text-primary)", fontWeight: 700 }}>
+                    <div key={hustle} style={{ padding: "8px 12px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", fontSize: 13, color: "var(--text-primary)", fontWeight: 700 }}>
                       {hustle}
                     </div>
                   ))}
@@ -180,11 +180,11 @@ export default function OccupationProfilePage({ params }: Props) {
 
             {/* Practice CTA */}
             <Card style={{ marginBottom: 16, background: "var(--accent-soft)", borderColor: "var(--accent-strong)" }}>
-              <div style={{ fontSize: 14, fontWeight: 950, color: "var(--accent)", marginBottom: 6 }}>Practice for this career</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--accent)", marginBottom: 6 }}>Practice for this career</div>
               <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                 Practice behavioral interviews, networking pitches, and professional communication specific to {occ.category} roles.
               </p>
-              <Link href="/practice" style={{ display: "block", padding: "9px 14px", borderRadius: 10, background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
+              <Link href="/practice" style={{ display: "block", padding: "9px 14px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
                 Start practicing →
               </Link>
             </Card>
@@ -195,7 +195,7 @@ export default function OccupationProfilePage({ params }: Props) {
               <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
                 Take the career aptitude assessment to see how your RIASEC profile matches {occ.title} and 300+ other occupations.
               </p>
-              <Link href="/aptitude" style={{ display: "block", padding: "9px 14px", borderRadius: 10, border: "1px solid var(--accent)", color: "var(--accent)", fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
+              <Link href="/aptitude" style={{ display: "block", padding: "9px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent)", color: "var(--accent)", fontWeight: 900, fontSize: 13, textDecoration: "none", textAlign: "center" }}>
                 Take assessment →
               </Link>
             </Card>
@@ -214,7 +214,7 @@ export default function OccupationProfilePage({ params }: Props) {
                 const rRisk = aiRiskLabel(r.aiRisk);
                 return (
                   <Link key={r.id} href={`/career-guide/career-paths/${r.id}`} style={{ textDecoration: "none" }}>
-                    <div className="ipc-card-lift" style={{ padding: "14px 16px", borderRadius: 12, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                    <div className="ipc-card-lift" style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
                       <div style={{ fontSize: 11, fontWeight: 900, color: rRisk.color, marginBottom: 4 }}>{r.aiRisk}% AI risk</div>
                       <div style={{ fontSize: 13, fontWeight: 900, color: "var(--text-primary)", marginBottom: 2 }}>{r.title}</div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)" }}>${r.salary[0]}K–${r.salary[1]}K</div>
@@ -237,7 +237,7 @@ function StatCard({ label, value, color, sub }: { label: string; value: string; 
   return (
     <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
       <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 6, letterSpacing: 0.3 }}>{label}</div>
-      <div style={{ fontSize: 14, fontWeight: 950, color, lineHeight: 1.3 }}>{value}</div>
+      <div style={{ fontSize: 14, fontWeight: 800, color, lineHeight: 1.3 }}>{value}</div>
       {sub && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 3 }}>{sub}</div>}
     </div>
   );

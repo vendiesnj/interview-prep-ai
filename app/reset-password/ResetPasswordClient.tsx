@@ -61,7 +61,7 @@ export default function ResetPasswordClient() {
             INTERVIEW PERFORMANCE COACH
           </div>
 
-          <h1 style={{ marginTop: 8, fontSize: 22, fontWeight: 950 }}>
+          <h1 style={{ marginTop: 8, fontSize: 22, fontWeight: 800 }}>
             Reset Password
           </h1>
 
@@ -98,7 +98,7 @@ export default function ResetPasswordClient() {
                 border: "1px solid rgba(34,211,238,0.35)",
                 background: loading ? "rgba(34,211,238,0.10)" : "rgba(34,211,238,0.14)",
                 color: "#A5F3FC",
-                fontWeight: 950,
+                fontWeight: 800,
                 cursor: loading ? "not-allowed" : "pointer",
                 opacity: !token ? 0.6 : 1,
               }}

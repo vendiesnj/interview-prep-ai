@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
             style={{
               margin: "8px 0 0 0",
               fontSize: 22,
-              fontWeight: 950,
+              fontWeight: 800,
               letterSpacing: -0.2,
               color: "var(--text-primary)",
             }}
@@ -130,7 +130,7 @@ export default function ForgotPasswordPage() {
                   ? "var(--card-bg-strong)"
                   : "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
                 color: "var(--text-primary)",
-                fontWeight: 950,
+                fontWeight: 800,
                 cursor: loading ? "not-allowed" : "pointer",
                 boxShadow: loading ? "none" : "var(--shadow-glow)",
               }}

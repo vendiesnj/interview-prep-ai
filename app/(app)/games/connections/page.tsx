@@ -481,7 +481,7 @@ export default function ConnectionsPage() {
       <div style={{ maxWidth: 560, margin: "0 auto" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: -0.4 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", margin: "0 0 4px", letterSpacing: -0.4 }}>
             Career Connections
           </h1>
           <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>Find groups of 4 related career terms</p>
@@ -508,7 +508,7 @@ export default function ConnectionsPage() {
             if (!group) return null;
             return (
               <div key={color} style={{
-                padding: "14px 16px", borderRadius: 12,
+                padding: "14px 16px", borderRadius: "var(--radius-lg)",
                 background: COLOR_MAP[color], color: "#fff",
                 animation: "popIn 300ms ease",
                 display: "flex", flexDirection: "column", alignItems: "center", gap: 3,
@@ -542,7 +542,7 @@ export default function ConnectionsPage() {
                   style={{
                     padding: "10px 4px",
                     minHeight: 64,
-                    borderRadius: 12,
+                    borderRadius: "var(--radius-lg)",
                     border: isSelected ? "2px solid transparent" : "2px solid var(--card-border)",
                     background: isSelected ? "var(--accent)" : "var(--card-bg)",
                     color: isSelected ? "#fff" : "var(--text-primary)",
@@ -570,7 +570,7 @@ export default function ConnectionsPage() {
             <button
               onClick={handleShuffle}
               style={{
-                padding: "9px 18px", borderRadius: 10,
+                padding: "9px 18px", borderRadius: "var(--radius-md)",
                 background: "var(--card-bg)", border: "1px solid var(--card-border)",
                 color: "var(--text-primary)", fontWeight: 800, fontSize: 13, cursor: "pointer",
               }}
@@ -581,7 +581,7 @@ export default function ConnectionsPage() {
               onClick={() => setSelected(new Set())}
               disabled={selected.size === 0}
               style={{
-                padding: "9px 18px", borderRadius: 10,
+                padding: "9px 18px", borderRadius: "var(--radius-md)",
                 background: "var(--card-bg)", border: "1px solid var(--card-border)",
                 color: "var(--text-primary)", fontWeight: 800, fontSize: 13, cursor: "pointer",
                 opacity: selected.size === 0 ? 0.4 : 1,
@@ -593,7 +593,7 @@ export default function ConnectionsPage() {
               onClick={handleSubmit}
               disabled={selected.size !== 4}
               style={{
-                padding: "9px 22px", borderRadius: 10,
+                padding: "9px 22px", borderRadius: "var(--radius-md)",
                 background: selected.size === 4 ? "var(--accent)" : "var(--card-border)",
                 color: "#fff", fontWeight: 900, fontSize: 13, cursor: selected.size === 4 ? "pointer" : "default",
                 opacity: selected.size !== 4 ? 0.5 : 1,
@@ -611,7 +611,7 @@ export default function ConnectionsPage() {
           <div style={{
             background: "var(--card-bg)",
             border: "1px solid var(--card-border)",
-            borderRadius: 16,
+            borderRadius: "var(--radius-xl)",
             padding: "24px",
             textAlign: "center",
             marginTop: 12,
@@ -630,7 +630,7 @@ export default function ConnectionsPage() {
                 <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 10 }}>The groups were:</div>
                 {puzzle.groups.map(g => (
                   <div key={g.category} style={{
-                    padding: "8px 12px", borderRadius: 8, background: COLOR_MAP[g.color] + "20",
+                    padding: "8px 12px", borderRadius: "var(--radius-sm)", background: COLOR_MAP[g.color] + "20",
                     border: `1px solid ${COLOR_MAP[g.color]}40`,
                     marginBottom: 6, fontSize: 12, color: "var(--text-primary)", fontWeight: 700,
                   }}>
@@ -653,15 +653,15 @@ export default function ConnectionsPage() {
             {stats && (
               <div style={{ display: "flex", justifyContent: "center", gap: 24, marginBottom: 16 }}>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{stats.streak}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{stats.streak}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>Streak</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{stats.totalWon}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{stats.totalWon}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>Won</div>
                 </div>
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 22, fontWeight: 950, color: "var(--text-primary)" }}>{stats.totalPlayed}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>{stats.totalPlayed}</div>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700 }}>Played</div>
                 </div>
               </div>
@@ -670,7 +670,7 @@ export default function ConnectionsPage() {
             <button
               onClick={copyResults}
               style={{
-                padding: "10px 22px", borderRadius: 10,
+                padding: "10px 22px", borderRadius: "var(--radius-md)",
                 background: "var(--accent)", color: "#fff",
                 border: "none", fontWeight: 900, fontSize: 13, cursor: "pointer",
                 marginRight: 8,
@@ -688,7 +688,7 @@ export default function ConnectionsPage() {
         {/* Already played message */}
         {alreadyPlayed && gameState === "playing" && (
           <div style={{
-            padding: "12px 16px", borderRadius: 12,
+            padding: "12px 16px", borderRadius: "var(--radius-lg)",
             background: "#10B98110", border: "1px solid #10B98130",
             fontSize: 13, color: "#10B981", fontWeight: 700, textAlign: "center", marginTop: 12,
           }}>
