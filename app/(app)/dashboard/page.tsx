@@ -1097,40 +1097,39 @@ function CareerAssessmentCard({ aptitude }: { aptitude: NonNullable<SignalData["
   const maxScore = Math.max(...topDims.map(d => d[1]), 1);
 
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Brain size={15} color="var(--accent)" />
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Brain size={14} color="var(--accent)" />
           <span style={{ fontSize: 13, fontWeight: 700 }}>Career Assessment</span>
         </div>
         <Link href="/aptitude" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>Retake →</Link>
       </div>
 
       {profile && (
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: "var(--accent)", letterSpacing: -1, lineHeight: 1 }}>{profile}</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+        <div>
+          <div style={{ fontSize: 30, fontWeight: 700, color: "var(--accent)", letterSpacing: -1, lineHeight: 1, marginBottom: 4 }}>{profile}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
             {profile.split("").map((c: string) => RIASEC_FULL[c] ?? c).join(" · ")}
           </div>
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: topValue ? 12 : 0 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {topDims.map(([dim, score]) => (
           <div key={dim} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", width: 14 }}>{dim}</span>
-            <div style={{ flex: 1, height: 5, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 99, background: "var(--accent)", width: `${(score / maxScore) * 100}%`, transition: "width 0.5s ease" }} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", width: 12 }}>{dim}</span>
+            <div style={{ flex: 1, height: 4, borderRadius: 4, background: "var(--card-border)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 4, background: "var(--accent)", width: `${(score / maxScore) * 100}%`, transition: "width 0.4s ease" }} />
             </div>
-            <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 24, textAlign: "right" }}>{score}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-primary)", minWidth: 20, textAlign: "right" as const }}>{score}</span>
           </div>
         ))}
       </div>
 
       {topValue && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", borderRadius: "var(--radius-sm)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
-          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Core value:</span>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{VALUE_LABELS[topValue] ?? topValue}</span>
+        <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+          Core value: <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{VALUE_LABELS[topValue] ?? topValue}</span>
         </div>
       )}
     </div>
@@ -1154,13 +1153,18 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
   const role = attempt.question?.replace("Mock Interview — ", "") ?? "Mock Interview";
   const dateStr = attempt.ts ? new Date(attempt.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
 
-  const qBreakdowns: Array<{ question: string; competency: string; score: number; note: string }> =
-    feedback?.question_breakdowns?.slice(0, 3) ?? [];
-
   const dimScores = feedback?.dimension_scores as Record<string, { score: number; label: string }> | null;
-  const topDims = dimScores
-    ? Object.entries(dimScores).sort((a, b) => b[1].score - a[1].score).slice(0, 3)
+
+  // Show strongest + weakest dimension only
+  const dimEntries = dimScores
+    ? Object.entries(dimScores).filter(([, d]) => typeof d.score === "number" && d.score > 0)
     : [];
+  const sorted = [...dimEntries].sort((a, b) => b[1].score - a[1].score);
+  const strongest = sorted[0] ?? null;
+  const weakest = sorted[sorted.length - 1] ?? null;
+  const keyDims = strongest && weakest && strongest[0] !== weakest[0]
+    ? [strongest, weakest]
+    : strongest ? [strongest] : [];
 
   const presenceScore = (() => {
     if (!dimScores) return null;
@@ -1172,69 +1176,74 @@ function LastMockInterviewCard({ attempt }: { attempt: any }) {
     return Math.round(((ve + pc) / 2) * 10) / 10;
   })();
 
+  // Truncate coaching summary at sentence boundary
+  const rawSummary: string = feedback?.coaching_summary ?? "";
+  const truncatedSummary = (() => {
+    if (!rawSummary) return "";
+    if (rawSummary.length <= 120) return rawSummary;
+    const cut = rawSummary.slice(0, 140);
+    const lastDot = cut.lastIndexOf(".");
+    return lastDot > 60 ? cut.slice(0, lastDot + 1) : cut.slice(0, 120) + "…";
+  })();
+
+  const pColor = presenceScore === null ? null : presenceScore >= 7 ? "#10B981" : presenceScore >= 5.5 ? "#F59E0B" : "#EF4444";
+
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Users size={15} color="var(--accent)" />
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", height: "100%", boxSizing: "border-box", display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Users size={14} color="var(--accent)" />
           <span style={{ fontSize: 13, fontWeight: 700 }}>Last Mock Interview</span>
         </div>
         <Link href="/mock-interview" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>New →</Link>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 14 }}>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 40, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{score}</div>
-          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>/100</div>
-        </div>
+      {/* Score row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${color}18`, color }}>{readinessLabel[readiness]}</span>
-            {presenceScore !== null && (() => {
-              const pColor = presenceScore >= 7 ? "var(--chart-positive)" : presenceScore >= 5.5 ? "var(--chart-neutral)" : "var(--chart-critical)";
-              return (
-                <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `color-mix(in srgb, ${pColor} 12%, transparent)`, color: pColor, border: `1px solid color-mix(in srgb, ${pColor} 25%, transparent)` }}>
-                  Presence {presenceScore}/10
-                </span>
-              );
-            })()}
+          <div style={{ fontSize: 38, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1 }}>/100</div>
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 5 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 7px", borderRadius: "var(--radius-xs)", background: `${color}18`, color }}>{readinessLabel[readiness]}</span>
+            {pColor && presenceScore !== null && (
+              <span style={{ fontSize: 11, color: pColor, fontWeight: 600 }}>Presence {presenceScore}/10</span>
+            )}
           </div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", marginBottom: 2 }}>{role}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{dateStr}</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.3 }}>{role}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{dateStr}</div>
         </div>
       </div>
 
-      {feedback?.coaching_summary && (
-        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 12, padding: "8px 10px", background: "var(--card-bg-strong)", borderRadius: "var(--radius-sm)", borderLeft: "2px solid var(--accent)" }}>
-          {feedback.coaching_summary.slice(0, 180)}{feedback.coaching_summary.length > 180 ? "..." : ""}
+      {/* Coaching summary — sentence-truncated */}
+      {truncatedSummary && (
+        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, padding: "8px 10px", background: "var(--card-bg-strong)", borderRadius: "var(--radius-sm)", borderLeft: "2px solid var(--accent)" }}>
+          {truncatedSummary}
         </div>
       )}
 
-      {topDims.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 5, marginBottom: qBreakdowns.length > 0 ? 12 : 0 }}>
-          {topDims.map(([key, dim]) => (
-            <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)", minWidth: 100, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{dim.label ?? key}</span>
-              <div style={{ flex: 1, height: 4, borderRadius: 99, background: "var(--card-border)", overflow: "hidden" }}>
-                <div style={{ height: "100%", borderRadius: 99, background: "var(--accent)", width: `${(dim.score / 10) * 100}%` }} />
-              </div>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-primary)", minWidth: 24, textAlign: "right" }}>{dim.score}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {qBreakdowns.length > 0 && (
+      {/* Strongest + weakest dimension */}
+      {keyDims.length > 0 && (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Questions</div>
-          {qBreakdowns.map((qb, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", minWidth: 24 }}>{qb.score}</span>
-              <span style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{qb.question.slice(0, 70)}{qb.question.length > 70 ? "..." : ""}</span>
-            </div>
-          ))}
+          {keyDims.map(([key, dim], idx) => {
+            const isStrong = idx === 0 && keyDims.length > 1;
+            const dimColor = isStrong ? "#10B981" : "#F59E0B";
+            return (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 9, fontWeight: 700, color: dimColor, width: 40, letterSpacing: 0.3 }}>{isStrong ? "STRONG" : "FOCUS"}</span>
+                <span style={{ fontSize: 11, color: "var(--text-muted)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{dim.label ?? key}</span>
+                <div style={{ width: 40, height: 3, borderRadius: 3, background: "var(--card-border)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", background: dimColor, width: `${(dim.score / 10) * 100}%` }} />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-primary)", minWidth: 18, textAlign: "right" as const }}>{dim.score}</span>
+              </div>
+            );
+          })}
         </div>
       )}
+
+      <Link href="/results" style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600, textDecoration: "none", marginTop: "auto" }}>Full results →</Link>
     </div>
   );
 }
@@ -1257,6 +1266,13 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
 
   const next = data.nextAction;
 
+  function naceLabel(score: number | null): { text: string; color: string; bg: string } {
+    if (score === null) return { text: "No data", color: "var(--text-muted)", bg: "var(--card-bg-strong)" };
+    if (score >= 60) return { text: "Strong", color: "#22C55E", bg: "rgba(34,197,94,0.08)" };
+    if (score >= 40) return { text: "Developing", color: "#F59E0B", bg: "rgba(245,158,11,0.08)" };
+    return { text: "Needs work", color: "#EF4444", bg: "rgba(239,68,68,0.08)" };
+  }
+
   return (
     <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: "18px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -1267,44 +1283,54 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
         <Link href="/progress" style={{ fontSize: 12, color: "var(--accent)", textDecoration: "none", fontWeight: 600 }}>View all →</Link>
       </div>
 
-      {/* Signal score + session count */}
+      {/* Sessions + avg score */}
       <div style={{ display: "flex", gap: 10 }}>
-        <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
-          <div style={{ fontSize: 26, fontWeight: 700, color: signalColor, lineHeight: 1 }}>
-            {signalScore !== null ? signalScore : "—"}
-          </div>
-          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Readiness Index</div>
-          <div style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 1, opacity: 0.7 }}>career + practice</div>
-        </div>
         <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
           <div style={{ fontSize: 26, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{totalSessions}</div>
           <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Sessions</div>
         </div>
-        {avgScore !== null && (
-          <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
-            <div style={{ fontSize: 26, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1 }}>{avgScore}</div>
-            <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Avg Score</div>
+        <div style={{ flex: 1, padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", textAlign: "center" }}>
+          <div style={{ fontSize: 26, fontWeight: 700, color: avgScore !== null ? "var(--text-primary)" : "var(--text-muted)", lineHeight: 1 }}>
+            {avgScore !== null ? avgScore : "—"}
           </div>
-        )}
+          <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>Avg Score</div>
+        </div>
       </div>
 
-      {/* Strength + gap */}
+      {/* Competency highlights */}
       {(topNace || weakNace) && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-          {topNace && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>TOP</span>
-              <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, fontWeight: 500 }}>{topNace.shortLabel}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{topNace.score}</span>
-            </div>
-          )}
-          {weakNace && weakNace.key !== topNace?.key && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>FOCUS</span>
-              <span style={{ fontSize: 12, color: "var(--text-primary)", flex: 1, fontWeight: 500 }}>{weakNace.shortLabel}</span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>{weakNace.score}</span>
-            </div>
-          )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>Competencies</div>
+          {topNace && (() => {
+            const lbl = naceLabel(topNace.score);
+            const pct = Math.max(0, Math.min(100, topNace.score ?? 0));
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 500 }}>{topNace.shortLabel}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: "var(--radius-xs)", background: lbl.bg, color: lbl.color }}>{lbl.text}</span>
+                </div>
+                <div style={{ height: 4, borderRadius: 2, background: "var(--card-border)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: lbl.color, borderRadius: 2, transition: "width 400ms ease" }} />
+                </div>
+              </div>
+            );
+          })()}
+          {weakNace && weakNace.key !== topNace?.key && (() => {
+            const lbl = naceLabel(weakNace.score);
+            const pct = Math.max(0, Math.min(100, weakNace.score ?? 0));
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 12, color: "var(--text-primary)", fontWeight: 500 }}>{weakNace.shortLabel}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: "var(--radius-xs)", background: lbl.bg, color: lbl.color }}>{lbl.text}</span>
+                </div>
+                <div style={{ height: 4, borderRadius: 2, background: "var(--card-border)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: lbl.color, borderRadius: 2, transition: "width 400ms ease" }} />
+                </div>
+              </div>
+            );
+          })()}
           <Link href="/my-journey" style={{ fontSize: 11, color: "var(--accent)", fontWeight: 600, textDecoration: "none", marginTop: 2, display: "inline-block" }}>
             Full breakdown →
           </Link>
