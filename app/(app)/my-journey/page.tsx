@@ -336,7 +336,7 @@ function MiniBar({
     <div
       style={{
         height,
-        borderRadius: 99,
+        borderRadius: "var(--radius-sm)",
         background: "var(--card-border-soft)",
         overflow: "hidden",
       }}
@@ -346,8 +346,8 @@ function MiniBar({
           height: "100%",
           width: `${Math.max(0, Math.min(100, pct))}%`,
           background: color,
-          borderRadius: 99,
-          transition: "width 0.6s ease",
+          borderRadius: "var(--radius-sm)",
+          transition: "width 0.4s ease",
         }}
       />
     </div>
@@ -415,7 +415,7 @@ function ScoreRing({ value, size = 80 }: { value: number; size?: number }) {
         dy=".35em"
         textAnchor="middle"
         fontSize={size * 0.22}
-        fontWeight={900}
+        fontWeight={700}
         fill="var(--text-primary)"
       >
         {pct}
@@ -458,7 +458,7 @@ function SmallScoreCircle({ score, size = 48 }: { score: number; size?: number }
         dy=".35em"
         textAnchor="middle"
         fontSize={size * 0.24}
-        fontWeight={900}
+        fontWeight={700}
         fill={color}
       >
         {pct}
@@ -472,9 +472,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     <div
       style={{
         fontSize: 10,
-        fontWeight: 800,
+        fontWeight: 700,
         textTransform: "uppercase",
-        letterSpacing: 0.9,
+        letterSpacing: 0.5,
         color: "var(--text-muted)",
         marginBottom: 10,
       }}
@@ -538,7 +538,7 @@ function EmptyState({
       >
         {icon}
       </div>
-      <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{title}</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{title}</div>
       <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 340 }}>{body}</div>
       {ctaLabel && ctaHref && (
         <a
@@ -622,11 +622,11 @@ function SpeakingCard({
           {icon}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{title}</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{title}</div>
           {segment.count > 0 && segment.avgScore !== null && (
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>
               Avg score:{" "}
-              <span style={{ fontWeight: 800, color: col }}>{segment.avgScore}</span>
+              <span style={{ fontWeight: 700, color: col }}>{segment.avgScore}</span>
               {" · "}
               <span style={{ color: col }}>{scoreLabel(segment.avgScore)}</span>
             </div>
@@ -635,7 +635,7 @@ function SpeakingCard({
         <div
           style={{
             padding: "3px 10px",
-            borderRadius: 99,
+            borderRadius: "var(--radius-sm)",
             fontSize: 11,
             fontWeight: 700,
             background: accentColor + "15",
@@ -944,7 +944,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
       id: "skills",
       icon: <BarChart2 size={16} />,
       title: "NACE Scores",
-      stat: signalScore !== null ? `Signal: ${signalScore}` : "Building…",
+      stat: signalScore !== null ? `Score: ${signalScore}` : "Building…",
       sub: "Career readiness framework",
       color: "var(--accent)",
     },
@@ -1025,7 +1025,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
 
   return (
     <div>
-      {/* ── Hero row: Signal Score + stat tiles ── */}
+      {/* ── Hero row: Readiness Index + stat tiles ── */}
       <div
         style={{
           display: "grid",
@@ -1035,7 +1035,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
           alignItems: "stretch",
         }}
       >
-        {/* Signal Score hero tile */}
+        {/* Readiness Index hero tile */}
         <div
           style={{
             padding: "20px 24px",
@@ -1053,11 +1053,11 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
             <Award size={14} color="var(--text-muted)" />
-            <span style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--text-muted)" }}>
-              Signal Score
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)" }}>
+              Readiness Index
             </span>
           </div>
-          <div style={{ fontSize: 52, fontWeight: 800, color: signalColor, lineHeight: 1 }}>
+          <div style={{ fontSize: 38, fontWeight: 700, color: signalColor, lineHeight: 1 }}>
             {signalScore ?? "-"}
           </div>
           <div style={{ fontSize: 12, fontWeight: 700, color: signalColor }}>{signalLabel}</div>
@@ -1166,7 +1166,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               <Zap size={18} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 2 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 2 }}>
                 Recommended next step
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{nextAction.title}</div>
@@ -1214,7 +1214,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
               </div>
               <ChevronRight size={13} color="var(--text-muted)" />
             </div>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)" }}>{tile.title}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{tile.title}</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: tile.color }}>{tile.stat}</div>
             <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{tile.sub}</div>
           </div>
@@ -1236,13 +1236,13 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
           <SectionLabel>Career Check-In</SectionLabel>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 14 }}>
             <div>
-              <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Status</div>
+              <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 4 }}>Status</div>
               <span
                 style={{
                   padding: "3px 10px",
-                  borderRadius: 99,
+                  borderRadius: "var(--radius-sm)",
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   background: employmentStatusColor(careerCheckIn.employmentStatus) + "18",
                   border: `1px solid ${employmentStatusColor(careerCheckIn.employmentStatus)}40`,
                   color: employmentStatusColor(careerCheckIn.employmentStatus),
@@ -1253,13 +1253,13 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
             </div>
             {careerCheckIn.salaryRange && (
               <div>
-                <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Salary Range</div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>{salaryRangeLabel(careerCheckIn.salaryRange)}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 4 }}>Salary Range</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{salaryRangeLabel(careerCheckIn.salaryRange)}</div>
               </div>
             )}
             {careerCheckIn.satisfactionScore !== null && careerCheckIn.satisfactionScore !== undefined && (
               <div>
-                <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Satisfaction</div>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 4 }}>Satisfaction</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: careerCheckIn.satisfactionScore >= 4 ? "#10B981" : careerCheckIn.satisfactionScore >= 3 ? "#F59E0B" : "#EF4444" }}>
                   {careerCheckIn.satisfactionScore}/5
                 </div>
@@ -1267,7 +1267,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
             )}
             {(careerCheckIn.jobTitle || careerCheckIn.company) && (
               <div>
-                <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>Role</div>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 4 }}>Role</div>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
                   {[careerCheckIn.jobTitle, careerCheckIn.company].filter(Boolean).join(" at ")}
                 </div>
@@ -1319,7 +1319,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
             gap: 10,
           }}
         >
-          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", letterSpacing: 0.9, textTransform: "uppercase" }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.4, textTransform: "uppercase" }}>
             NACE Career Readiness
           </div>
           <NaceRadarChart scores={naceScores} />
@@ -1337,7 +1337,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
             background: "var(--card-bg)",
           }}
         >
-          <div style={{ fontSize: 10, fontWeight: 800, color: "var(--accent)", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 14 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--accent)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 14 }}>
             Dimension Scores
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -1363,8 +1363,8 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
                   >
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>{ns.label}</span>
-                        <span style={{ fontSize: 13, fontWeight: 800, color: barColor, marginLeft: 12, flexShrink: 0 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{ns.label}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: barColor, marginLeft: 12, flexShrink: 0 }}>
                           {ns.score !== null ? ns.score : "-"}
                         </span>
                       </div>
@@ -1406,7 +1406,7 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
                 border: "none",
                 color: "var(--accent)",
                 fontSize: 12,
-                fontWeight: 800,
+                fontWeight: 700,
                 cursor: "pointer",
                 padding: 0,
                 display: "flex",
@@ -1442,7 +1442,7 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
             <div style={{ display: "flex", gap: 20, marginBottom: 14, flexWrap: "wrap" }}>
               {speaking.interview.avgWpm !== null && speaking.interview.avgWpm !== undefined && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.7, marginBottom: 2 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.4, marginBottom: 2 }}>
                     Avg WPM
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
@@ -1473,9 +1473,9 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
                   <span
                     style={{
                       padding: "4px 12px",
-                      borderRadius: 99,
+                      borderRadius: "var(--radius-sm)",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       background: c + "18",
                       border: `1px solid ${c}40`,
                       color: c,
@@ -1507,9 +1507,9 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
                   <span
                     style={{
                       padding: "4px 12px",
-                      borderRadius: 99,
+                      borderRadius: "var(--radius-sm)",
                       fontSize: 12,
-                      fontWeight: 800,
+                      fontWeight: 700,
                       background: c + "18",
                       border: `1px solid ${c}40`,
                       color: c,
@@ -1616,9 +1616,9 @@ function ResumeTab({ data }: { data: ProfilePayload }) {
                     <span
                       style={{
                         padding: "2px 8px",
-                        borderRadius: 99,
+                        borderRadius: "var(--radius-sm)",
                         fontSize: 10,
-                        fontWeight: 800,
+                        fontWeight: 700,
                         background: labelColor + "18",
                         border: `1px solid ${labelColor}40`,
                         color: labelColor,
@@ -1669,7 +1669,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       {/* Checklist card */}
       <Card accentColor="#F59E0B">
-        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 16 }}>
           Checklist Progress
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1682,7 +1682,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
 
       {/* Career check-in card */}
       <Card accentColor="#10B981">
-        <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 14 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>
           Career Check-In
         </div>
         {!careerCheckIn ? (
@@ -1700,9 +1700,9 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
               <span
                 style={{
                   padding: "4px 12px",
-                  borderRadius: 99,
+                  borderRadius: "var(--radius-sm)",
                   fontSize: 12,
-                  fontWeight: 800,
+                  fontWeight: 700,
                   background: employmentStatusColor(careerCheckIn.employmentStatus) + "18",
                   border: `1px solid ${employmentStatusColor(careerCheckIn.employmentStatus)}40`,
                   color: employmentStatusColor(careerCheckIn.employmentStatus),
@@ -1717,7 +1717,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
 
             {(careerCheckIn.company || careerCheckIn.jobTitle) && (
               <div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>
                   {[careerCheckIn.jobTitle, careerCheckIn.company].filter(Boolean).join(" at ")}
                 </div>
                 {careerCheckIn.industry && (
@@ -1729,7 +1729,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               {careerCheckIn.salaryRange && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 4 }}>
                     Salary Range
                   </div>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
@@ -1740,7 +1740,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
 
               {careerCheckIn.satisfactionScore !== null && careerCheckIn.satisfactionScore !== undefined && (
                 <div>
-                  <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.7, color: "var(--text-muted)", marginBottom: 4 }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 4 }}>
                     Satisfaction
                   </div>
                   <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
@@ -1755,7 +1755,7 @@ function FinancialTab({ data }: { data: ProfilePayload }) {
                         }}
                       />
                     ))}
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginLeft: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#F59E0B", marginLeft: 4 }}>
                       {careerCheckIn.satisfactionScore}/5
                     </span>
                   </div>
@@ -1870,7 +1870,7 @@ function SkillsTab({
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
                     {categoryLabels[cat] ?? cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </span>
                   <span
@@ -1878,7 +1878,7 @@ function SkillsTab({
                       fontSize: 11,
                       fontWeight: 700,
                       padding: "2px 8px",
-                      borderRadius: 99,
+                      borderRadius: "var(--radius-sm)",
                       background: catColor + "15",
                       color: catColor,
                       border: `1px solid ${catColor}30`,
@@ -1898,7 +1898,7 @@ function SkillsTab({
                           alignItems: "center",
                           gap: 5,
                           padding: "4px 10px",
-                          borderRadius: 99,
+                          borderRadius: "var(--radius-sm)",
                           fontSize: 12,
                           fontWeight: 600,
                           background: "var(--card-bg-strong)",
@@ -1993,8 +1993,8 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--accent)" }}>{instincts.totalXp}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Total XP</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: "var(--accent)" }}>{instincts.totalXp}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.4 }}>Total XP</div>
         </div>
         <div
           style={{
@@ -2005,8 +2005,8 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 24, fontWeight: 800, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Sessions</div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: "var(--text-primary)" }}>{instincts.sessions.length}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.4 }}>Sessions</div>
         </div>
         <div
           style={{
@@ -2017,8 +2017,8 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
             textAlign: "center",
           }}
         >
-          <div style={{ fontSize: 14, fontWeight: 800, color: INSTINCT_COLORS[top2[0]] }}>{INSTINCT_LABELS[top2[0]]}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.7 }}>Top Trait</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: INSTINCT_COLORS[top2[0]] }}>{INSTINCT_LABELS[top2[0]]}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, marginTop: 2, textTransform: "uppercase", letterSpacing: 0.4 }}>Top Trait</div>
         </div>
       </div>
 
@@ -2037,13 +2037,13 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
                 padding: "16px 18px",
               }}
             >
-              <div style={{ fontSize: 10, fontWeight: 700, color: INSTINCT_COLORS[d], letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 4 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: INSTINCT_COLORS[d], letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 4 }}>
                 {i === 0 ? "Strongest" : "Also Strong"}
               </div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
                 {INSTINCT_LABELS[d]}
               </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: INSTINCT_COLORS[d], marginTop: 4 }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: INSTINCT_COLORS[d], marginTop: 4 }}>
                 {Math.round(dims[d] * 100)}
               </div>
             </div>
@@ -2068,7 +2068,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
                 <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
                   {INSTINCT_LABELS[d]}
                 </span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: INSTINCT_COLORS[d] }}>{Math.round(dims[d] * 100)}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: INSTINCT_COLORS[d] }}>{Math.round(dims[d] * 100)}</span>
               </div>
               <MiniBar pct={dims[d] * 100} color={INSTINCT_COLORS[d]} height={6} />
             </div>
@@ -2106,10 +2106,10 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
           <TrendingUp size={17} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.9, textTransform: "uppercase", marginBottom: 2 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: 0.4, textTransform: "uppercase", marginBottom: 2 }}>
             Growth Opportunity
           </div>
-          <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)" }}>{INSTINCT_LABELS[growth]}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{INSTINCT_LABELS[growth]}</div>
         </div>
         <a
           href="/career-instincts"
@@ -2118,7 +2118,7 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
             borderRadius: 9,
             background: "var(--accent-soft)",
             color: "var(--accent)",
-            fontWeight: 800,
+            fontWeight: 700,
             fontSize: 13,
             textDecoration: "none",
             whiteSpace: "nowrap",
@@ -2198,16 +2198,16 @@ function InstinctsTab({ data }: { data: ProfilePayload }) {
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: INSTINCT_COLORS[topDim] }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: INSTINCT_COLORS[topDim] }}>
                       {INSTINCT_LABELS[topDim]}
                     </div>
                     <div
                       style={{
                         fontSize: 12,
-                        fontWeight: 800,
+                        fontWeight: 700,
                         color: "var(--accent)",
                         background: "var(--accent-soft)",
-                        borderRadius: 99,
+                        borderRadius: "var(--radius-sm)",
                         padding: "3px 10px",
                       }}
                     >
@@ -2269,7 +2269,7 @@ function NaceTab({ data }: { data: ProfilePayload }) {
         }}
       >
         <div style={{ flex: 1, minWidth: 240 }}>
-          <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--accent)", marginBottom: 6 }}>
+          <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--accent)", marginBottom: 6 }}>
             About NACE Career Competencies
           </div>
           <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>
@@ -2278,10 +2278,10 @@ function NaceTab({ data }: { data: ProfilePayload }) {
         </div>
         {data.signalScore !== null && (
           <div style={{ flexShrink: 0, textAlign: "center" }}>
-            <div style={{ fontSize: 10, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.9, color: "var(--text-muted)", marginBottom: 6 }}>
-              Signal Score
+            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.4, color: "var(--text-muted)", marginBottom: 6 }}>
+              Readiness Index
             </div>
-            <div style={{ fontSize: 40, fontWeight: 800, color: signalColor, lineHeight: 1 }}>
+            <div style={{ fontSize: 32, fontWeight: 700, color: signalColor, lineHeight: 1 }}>
               {data.signalScore}
             </div>
           </div>
@@ -2426,7 +2426,7 @@ export default function MyJourneyPage() {
                   border: "none",
                   color: "#EF4444",
                   cursor: "pointer",
-                  fontWeight: 800,
+                  fontWeight: 700,
                   textDecoration: "underline",
                   fontSize: 13,
                 }}
