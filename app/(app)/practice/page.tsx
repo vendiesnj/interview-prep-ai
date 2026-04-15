@@ -26,6 +26,7 @@ import type { AttemptEntitlement } from "@/app/lib/entitlements";
 import { posthog } from "@/app/lib/posthog-client";
 import { classifyEvaluationFramework } from "@/app/lib/questionFramework";
 import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
+import { SEED_CATEGORIES, getSeedQuestions } from "@/app/lib/seed-questions";
 import {
   asOverall100,
   asTenPoint,
@@ -458,6 +459,10 @@ const [customQuestion, setCustomQuestion] = useState("");
 const [practiceTargetRoles, setPracticeTargetRoles] = useState<Array<{key: string; title: string}>>([]);
 const [roleGenLoading, setRoleGenLoading] = useState<string | null>(null); // roleKey being generated
 
+// ── Category zero-state ───────────────────────────────────────────────────────
+const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+const [categoryGenerating, setCategoryGenerating] = useState(false);
+
 useEffect(() => {
   fetch("/api/cluster-readiness", { cache: "no-store" })
     .then(r => r.ok ? r.json() : null)
@@ -484,6 +489,39 @@ useEffect(() => {
     })
     .catch(() => {});
 }, []);
+
+function selectCategory(categoryKey: string) {
+  const seeds = getSeedQuestions(categoryKey);
+  setSelectedCategory(categoryKey);
+  setQuestions(seeds);
+  setQuestionBuckets({ behavioral: seeds, technical: [], role_specific: [], custom: [] });
+  setQuestionFilter("all");
+  persistHomeState({ jobDesc: "", questions: seeds, questionBuckets: { behavioral: seeds, technical: [], role_specific: [], custom: [] }, mode: "questions" });
+  setMode("questions");
+}
+
+async function generateMoreForCategory(categoryKey: string) {
+  setCategoryGenerating(true);
+  setError(null);
+  try {
+    const res = await fetch("/api/questions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: categoryKey }),
+    });
+    if (!res.ok) throw new Error("Generation failed");
+    const data = await res.json();
+    const fresh: string[] = data.questions ?? [];
+    const merged = [...questions, ...fresh.filter(q => !questions.includes(q))];
+    setQuestions(merged);
+    setQuestionBuckets({ behavioral: merged, technical: [], role_specific: [], custom: [] });
+    persistHomeState({ jobDesc: "", questions: merged, questionBuckets: { behavioral: merged, technical: [], role_specific: [], custom: [] }, mode: "questions" });
+  } catch {
+    setError("Could not generate more questions. Try again.");
+  } finally {
+    setCategoryGenerating(false);
+  }
+}
 
 async function generateFromRole(roleKey: string, roleTitle: string) {
   setRoleGenLoading(roleKey);
@@ -2659,6 +2697,64 @@ return (
       <>
 
 
+{/* ===== SECTION: Category zero-state (first-time users) ===== */}
+{practiceTargetRoles.length === 0 && questions.length === 0 && (
+  <div style={{ marginTop: 8 }}>
+    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
+      What do you want to practice?
+    </div>
+    <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+      Pick a category and start answering in seconds. No setup required.
+    </div>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
+      {SEED_CATEGORIES.map((cat) => (
+        <button
+          key={cat.key}
+          type="button"
+          onClick={() => selectCategory(cat.key)}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 6,
+            padding: "14px 16px",
+            borderRadius: "var(--radius-lg)",
+            border: "1px solid var(--card-border)",
+            background: "var(--card-bg)",
+            cursor: "pointer",
+            textAlign: "left",
+            transition: "border-color 140ms ease, background 140ms ease",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--card-bg-strong)";
+            e.currentTarget.style.borderColor = "var(--accent)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "var(--card-bg)";
+            e.currentTarget.style.borderColor = "var(--card-border)";
+          }}
+        >
+          <span style={{ fontSize: 22 }}>{cat.icon}</span>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{cat.description}</div>
+        </button>
+      ))}
+    </div>
+    <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--card-border-soft)" }}>
+      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+        Practicing for a specific role?{" "}
+        <button
+          type="button"
+          onClick={() => document.getElementById("jd-section")?.scrollIntoView({ behavior: "smooth" })}
+          style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 600, fontSize: 12, cursor: "pointer", padding: 0 }}
+        >
+          Add a job description for tailored questions →
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
 {/* ===== SECTION: Target Role Quick-Start ===== */}
 {practiceTargetRoles.length > 0 && (
   <div style={{ marginTop: 24, padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
@@ -2692,6 +2788,7 @@ return (
 
 {/* ===== SECTION: Job Description ===== */}
 <div
+  id="jd-section"
   style={{
     marginTop: 24,
     padding: 0,
@@ -3230,6 +3327,27 @@ return (
 </div>
 
 
+
+    {selectedCategory && (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          Showing {questions.length} questions · {SEED_CATEGORIES.find(c => c.key === selectedCategory)?.label}
+        </div>
+        <button
+          type="button"
+          onClick={() => generateMoreForCategory(selectedCategory)}
+          disabled={categoryGenerating}
+          style={{
+            fontSize: 12, fontWeight: 600, color: "var(--accent)",
+            background: "var(--accent-soft)", border: "1px solid var(--accent-strong)",
+            borderRadius: "var(--radius-sm)", padding: "5px 12px",
+            cursor: categoryGenerating ? "not-allowed" : "pointer", opacity: categoryGenerating ? 0.6 : 1,
+          }}
+        >
+          {categoryGenerating ? "Generating…" : "Generate 5 more →"}
+        </button>
+      </div>
+    )}
 
     {questions.length === 0 && !questionBuckets ? (
       <div style={{ fontSize: 13, color: "var(--text-muted)" }}>

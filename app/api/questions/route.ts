@@ -1,11 +1,70 @@
 import OpenAI from "openai";
+import { SEED_CATEGORIES } from "@/app/lib/seed-questions";
 
 export const runtime = "nodejs";
 
+const CATEGORY_LABELS: Record<string, string> = {
+  behavioral:     "behavioral (STAR-format, transferable experiences)",
+  leadership:     "leadership and influence",
+  teamwork:       "teamwork and collaboration",
+  problem_solving:"problem solving and analytical thinking",
+  communication:  "communication, persuasion, and difficult conversations",
+  career:         "career motivation, self-awareness, and professional growth",
+};
+
 export async function POST(req: Request) {
   try {
-    const { jobDesc } = await req.json();
+    const body = await req.json();
+    const { jobDesc, category } = body as { jobDesc?: string; category?: string };
 
+    // ── Category-based generation (no job description needed) ──────────────
+    if (category && typeof category === "string" && !jobDesc) {
+      const catLabel = CATEGORY_LABELS[category];
+      if (!catLabel) {
+        return new Response(JSON.stringify({ error: "Unknown category." }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // Exclude existing seed questions so GPT generates truly fresh ones
+      const seedCat = SEED_CATEGORIES.find((c) => c.key === category);
+      const existingSeeds = seedCat?.questions ?? [];
+
+      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      const prompt = `You are an expert interview coach. Generate 5 fresh interview questions in the category: ${catLabel}.
+
+Rules:
+- Questions must be STAR-style (behavioral) or reflective, answerable from any background (school, internships, part-time work, volunteering, personal projects).
+- Do NOT duplicate these existing questions: ${existingSeeds.map((q, i) => `${i + 1}. ${q}`).join("\n")}
+- Return ONLY valid JSON: { "questions": string[] } — exactly 5 items, no markdown.
+- Each question must be concise, professional, and interview-ready.`.trim();
+
+      const resp = await client.responses.create({
+        model: "gpt-4.1-mini",
+        input: prompt,
+      });
+
+      const text = resp.output_text?.trim() ?? "";
+      let questions: string[] = [];
+      try {
+        const parsed = JSON.parse(text);
+        questions = Array.isArray(parsed.questions)
+          ? parsed.questions.map((q: unknown) => String(q).trim()).filter(Boolean).slice(0, 5)
+          : [];
+      } catch {
+        questions = text.split("\n").map((l) => l.replace(/^\s*\d+[\).\s-]*/, "").trim()).filter(Boolean).slice(0, 5);
+      }
+
+      const buckets = { behavioral: questions, technical: [], role_specific: [] };
+      return new Response(JSON.stringify({ buckets, questions, category }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ── Job description generation (existing flow) ─────────────────────────
     if (!jobDesc || typeof jobDesc !== "string" || jobDesc.trim().length < 30) {
       return new Response(JSON.stringify({ error: "Job description too short." }), {
         status: 400,
