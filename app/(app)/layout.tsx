@@ -6,6 +6,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TopNav from "../components/TopNav";
 import OnboardingOverlay from "../components/OnboardingOverlay";
 import UserStorageGuard from "../components/UserStorageGuard";
+import SupportChat from "../components/SupportChat";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await getServerSession(authOptions);
@@ -29,6 +30,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       </main>
       {!isAdmin && <OnboardingOverlay />}
       <UserStorageGuard />
+      <SupportChat />
     </div>
   );
 }
