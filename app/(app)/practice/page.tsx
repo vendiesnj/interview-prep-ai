@@ -490,6 +490,17 @@ useEffect(() => {
     .finally(() => setRolesLoaded(true));
 }, []);
 
+// Close profile picker on outside click
+useEffect(() => {
+  if (!showProfilePicker) return;
+  function handleOutside(e: MouseEvent) {
+    const target = e.target as HTMLElement;
+    if (!target.closest("[data-profile-picker]")) setShowProfilePicker(false);
+  }
+  document.addEventListener("mousedown", handleOutside);
+  return () => document.removeEventListener("mousedown", handleOutside);
+}, [showProfilePicker]);
+
 function selectCategory(categoryKey: string) {
   const seeds = getSeedQuestions(categoryKey);
   setSelectedCategory(categoryKey);
@@ -2698,49 +2709,138 @@ return (
       <>
 
 
-{/* ===== SECTION: Category zero-state (first-time users) ===== */}
-{stateHydrated && rolesLoaded && questions.length === 0 && (
+{/* ===== SECTION: Category selector + profile strip ===== */}
+{stateHydrated && rolesLoaded && (
   <div style={{ marginTop: 8 }}>
-    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-      What do you want to practice?
-    </div>
-    <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
-      Pick a category and start answering in seconds. No setup required.
-    </div>
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
-      {SEED_CATEGORIES.map((cat) => (
+
+    {/* Header: title + compact profile picker */}
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4, gap: 8, flexWrap: "wrap" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>
+        What do you want to practice?
+      </div>
+      {/* Inline profile selector */}
+      <div style={{ position: "relative" }} data-profile-picker>
         <button
-          key={cat.key}
           type="button"
-          onClick={() => selectCategory(cat.key)}
+          onClick={() => setShowProfilePicker((v) => !v)}
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: 6,
-            padding: "14px 16px",
-            borderRadius: "var(--radius-lg)",
+            display: "flex", alignItems: "center", gap: 5,
+            padding: "5px 10px",
+            borderRadius: "var(--radius-sm)",
             border: "1px solid var(--card-border)",
-            background: "var(--card-bg)",
-            cursor: "pointer",
-            textAlign: "left",
-            transition: "border-color 140ms ease, background 140ms ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "var(--card-bg-strong)";
-            e.currentTarget.style.borderColor = "var(--accent)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "var(--card-bg)";
-            e.currentTarget.style.borderColor = "var(--card-border)";
+            background: activeJobProfile ? "var(--accent-soft)" : "var(--card-bg-strong)",
+            color: activeJobProfile ? "var(--accent)" : "var(--text-muted)",
+            fontSize: 12, fontWeight: 600, cursor: "pointer",
           }}
         >
-          <span style={{ fontSize: 22 }}>{cat.icon}</span>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>{cat.label}</div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{cat.description}</div>
+          <span>💼</span>
+          <span style={{ maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {activeJobProfile ? activeJobProfile.title : allProfiles.length > 0 ? "Select profile" : "No profiles"}
+          </span>
+          <span style={{ opacity: 0.5, fontSize: 10 }}>▾</span>
         </button>
-      ))}
+        {showProfilePicker && (
+          <div style={{
+            position: "absolute", right: 0, top: "calc(100% + 4px)",
+            zIndex: 50,
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border)",
+            borderRadius: "var(--radius-lg)",
+            padding: 8,
+            minWidth: 220,
+            boxShadow: "0 4px 20px rgba(0,0,0,0.18)",
+            display: "grid", gap: 4,
+          }}>
+            {allProfiles.length === 0 ? (
+              <div style={{ fontSize: 12, color: "var(--text-muted)", padding: "6px 8px" }}>No profiles saved yet.</div>
+            ) : (
+              allProfiles.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveJobProfileId(p.id);
+                    setActiveJobProfile(p);
+                    setJobDesc(p.jobDescription ?? "");
+                    setShowProfilePicker(false);
+                  }}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 10px",
+                    borderRadius: "var(--radius-sm)",
+                    border: p.id === activeJobProfile?.id ? "1px solid var(--accent)" : "1px solid transparent",
+                    background: p.id === activeJobProfile?.id ? "var(--accent-soft)" : "transparent",
+                    cursor: "pointer", textAlign: "left", width: "100%",
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {p.title}
+                    </div>
+                    {p.company && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{p.company}</div>}
+                  </div>
+                  {p.id === activeJobProfile?.id && (
+                    <span style={{ fontSize: 11, color: "var(--accent)", flexShrink: 0 }}>✓</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        )}
+      </div>
     </div>
+
+    <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
+      {selectedCategory
+        ? `${questions.length} questions loaded · ${SEED_CATEGORIES.find((c) => c.key === selectedCategory)?.label ?? ""}`
+        : "Pick a category and start answering in seconds. No setup required."}
+    </div>
+
+    {/* Category tiles */}
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
+      {SEED_CATEGORIES.map((cat) => {
+        const isActive = selectedCategory === cat.key;
+        return (
+          <button
+            key={cat.key}
+            type="button"
+            onClick={() => selectCategory(cat.key)}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 6,
+              padding: "14px 16px",
+              borderRadius: "var(--radius-lg)",
+              border: isActive ? "1px solid var(--accent)" : "1px solid var(--card-border)",
+              background: isActive ? "var(--accent-soft)" : "var(--card-bg)",
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "border-color 140ms ease, background 140ms ease",
+            }}
+            onMouseEnter={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.background = "var(--card-bg-strong)";
+                e.currentTarget.style.borderColor = "var(--accent)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isActive) {
+                e.currentTarget.style.background = "var(--card-bg)";
+                e.currentTarget.style.borderColor = "var(--card-border)";
+              }
+            }}
+          >
+            <span style={{ fontSize: 22 }}>{cat.icon}</span>
+            <div style={{ fontSize: 13, fontWeight: 700, color: isActive ? "var(--accent)" : "var(--text-primary)" }}>
+              {cat.label}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{cat.description}</div>
+          </button>
+        );
+      })}
+    </div>
+
     {practiceTargetRoles.length === 0 && (
       <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--card-border-soft)" }}>
         <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
@@ -2979,6 +3079,7 @@ return (
         {allProfiles.length > 1 && (
           <button
             type="button"
+            data-profile-picker
             onClick={() => setShowProfilePicker((v) => !v)}
             style={{
               padding: "9px 12px",
@@ -2998,7 +3099,7 @@ return (
     </div>
 
     {showProfilePicker && allProfiles.length > 1 && (
-      <div style={{ display: "grid", gap: 6, marginTop: 2 }}>
+      <div style={{ display: "grid", gap: 6, marginTop: 2 }} data-profile-picker>
         {allProfiles.filter((p) => p.id !== activeJobProfile?.id).map((p) => (
           <button
             key={p.id}
