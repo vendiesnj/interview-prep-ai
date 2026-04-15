@@ -1231,7 +1231,7 @@ const longPausesPerMin =
           </SectionCard>
         ) : (
           /* ── Two-column layout ── */
-          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 20, alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 20, alignItems: isMobile ? "stretch" : "flex-start" }}>
 
             {/* ────────────────────────────────────────────────────────────
                 LEFT STICKY SIDEBAR
@@ -1396,7 +1396,7 @@ const longPausesPerMin =
                       { label: "Confidence",     val: confidenceScoreTen !== null    ? `${Math.round(confidenceScoreTen * 10)}/100`    : "—" },
                       { label: "WPM",             val: stored?.wpm != null ? `${Math.round(stored.wpm)} wpm` : "—" },
                       { label: "Fillers",         val: typeof feedback?.filler?.per100 === "number" ? `${feedback.filler.per100.toFixed(1)}/100w` : "—" },
-                      { label: "Words",           val: typeof deliverySummary?.fillersPer100 === "number" ? "—" : "—" },
+                      { label: "Words",           val: stored?.transcript ? `${stored.transcript.trim().split(/\s+/).filter(Boolean).length}` : "—" },
                     ].map(({ label, val }) => (
                       <div key={label}>
                         <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, letterSpacing: 0.4 }}>{label}</div>
