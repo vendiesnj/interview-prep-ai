@@ -2699,7 +2699,7 @@ return (
 
 
 {/* ===== SECTION: Category zero-state (first-time users) ===== */}
-{stateHydrated && rolesLoaded && practiceTargetRoles.length === 0 && questions.length === 0 && (
+{stateHydrated && rolesLoaded && questions.length === 0 && (
   <div style={{ marginTop: 8 }}>
     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
       What do you want to practice?
@@ -2741,18 +2741,20 @@ return (
         </button>
       ))}
     </div>
-    <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--card-border-soft)" }}>
-      <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
-        Practicing for a specific role?{" "}
-        <button
-          type="button"
-          onClick={() => document.getElementById("jd-section")?.scrollIntoView({ behavior: "smooth" })}
-          style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 600, fontSize: 12, cursor: "pointer", padding: 0 }}
-        >
-          Add a job description for tailored questions →
-        </button>
+    {practiceTargetRoles.length === 0 && (
+      <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid var(--card-border-soft)" }}>
+        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+          Practicing for a specific role?{" "}
+          <button
+            type="button"
+            onClick={() => document.getElementById("jd-section")?.scrollIntoView({ behavior: "smooth" })}
+            style={{ background: "none", border: "none", color: "var(--accent)", fontWeight: 600, fontSize: 12, cursor: "pointer", padding: 0 }}
+          >
+            Add a job description for tailored questions →
+          </button>
+        </div>
       </div>
-    </div>
+    )}
   </div>
 )}
 
