@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
 import { useRouter } from "next/navigation";
 import PremiumShell from "../../components/PremiumShell";
@@ -1278,8 +1279,16 @@ const longPausesPerMin =
                     border: `1px solid ${archetypeColor}33`,
                     background: `${archetypeColor}0d`,
                   }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: archetypeColor, marginBottom: 4, textTransform: "uppercase" as const }}>
-                      Delivery Pattern
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: archetypeColor, textTransform: "uppercase" as const }}>
+                        Delivery Pattern
+                      </div>
+                      <Link
+                        href="/archetypes"
+                        style={{ fontSize: 11, color: archetypeColor, fontWeight: 600, textDecoration: "none", opacity: 0.8 }}
+                      >
+                        All 15 →
+                      </Link>
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
                       {feedback.delivery_archetype}
