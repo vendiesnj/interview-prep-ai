@@ -27,6 +27,7 @@ import { posthog } from "@/app/lib/posthog-client";
 import { classifyEvaluationFramework } from "@/app/lib/questionFramework";
 import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
 import { SEED_CATEGORIES, getSeedQuestions } from "@/app/lib/seed-questions";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 import {
   asOverall100,
   asTenPoint,
@@ -428,6 +429,7 @@ function CollapsibleNoteCard({
 
 export default function PracticePage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
     const { data: session } = useSession();
     const email = session?.user?.email ?? null;
   const HISTORY_KEY = userScopedKey("ipc_history", session);
@@ -2694,7 +2696,7 @@ return (
   <div
     style={{
       display: "grid",
-      gridTemplateColumns: mode === "answer" ? "1fr" : "1fr 1fr",
+      gridTemplateColumns: (mode === "answer" || isMobile) ? "1fr" : "1fr 1fr",
       gap: 24,
       alignItems: "start",
       width: "100%",
@@ -2797,7 +2799,7 @@ return (
     </div>
 
     {/* Category tiles */}
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(auto-fill, minmax(160px, 1fr))", gap: 10 }}>
       {SEED_CATEGORIES.map((cat) => {
         const isActive = selectedCategory === cat.key;
         return (

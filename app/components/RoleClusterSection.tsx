@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 import Link from "next/link";
 import { Search, Plus, X, ChevronRight, Zap, TrendingUp, Target, DollarSign } from "lucide-react";
 import OCCUPATIONS from "@/app/lib/onet-occupations";
@@ -83,6 +84,7 @@ const READINESS_LABEL = {
 };
 
 export default function RoleClusterSection({ accentColor = "var(--accent)" }: { accentColor?: string }) {
+  const isMobile = useIsMobile();
   const [data, setData] = useState<ClusterReadinessData | null>(null);
   const [loading, setLoading] = useState(true);
   const [showRolePicker, setShowRolePicker] = useState(false);
@@ -322,77 +324,89 @@ export default function RoleClusterSection({ accentColor = "var(--accent)" }: { 
               >
                 {/* Card Header */}
                 <div
-                  style={{ padding: "18px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 16 }}
+                  style={{ padding: "16px 18px", cursor: "pointer" }}
                   onClick={() => setExpandedCluster(isExpanded ? null : cluster.clusterKey)}
                 >
-                  {/* Readiness Ring */}
-                  <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
-                    <svg width="56" height="56" viewBox="0 0 56 56">
-                      <circle cx="28" cy="28" r="24" fill="none" stroke="var(--card-border)" strokeWidth="4" />
-                      <circle
-                        cx="28" cy="28" r="24"
-                        fill="none"
-                        stroke={color}
-                        strokeWidth="4"
-                        strokeDasharray={`${(r.overall / 100) * 150.8} 150.8`}
-                        strokeLinecap="round"
-                        transform="rotate(-90 28 28)"
-                        opacity={r.hasEnoughData ? 1 : 0.5}
-                      />
-                    </svg>
-                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: r.hasEnoughData ? color : "var(--text-muted)" }}>
-                        {r.hasEnoughData ? `${r.overall}%` : "--"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{cluster.clusterLabel}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", background: color + "18", color }}>{READINESS_LABEL[r.label]}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 4 }}>{r.narrative}</div>
-                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                      {r.topStrength && (
-                        <span style={{ fontSize: 11, color: "#22C55E" }}>↑ {r.topStrength.label}</span>
-                      )}
-                      {r.topGap && (
-                        <span style={{ fontSize: 11, color: "#EF4444" }}>↓ {r.topGap.label}</span>
-                      )}
-                      {cluster.salary && (
-                        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                          <DollarSign size={10} style={{ display: "inline" }} />{cluster.salary.min}k–{cluster.salary.max}k avg
+                  {/* Top row: ring + title + chevron */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                    {/* Readiness Ring */}
+                    <div style={{ position: "relative", width: 52, height: 52, flexShrink: 0 }}>
+                      <svg width="52" height="52" viewBox="0 0 56 56">
+                        <circle cx="28" cy="28" r="24" fill="none" stroke="var(--card-border)" strokeWidth="4" />
+                        <circle
+                          cx="28" cy="28" r="24"
+                          fill="none"
+                          stroke={color}
+                          strokeWidth="4"
+                          strokeDasharray={`${(r.overall / 100) * 150.8} 150.8`}
+                          strokeLinecap="round"
+                          transform="rotate(-90 28 28)"
+                          opacity={r.hasEnoughData ? 1 : 0.5}
+                        />
+                      </svg>
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: r.hasEnoughData ? color : "var(--text-muted)" }}>
+                          {r.hasEnoughData ? `${r.overall}%` : "--"}
                         </span>
-                      )}
+                      </div>
                     </div>
+
+                    {/* Title + badge */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{cluster.clusterLabel}</span>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: "var(--radius-sm)", background: color + "18", color, whiteSpace: "nowrap" }}>{READINESS_LABEL[r.label]}</span>
+                      </div>
+                    </div>
+
+                    <ChevronRight size={16} color="var(--text-muted)" style={{ transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
                   </div>
 
-                  {/* Practice CTA */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 8, flexShrink: 0 }}>
+                  {/* Narrative — clamped to 2 lines */}
+                  <div style={{
+                    fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginTop: 10,
+                    display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden",
+                  }}>
+                    {r.narrative}
+                  </div>
+
+                  {/* Strength / gap signals */}
+                  <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 8 }}>
+                    {r.topStrength && (
+                      <span style={{ fontSize: 11, color: "#22C55E" }}>↑ {r.topStrength.label}</span>
+                    )}
+                    {r.topGap && (
+                      <span style={{ fontSize: 11, color: "#EF4444" }}>↓ {r.topGap.label}</span>
+                    )}
+                    {cluster.salary && (
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        <DollarSign size={10} style={{ display: "inline" }} />{cluster.salary.min}k–{cluster.salary.max}k avg
+                      </span>
+                    )}
+                  </div>
+
+                  {/* CTA buttons — always below text */}
+                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                     <Link
                       href="/practice"
                       onClick={(e) => e.stopPropagation()}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--radius-md)", background: accentColor, color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-md)", background: accentColor, color: "#fff", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
                     >
                       <Zap size={12} /> Practice
                     </Link>
                     <Link
                       href="/mock-interview"
                       onClick={(e) => e.stopPropagation()}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", color: "var(--text-muted)", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", color: "var(--text-muted)", fontWeight: 700, fontSize: 12, textDecoration: "none", whiteSpace: "nowrap" }}
                     >
                       Mock Interview
                     </Link>
                   </div>
-
-                  <ChevronRight size={16} color="var(--text-muted)" style={{ transform: isExpanded ? "rotate(90deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
                 </div>
 
                 {/* Expanded Detail */}
                 {isExpanded && (
-                  <div style={{ borderTop: "1px solid var(--card-border)", padding: "18px 20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  <div style={{ borderTop: "1px solid var(--card-border)", padding: "18px 20px", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
                     {/* Competency breakdown */}
                     <div>
                       <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 10 }}>
