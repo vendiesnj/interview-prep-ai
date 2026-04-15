@@ -1412,67 +1412,6 @@ const longPausesPerMin =
                 )}
               </PremiumCard>
 
-              {/* Archetype deep-dive */}
-              {feedback.delivery_archetype && (
-                <PremiumCard>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: archetypeColor, flexShrink: 0 }} />
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>{feedback.delivery_archetype}</div>
-                    {(feedback as any).archetype_effort && (feedback as any).archetype_impact && (
-                      <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
-                        <span style={{ padding: "2px 8px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700, background: "var(--card-bg-strong)", color: "var(--text-muted)", border: "1px solid var(--card-border)" }}>
-                          Effort: {(feedback as any).archetype_effort}
-                        </span>
-                        <span style={{ padding: "2px 8px", borderRadius: "var(--radius-sm)", fontSize: 10, fontWeight: 700, background: "rgba(16,185,129,0.08)", color: "#10B981", border: "1px solid rgba(16,185,129,0.2)" }}>
-                          Impact: {(feedback as any).archetype_impact}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  {(feedback as any).archetype_what_interviewers_hear && (
-                    <div style={{ marginBottom: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
-                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase" as const }}>What interviewers hear</div>
-                      <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{(feedback as any).archetype_what_interviewers_hear}</div>
-                    </div>
-                  )}
-
-                  {typeof feedback.archetype_description === "string" && (
-                    <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 10 }}>{feedback.archetype_description}</div>
-                  )}
-
-                  {/* Dimension drivers beneath archetype */}
-                  {dimensionScores && Array.isArray((feedback as any)?.archetype_signals) && (
-                    <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
-                      {((feedback as any).archetype_signals as string[]).map((k: string) => {
-                        const d = dimensionScores[k];
-                        if (!d || typeof d !== "object" || typeof d.score !== "number") return null;
-                        return (
-                          <span key={k} style={{
-                            padding: "3px 10px",
-                            borderRadius: "var(--radius-sm)",
-                            fontSize: 11,
-                            fontWeight: 600,
-                            background: d.isGap ? "rgba(239,68,68,0.08)" : d.isStrength ? "rgba(16,185,129,0.08)" : "var(--card-bg-strong)",
-                            color: d.isGap ? "#EF4444" : d.isStrength ? "#10B981" : "var(--text-muted)",
-                            border: `1px solid ${d.isGap ? "rgba(239,68,68,0.2)" : d.isStrength ? "rgba(16,185,129,0.2)" : "var(--card-border)"}`,
-                          }}>
-                            {d.label} {d.score.toFixed(1)}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Compound note */}
-                  {typeof (feedback as any)?.compound_note === "string" && (
-                    <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid rgba(249,115,22,0.25)", background: "rgba(249,115,22,0.06)", fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>
-                      <span style={{ fontWeight: 700, color: "rgba(249,115,22,0.9)", marginRight: 6 }}>Key insight:</span>
-                      {(feedback as any).compound_note}
-                    </div>
-                  )}
-                </PremiumCard>
-              )}
 
               {/* Dimension coaching — gaps first */}
               {(() => {
