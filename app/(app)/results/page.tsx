@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 import { useRouter } from "next/navigation";
 import PremiumShell from "../../components/PremiumShell";
 import PremiumCard from "../../components/PremiumCard";
@@ -697,6 +698,7 @@ const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v
 // -------------------- Main page --------------------
 export default function ResultsPage() {
 const router = useRouter();
+const isMobile = useIsMobile();
 const [stored, setStored] = useState<StoredResult | null>(null);
 const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
 const { data: session, status } = useSession();
@@ -1229,12 +1231,12 @@ const longPausesPerMin =
           </SectionCard>
         ) : (
           /* ── Two-column layout ── */
-          <div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: 20, alignItems: "flex-start" }}>
 
             {/* ────────────────────────────────────────────────────────────
                 LEFT STICKY SIDEBAR
             ──────────────────────────────────────────────────────────── */}
-            <div style={{ width: 272, flexShrink: 0, position: "sticky", top: 20 }}>
+            <div style={{ width: isMobile ? "100%" : 272, flexShrink: 0, position: isMobile ? "static" : "sticky", top: 20 }}>
               <div style={{
                 padding: 18,
                 borderRadius: "var(--radius-xl)",
@@ -1530,7 +1532,7 @@ const longPausesPerMin =
 
               {/* What's working + Focus area */}
               {(topStrengths.length > 0 || topImprovements.length > 0) && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
                   {topStrengths.length > 0 && (
                     <PremiumCard>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "#10B981", marginBottom: 10 }}>What's working</div>
@@ -1591,7 +1593,7 @@ const longPausesPerMin =
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
                     STAR Breakdown {starAvg !== null ? <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>(avg {displayTenPointAs100(starAvg)}/100)</span> : null}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: isMobile ? 6 : 10, marginBottom: 14 }}>
                     <StarChip letter="S" label="Situation" status={starMissingList.includes("situation") ? "missing" : "detected"} />
                     <StarChip letter="T" label="Task"      status={starMissingList.includes("task")      ? "missing" : "detected"} />
                     <StarChip letter="A" label="Action"    status={starMissingList.includes("action")    ? "missing" : "detected"} />
@@ -1630,7 +1632,7 @@ const longPausesPerMin =
                       {feedback.relevance.answered_question ? "On question" : "Missed the ask"}
                     </span>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 10 }}>
                     {[
                       { label: "Directness",   value: feedback.relevance.directness_score },
                       { label: "Completeness", value: feedback.relevance.completeness_score },
@@ -1654,7 +1656,7 @@ const longPausesPerMin =
                       <SpeakingTimeline series={series} markers={speechMoments} />
                     </div>
                   )}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: isMobile ? 8 : 10 }}>
                     {stored?.wpm != null && (
                       <div style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
                         <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Pace</div>
@@ -1720,7 +1722,7 @@ const longPausesPerMin =
                 return (
                   <PremiumCard>
                     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Visual Presence</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: isMobile ? 8 : 10 }}>
                       {visibleRows.map(row => {
                         const hasVal = row.raw !== null;
                         const isGood = hasVal && (row.goodHigh ? row.raw! >= (row.max * 0.55) : row.raw! <= (row.max * 0.4));
@@ -1750,7 +1752,7 @@ const longPausesPerMin =
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 12, lineHeight: 1.5 }}>
                     Lexical richness, cognitive complexity, and behavioral indicator signals — the same dimensions enterprise hiring tools measure.
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(3, 1fr)", gap: 10 }}>
                     {[
                       { label: "Lexical Richness",    value: ibmMetrics.lexicalRichnessScore,    hint: "Vocabulary diversity" },
                       { label: "Cognitive Depth",      value: ibmMetrics.cognitiveComplexityScore, hint: "Tradeoff & nuance markers" },
