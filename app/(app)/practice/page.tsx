@@ -458,28 +458,27 @@ const [customQuestion, setCustomQuestion] = useState("");
 // ── Target role quick-start ───────────────────────────────────────────────────
 const [practiceTargetRoles, setPracticeTargetRoles] = useState<Array<{key: string; title: string}>>([]);
 const [roleGenLoading, setRoleGenLoading] = useState<string | null>(null); // roleKey being generated
+const [rolesLoaded, setRolesLoaded] = useState(false);
 
 // ── Category zero-state ───────────────────────────────────────────────────────
 const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 const [categoryGenerating, setCategoryGenerating] = useState(false);
+const [stateHydrated, setStateHydrated] = useState(false);
 
 useEffect(() => {
   fetch("/api/cluster-readiness", { cache: "no-store" })
     .then(r => r.ok ? r.json() : null)
     .then(data => {
       if (!Array.isArray(data?.targetRoleKeys) || data.targetRoleKeys.length === 0) return;
-      // Resolve titles from cluster-readiness response
       const roles: Array<{key: string; title: string}> = [];
       for (const cluster of (data.clusters ?? [])) {
         for (const key of (cluster.targetRoles ?? [])) {
           if (!roles.find(r => r.key === key)) {
-            // Title comes from competencyMaps inside cluster; fall back to key formatting
             const title = key.replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase());
             roles.push({ key, title });
           }
         }
       }
-      // If clusters didn't have role titles, still populate from keys
       if (roles.length === 0) {
         for (const key of data.targetRoleKeys) {
           roles.push({ key, title: (key as string).replace(/_/g, " ").replace(/\b\w/g, (c: string) => c.toUpperCase()) });
@@ -487,7 +486,8 @@ useEffect(() => {
       }
       setPracticeTargetRoles(roles);
     })
-    .catch(() => {});
+    .catch(() => {})
+    .finally(() => setRolesLoaded(true));
 }, []);
 
 function selectCategory(categoryKey: string) {
@@ -1484,6 +1484,7 @@ useEffect(() => {
   } catch {}
 
   hydratedRef.current = true;
+  setStateHydrated(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [HISTORY_KEY, HOME_STATE_KEY]);
 
@@ -2698,7 +2699,7 @@ return (
 
 
 {/* ===== SECTION: Category zero-state (first-time users) ===== */}
-{practiceTargetRoles.length === 0 && questions.length === 0 && (
+{stateHydrated && rolesLoaded && practiceTargetRoles.length === 0 && questions.length === 0 && (
   <div style={{ marginTop: 8 }}>
     <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
       What do you want to practice?
