@@ -1312,9 +1312,14 @@ const longPausesPerMin =
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 3, textTransform: "uppercase" as const }}>
                       Also shows
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", marginBottom: (feedback as any).secondary_archetype_coaching ? 5 : 0 }}>
                       {(feedback as any).secondary_archetype}
                     </div>
+                    {(feedback as any).secondary_archetype_coaching && (
+                      <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                        {(feedback as any).secondary_archetype_coaching}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1599,9 +1604,49 @@ const longPausesPerMin =
               {(stored?.wpm != null || acousticsNorm?.monotoneScore != null || acousticsNorm?.energyVariation != null || (dm as any)?.face?.eyeContact != null) && (
                 <PremiumCard>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Delivery Signals</div>
-                  {series && speechMoments.length > 0 && (
+                  {series && (
                     <div style={{ marginBottom: 14 }}>
                       <SpeakingTimeline series={series} markers={speechMoments} />
+                      {/* Energy band chart — compact bar view of amplitude over time */}
+                      {(() => {
+                        const energy = series.energy ?? [];
+                        if (energy.length < 8) return null;
+                        const buckets = 40;
+                        const step = Math.max(1, Math.floor(energy.length / buckets));
+                        const bands: number[] = [];
+                        for (let i = 0; i < buckets; i++) {
+                          const slice = energy.slice(i * step, (i + 1) * step);
+                          bands.push(slice.length ? slice.reduce((a, b) => a + b, 0) / slice.length : 0);
+                        }
+                        const bMax = Math.max(...bands, 1e-8);
+                        return (
+                          <div style={{ marginTop: 8 }}>
+                            <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 4 }}>Energy Profile</div>
+                            <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 32 }}>
+                              {bands.map((b, i) => {
+                                const h = Math.round((b / bMax) * 32);
+                                const intensity = b / bMax;
+                                const color = intensity > 0.7 ? "#2563EB" : intensity > 0.4 ? "#60A5FA" : "#93C5FD";
+                                return (
+                                  <div
+                                    key={i}
+                                    style={{
+                                      flex: 1, height: Math.max(2, h),
+                                      background: color,
+                                      borderRadius: 2,
+                                      opacity: 0.8,
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3 }}>
+                              <span style={{ fontSize: 9, color: "var(--text-muted)" }}>Start</span>
+                              <span style={{ fontSize: 9, color: "var(--text-muted)" }}>End</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: isMobile ? 8 : 10 }}>
@@ -1629,6 +1674,22 @@ const longPausesPerMin =
                         <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Pitch Range</div>
                         <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)" }}>{pitchRangeContext(acousticsNorm.pitchRange)}</div>
                         <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{Math.round(acousticsNorm.pitchRange)} Hz</div>
+                      </div>
+                    )}
+                    {typeof (feedback as any)?.vocal_authority_score === "number" && (
+                      <div style={{ padding: 12, borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 2 }}>Vocal Authority</div>
+                        {(() => {
+                          const va = (feedback as any).vocal_authority_score as number;
+                          const lbl = (feedback as any).vocal_authority_label as string ?? "";
+                          const color = va >= 8 ? "#10B981" : va >= 6.5 ? "var(--text-primary)" : va >= 5 ? "#F59E0B" : "#EF4444";
+                          return (
+                            <>
+                              <div style={{ fontSize: 18, fontWeight: 700, color }}>{va.toFixed(1)}<span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 400 }}> / 10</span></div>
+                              <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "capitalize" as const }}>{lbl}</div>
+                            </>
+                          );
+                        })()}
                       </div>
                     )}
                   </div>
@@ -1667,9 +1728,20 @@ const longPausesPerMin =
                     <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>Camera metrics unavailable for this session.</div>
                   </PremiumCard>
                 );
+                const presenceDimScore = (feedback as any)?.dimension_scores?.presence_confidence?.score ?? null;
                 return (
                   <PremiumCard>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>Visual Presence</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Visual Presence</div>
+                      {presenceDimScore !== null && (
+                        <div style={{ textAlign: "right" as const }}>
+                          <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, marginBottom: 1 }}>Presence Score</div>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: presenceDimScore >= 7 ? "#10B981" : presenceDimScore >= 5.5 ? "#F59E0B" : "#EF4444" }}>
+                            {presenceDimScore.toFixed(1)}<span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 400 }}> /10</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: isMobile ? 8 : 10 }}>
                       {visibleRows.map(row => {
                         const hasVal = row.raw !== null;
@@ -1708,6 +1780,11 @@ const longPausesPerMin =
                       { label: "Hedging Penalty",      value: ibmMetrics.hedgingPenaltyScore,      hint: "10 = no hedging" },
                       { label: "Fluency",              value: ibmMetrics.fragmentationScore,       hint: "Sentence completion" },
                       { label: "Length Fit",           value: ibmMetrics.answerLengthScore,        hint: "Ideal for question type" },
+                      ...(typeof (feedback as any)?.qa_alignment_score === "number" ? [{
+                        label: "Q-A Alignment",
+                        value: (feedback as any).qa_alignment_score as number,
+                        hint: `Framework match · ${((feedback as any).qa_intent ?? "").replace(/_/g, " ")}`,
+                      }] : []),
                     ].map(({ label, value, hint }) => {
                       const score = typeof value === "number" ? value : null;
                       const isLow = score !== null && score < 5.5;

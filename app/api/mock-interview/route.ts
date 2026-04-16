@@ -508,7 +508,7 @@ async function handleSave(
   return NextResponse.json({ attemptId: attempt.id });
 }
 
-// ── GET: return the most recent mock interview attempt ────────────────────────
+// ── GET: return recent mock interview attempts ────────────────────────────────
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -521,6 +521,23 @@ export async function GET(req: NextRequest) {
     select: { id: true },
   });
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+
+  const all = req.nextUrl.searchParams.get("all") === "1";
+
+  if (all) {
+    // Return up to 20 past sessions for aggregate view
+    const attempts = await prisma.attempt.findMany({
+      where: { userId: user.id, evaluationFramework: "mock_interview", deletedAt: null },
+      orderBy: { ts: "desc" },
+      take: 20,
+      select: {
+        id: true, ts: true, question: true, score: true,
+        communicationScore: true, confidenceScore: true, wpm: true,
+        feedback: true,
+      },
+    });
+    return NextResponse.json({ attempts });
+  }
 
   const attempt = await prisma.attempt.findFirst({
     where: { userId: user.id, evaluationFramework: "mock_interview", deletedAt: null },

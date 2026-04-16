@@ -122,8 +122,13 @@ export type DimensionInputSignals = {
   behavioralPhraseCount: number; // count of strong I-led/I-drove phrases
   vocabularySophistication: number; // avg word length proxy (0–10)
 
+  // Trajectory / arc signals (null when transcript too short < 50 words)
+  ownershipGradient: number | null;   // −1..+1 (+ve = ownership language rising through answer)
+  confidenceArc: number | null;       // −1..+1 (+ve = assertiveness increasing through answer)
+  fillerRecovery: number | null;      // −1..+1 (+ve = filler density decreasing through answer)
+
   // Framework
-  framework: "star" | "technical_explanation" | "experience_depth";
+  framework: "star" | "technical_explanation" | "experience_depth" | "public_speaking" | "networking_pitch";
   question: string;
 };
 
@@ -234,19 +239,20 @@ export function detectQuestionIntent(question: string): QuestionIntent {
 
 // ── IBM metric extraction from transcript ─────────────────────────────────────
 
-const HEDGE_RE = /\b(i think|i feel like|i guess|i suppose|maybe|perhaps|kind of|sort of|sort-of|kinda|somewhat|basically|essentially|you know|like,|i mean,|probably|it seems like|i believe|i'm not sure but|i would say)\b/gi;
+export const HEDGE_RE = /\b(i think|i feel like|i guess|i suppose|maybe|perhaps|kind of|sort of|sort-of|kinda|somewhat|basically|essentially|you know|like,|i mean,|probably|it seems like|i believe|i'm not sure but|i would say)\b/gi;
 
-const COMPLEXITY_RE = /\b(on the other hand|the tradeoff|the trade-off|i considered|however|that said|the risk was|but i decided|weighed|the challenge was|in hindsight|alternatively|despite|although|even though|the downside|the upside|the nuance|it depends on|the key tension|while also)\b/gi;
+export const COMPLEXITY_RE = /\b(on the other hand|the tradeoff|the trade-off|i considered|however|that said|the risk was|but i decided|weighed|the challenge was|in hindsight|alternatively|despite|although|even though|the downside|the upside|the nuance|it depends on|the key tension|while also)\b/gi;
 
-const BEHAVIORAL_RE = /\b(i led|i drove|i owned|i built|i designed|i created|i launched|i managed|i implemented|i negotiated|i restructured|i identified|i solved|i fixed|i reduced|i increased|i improved|i delivered|i presented|i partnered with|i coordinated|i executed|i deployed)\b/gi;
+export const BEHAVIORAL_RE = /\b(i led|i drove|i owned|i built|i designed|i created|i launched|i managed|i implemented|i negotiated|i restructured|i identified|i solved|i fixed|i reduced|i increased|i improved|i delivered|i presented|i partnered with|i coordinated|i executed|i deployed)\b/gi;
+
+export const STOP_WORDS = new Set(["the","a","an","and","or","but","in","on","at","to","for","of","with","by","from","is","was","are","were","be","been","being","have","has","had","do","does","did","will","would","could","should","may","might","i","we","you","they","it","this","that","these","those","my","our","your","their","its","me","us","him","her","them"]);
 
 export function extractIBMMetrics(transcript: string, wordCount: number, intent: QuestionIntent): IBMMetrics {
   const words = transcript.toLowerCase().split(/\s+/).filter(Boolean);
   const total = Math.max(words.length, 1);
 
   // Lexical richness (type-token ratio on content words)
-  const stopWords = new Set(["the","a","an","and","or","but","in","on","at","to","for","of","with","by","from","is","was","are","were","be","been","being","have","has","had","do","does","did","will","would","could","should","may","might","i","we","you","they","it","this","that","these","those","my","our","your","their","its","me","us","him","her","them"]);
-  const contentWords = words.filter(w => !stopWords.has(w.replace(/[^a-z]/g, '')));
+  const contentWords = words.filter(w => !STOP_WORDS.has(w.replace(/[^a-z]/g, '')));
   const uniqueContent = new Set(contentWords.map(w => w.replace(/[^a-z]/g, ''))).size;
   const ttr = contentWords.length > 10 ? uniqueContent / contentWords.length : 0.35;
 
@@ -383,6 +389,191 @@ function getCoaching(key: DimensionKey, score: number): string {
   return c.critical;
 }
 
+// ── Vocal authority composite ─────────────────────────────────────────────────
+
+/**
+ * Composite metric combining pitch range, energy variation, WPM control, and
+ * pause discipline into a single "vocal authority" score (0–10).
+ * Returns null if no acoustic data is present.
+ */
+export function computeVocalAuthority(signals: {
+  wpm: number | null;
+  pitchRange: number | null;
+  energyVariation: number | null;
+  monotoneScore: number | null;
+  avgPauseMs: number | null;
+  longPauseCount: number | null;
+}): number | null {
+  const { wpm, pitchRange, energyVariation, monotoneScore, avgPauseMs, longPauseCount } = signals;
+
+  // Need at least two acoustic signals to compute
+  const hasSignals = [wpm, pitchRange, energyVariation, monotoneScore].filter(v => v !== null).length >= 2;
+  if (!hasSignals) return null;
+
+  // WPM authority curve: peak at 145-170 wpm
+  const wpmScore = wpm !== null
+    ? wpm < 100  ? 3.5
+    : wpm < 120  ? 5.5
+    : wpm < 145  ? 7.5
+    : wpm <= 175 ? 9.0
+    : wpm <= 200 ? 7.0
+    : 5.0
+    : 6.5;
+
+  // Pitch range: wider range = more authoritative up to a point
+  const pitchScore = pitchRange !== null
+    ? clamp(((pitchRange - 40) / 130) * 10, 0, 10)
+    : 6.5;
+
+  // Energy variation: moderate is best (0.8–2.0 is ideal)
+  const energyScore = energyVariation !== null
+    ? energyVariation < 0.4  ? 3.0
+    : energyVariation < 0.8  ? 5.5
+    : energyVariation <= 2.0 ? 9.0
+    : energyVariation <= 3.0 ? 7.0
+    : 5.0
+    : 6.5;
+
+  // Monotone (inverted): low monotone = authoritative
+  const monoScore = monotoneScore !== null ? clamp(10 - monotoneScore, 0, 10) : 6.5;
+
+  // Pause discipline: 1-2 long pauses = controlled, 0 = too rushed, 3+ = hesitant
+  const pauseScore = longPauseCount !== null
+    ? longPauseCount === 0 ? 6.0  // no pauses = slightly too rushed
+    : longPauseCount <= 2  ? 9.0  // controlled pauses = authoritative
+    : longPauseCount <= 4  ? 6.5
+    : 4.0                          // many long pauses = hesitant
+    : avgPauseMs !== null ? (avgPauseMs < 300 ? 6.5 : avgPauseMs < 600 ? 8.0 : 5.0) : 6.5;
+
+  const raw = (
+    wpmScore   * 0.30 +
+    monoScore  * 0.25 +
+    pitchScore * 0.20 +
+    energyScore * 0.15 +
+    pauseScore * 0.10
+  );
+
+  return clamp(Math.round(raw * 10) / 10, 0, 10);
+}
+
+// ── Q-A alignment score ───────────────────────────────────────────────────────
+
+/**
+ * Measures whether the candidate used the right answer approach for the question type.
+ * Returns 0–10. Powers a UI signal and a minor adjustment on evidence_quality.
+ */
+export function computeQAAlignment(
+  intent: QuestionIntent,
+  signals: {
+    outcomeStrength: "strong" | "moderate" | "weak";
+    structure: "strong" | "moderate" | "weak";
+    specificity: string;
+    depthMode: "deep" | "adequate" | "thin";
+    evidenceMode: string;
+    directnessLabel: string;
+    behavioralPhraseCount: number;
+    wordCount: number;
+    answeredQuestion: boolean;
+  },
+): number {
+  const { outcomeStrength, structure, specificity, depthMode, evidenceMode, directnessLabel, behavioralPhraseCount, wordCount, answeredQuestion } = signals;
+
+  // Base penalty: if answeredQuestion is false, alignment is capped low
+  const baseScore = answeredQuestion ? 7.0 : 3.5;
+
+  let score = baseScore;
+
+  if (intent === "behavioral") {
+    // Expected: STAR structure, I-led ownership, specific example, concrete outcome
+    if (structure === "strong") score += 1.2;
+    else if (structure === "weak") score -= 1.5;
+    if (outcomeStrength === "strong") score += 1.0;
+    else if (outcomeStrength === "weak") score -= 1.2;
+    if (specificity === "specific") score += 0.6;
+    else if (specificity === "generalized") score -= 1.0; // generic answer = big misalignment
+    if (behavioralPhraseCount >= 2) score += 0.5;
+    else if (behavioralPhraseCount === 0) score -= 0.8;
+    if (evidenceMode === "generalized") score -= 0.8; // no real example
+  } else if (intent === "technical") {
+    // Expected: depth, process-forward explanation, adequate length
+    if (depthMode === "deep") score += 1.2;
+    else if (depthMode === "thin") score -= 1.5;
+    if (evidenceMode === "process_forward") score += 0.8;
+    else if (evidenceMode === "generalized") score -= 0.8;
+    if (specificity === "specific") score += 0.6;
+    if (wordCount < 80) score -= 1.0; // too short for a technical explanation
+  } else if (intent === "situational") {
+    // Expected: structured approach, directness, some outcome
+    if (structure === "strong") score += 1.0;
+    else if (structure === "weak") score -= 1.2;
+    if (directnessLabel === "direct") score += 0.8;
+    else if (directnessLabel === "wandering") score -= 0.8;
+    if (outcomeStrength === "strong") score += 0.5;
+  } else if (intent === "motivational" || intent === "values") {
+    // Lower stakes — just check for directness and specificity
+    if (directnessLabel === "direct") score += 0.8;
+    if (specificity !== "generalized") score += 0.5;
+  }
+  // general: use the base score as-is with minor directness adjustment
+  if (intent === "general" && directnessLabel === "wandering") score -= 0.5;
+
+  return clamp(Math.round(score * 10) / 10, 0, 10);
+}
+
+// ── Arc / trajectory metrics ──────────────────────────────────────────────────
+
+/** Filler words for arc density counting (subset of full filler list) */
+const ARC_FILLER_RE = /\b(um+|uh+|like|you know|basically|literally|kind of|sort of|i mean)\b/gi;
+
+/** Ownership / assertiveness markers */
+const ARC_OWNERSHIP_RE = /\b(i (?:led|built|created|drove|designed|owned|managed|decided|chose|initiated|launched|delivered|implemented|improved|increased|reduced|solved|fixed|resolved|achieved|accomplished|negotiated|spearheaded)|i took|i made the call|i was responsible)\b/gi;
+
+/** Assertiveness markers — positive framing, direct claims */
+const ARC_ASSERTIVE_RE = /\b(as a result|which (?:led to|resulted in|increased|reduced|improved)|successfully|directly|specifically|measured by|by \d+%?|we (?:achieved|delivered|shipped|launched|closed|won))\b/gi;
+
+/**
+ * Split transcript into thirds and compute density ratios for arc metrics.
+ * Returns null for all metrics when transcript is too short (< 50 words).
+ */
+export function computeArcMetrics(transcript: string): {
+  ownershipGradient: number | null;
+  confidenceArc: number | null;
+  fillerRecovery: number | null;
+} {
+  const words = transcript.trim().split(/\s+/).filter(Boolean);
+  if (words.length < 50) {
+    return { ownershipGradient: null, confidenceArc: null, fillerRecovery: null };
+  }
+
+  const third = Math.floor(words.length / 3);
+  const firstThird = words.slice(0, third).join(" ");
+  const lastThird  = words.slice(words.length - third).join(" ");
+
+  function densityPer100(text: string, re: RegExp): number {
+    const w = text.split(/\s+/).filter(Boolean).length;
+    if (w === 0) return 0;
+    const matches = (text.match(new RegExp(re.source, "gi")) ?? []).length;
+    return (matches / w) * 100;
+  }
+
+  // ownershipGradient: ownership density last third vs first third, normalised to −1..+1
+  const ownFirst = densityPer100(firstThird, ARC_OWNERSHIP_RE);
+  const ownLast  = densityPer100(lastThird, ARC_OWNERSHIP_RE);
+  const ownershipGradient = clamp((ownLast - ownFirst) / (ownFirst + ownLast + 0.5), -1, 1);
+
+  // confidenceArc: assertiveness density last vs first, normalised
+  const assFirst = densityPer100(firstThird, ARC_ASSERTIVE_RE);
+  const assLast  = densityPer100(lastThird, ARC_ASSERTIVE_RE);
+  const confidenceArc = clamp((assLast - assFirst) / (assFirst + assLast + 0.5), -1, 1);
+
+  // fillerRecovery: filler density first vs last (positive = fillers went down = good recovery)
+  const fillFirst = densityPer100(firstThird, ARC_FILLER_RE);
+  const fillLast  = densityPer100(lastThird, ARC_FILLER_RE);
+  const fillerRecovery = clamp((fillFirst - fillLast) / (fillFirst + fillLast + 0.5), -1, 1);
+
+  return { ownershipGradient, confidenceArc, fillerRecovery };
+}
+
 // ── Dimension computation ─────────────────────────────────────────────────────
 
 export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfile {
@@ -443,31 +634,51 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
   if (cadenceScore < 5.5)    ncDrivers.push("erratic_cadence");
 
   // ── 2. Evidence Quality ───────────────────────────────────────────────────
+  const qaAlignment = computeQAAlignment(intent, {
+    outcomeStrength: s.outcomeStrength,
+    structure: s.structure,
+    specificity: s.specificity,
+    depthMode: s.depthMode,
+    evidenceMode: s.evidenceMode,
+    directnessLabel: s.directnessLabel,
+    behavioralPhraseCount: s.behavioralPhraseCount,
+    wordCount: s.wordCount,
+    answeredQuestion: s.answeredQuestion,
+  });
+  // Q-A alignment contributes a minor adjustment (±0.5 at most) to evidence quality
+  const qaAdj = ((qaAlignment - 5) / 5) * 0.5;
   const eqRaw = (
     outcomeScore    * 0.30 +
     specificityScore * 0.25 +
     ttrS             * 0.20 +
     behavioralS      * 0.15 +
     cat(s.evidenceMode) * 0.10
-  );
+  ) + qaAdj;
   const evidenceQuality = clamp(eqRaw, 0, 10);
   const eqDrivers: string[] = [];
   if (outcomeScore < 5.5)    eqDrivers.push("weak_outcome");
   if (specificityScore < 5.5) eqDrivers.push("low_specificity");
   if (ttrS < 5.5)            eqDrivers.push("low_lexical_richness");
   if (behavioralS < 4.5)     eqDrivers.push("few_behavioral_indicators");
+  if (qaAlignment < 5.0)     eqDrivers.push("framework_mismatch");
 
   // ── 3. Ownership & Agency ─────────────────────────────────────────────────
-  const oaRaw = (
+  const oaBase = (
     ownershipScore * 0.35 +
     hedgingS       * 0.35 +
     behavioralS    * 0.30
   );
-  const ownershipAgency = clamp(oaRaw, 0, 10);
+  // Ownership gradient arc: +0.4 if improving, −0.3 if declining
+  const oaArcAdj = s.ownershipGradient !== null
+    ? (s.ownershipGradient > 0.2 ? 0.4 : s.ownershipGradient < -0.2 ? -0.3 : 0)
+    : 0;
+  const ownershipAgency = clamp(oaBase + oaArcAdj, 0, 10);
   const oaDrivers: string[] = [];
   if (ownershipScore < 5.5) oaDrivers.push("soft_ownership");
   if (hedgingS < 6.0)       oaDrivers.push("high_hedging_density");
   if (behavioralS < 4.5)    oaDrivers.push("weak_behavioral_language");
+  if (s.ownershipGradient !== null && s.ownershipGradient > 0.2) oaDrivers.push("ownership_builds_through_answer");
+  if (s.ownershipGradient !== null && s.ownershipGradient < -0.2) oaDrivers.push("ownership_fades_through_answer");
 
   // ── 4. Vocal Engagement ───────────────────────────────────────────────────
   const veRaw = (
@@ -484,17 +695,22 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
   if (pitchRangeS < 4.5)      veDrivers.push("narrow_pitch_range");
 
   // ── 5. Response Control ───────────────────────────────────────────────────
-  const rcRaw = (
+  const rcBase = (
     fluencyScore   * 0.35 +
     paceScore      * 0.25 +
     lengthS        * 0.25 +
     cadenceScore   * 0.15
   );
-  const responseControl = clamp(rcRaw, 0, 10);
+  // Filler recovery arc: +0.35 if candidate recovers from fillers mid-answer
+  const rcArcAdj = s.fillerRecovery !== null
+    ? (s.fillerRecovery > 0.2 ? 0.35 : s.fillerRecovery < -0.2 ? -0.25 : 0)
+    : 0;
+  const responseControl = clamp(rcBase + rcArcAdj, 0, 10);
   const rcDrivers: string[] = [];
   if (fluencyScore < 5.5)  rcDrivers.push("filler_heavy_or_fragmented");
   if (paceScore < 5.5)     rcDrivers.push("poor_pace");
   if (lengthS < 5.5)       rcDrivers.push("length_off");
+  if (s.fillerRecovery !== null && s.fillerRecovery > 0.2) rcDrivers.push("filler_recovery_mid_answer");
 
   // ── 6. Cognitive Depth ───────────────────────────────────────────────────
   const cdRaw = (
@@ -511,7 +727,7 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
 
   // ── 7. Presence & Confidence ─────────────────────────────────────────────
   const hasCamera = eyeS !== null && exprS !== null;
-  const pcRaw = hasCamera
+  const pcBase = hasCamera
     ? (
         s.confidence   * 0.30 +
         eyeS!          * 0.30 +
@@ -523,11 +739,17 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
         presenceS      * 0.25 +
         energyScore    * 0.20
       );
-  const presenceConfidence = clamp(pcRaw, 0, 10);
+  // Confidence arc: +0.35 if assertiveness builds, −0.25 if it fades
+  const pcArcAdj = s.confidenceArc !== null
+    ? (s.confidenceArc > 0.2 ? 0.35 : s.confidenceArc < -0.2 ? -0.25 : 0)
+    : 0;
+  const presenceConfidence = clamp(pcBase + pcArcAdj, 0, 10);
   const pcDrivers: string[] = [];
   if (s.confidence < 5.5)   pcDrivers.push("low_confidence_score");
   if (eyeS !== null && eyeS < 5.0) pcDrivers.push("low_eye_contact");
   if (exprS !== null && exprS < 5.0) pcDrivers.push("low_expressiveness");
+  if (s.confidenceArc !== null && s.confidenceArc > 0.2) pcDrivers.push("confidence_builds_through_answer");
+  if (s.confidenceArc !== null && s.confidenceArc < -0.2) pcDrivers.push("confidence_fades_through_answer");
 
   // ── Apply question-intent weights ────────────────────────────────────────
   const weights = getWeights(intent);
@@ -584,6 +806,8 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
 
   // Attach weighted scores for archetype use (not shown to user)
   (profile as any)._weighted = weightedScores;
+  // Attach Q-A alignment score for composer to surface
+  (profile as any)._qaAlignment = qaAlignment;
 
   return profile;
 }

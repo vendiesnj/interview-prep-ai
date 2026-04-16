@@ -1,7 +1,7 @@
 import { ROLE_LIBRARY } from "./library";
 import type { ComposeArgs, RoleFamily } from "./types";
 import { scoreArchetypes, type RawArchetypeSignals } from "./archetypes";
-import { buildDimensionProfile, extractIBMMetrics, detectQuestionIntent, type DimensionInputSignals } from "./dimensions";
+import { buildDimensionProfile, extractIBMMetrics, detectQuestionIntent, computeArcMetrics, computeVocalAuthority, HEDGE_RE, COMPLEXITY_RE, BEHAVIORAL_RE, STOP_WORDS, type DimensionInputSignals } from "./dimensions";
 
 function normalizeText(s: string) {
   return (s || "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -56,10 +56,11 @@ function roleLine(roleFamily: RoleFamily, key: keyof (typeof ROLE_LIBRARY)["fina
   return pickDeterministic(arr, seed, salt);
 }
 
-const HEDGE_RE_C = /\b(i think|i feel like|i guess|i suppose|maybe|perhaps|kind of|sort of|kinda|somewhat|basically|essentially|you know|like,|i mean,|probably|it seems like|i believe|i'm not sure but|i would say)\b/gi;
-const COMPLEXITY_RE_C = /\b(on the other hand|the tradeoff|the trade-off|i considered|however|that said|the risk was|but i decided|weighed|the challenge was|in hindsight|alternatively|despite|although|even though|the downside|the upside|the nuance|it depends on|the key tension|while also)\b/gi;
-const BEHAVIORAL_RE_C = /\b(i led|i drove|i owned|i built|i designed|i created|i launched|i managed|i implemented|i negotiated|i restructured|i identified|i solved|i fixed|i reduced|i increased|i improved|i delivered|i presented|i partnered with|i coordinated|i executed|i deployed)\b/gi;
-const STOP_WORDS_C = new Set(["the","a","an","and","or","but","in","on","at","to","for","of","with","by","from","is","was","are","were","be","been","being","have","has","had","do","does","did","will","would","could","should","may","might","i","we","you","they","it","this","that","these","those","my","our","your","their","its","me","us","him","her","them"]);
+// Regex and stop words imported from dimensions.ts — single source of truth
+const HEDGE_RE_C = HEDGE_RE;
+const COMPLEXITY_RE_C = COMPLEXITY_RE;
+const BEHAVIORAL_RE_C = BEHAVIORAL_RE;
+const STOP_WORDS_C = STOP_WORDS;
 
 function extractIBMSignals(transcript: string) {
   const words = transcript.toLowerCase().split(/\s+/).filter(Boolean);
@@ -80,10 +81,36 @@ function extractIBMSignals(transcript: string) {
   return { hedgingDensity, fragmentationRatio, lexicalTTR, cognitiveMarkers, behavioralPhraseCount, vocabularySophistication };
 }
 
+/**
+ * Normalize all acoustics field names to camelCase regardless of what the
+ * external acoustics service or storage layer returns. Single authoritative
+ * resolution point — no more scattered fallback chains.
+ */
+function resolveAcoustics(deliveryMetrics: any) {
+  const d = (deliveryMetrics ?? {}) as any;
+  const a = (d.acoustics ?? {}) as any;
+  const p = (d.prosody ?? {}) as any;
+  return {
+    monotoneScore:   num(a.monotoneScore)   ?? num(a.monotone_score)   ?? num(p.monotoneScore),
+    pitchMean:       num(a.pitchMean)        ?? num(a.pitch_mean),
+    pitchStd:        num(a.pitchStd)         ?? num(a.pitch_std)        ?? num(a.pitchStdHz),
+    pitchRange:      num(a.pitchRange)       ?? num(a.pitch_range),
+    energyMean:      num(a.energyMean)       ?? num(a.energy_mean),
+    energyStd:       num(a.energyStd)        ?? num(a.energy_std),
+    energyVariation: num(a.energyVariation)  ?? num(a.energy_variation),
+    tempo:           num(a.tempo)            ?? num(d.tempo),
+    tempoDynamics:   num(d.tempoDynamics)    ?? num(d.tempo_dynamics),
+    avgPauseMs:      num(d.avgPauseMs)       ?? num(d.avg_pause_ms),
+    maxPauseMs:      num(d.maxPauseMs)       ?? num(d.max_pause_ms),
+    pauseCount:      num(d.pauseCount)       ?? num(d.pause_count),
+    longPauseCount:  num(d.longPauseCount)   ?? num(d.long_pause_count),
+    wpm:             num(d.wpm),
+  };
+}
+
 function extractSignals(args: ComposeArgs) {
   const delivery = (args.deliveryMetrics ?? {}) as any;
-  const acoustics = (delivery.acoustics ?? {}) as any;
-  const prosody = (delivery.prosody ?? {}) as any;
+  const ac = resolveAcoustics(args.deliveryMetrics);
   const normalized = (args.normalized ?? {}) as any;
   const relevance = (normalized.relevance ?? {}) as any;
   const tech = (normalized.technical_explanation ?? {}) as any;
@@ -104,23 +131,23 @@ function extractSignals(args: ComposeArgs) {
     directness: num(relevance.directness_score) ?? 6.0,
     completeness: num(relevance.completeness_score) ?? 6.0,
     answeredQuestion: relevance.answered_question !== false,
-    wpm: num(delivery.wpm) ?? num(normalized.wpm),
+    wpm: ac.wpm ?? num(normalized.wpm),
     fillersPer100: num(args.fillerStats?.fillersPer100Words) ?? 0,
     fillerTotal: num(args.fillerStats?.total) ?? 0,
     wordCount: num(args.fillerStats?.wordCount) ?? 0,
-    avgPauseMs: num(delivery.avgPauseMs) ?? num(delivery.avg_pause_ms),
-    maxPauseMs: num(delivery.maxPauseMs) ?? num(delivery.max_pause_ms),
-    pauseCount: num(delivery.pauseCount) ?? num(delivery.pause_count),
-    longPauseCount: num(delivery.longPauseCount) ?? num(delivery.long_pause_count),
-    monotoneScore: num(acoustics.monotoneScore) ?? num(prosody.monotoneScore) ?? num(normalized?.deliveryMetrics?.acoustics?.monotoneScore),
-    pitchMean: num(acoustics.pitchMean) ?? num(acoustics.pitch_mean),
-    pitchStd: num(acoustics.pitchStd) ?? num(acoustics.pitch_std) ?? num(acoustics.pitchStdHz),
-    pitchRange: num(acoustics.pitchRange) ?? num(acoustics.pitch_range),
-    energyMean: num(acoustics.energyMean) ?? num(acoustics.energy_mean),
-    energyStd: num(acoustics.energyStd) ?? num(acoustics.energy_std),
-    energyVariation: num(acoustics.energyVariation) ?? num(acoustics.energy_variation),
-    tempo: num(acoustics.tempo) ?? num(delivery.tempo),
-    tempoDynamics: num(delivery.tempoDynamics) ?? num(delivery.tempo_dynamics),
+    avgPauseMs: ac.avgPauseMs,
+    maxPauseMs: ac.maxPauseMs,
+    pauseCount: ac.pauseCount,
+    longPauseCount: ac.longPauseCount,
+    monotoneScore: ac.monotoneScore,
+    pitchMean: ac.pitchMean,
+    pitchStd: ac.pitchStd,
+    pitchRange: ac.pitchRange,
+    energyMean: ac.energyMean,
+    energyStd: ac.energyStd,
+    energyVariation: ac.energyVariation,
+    tempo: ac.tempo,
+    tempoDynamics: ac.tempoDynamics,
     starResult: num(star.result),
     techDepth: num(tech.depth),
     techStructure: num(tech.structure),
@@ -140,6 +167,9 @@ function extractSignals(args: ComposeArgs) {
 
     // IBM / text-derived signals — computed directly from transcript
     ...extractIBMSignals(transcript),
+
+    // Arc / trajectory signals — measure how language changes across the answer
+    ...computeArcMetrics(transcript),
   };
 }
 
@@ -382,6 +412,9 @@ function buildDiagnosis(args: ComposeArgs) {
     cognitiveMarkers: signals.cognitiveMarkers,
     behavioralPhraseCount: signals.behavioralPhraseCount,
     vocabularySophistication: signals.vocabularySophistication,
+    ownershipGradient: signals.ownershipGradient ?? null,
+    confidenceArc: signals.confidenceArc ?? null,
+    fillerRecovery: signals.fillerRecovery ?? null,
     framework: args.framework,
     question: args.question,
   };
@@ -1461,6 +1494,7 @@ export function composeRichFeedback(args: ComposeArgs) {
   if (archetypeDetection.secondary) {
     next.secondary_archetype = archetypeDetection.secondary.archetype;
     next.secondary_archetype_description = archetypeDetection.secondary.archetypeDescription;
+    next.secondary_archetype_coaching = archetypeDetection.secondary.archetypeCoaching;
   }
 
   // Dimension scores — powering the 7-bar scorecard in the UI
@@ -1474,6 +1508,28 @@ export function composeRichFeedback(args: ComposeArgs) {
       driverSignals: v.driverSignals,
     }])
   );
+
+  // Vocal authority composite — pitch range + energy + WPM + pause discipline
+  const vocalAuthority = computeVocalAuthority({
+    wpm: diagnosis.signals.wpm,
+    pitchRange: diagnosis.signals.pitchRange,
+    energyVariation: diagnosis.signals.energyVariation,
+    monotoneScore: diagnosis.signals.monotoneScore,
+    avgPauseMs: diagnosis.signals.avgPauseMs,
+    longPauseCount: diagnosis.signals.longPauseCount,
+  });
+  if (vocalAuthority !== null) {
+    next.vocal_authority_score = vocalAuthority;
+    next.vocal_authority_label = vocalAuthority >= 8.0 ? "commanding" : vocalAuthority >= 6.5 ? "solid" : vocalAuthority >= 5.0 ? "moderate" : "needs work";
+  }
+
+  // Q-A alignment score — did the candidate use the right framework for this question type?
+  const qaAlignment = (diagnosis.dimensionProfile as any)._qaAlignment as number | undefined;
+  if (typeof qaAlignment === "number") {
+    next.qa_alignment_score = qaAlignment;
+    next.qa_alignment_label = qaAlignment >= 8.0 ? "strong" : qaAlignment >= 6.0 ? "good" : qaAlignment >= 4.5 ? "partial" : "weak";
+    next.qa_intent = detectQuestionIntent(args.question);
+  }
 
   // IBM metrics — surfaced in results UI for diagnostic transparency
   const intent = detectQuestionIntent(args.question);

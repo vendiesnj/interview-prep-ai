@@ -43,7 +43,7 @@ export type Diagnosis = {
 };
 
 export type ComposeArgs = {
-  framework: "star" | "technical_explanation" | "experience_depth";
+  framework: "star" | "technical_explanation" | "experience_depth" | "public_speaking" | "networking_pitch";
   jobDesc: string;
   question: string;
   transcript: string;

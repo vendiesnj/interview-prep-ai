@@ -2306,6 +2306,12 @@ const res = await fetch("/api/feedback", {
     // Build full coaching profile from ALL history — not just the last few attempts
     userProfile: history.length > 0 ? buildUserCoachingProfile(history) : null,
     eslMode,
+    careerStage: null, // not yet collected — placeholder for future profile field
+    jobProfileTitle: activeJobProfile?.title ?? null,
+    jobProfileRoleType: activeJobProfile?.roleType ?? null,
+    timeSinceLastAttemptDays: history[0]?.ts
+      ? Math.floor((Date.now() - history[0].ts) / (1000 * 60 * 60 * 24))
+      : null,
   }),
 });
 

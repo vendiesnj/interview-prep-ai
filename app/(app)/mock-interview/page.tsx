@@ -117,6 +117,15 @@ function SetupScreen({
   onStart: (cfg: SessionConfig) => void;
   savedRoleKeys: string[];
 }) {
+  // Past session history for aggregate view
+  const [pastSessions, setPastSessions] = useState<any[]>([]);
+  useEffect(() => {
+    fetch("/api/mock-interview?all=1", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : { attempts: [] })
+      .then(d => { if (Array.isArray(d?.attempts)) setPastSessions(d.attempts); })
+      .catch(() => {});
+  }, []);
+
   // Role selection
   const [selectedRoleKey, setSelectedRoleKey] = useState<string | null>(null);
   const [customRole, setCustomRole] = useState("");
@@ -428,6 +437,60 @@ function SetupScreen({
           ))}
         </div>
       </div>
+
+      {/* Past sessions aggregate */}
+      {pastSessions.length > 0 && (() => {
+        const scores = pastSessions.map(s => {
+          const fb = s.feedback as any;
+          const raw = typeof s.score === "number" ? s.score : (typeof fb?.score === "number" ? fb.score : null);
+          return raw !== null ? (raw <= 10 ? Math.round(raw * 10) : Math.round(raw)) : null;
+        }).filter((v): v is number => v !== null);
+        const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+        const best = scores.length ? Math.max(...scores) : null;
+        const last3 = pastSessions.slice(0, 3);
+        return (
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.7, marginBottom: 10 }}>Past Mock Sessions</div>
+            {/* Aggregate stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 12 }}>
+              {[
+                { label: "Sessions", value: pastSessions.length.toString() },
+                { label: "Avg Score", value: avg !== null ? `${avg}` : "—" },
+                { label: "Best Score", value: best !== null ? `${best}` : "—" },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)", textAlign: "center" as const }}>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{value}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+            {/* Recent sessions list */}
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+              {last3.map((s, i) => {
+                const fb = s.feedback as any;
+                const rawScore = typeof s.score === "number" ? s.score : (typeof fb?.score === "number" ? fb.score : null);
+                const pct = rawScore !== null ? (rawScore <= 10 ? Math.round(rawScore * 10) : Math.round(rawScore)) : null;
+                const color = pct === null ? "var(--text-muted)" : pct >= 75 ? "#10B981" : pct >= 55 ? "#F59E0B" : "#EF4444";
+                const role = fb?.role ?? fb?.config?.role ?? "Mock Interview";
+                const date = s.ts ? new Date(s.ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
+                const readiness = fb?.readinessLevel ?? (s.feedback as any)?.readiness_level ?? null;
+                return (
+                  <div key={s.id ?? i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)", background: `${color}18`, border: `1px solid ${color}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontSize: 13, fontWeight: 700, color }}>{pct ?? "—"}</span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{role}</div>
+                      {readiness && <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "capitalize" as const }}>{readiness.replace(/_/g, " ")}</div>}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>{date}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
 
       <button
         onClick={() => onStart({

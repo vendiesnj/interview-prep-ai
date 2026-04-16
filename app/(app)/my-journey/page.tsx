@@ -1,6 +1,10 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
+import { userScopedKey } from "@/app/lib/userStorage";
+import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
+import { ARCHETYPE_COLOR } from "@/app/lib/feedback/archetypes";
 import PremiumShell from "@/app/components/PremiumShell";
 import NaceScoreCard from "@/app/components/NaceScoreCard";
 import InterviewActivityTracker from "@/app/components/InterviewActivityTracker";
@@ -232,6 +236,15 @@ function pitchStyleColor(style: string): string {
   if (s.includes("bullet")) return "#F59E0B";
   if (s.includes("over")) return "#EF4444";
   return "var(--accent)";
+}
+
+function safeJSONParse<T>(raw: string | null, fallback: T): T {
+  try {
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
 }
 
 function archetypeColor(archetype: string): string {
@@ -1424,9 +1437,203 @@ function OverviewTab({ data, onNavigate }: { data: ProfilePayload; onNavigate: (
   );
 }
 
+// ── Coaching Insights Card (tasks 6, 7, 8) ───────────────────────────────────
+
+const DIM_LABELS: Record<string, string> = {
+  structure: "Structure",
+  evidence: "Evidence",
+  ownership: "Ownership",
+  communication: "Communication",
+  confidence: "Confidence",
+  role_alignment: "Role Alignment",
+  delivery: "Delivery",
+};
+const DIM_ORDER = ["structure", "evidence", "ownership", "communication", "confidence", "role_alignment", "delivery"];
+
+function CoachingInsightsCard({ history }: { history: any[] }) {
+  const coachingProfile = useMemo(() => {
+    if (history.length < 2) return null;
+    return buildUserCoachingProfile(history);
+  }, [history]);
+
+  // Dimension trends: last 5 sessions that have dimension_scores
+  const dimTrendSessions = useMemo(() => {
+    return history
+      .filter(h => h.feedback?.dimension_scores && typeof h.feedback.dimension_scores === "object")
+      .slice(0, 5)
+      .reverse(); // oldest → newest
+  }, [history]);
+
+  // Archetype evolution: last 8 sessions with an archetype
+  const archetypeHistory = useMemo(() => {
+    return history
+      .filter(h => h.feedback?.delivery_archetype)
+      .slice(0, 8)
+      .map(h => ({
+        archetype: h.feedback.delivery_archetype as string,
+        ts: h.ts as number,
+        score: typeof h.score === "number" ? h.score : null,
+      }));
+  }, [history]);
+
+  if (!coachingProfile && dimTrendSessions.length === 0 && archetypeHistory.length === 0) return null;
+
+  const { categoryPerformance, resolvedWeaknesses } = coachingProfile ?? { categoryPerformance: [], resolvedWeaknesses: [] };
+
+  return (
+    <div style={{ marginTop: 16 }}>
+      <Card accentColor="#2563EB">
+        <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 16 }}>
+          Interview Coaching Insights
+        </div>
+
+        {/* Category Performance */}
+        {categoryPerformance.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>
+              By Question Category
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+              {categoryPerformance.map(cat => {
+                const pct = Math.min(100, Math.max(0, cat.avgScore));
+                const color = pct >= 75 ? "#10B981" : pct >= 55 ? "#F59E0B" : "#EF4444";
+                return (
+                  <div key={cat.category}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, color: "var(--text-secondary)", textTransform: "capitalize" as const }}>
+                        {cat.category.replace(/_/g, " ")}
+                      </span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color }}>
+                        {Math.round(pct)}
+                        <span style={{ fontSize: 10, fontWeight: 400, color: "var(--text-muted)" }}> / {cat.attempts} sessions</span>
+                      </span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 3, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 3, transition: "width 0.4s ease" }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Resolved Weaknesses */}
+        {resolvedWeaknesses.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 8 }}>
+              Resolved Issues
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+              {resolvedWeaknesses.map(key => (
+                <span key={key} style={{
+                  padding: "4px 10px",
+                  borderRadius: "var(--radius-sm)",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  background: "#10B98118",
+                  border: "1px solid #10B98140",
+                  color: "#10B981",
+                }}>
+                  ✓ {key.replace(/_/g, " ")}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Dimension Trend Chart */}
+        {dimTrendSessions.length >= 2 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>
+              Dimension Trends (last {dimTrendSessions.length} sessions)
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 7 }}>
+              {DIM_ORDER.map(key => {
+                const scores = dimTrendSessions.map(s => {
+                  const d = s.feedback.dimension_scores?.[key];
+                  return typeof d?.score === "number" ? d.score : null;
+                }).filter((v): v is number => v !== null);
+                if (scores.length < 2) return null;
+                const latest = scores[scores.length - 1];
+                const first = scores[0];
+                const delta = latest - first;
+                const arrowColor = delta > 0.3 ? "#10B981" : delta < -0.3 ? "#EF4444" : "var(--text-muted)";
+                const arrow = delta > 0.3 ? "↑" : delta < -0.3 ? "↓" : "→";
+                return (
+                  <div key={key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 88, fontSize: 11, color: "var(--text-secondary)", flexShrink: 0 }}>
+                      {DIM_LABELS[key] ?? key}
+                    </div>
+                    <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 2 }}>
+                      {scores.map((s, i) => (
+                        <div key={i} style={{
+                          flex: 1,
+                          height: 20,
+                          borderRadius: 3,
+                          background: `rgba(37,99,235,${Math.min(1, s / 10 * 0.85 + 0.1)})`,
+                          position: "relative" as const,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                          <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", opacity: 0.9 }}>
+                            {s.toFixed(1)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ width: 16, fontSize: 13, color: arrowColor, fontWeight: 700, flexShrink: 0, textAlign: "center" as const }}>
+                      {arrow}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Archetype Evolution Timeline */}
+        {archetypeHistory.length >= 2 && (
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>
+              Delivery Pattern History
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+              {archetypeHistory.map((item, i) => {
+                const c = (ARCHETYPE_COLOR as Record<string, string>)[item.archetype] ?? "var(--accent)";
+                const date = new Date(item.ts).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+                const isLatest = i === archetypeHistory.length - 1;
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: c, flexShrink: 0, opacity: isLatest ? 1 : 0.5 }} />
+                    <span style={{
+                      fontSize: 12, fontWeight: isLatest ? 700 : 500,
+                      color: isLatest ? "var(--text-primary)" : "var(--text-secondary)",
+                      flex: 1,
+                    }}>
+                      {item.archetype}
+                    </span>
+                    {item.score !== null && (
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                        {Math.round(item.score * 10)}
+                      </span>
+                    )}
+                    <span style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>{date}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
 // ── Speaking Tab ──────────────────────────────────────────────────────────────
 
-function SpeakingTab({ data }: { data: ProfilePayload }) {
+function SpeakingTab({ data, history }: { data: ProfilePayload; history: any[] }) {
   const { speaking } = data;
 
   return (
@@ -1523,6 +1730,8 @@ function SpeakingTab({ data }: { data: ProfilePayload }) {
           ) : null
         }
       />
+
+      <CoachingInsightsCard history={history} />
     </div>
   );
 }
@@ -2348,6 +2557,9 @@ export default function MyJourneyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
+  const [history, setHistory] = useState<any[]>([]);
+  const { data: session, status } = useSession();
+  const historyKey = useMemo(() => userScopedKey("ipc_history", session), [session]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -2363,6 +2575,30 @@ export default function MyJourneyPage() {
       setLoading(false);
     }
   }, []);
+
+  // Load practice history for coaching insights (API-first, localStorage fallback)
+  useEffect(() => {
+    if (status === "loading") return;
+    let cancelled = false;
+    (async () => {
+      try {
+        if (session?.user) {
+          const res = await fetch("/api/attempts?limit=200", { cache: "no-store" });
+          if (res.ok) {
+            const d = await res.json();
+            const attempts = Array.isArray(d?.attempts) ? d.attempts : [];
+            if (!cancelled && attempts.length > 0) { setHistory(attempts); return; }
+          }
+        }
+        const saved = safeJSONParse<any[]>(localStorage.getItem(historyKey), []);
+        if (!cancelled) setHistory(Array.isArray(saved) ? saved : []);
+      } catch {
+        const saved = safeJSONParse<any[]>(localStorage.getItem(historyKey), []);
+        if (!cancelled) setHistory(Array.isArray(saved) ? saved : []);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [status, session, historyKey]);
 
   useEffect(() => {
     fetchData();
@@ -2439,7 +2675,7 @@ export default function MyJourneyPage() {
           {!loading && !error && data && (
             <>
               {activeTab === "overview" && <OverviewTab data={data} onNavigate={setActiveTab} />}
-              {activeTab === "speaking" && <SpeakingTab data={data} />}
+              {activeTab === "speaking" && <SpeakingTab data={data} history={history} />}
               {activeTab === "resume" && <ResumeTab data={data} />}
               {activeTab === "financial" && <FinancialTab data={data} />}
               {activeTab === "skills" && (

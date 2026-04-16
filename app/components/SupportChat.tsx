@@ -114,8 +114,8 @@ export default function SupportChat() {
           maxHeight: "min(70vh, 520px)",
           borderRadius: "var(--radius-xl)",
           border: "1px solid var(--card-border)",
-          background: "var(--card-bg)",
-          boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+          background: "var(--app-bg, #0f172a)",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -128,7 +128,7 @@ export default function SupportChat() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            background: "var(--card-bg-strong)",
+            background: "var(--app-bg, #0f172a)",
             flexShrink: 0,
           }}>
             <div>
@@ -240,7 +240,7 @@ export default function SupportChat() {
             display: "flex",
             gap: 8,
             alignItems: "flex-end",
-            background: "var(--card-bg-strong)",
+            background: "var(--app-bg, #0f172a)",
             flexShrink: 0,
           }}>
             <textarea

@@ -667,8 +667,12 @@ function buildUserMessage(args: {
   prevScore?: number | null;
   prevImprovementThemeKeys?: string[] | null;
   userProfile?: UserCoachingProfile | null;
+  careerStage?: string | null;
+  jobProfileTitle?: string | null;
+  jobProfileRoleType?: string | null;
+  timeSinceLastAttemptDays?: number | null;
 }) {
-  const { framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, fillerStats, prevScore, prevImprovementThemeKeys, userProfile } = args;
+  const { framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, fillerStats, prevScore, prevImprovementThemeKeys, userProfile, careerStage, jobProfileTitle, jobProfileRoleType, timeSinceLastAttemptDays } = args;
 
   // Build presence_signals block only when webcam data is available and meaningful
   const presenceSignals = faceMetrics && typeof faceMetrics === "object" && (faceMetrics.framesAnalyzed ?? 1) > 0
@@ -749,6 +753,14 @@ function buildUserMessage(args: {
   return JSON.stringify(
     {
       framework,
+      ...(careerStage ? { candidate_career_stage: careerStage, career_stage_note: `Calibrate expectations and coaching tone for a ${careerStage.replace(/_/g, " ")} candidate.` } : {}),
+      ...(jobProfileTitle ? { target_role: jobProfileTitle, ...(jobProfileRoleType ? { role_type: jobProfileRoleType } : {}) } : {}),
+      ...(timeSinceLastAttemptDays !== null && timeSinceLastAttemptDays !== undefined ? {
+        practice_cadence: timeSinceLastAttemptDays === 0 ? "same day — multiple sessions today" :
+          timeSinceLastAttemptDays <= 2 ? "active — practiced within 2 days" :
+          timeSinceLastAttemptDays <= 7 ? "regular — practiced this week" :
+          timeSinceLastAttemptDays <= 21 ? "occasional — practiced within 3 weeks" : "returning — gap of 3+ weeks",
+      } : {}),
       job_description: jobDesc ?? "",
       question: question ?? "",
       transcript,
@@ -756,6 +768,13 @@ function buildUserMessage(args: {
         total_fillers: fillerStats.total,
         word_count: fillerStats.wordCount,
         fillers_per_100_words: round1(fillerStats.fillersPer100Words),
+        ...(Object.keys(fillerStats.perFiller ?? {}).length > 0 ? {
+          filler_breakdown: Object.entries(fillerStats.perFiller)
+            .sort(([,a],[,b]) => b - a)
+            .slice(0, 5)
+            .reduce((o, [k, v]) => ({ ...o, [k]: v }), {}),
+          filler_type_note: "Different fillers signal different issues: 'um/uh' = thinking gaps, 'like' = conversational register, 'basically/essentially' = hedging/softening.",
+        } : {}),
       },
       delivery_metrics: deliveryMetrics ?? null,
       ...(acousticContext ? { acoustic_signals: acousticContext } : {}),
@@ -1460,8 +1479,12 @@ async function callFeedbackModel(args: {
   prevScore?: number | null;
   prevImprovementThemeKeys?: string[] | null;
   userProfile?: UserCoachingProfile | null;
+  careerStage?: string | null;
+  jobProfileTitle?: string | null;
+  jobProfileRoleType?: string | null;
+  timeSinceLastAttemptDays?: number | null;
 }) {
-  const { client, framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, eslMode, fillerStats, prevScore, prevImprovementThemeKeys, userProfile } = args;
+  const { client, framework, jobDesc, question, transcript, deliveryMetrics, faceMetrics, eslMode, fillerStats, prevScore, prevImprovementThemeKeys, userProfile, careerStage, jobProfileTitle, jobProfileRoleType, timeSinceLastAttemptDays } = args;
 
   const schema = buildSchema(framework);
   const system = buildSystemMessage(framework, eslMode);
@@ -1476,6 +1499,10 @@ async function callFeedbackModel(args: {
     prevScore,
     prevImprovementThemeKeys,
     userProfile,
+    careerStage,
+    jobProfileTitle,
+    jobProfileRoleType,
+    timeSinceLastAttemptDays,
   });
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
@@ -1577,6 +1604,10 @@ export async function POST(req: Request) {
     const prevScore = typeof body.prevScore === "number" ? body.prevScore : null;
     const prevAttemptCount = typeof body.prevAttemptCount === "number" ? body.prevAttemptCount : null;
     const prevImprovementThemeKeys = Array.isArray(body.prevImprovementThemeKeys) ? body.prevImprovementThemeKeys as string[] : null;
+    const careerStage = typeof body.careerStage === "string" ? body.careerStage : null;
+    const jobProfileTitle = typeof body.jobProfileTitle === "string" ? body.jobProfileTitle : null;
+    const jobProfileRoleType = typeof body.jobProfileRoleType === "string" ? body.jobProfileRoleType : null;
+    const timeSinceLastAttemptDays = typeof body.timeSinceLastAttemptDays === "number" ? body.timeSinceLastAttemptDays : null;
     // Accept a pre-computed UserCoachingProfile from the client (built from full history)
     const userProfile: UserCoachingProfile | null =
       body.userProfile && typeof body.userProfile === "object" && typeof body.userProfile.llmContext === "string"
@@ -1806,6 +1837,10 @@ export async function POST(req: Request) {
       prevScore,
       prevImprovementThemeKeys,
       userProfile,
+      careerStage,
+      jobProfileTitle,
+      jobProfileRoleType,
+      timeSinceLastAttemptDays,
     });
 
     if (!modelResult.parsed) {
@@ -1893,21 +1928,19 @@ export async function POST(req: Request) {
       }
     }
 
-        if (evaluationFramework !== "public_speaking") {
-      normalized = composeRichFeedback({
-        framework: evaluationFramework as "star" | "technical_explanation" | "experience_depth",
-        jobDesc,
-        question,
-        transcript,
-        deliveryMetrics,
-        faceMetrics,
-        eslMode,
-        fillerStats,
-        normalized,
-        prevScore,
-        prevAttemptCount,
-      });
-    }
+    normalized = composeRichFeedback({
+      framework: evaluationFramework,
+      jobDesc,
+      question,
+      transcript,
+      deliveryMetrics,
+      faceMetrics,
+      eslMode,
+      fillerStats,
+      normalized,
+      prevScore,
+      prevAttemptCount,
+    });
 
 
     if (!isPro) {
