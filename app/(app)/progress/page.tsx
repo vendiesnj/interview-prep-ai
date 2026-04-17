@@ -1817,47 +1817,102 @@ export default function ProgressPage() {
   }, [history, coachingProfile, overview, archetypeStats]);
 
   // ── Coaching Writeup (narrative prose from data, no LLM) ────────────────────
-  const coachingWriteup = useMemo((): { p1: string; p2: string } | null => {
+  const coachingWriteup = useMemo((): { p1: string; p2: string; p3: string; p4: string } | null => {
     if (history.length < 3 || !coachingProfile) return null;
 
     const arch = archetypeStats.dominant ?? "developing communicator";
     const count = history.length;
-    const topDim = coachingProfile.dimensionProfile.sort((a, b) => b.allTimeAvg - a.allTimeAvg)[0];
-    const bottomDim = coachingProfile.dimensionProfile.filter(d => d.attemptCount >= 2).sort((a, b) => a.allTimeAvg - b.allTimeAvg)[0];
+    const sortedDims = [...coachingProfile.dimensionProfile].sort((a, b) => b.allTimeAvg - a.allTimeAvg);
+    const topDims = sortedDims.filter(d => d.attemptCount >= 2).slice(0, 2);
+    const bottomDims = sortedDims.filter(d => d.attemptCount >= 2).reverse().slice(0, 2);
     const topPriority = coachingProfile.topPriorities[0];
+    const secondPriority = coachingProfile.topPriorities[1];
     const recentArch = coachingProfile.archetypeEvolution.recentArchetype;
     const evolving = recentArch && recentArch !== archetypeStats.dominant;
 
-    const avgScore100 = overview.avgOverall !== null ? Math.round(overview.avgOverall * 10) : null;
+    // avgOverall is already 0–100 — do NOT multiply by 10
+    const avgScore100 = overview.avgOverall !== null ? Math.round(overview.avgOverall) : null;
 
-    let p1 = `Across ${count} sessions, your most consistent pattern is the ${arch} profile.`;
-    if (topDim && topDim.attemptCount >= 2) {
-      p1 += ` ${topDim.label} is your strongest dimension, averaging ${topDim.allTimeAvg.toFixed(1)}/10 — this is where your communication works best.`;
+    // ── Paragraph 1: Identity + overall pattern ──────────────────────────────
+    let p1 = `Across ${count} sessions, your most consistent communication pattern is the ${arch} profile.`;
+    if (topDims[0] && topDims[0].attemptCount >= 2) {
+      p1 += ` ${topDims[0].label} is your strongest dimension at ${topDims[0].allTimeAvg.toFixed(1)}/10`;
+      if (topDims[1] && topDims[1].attemptCount >= 2) {
+        p1 += `, followed closely by ${topDims[1].label} (${topDims[1].allTimeAvg.toFixed(1)}/10)`;
+      }
+      p1 += ` — this is the foundation your communication style is built on.`;
     }
     if (avgScore100 !== null) {
       p1 += ` Your overall average sits at ${avgScore100}/100.`;
     }
     if (evolving) {
-      p1 += ` Your recent sessions show a shift toward the ${recentArch} pattern, which suggests your approach is changing.`;
+      p1 += ` Your recent sessions show a shift toward the ${recentArch} pattern — your style is actively evolving.`;
     }
 
+    // ── Paragraph 2: Dimension gaps ──────────────────────────────────────────
     let p2 = "";
-    if (topPriority) {
-      p2 = `Your top coaching priority is ${topPriority.area.toLowerCase()}. ${topPriority.evidence}.`;
-    }
-    if (bottomDim && bottomDim.allTimeAvg < 6.0) {
-      const gap = topPriority ? " Your" : "Your";
-      p2 += `${gap} lowest dimension is ${bottomDim.label} at ${bottomDim.allTimeAvg.toFixed(1)}/10 — this is the clearest scoring gap to close.`;
+    if (bottomDims[0] && bottomDims[0].allTimeAvg < 7.0) {
+      p2 = `Your clearest coaching gap is ${bottomDims[0].label} at ${bottomDims[0].allTimeAvg.toFixed(1)}/10.`;
+      if (bottomDims[1] && bottomDims[1].allTimeAvg < 7.0 && bottomDims[1].key !== bottomDims[0].key) {
+        p2 += ` ${bottomDims[1].label} (${bottomDims[1].allTimeAvg.toFixed(1)}/10) is a secondary gap worth tracking.`;
+      }
+      const spread = topDims[0] ? topDims[0].allTimeAvg - bottomDims[0].allTimeAvg : 0;
+      if (spread >= 2.0) {
+        p2 += ` The ${spread.toFixed(1)}-point spread between your best and weakest dimension means you're inconsistent — work on raising the floor, not just your ceiling.`;
+      } else if (spread < 1.0) {
+        p2 += ` Your dimensions are tightly clustered, which suggests a consistent baseline. The growth opportunity is raising all of them together.`;
+      }
+    } else if (sortedDims.length >= 2) {
+      p2 = `Your dimensions are relatively balanced, with most sitting in a solid range. The next level of improvement will come from adding precision and specificity rather than fixing structural gaps.`;
     }
     if (coachingProfile.resolvedWeaknesses.length > 0) {
       const resolved = coachingProfile.resolvedWeaknesses[0].replace(/_/g, " ");
-      p2 += ` One pattern that has improved: ${resolved} is no longer showing in recent sessions.`;
+      p2 += ` One pattern that has improved: ${resolved} is no longer appearing in recent sessions — that's measurable progress.`;
     }
     if (!p2) {
-      p2 = "Your scores are relatively stable. The next improvement will come from pushing consistency across all dimensions, not just your strongest one.";
+      p2 = "Your dimension profile is still building — more scored sessions will surface a clearer gap pattern.";
     }
 
-    return { p1, p2 };
+    // ── Paragraph 3: Delivery signals ────────────────────────────────────────
+    const deliveryParts: string[] = [];
+    if (overview.avgPace !== null) {
+      if (overview.avgPace < 100) deliveryParts.push(`your pace is slow at ${overview.avgPace} wpm — speed up slightly to hold attention`);
+      else if (overview.avgPace > 165) deliveryParts.push(`your pace is fast at ${overview.avgPace} wpm — slow down on key points so they land`);
+      else deliveryParts.push(`your pace averages ${overview.avgPace} wpm, which is in a strong interview range`);
+    }
+    if (overview.avgFillers !== null) {
+      if (overview.avgFillers >= 4) deliveryParts.push(`filler word rate is elevated at ${overview.avgFillers.toFixed(1)} per 100 words — this is the delivery metric most worth targeting first`);
+      else if (overview.avgFillers >= 2) deliveryParts.push(`filler word rate is ${overview.avgFillers.toFixed(1)} per 100 words — manageable, but reducing it further will improve perceived confidence`);
+      else deliveryParts.push(`filler word rate is ${overview.avgFillers.toFixed(1)} per 100 words — well controlled`);
+    }
+    if (overview.avgEyeContact !== null) {
+      if (overview.avgEyeContact >= 70) deliveryParts.push(`eye contact reads as strong at ${overview.avgEyeContact}%`);
+      else if (overview.avgEyeContact < 50) deliveryParts.push(`eye contact is below target at ${overview.avgEyeContact}% — work on looking directly at the camera`);
+    }
+
+    let p3 = "";
+    if (deliveryParts.length > 0) {
+      p3 = `On delivery: ${deliveryParts.join("; ")}.`;
+      if (overview.avgStarResult !== null) {
+        const resultLabel = overview.avgStarResult >= 7 ? "strong" : overview.avgStarResult >= 5.5 ? "developing" : "weak";
+        p3 += ` Your STAR result statements average ${overview.avgStarResult.toFixed(1)}/10 — ${resultLabel} closing impact is one of the highest-value areas to develop.`;
+      }
+    } else {
+      p3 = `Spoken delivery data will appear after completing sessions with audio. Vocal metrics like pace, filler rate, and pitch variety add significant signal to this analysis.`;
+    }
+
+    // ── Paragraph 4: Priority + next action ──────────────────────────────────
+    let p4 = "";
+    if (topPriority) {
+      p4 = `Your top priority: ${topPriority.area}. ${topPriority.evidence}.`;
+      if (secondPriority) {
+        p4 += ` A close second is ${secondPriority.area.toLowerCase()} — ${secondPriority.evidence}.`;
+      }
+    } else {
+      p4 = `No single dominant weakness has emerged yet. Focus your next sessions on asking yourself one question after each answer: "Did I include a specific, measurable result?"`;
+    }
+
+    return { p1, p2, p3, p4 };
   }, [history, coachingProfile, archetypeStats, overview]);
 
   // ── Cross-context profile (dimension avgs grouped by practice type) ──────────
@@ -2151,6 +2206,14 @@ export default function ProgressPage() {
                   </p>
                   <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
                     {coachingWriteup.p2}
+                  </p>
+                  {coachingWriteup.p3 && (
+                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                      {coachingWriteup.p3}
+                    </p>
+                  )}
+                  <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75, borderTop: "1px solid var(--card-border-soft)", paddingTop: 14 }}>
+                    {coachingWriteup.p4}
                   </p>
                 </div>
               )}
