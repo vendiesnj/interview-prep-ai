@@ -35,6 +35,9 @@ export type AppTheme = {
     chartNegative: string;
     chartNeutral: string;
     chartCritical: string;
+
+    /** Dot-grid color for the PostHog-style background pattern */
+    dotColor?: string;
   };
 
   radii: {
@@ -437,11 +440,76 @@ export const signalNavyTheme: AppTheme = {
   },
 };
 
+// Signal Warm — PostHog-inspired warm cream, indigo accent
+export const signalWarmTheme: AppTheme = {
+  name: "signal-warm",
+
+  colors: {
+    // Warm cream background — close to PostHog's off-white
+    pageBg: "#F5EEE0",
+    pageBgAccentA: "rgba(79,70,229,0.055)",
+    pageBgAccentB: "rgba(217,119,6,0.045)",
+
+    // Warm near-black text
+    text: "#1C1917",
+    textMuted: "#78716C",
+    textSoft: "#A8A29E",
+
+    // Warm off-white cards with subtle warm border
+    cardBg: "#FDFAF4",
+    cardBgStrong: "#FFFFFF",
+    cardBorder: "rgba(28,25,23,0.08)",
+    cardBorderSoft: "rgba(28,25,23,0.05)",
+
+    inputBg: "#FFFFFF",
+    inputBorder: "rgba(28,25,23,0.13)",
+
+    // Indigo accent — pops beautifully on warm cream
+    accent: "#4F46E5",
+    accentSoft: "rgba(79,70,229,0.09)",
+    accentStrong: "rgba(79,70,229,0.20)",
+
+    // Amber secondary — warmth, energy
+    accent2: "#D97706",
+    accent2Soft: "rgba(217,119,6,0.10)",
+
+    danger: "#DC2626",
+    dangerSoft: "rgba(220,38,38,0.08)",
+
+    success: "#16A34A",
+    successSoft: "rgba(22,163,74,0.08)",
+
+    chartPositive: "#16A34A",
+    chartNegative: "#DC2626",
+    chartNeutral: "#D97706",
+    chartCritical: "#B91C1C",
+
+    // Warm dark dots on cream background
+    dotColor: "rgba(28,25,23,0.065)",
+  },
+
+  radii: {
+    xs: 6,
+    sm: 8,
+    md: 10,
+    lg: 12,
+    xl: 16,
+  },
+
+  shadows: {
+    card: "0 1px 3px rgba(28,25,23,0.06), 0 4px 14px rgba(28,25,23,0.05)",
+    cardSoft: "0 1px 2px rgba(28,25,23,0.04)",
+    glow: "0 6px 20px rgba(79,70,229,0.14)",
+    none: "none",
+  },
+};
+
 export const themePresets = {
   default: defaultTheme,
   light: lightTheme,
   ipcBlue: ipcBlueTheme,
   signalNavy: signalNavyTheme,
+  signalWarm: signalWarmTheme,
   pitch: pitchTheme,
   rutgers: rutgersTheme,
   michigan: michiganTheme,
@@ -456,9 +524,9 @@ export type ThemePresetName = keyof typeof themePresets;
 
 
 export function getThemeByName(name?: string | null): AppTheme {
-  if (!name) return lightTheme;
-  return themePresets[name as ThemePresetName] ?? lightTheme;
+  if (!name) return signalWarmTheme;
+  return themePresets[name as ThemePresetName] ?? signalWarmTheme;
 }
 
-export const activeThemeName: ThemePresetName = "signalNavy";
+export const activeThemeName: ThemePresetName = "signalWarm";
 export const activeTheme = themePresets[activeThemeName];

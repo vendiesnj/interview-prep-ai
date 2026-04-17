@@ -16,7 +16,11 @@ import { SignalLockup } from "./SignalLogo";
 
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard":                   "Dashboard",
-  "/practice":                    "Interview Prep",
+  "/hub":                         "Practice",
+  "/clarity":                     "Clarity & Articulation",
+  "/planner":                     "My Plan",
+  "/experience-log":              "Experience Log",
+  "/practice":                    "Interview Practice",
   "/public-speaking":             "Public Speaking",
   "/networking":                  "Networking Pitch",
   "/aptitude":                    "Career Assessment",
@@ -43,7 +47,7 @@ const ROUTE_LABELS: Record<string, string> = {
   "/job-profiles":                "Job Profiles",
   "/sessions":                    "Sessions",
   "/results":                     "Results",
-  "/progress":                    "Insights",
+  "/progress":                    "My Coach",
   "/history":                     "History",
   "/career-instincts":            "Career Instincts",
   "/job-tracker":                 "Job Tracker",
@@ -81,13 +85,15 @@ function getPageLabel(pathname: string): string {
 // ── Mobile nav items ──────────────────────────────────────────────────────────
 
 const MOBILE_NAV = [
-  { label: "Home",      href: "/dashboard",      Icon: Home },
-  { label: "Practice",  href: "/practice",        Icon: Mic },
-  { label: "Journey",   href: "/my-journey",      Icon: BarChart2 },
-  { label: "Explore",   href: "/career-guide",    Icon: Map },
+  { label: "Home",      href: "/dashboard",  Icon: Home },
+  { label: "Practice",  href: "/hub",        Icon: Mic },
+  { label: "Journey",   href: "/my-journey", Icon: BarChart2 },
+  { label: "Explore",   href: "/career-guide", Icon: Map },
 ];
 
 const MOBILE_DRAWER_LINKS_UNIVERSITY = [
+  { label: "My Plan",              href: "/planner" },
+  { label: "Experience Log",       href: "/experience-log" },
   { label: "Daily Games",          href: "/games" },
   { label: "Career Assessment",    href: "/aptitude" },
   { label: "Future-Proof",         href: "/future-proof" },
@@ -100,6 +106,8 @@ const MOBILE_DRAWER_LINKS_UNIVERSITY = [
 ];
 
 const MOBILE_DRAWER_LINKS_CONSUMER = [
+  { label: "My Plan",              href: "/planner" },
+  { label: "Experience Log",       href: "/experience-log" },
   { label: "Question Bank",        href: "/question-bank" },
   { label: "Job Profiles",         href: "/job-profiles" },
   { label: "Sessions",             href: "/sessions" },
@@ -111,15 +119,19 @@ const MOBILE_DRAWER_LINKS_CONSUMER = [
 // ── Practice sub-nav routes ───────────────────────────────────────────────────
 
 const PRACTICE_SUBNAV = [
-  { label: "Practice",      href: "/practice" },
+  { label: "Practice Hub",  href: "/hub" },
   { label: "Question Bank", href: "/question-bank" },
-  { label: "Job Profiles",  href: "/job-profiles" },
   { label: "Sessions",      href: "/sessions" },
   { label: "Results",       href: "/results" },
-  { label: "Insights",      href: "/progress" },
+  { label: "My Coach",      href: "/progress" },
 ];
 
-const PRACTICE_PATHS = new Set(PRACTICE_SUBNAV.map(n => n.href));
+// All routes that show the practice sub-nav (includes module pages even if not in subnav items)
+const PRACTICE_EXTRA_PATHS = new Set([
+  "/practice", "/mock-interview", "/public-speaking", "/clarity", "/networking",
+]);
+
+const PRACTICE_PATHS = new Set([...PRACTICE_SUBNAV.map(n => n.href), ...PRACTICE_EXTRA_PATHS]);
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -139,6 +151,8 @@ export default function TopNav() {
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === "/dashboard";
+    // Practice hub tab highlights for all practice sub-routes
+    if (href === "/hub") return PRACTICE_PATHS.has(pathname ?? "");
     return pathname === href || pathname?.startsWith(href + "/");
   }
 
@@ -316,6 +330,11 @@ export default function TopNav() {
           {isUniversity && (
             <Link href="/my-journey" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/my-journey") ? "var(--accent)" : "var(--text-muted)", background: isActive("/my-journey") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
               My Journey
+            </Link>
+          )}
+          {!isAdmin && (
+            <Link href="/planner" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/planner") ? "var(--accent)" : "var(--text-muted)", background: isActive("/planner") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>
+              My Plan
             </Link>
           )}
           <Link href="/settings" style={{ padding: "5px 11px", borderRadius: 7, fontSize: 13, fontWeight: 700, color: isActive("/settings") ? "var(--accent)" : "var(--text-muted)", background: isActive("/settings") ? "var(--accent-soft)" : "transparent", textDecoration: "none" }}>

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import TopNav from "../components/TopNav";
 import OnboardingOverlay from "../components/OnboardingOverlay";
+import OnboardingBanner from "../components/OnboardingBanner";
 import UserStorageGuard from "../components/UserStorageGuard";
 import SupportChat from "../components/SupportChat";
 
@@ -17,6 +18,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <TopNav />
+      <OnboardingBanner />
       <main
         className="ipc-main-content"
         style={{

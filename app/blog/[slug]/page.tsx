@@ -73,7 +73,7 @@ export default async function ArticlePage({ params }: Props) {
       minHeight: "100vh",
       background: "var(--app-bg, #0d1e3a)",
       color: "var(--text-primary, #fff)",
-      fontFamily: "var(--font-inter, ui-sans-serif, system-ui, sans-serif)",
+      fontFamily: "var(--font-plus-jakarta, ui-sans-serif, system-ui, sans-serif)",
     }}>
       <script
         type="application/ld+json"

@@ -91,21 +91,41 @@ function resolveAcoustics(deliveryMetrics: any) {
   const a = (d.acoustics ?? {}) as any;
   const p = (d.prosody ?? {}) as any;
   return {
-    monotoneScore:   num(a.monotoneScore)   ?? num(a.monotone_score)   ?? num(p.monotoneScore),
-    pitchMean:       num(a.pitchMean)        ?? num(a.pitch_mean),
-    pitchStd:        num(a.pitchStd)         ?? num(a.pitch_std)        ?? num(a.pitchStdHz),
-    pitchRange:      num(a.pitchRange)       ?? num(a.pitch_range),
-    energyMean:      num(a.energyMean)       ?? num(a.energy_mean),
-    energyStd:       num(a.energyStd)        ?? num(a.energy_std),
-    energyVariation: num(a.energyVariation)  ?? num(a.energy_variation),
-    tempo:           num(a.tempo)            ?? num(d.tempo),
-    tempoDynamics:   num(d.tempoDynamics)    ?? num(d.tempo_dynamics),
-    avgPauseMs:      num(d.avgPauseMs)       ?? num(d.avg_pause_ms),
-    maxPauseMs:      num(d.maxPauseMs)       ?? num(d.max_pause_ms),
-    pauseCount:      num(d.pauseCount)       ?? num(d.pause_count),
-    longPauseCount:  num(d.longPauseCount)   ?? num(d.long_pause_count),
-    wpm:             num(d.wpm),
+    // Azure (preferred) → Python fallback → legacy field names
+    monotoneScore:      num(a.monotoneScore)       ?? num(a.monotone_score)   ?? num(p.monotoneScore),
+    pitchMean:          num(a.pitchMean)            ?? num(a.pitch_mean),
+    pitchStd:           num(a.pitchStd)             ?? num(a.pitch_std)        ?? num(a.pitchStdHz),
+    pitchRange:         num(a.pitchRange)           ?? num(a.pitch_range),
+    energyMean:         num(a.energyMean)           ?? num(a.energy_mean),
+    energyStd:          num(a.energyStd)            ?? num(a.energy_std),
+    energyVariation:    num(a.energyVariation)      ?? num(a.energy_variation),
+    tempo:              num(a.tempo)                ?? num(d.tempo),
+    tempoDynamics:      num(d.tempoDynamics)        ?? num(d.tempo_dynamics),
+    avgPauseMs:         num(d.avgPauseMs)           ?? num(d.avg_pause_ms),
+    maxPauseMs:         num(d.maxPauseMs)           ?? num(d.max_pause_ms),
+    pauseCount:         num(d.pauseCount)           ?? num(d.pause_count),
+    longPauseCount:     num(d.longPauseCount)       ?? num(d.long_pause_count),
+    wpm:                num(d.wpm),
+    // Azure-only signals (new — downstream uses these for coaching nudges; ignored if null)
+    pronunciationScore:   num(a.pronunciationScore)   ?? num(d.pronunciationScore),
+    fluencyScore:         num(a.fluencyScore)          ?? num(d.fluencyScore),
+    prosodyScore:         num(a.prosodyScore)          ?? num(d.prosodyScore),
+    unexpectedBreaks:     num(a.unexpectedBreaks)      ?? num(d.unexpectedBreaks),
+    // Mumble / articulation clarity signals (derived from Azure per-word AccuracyScore + ErrorType)
+    mumbleIndex:          num(a.mumbleIndex)           ?? num(d.mumbleIndex),           // 0–100, higher=more mumbling
+    avgWordAccuracy:      num(a.avgWordAccuracy)       ?? num(d.avgWordAccuracy),       // mean per-word accuracy 0–100
+    mumbledWordRate:      num(a.mumbledWordRate)       ?? num(d.mumbledWordRate),       // % words with accuracy < 60
+    omissionRate:         num(a.omissionRate)          ?? num(d.omissionRate),          // % words with Omission error
+    mispronunciationRate: num(a.mispronunciationRate)  ?? num(d.mispronunciationRate),  // % words Mispronounced
   };
+}
+
+/** Return true when session shows stutter-pattern signals (unexpectedBreaks threshold).
+ *  Routes to eslMode in buildDeliveryProfile() — relaxes filler/pause thresholds. */
+function detectStutterMode(deliveryMetrics: any): boolean {
+  const ac = resolveAcoustics(deliveryMetrics);
+  // 3+ unexpected breaks → treat as stutter session, apply relaxed thresholds
+  return (ac.unexpectedBreaks ?? 0) >= 3;
 }
 
 function extractSignals(args: ComposeArgs) {
@@ -125,11 +145,11 @@ function extractSignals(args: ComposeArgs) {
   const weCount = (transcript.match(/\bwe\b/g) || []).length;
 
   return {
-    overall: num(normalized.score) ?? 5.5,
-    communication: num(normalized.communication_score) ?? 5.5,
-    confidence: num(normalized.confidence_score) ?? 5.5,
-    directness: num(relevance.directness_score) ?? 6.0,
-    completeness: num(relevance.completeness_score) ?? 6.0,
+    overall: num(normalized.score) ?? 1.5,
+    communication: num(normalized.communication_score) ?? 1.5,
+    confidence: num(normalized.confidence_score) ?? 1.5,
+    directness: num(relevance.directness_score) ?? 1.5,
+    completeness: num(relevance.completeness_score) ?? 1.5,
     answeredQuestion: relevance.answered_question !== false,
     wpm: ac.wpm ?? num(normalized.wpm),
     fillersPer100: num(args.fillerStats?.fillersPer100Words) ?? 0,
@@ -164,6 +184,13 @@ function extractSignals(args: ComposeArgs) {
     eyeContact: num(face.eyeContact),
     expressiveness: num(face.expressiveness),
     headStability: num(face.headStability),
+
+    // Mumble / articulation clarity signals
+    mumbleIndex: ac.mumbleIndex,
+    avgWordAccuracy: ac.avgWordAccuracy,
+    mumbledWordRate: ac.mumbledWordRate,
+    omissionRate: ac.omissionRate,
+    mispronunciationRate: ac.mispronunciationRate,
 
     // IBM / text-derived signals — computed directly from transcript
     ...extractIBMSignals(transcript),
@@ -225,6 +252,15 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
   if (pace === "rushed" && fluency !== "clean") cadenceStability = "erratic";
   else if (pausing === "hesitant" || pausing === "compressed" || vocalDynamics === "erratic") cadenceStability = "slightly_uneven";
 
+  // Articulation clarity — derived from mumble index (null when Azure data unavailable)
+  // Thresholds: >50 = mumbled, 25–50 = slightly_unclear, <25 = clear
+  let articulationClarity: "clear" | "slightly_unclear" | "mumbled" | null = null;
+  if (s.mumbleIndex !== null) {
+    if (s.mumbleIndex > 50) articulationClarity = "mumbled";
+    else if (s.mumbleIndex > 25) articulationClarity = "slightly_unclear";
+    else articulationClarity = "clear";
+  }
+
   // Presence signal - incorporates headStability alongside eyeContact and expressiveness
   let presenceSignal: "strong" | "moderate" | "low" | null = null;
   if (s.eyeContact !== null && s.expressiveness !== null) {
@@ -235,7 +271,7 @@ function buildDeliveryProfile(s: ReturnType<typeof extractSignals>, eslMode = fa
     else presenceSignal = "moderate";
   }
 
-  return { pace, fluency, pausing, vocalDynamics, energyProfile, emphasisControl, cadenceStability, presenceSignal, quietSpeaker, pitchMeanFlat };
+  return { pace, fluency, pausing, vocalDynamics, energyProfile, emphasisControl, cadenceStability, presenceSignal, quietSpeaker, pitchMeanFlat, articulationClarity };
 }
 
 function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeArgs) {
@@ -260,15 +296,15 @@ function buildAnswerPattern(s: ReturnType<typeof extractSignals>, args: ComposeA
 
   let outcomeStrength: "strong" | "moderate" | "weak" = "moderate";
   const outcomeSignal = args.framework === "star" ? s.starResult : args.framework === "technical_explanation" ? s.techPracticalReasoning : s.expImpact;
-  if ((outcomeSignal ?? 5.5) >= 7.2) outcomeStrength = "strong";
-  else if ((outcomeSignal ?? 5.5) <= 5.8) outcomeStrength = "weak";
+  if ((outcomeSignal ?? 3.0) >= 7.2) outcomeStrength = "strong";
+  else if ((outcomeSignal ?? 3.0) <= 5.8) outcomeStrength = "weak";
 
   // Specificity - expExampleQuality sharpens this for experience answers
   let specificity: "specific" | "mixed" | "generalized" = "mixed";
   const hasMetrics = /\b\d+%|\b\d+\b|\$|\bpercent\b|\bmetric\b|\bkpi\b/.test(s.transcript);
   const specificityScore = args.framework === "experience_depth" && s.expExampleQuality !== null
-    ? (s.expSpecificity ?? 5.5) * 0.5 + s.expExampleQuality * 0.5
-    : s.expSpecificity ?? 5.5;
+    ? (s.expSpecificity ?? 3.0) * 0.5 + s.expExampleQuality * 0.5
+    : s.expSpecificity ?? 3.0;
   if (hasMetrics || specificityScore >= 7.0) specificity = "specific";
   else if (specificityScore <= 5.8 && !hasMetrics) specificity = "generalized";
 
@@ -356,7 +392,9 @@ function buildImprovementThemes(s: ReturnType<typeof extractSignals>, delivery: 
 function buildDiagnosis(args: ComposeArgs) {
   const roleFamily = inferRoleFamily(args.jobDesc, args.question);
   const signals = extractSignals(args);
-  const delivery = buildDeliveryProfile(signals, args.eslMode ?? false);
+  // Auto-detect stutter mode from Azure unexpectedBreaks signal; caller eslMode always wins
+  const resolvedEslMode = args.eslMode ?? detectStutterMode(args.deliveryMetrics);
+  const delivery = buildDeliveryProfile(signals, resolvedEslMode);
   const answer = buildAnswerPattern(signals, args);
   const strengthThemes = buildStrengthThemes(signals, delivery, answer, roleFamily);
   const improvementThemes = buildImprovementThemes(signals, delivery, answer, roleFamily);
@@ -1339,6 +1377,25 @@ function buildCompoundNote(
     a.outcomeStrength !== "weak"
   ) {
     return "Strong content is getting obscured by filler words. The story itself is solid. Reducing fillers will let the structure and results land the way they deserve to.";
+  }
+
+  // Mumble / articulation clarity — fires when Azure per-word accuracy flags unclear speech
+  if (d.articulationClarity === "mumbled") {
+    if (s.omissionRate !== null && s.omissionRate > 15) {
+      // Omission-dominant: dropping word endings / syllables
+      return "Your articulation is flagging as unclear — specifically, word endings and syllables are being dropped. Finish each word fully before starting the next. Try slowing down by 10% and exaggerating your final consonants on practice runs.";
+    }
+    if (s.mispronunciationRate !== null && s.mispronunciationRate > 20) {
+      // Mispronunciation-dominant: consonants not landing
+      return "Several words are not coming through clearly. This is often about consonant sharpness rather than volume. Practice the answer slowly, emphasizing the first and last consonant of each key word, then gradually build back to full pace.";
+    }
+    // General mumble pattern
+    return "Your overall word clarity is below the threshold where interviewers will catch every point. This is not about volume — it is about how fully each word is shaped. Slow down 10–15%, open your mouth slightly more, and finish consonants cleanly. Record yourself at half speed to hear what is being dropped.";
+  }
+
+  if (d.articulationClarity === "slightly_unclear" && a.structure === "strong") {
+    // Good content but slightly unclear delivery — worth surfacing
+    return "The content is strong but some words are not landing fully clearly. Small articulation improvement will make your answers more persuasive, since every metric and detail needs to register precisely.";
   }
 
   return null;

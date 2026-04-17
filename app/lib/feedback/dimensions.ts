@@ -25,7 +25,8 @@ export type DimensionKey =
   | "vocal_engagement"
   | "response_control"
   | "cognitive_depth"
-  | "presence_confidence";
+  | "presence_confidence"
+  | "audience_awareness";
 
 export type DimensionScore = {
   key: DimensionKey;
@@ -177,7 +178,7 @@ function ttrToScore(ttr: number): number {
   if (ttr >= 0.38) return 7;
   if (ttr >= 0.30) return 5.5;
   if (ttr >= 0.22) return 4;
-  return 2.5;
+  return 1.0;
 }
 
 /** Normalize cognitive marker density (per sentence) to 0–10 */
@@ -187,7 +188,7 @@ function complexityToScore(markersPerSentence: number): number {
   if (markersPerSentence >= 0.08) return 7;
   if (markersPerSentence >= 0.04) return 5.5;
   if (markersPerSentence >= 0.01) return 4;
-  return 2.5;
+  return 1.0;
 }
 
 /** Normalize behavioral phrase count to 0–10 */
@@ -197,7 +198,7 @@ function behavioralToScore(count: number): number {
   if (count >= 3) return 7.5;
   if (count >= 2) return 6;
   if (count >= 1) return 4.5;
-  return 2.5;
+  return 1.0;
 }
 
 /** Normalize fragmentation ratio (0–1) to 0–10 (10 = fluent) */
@@ -207,7 +208,7 @@ function fragmentationToScore(ratio: number): number {
   if (ratio <= 0.15) return 7;
   if (ratio <= 0.25) return 5;
   if (ratio <= 0.35) return 3;
-  return 1.5;
+  return 1.0;
 }
 
 /** Score answer length appropriateness (words, adjusted by question intent) */
@@ -219,10 +220,10 @@ function lengthToScore(wordCount: number, intent: QuestionIntent): number {
     : intent === "motivational" || intent === "values" ? [60, 180]
     : [120, 270];
   if (wordCount >= lo && wordCount <= hi) return 10;
-  if (wordCount < lo * 0.6) return 3;     // too short
-  if (wordCount > hi * 1.5) return 3.5;   // too long — overloading
-  if (wordCount < lo) return clamp(6 + ((wordCount - lo * 0.6) / (lo * 0.4)) * 4, 3, 10);
-  return clamp(10 - ((wordCount - hi) / (hi * 0.5)) * 6.5, 3.5, 10);
+  if (wordCount < lo * 0.6) return 1.5;   // extremely short — no substance possible
+  if (wordCount > hi * 1.5) return 1.5;   // extremely long — no discipline
+  if (wordCount < lo) return clamp(6 + ((wordCount - lo * 0.6) / (lo * 0.4)) * 4, 1.5, 10);
+  return clamp(10 - ((wordCount - hi) / (hi * 0.5)) * 6.5, 1.5, 10);
 }
 
 // ── Question intent detection ─────────────────────────────────────────────────
@@ -292,24 +293,27 @@ export function extractIBMMetrics(transcript: string, wordCount: number, intent:
 
 type WeightMap = Record<DimensionKey, number>;
 
-function getWeights(intent: QuestionIntent): WeightMap {
+function getWeights(intent: QuestionIntent, framework?: string): WeightMap {
   const base: WeightMap = {
-    narrative_clarity: 1.0,
-    evidence_quality: 1.0,
-    ownership_agency: 1.0,
-    vocal_engagement: 1.0,
-    response_control: 1.0,
-    cognitive_depth: 1.0,
+    narrative_clarity:  1.0,
+    evidence_quality:   1.0,
+    ownership_agency:   1.0,
+    vocal_engagement:   1.0,
+    response_control:   1.0,
+    cognitive_depth:    1.0,
     presence_confidence: 1.0,
+    audience_awareness: 1.0,
   };
   if (intent === "behavioral") {
     base.ownership_agency = 1.35;
     base.evidence_quality = 1.25;
     base.narrative_clarity = 1.15;
+    base.audience_awareness = 0.9;
   } else if (intent === "technical") {
     base.cognitive_depth = 1.4;
     base.narrative_clarity = 1.2;
     base.evidence_quality = 1.1;
+    base.audience_awareness = 0.85;
   } else if (intent === "situational") {
     base.cognitive_depth = 1.3;
     base.narrative_clarity = 1.2;
@@ -318,10 +322,22 @@ function getWeights(intent: QuestionIntent): WeightMap {
     base.presence_confidence = 1.3;
     base.ownership_agency = 1.2;
     base.narrative_clarity = 1.1;
+    base.audience_awareness = 1.15;
   } else if (intent === "values") {
     base.cognitive_depth = 1.25;
     base.presence_confidence = 1.2;
     base.narrative_clarity = 1.1;
+    base.audience_awareness = 1.1;
+  }
+  // Framework-level overrides (context beats question intent for audience weighting)
+  if (framework === "public_speaking") {
+    base.audience_awareness = 1.4;
+    base.vocal_engagement = 1.2;
+    base.presence_confidence = 1.1;
+    base.evidence_quality = 0.8;   // less about proof, more about delivery in presentations
+  } else if (framework === "networking_pitch") {
+    base.audience_awareness = 1.25;
+    base.presence_confidence = 1.2;
   }
   return base;
 }
@@ -378,6 +394,13 @@ const COACHING: Record<DimensionKey, { strong: string; good: string; moderate: s
     weak: "Confidence signals are mixed. On video, where your eyes go shapes the impression more than your words. Hold the camera gaze through every key claim, especially when you are uncertain.",
     critical: "Low presence and confidence signals are working against strong content. On your next attempt, commit to sustained eye contact from your first sentence. It will feel uncomfortable at first, and that discomfort is the signal improving.",
   },
+  audience_awareness: {
+    strong: "Your delivery is calibrated to your listener. Energy, variety, and clarity all signal that you are thinking about how you are landing, not just what you are saying.",
+    good: "Good listener awareness. One area to push further: vary your energy specifically at the moment you shift from setup to result. That contrast keeps attention.",
+    moderate: "The delivery is present but not yet tuned to the listener. Think about where you want the audience to lean in — that moment needs a change in pace, pitch, or energy to signal that something important is happening.",
+    weak: "The delivery reads as self-directed rather than audience-directed. Before your next attempt, pick one sentence in your answer that deserves emphasis and practice delivering it with a deliberate change in energy or pace.",
+    critical: "Flat energy and monotone delivery are disconnecting the content from the listener. Record yourself and identify the sentence that should land hardest. In your next attempt, deliver that sentence differently from everything around it.",
+  },
 };
 
 function getCoaching(key: DimensionKey, score: number): string {
@@ -412,12 +435,14 @@ export function computeVocalAuthority(signals: {
 
   // WPM authority curve: peak at 145-170 wpm
   const wpmScore = wpm !== null
-    ? wpm < 100  ? 3.5
+    ? wpm < 80   ? 1.0   // barely intelligible crawl
+    : wpm < 100  ? 2.5   // very slow — hesitant delivery
     : wpm < 120  ? 5.5
     : wpm < 145  ? 7.5
     : wpm <= 175 ? 9.0
     : wpm <= 200 ? 7.0
-    : 5.0
+    : wpm <= 220 ? 4.5   // fast but followable
+    : 2.5                // too fast to follow
     : 6.5;
 
   // Pitch range: wider range = more authoritative up to a point
@@ -479,7 +504,7 @@ export function computeQAAlignment(
   const { outcomeStrength, structure, specificity, depthMode, evidenceMode, directnessLabel, behavioralPhraseCount, wordCount, answeredQuestion } = signals;
 
   // Base penalty: if answeredQuestion is false, alignment is capped low
-  const baseScore = answeredQuestion ? 7.0 : 3.5;
+  const baseScore = answeredQuestion ? 7.0 : 1.5;
 
   let score = baseScore;
 
@@ -751,8 +776,25 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
   if (s.confidenceArc !== null && s.confidenceArc > 0.2) pcDrivers.push("confidence_builds_through_answer");
   if (s.confidenceArc !== null && s.confidenceArc < -0.2) pcDrivers.push("confidence_fades_through_answer");
 
+  // ── 8. Audience Awareness ─────────────────────────────────────────────────
+  // Measures whether delivery is calibrated for the listener:
+  // vocal variety, energy modulation, directness, and completeness from the audience's POV.
+  const aaRaw = (
+    cat(s.vocalDynamics)  * 0.30 +  // vocal variety = keeps audience engaged
+    cat(s.energyProfile)  * 0.25 +  // energy level appropriate for context
+    monotoneInverted       * 0.20 +  // monotone = audience disengages
+    directnessScore        * 0.15 +  // audience needs you on topic fast
+    completenessS          * 0.10    // did the audience get what they came for
+  );
+  const audienceAwareness = clamp(aaRaw, 0, 10);
+  const aaDrivers: string[] = [];
+  if (cat(s.vocalDynamics) < 4.0)  aaDrivers.push("flat_vocal_delivery");
+  if (cat(s.energyProfile) < 4.0)  aaDrivers.push("low_energy_for_context");
+  if (monotoneInverted < 5.0)       aaDrivers.push("monotone_disengaging");
+  if (directnessScore < 5.5)        aaDrivers.push("slow_to_get_to_point");
+
   // ── Apply question-intent weights ────────────────────────────────────────
-  const weights = getWeights(intent);
+  const weights = getWeights(intent, s.framework);
   const rawScores: Record<DimensionKey, number> = {
     narrative_clarity:   narrativeClarity,
     evidence_quality:    evidenceQuality,
@@ -761,6 +803,7 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
     response_control:    responseControl,
     cognitive_depth:     cognitiveDepth,
     presence_confidence: presenceConfidence,
+    audience_awareness:  audienceAwareness,
   };
 
   // Weights don't change the absolute score shown to user — they feed archetype detection only
@@ -778,6 +821,7 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
     response_control:    "Response Control",
     cognitive_depth:     "Cognitive Depth",
     presence_confidence: "Presence & Confidence",
+    audience_awareness:  "Audience Awareness",
   };
 
   const drivers: Record<DimensionKey, string[]> = {
@@ -788,6 +832,7 @@ export function buildDimensionProfile(s: DimensionInputSignals): DimensionProfil
     response_control:    rcDrivers,
     cognitive_depth:     cdDrivers,
     presence_confidence: pcDrivers,
+    audience_awareness:  aaDrivers,
   };
 
   const profile: DimensionProfile = {} as DimensionProfile;

@@ -1417,8 +1417,42 @@ export default function DashboardPage() {
   const signalScore = data?.signalScore ?? null;
   const signalColor = signalScore === null ? "var(--text-muted)" : "var(--accent)";
 
-  const hour    = new Date().getHours();
+  const hour     = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  // ── Communication Level system ──────────────────────────────────────────────
+  const COMM_LEVELS = [
+    { name: "Finding Your Voice",            low: 0,   high: 40,  color: "#78716C" },
+    { name: "Building Clarity",              low: 41,  high: 60,  color: "#3B82F6" },
+    { name: "Communicating with Confidence", low: 61,  high: 75,  color: "#4F46E5" },
+    { name: "High Impact Communicator",      low: 76,  high: 88,  color: "#D97706" },
+    { name: "Executive Presence",            low: 89,  high: 100, color: "#16A34A" },
+  ] as const;
+
+  const commLevel = (() => {
+    if (signalScore === null) return null;
+    const idx  = COMM_LEVELS.findIndex(l => signalScore >= l.low && signalScore <= l.high);
+    const lvl  = COMM_LEVELS[idx >= 0 ? idx : 0];
+    const next = COMM_LEVELS[idx + 1] ?? null;
+    const pct  = Math.round(((signalScore - lvl.low) / (lvl.high - lvl.low)) * 100);
+    return { ...lvl, pct: Math.min(100, Math.max(0, pct)), next, ptsToNext: next ? next.low - signalScore : null };
+  })();
+
+  // Career stage label from new onboarding data
+  const careerStage = (session?.user as any)?.careerStage as string | null ?? null;
+  const CAREER_STAGE_LABELS: Record<string, string> = {
+    student: "Student", early_career: "Early Career",
+    mid_career: "Mid-Career", senior: "Senior / Executive",
+  };
+  const careerStageLabel = careerStage ? (CAREER_STAGE_LABELS[careerStage] ?? null) : null;
+
+  // Next action for hero card
+  const heroNextAction = (() => {
+    if (!totalSessions) return { label: "Start your first session", sub: "Establish your baseline Communication Level", href: "/practice" };
+    if (totalSessions < 3) return { label: "Keep the momentum going", sub: `${3 - totalSessions} more session${3 - totalSessions !== 1 ? "s" : ""} to unlock your full Communication Profile`, href: "/practice" };
+    if (data?.nextAction) return { label: data.nextAction.label, sub: data.nextAction.currentScore !== undefined && data.nextAction.currentScore !== null ? `Current score: ${data.nextAction.currentScore}` : "Based on your recent sessions", href: data.nextAction.href };
+    return { label: "Continue practicing", sub: "Keep building your Communication Level", href: "/practice" };
+  })();
 
   const riasecProfile = data?.aptitude?.scores?.riasecProfile ?? data?.aptitude?.primary ?? null;
   const industry      = data?.careerCheckIn?.industry ?? data?.profile?.targetIndustry ?? null;
@@ -1478,18 +1512,29 @@ export default function DashboardPage() {
     <PremiumShell hideHeader>
       <div style={{ maxWidth: 1280, margin: "0 auto", paddingBottom: 80 }}>
 
-        {/* ── Header ── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+        {/* ── Identity bar ── */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 20, flexWrap: "wrap" }}>
           <div>
-            <h1 style={{ margin: "0 0 2px", fontSize: 24, fontWeight: 700, color: "var(--text-primary)", letterSpacing: -0.3 }}>
+            <h1 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5 }}>
               {greeting}{firstName ? `, ${firstName}` : ""}.
             </h1>
-            <p style={{ margin: 0, fontSize: 12, color: "var(--text-muted)" }}>
-              {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
-            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
+              </span>
+              {careerStageLabel && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--accent)", background: "var(--accent-soft)", border: "1px solid rgba(79,70,229,0.15)", padding: "2px 8px", borderRadius: 6 }}>
+                  {careerStageLabel}
+                </span>
+              )}
+              {totalSessions !== null && totalSessions > 0 && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", background: "rgba(28,25,23,0.05)", border: "1px solid rgba(28,25,23,0.08)", padding: "2px 8px", borderRadius: 6 }}>
+                  {totalSessions} session{totalSessions !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            {/* Dashboard / Planner toggle — university only */}
             {isUniversity && (
               <div style={{ display: "flex", padding: "3px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border)" }}>
                 {(["dashboard", "planner"] as const).map(v => (
@@ -1502,10 +1547,105 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setJourneyOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-md)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
             >
               My Journey →
             </button>
+          </div>
+        </div>
+
+        {/* ── Hero: Communication Level + Next Action ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 14, marginBottom: 24 }}>
+
+          {/* Communication Level card */}
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "28px 32px", boxShadow: "var(--shadow-card-soft)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
+              Communication Level
+            </div>
+
+            {commLevel ? (
+              <>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 18, marginBottom: 20 }}>
+                  <div style={{ fontSize: 64, fontWeight: 800, color: commLevel.color, letterSpacing: -3, lineHeight: 1 }}>
+                    {signalScore}
+                  </div>
+                  <div style={{ paddingBottom: 8 }}>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.5, lineHeight: 1.1 }}>
+                      {commLevel.name}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 4 }}>
+                      Range: {commLevel.low}–{commLevel.high}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Progress bar within level */}
+                <div style={{ background: "rgba(28,25,23,0.07)", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 8 }}>
+                  <div style={{ height: "100%", width: `${commLevel.pct}%`, background: commLevel.color, borderRadius: 4, transition: "width 600ms ease" }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{commLevel.low}</span>
+                  {commLevel.ptsToNext !== null && commLevel.next && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: commLevel.color }}>
+                      {commLevel.ptsToNext} pts → {commLevel.next.name}
+                    </span>
+                  )}
+                  {!commLevel.next && (
+                    <span style={{ fontSize: 11, fontWeight: 700, color: commLevel.color }}>Peak level</span>
+                  )}
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{commLevel.high}</span>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ fontSize: 15, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  Complete your first practice session to establish your Communication Level.
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {COMM_LEVELS.map((l, i) => (
+                    <div key={i} style={{ flex: 1, height: 6, borderRadius: 4, background: i === 0 ? l.color : "rgba(28,25,23,0.07)" }} />
+                  ))}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  Finding Your Voice → Building Clarity → Communicating with Confidence → High Impact → Executive Presence
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Next Action card */}
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "24px", boxShadow: "var(--shadow-card-soft)", display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7 }}>
+              Next Action
+            </div>
+
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3, lineHeight: 1.3 }}>
+                {heroNextAction.label}
+              </div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                {heroNextAction.sub}
+              </div>
+            </div>
+
+            <Link
+              href={heroNextAction.href}
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 20px", borderRadius: "var(--radius-lg)", background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none", transition: "opacity 150ms" }}
+            >
+              <Mic size={15} />
+              {totalSessions === 0 ? "Start baseline session" : "Practice now"}
+            </Link>
+
+            {totalSessions !== null && totalSessions > 0 && (
+              <div style={{ display: "flex", gap: 8 }}>
+                <Link href="/progress" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
+                  <BarChart2 size={13} /> My Coach
+                </Link>
+                <Link href="/planner" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
+                  <Clock size={13} /> My Plan
+                </Link>
+              </div>
+            )}
           </div>
         </div>
 

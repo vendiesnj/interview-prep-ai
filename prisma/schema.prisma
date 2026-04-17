@@ -31,6 +31,10 @@ model User {
   targetRole           String?
   targetIndustry       String?
   targetRoleKeys       Json?    // String[] of O*NET/role keys (multi-role support)
+  // Communication development profile
+  careerStage          String?  // "student" | "early_career" | "mid_career" | "senior"
+  communicationGoals   String[] @default([]) // "get_a_job" | "get_promoted" | "improve_presenting" | "general_development"
+  onboardingComplete   Boolean  @default(false)
   accounts             Account[]
   attempts             Attempt[]
   jobProfiles          JobProfile[]
@@ -120,6 +124,7 @@ model Attempt {
   questionCategory    String?
   questionSource      String?
   evaluationFramework String?
+  practiceType        String?  // "interview" | "mock_interview" | "public_speaking" | "vocabulary" | "pitch" | "networking" | "written"
   tenantId            String?
   tenant              Tenant?   @relation("TenantAttempts", fields: [tenantId], references: [id])
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -464,6 +464,7 @@ async function handleSave(
       question: `Mock Interview — ${role}`,
       questionCategory: "mock_interview",
       evaluationFramework: "mock_interview",
+      practiceType: "mock_interview",
       inputMethod: "spoken",
       transcript,
       score: scoreResult.overallScore / 10, // store as 0-10

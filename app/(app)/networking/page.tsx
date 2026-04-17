@@ -134,6 +134,7 @@ export default function NetworkingPage() {
   const [customPrompt, setCustomPrompt] = useState("");
   const [useCustom, setUseCustom] = useState(false);
 
+  const [showMetrics, setShowMetrics] = useState(false);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [transcript, setTranscript] = useState("");
@@ -415,87 +416,103 @@ export default function NetworkingPage() {
 
         {/* ── RESULTS ── */}
         {stage === "results" && feedback && (
-          <div style={{ display: "grid", gap: 16 }}>
-            {/* Overall + pitch style */}
-            <div style={{ padding: "28px 32px", borderRadius: "var(--radius-xl)", border: `1px solid ${styleCol}`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-              <div style={{ flex: "1 1 200px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch score</div>
-                <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
+          <div style={{ display: "grid", gap: 14 }}>
+            {/* Hero: score + pitch style */}
+            <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: `1px solid ${styleCol}44`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div style={{ flex: "0 0 auto" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 6 }}>Score</div>
+                <div style={{ fontSize: 52, fontWeight: 800, color: styleCol, lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 20, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
               </div>
-              <div style={{ flex: "1 1 220px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Pitch style</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: styleCol, marginBottom: 8 }}>{pitchStyle}</div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: styleCol + "12", borderRadius: "var(--radius-md)", borderLeft: `3px solid ${styleCol}` }}>
-                  <strong style={{ color: styleCol }}>Your lever:</strong> {feedback.pitch_coaching}
-                </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 4 }}>Pitch style</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: styleCol, marginBottom: 8 }}>{pitchStyle}</div>
+                {feedback.pitch_coaching && (
+                  <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6, paddingLeft: 10, borderLeft: `3px solid ${styleCol}` }}>
+                    {feedback.pitch_coaching}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Dimension scores */}
-            {np && (
-              <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>Pitch dimensions</div>
-                <ScoreBar label="Hook Strength" value={np.hook_strength} color={styleCol} />
-                <ScoreBar label="Clarity of Ask" value={np.clarity_of_ask} color={styleCol} />
-                <ScoreBar label="Credibility" value={np.credibility} color={styleCol} />
-                <ScoreBar label="Conciseness" value={np.conciseness} color={styleCol} />
-                <ScoreBar label="Memorability" value={np.memorability} color={styleCol} />
+            {/* Coaching narrative */}
+            {(feedback.pitch_strengths?.length > 0 || feedback.pitch_improvements?.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {feedback.pitch_strengths?.length > 0 && (
+                  <div style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "#10B981", textTransform: "uppercase" as const, marginBottom: 8 }}>What worked</div>
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                      {(feedback.pitch_strengths as string[]).slice(0, 3).join(" ")}
+                    </p>
+                  </div>
+                )}
+                {feedback.pitch_improvements?.length > 0 && (
+                  <div style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 8 }}>To improve</div>
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                      {(feedback.pitch_improvements as string[]).slice(0, 3).join(" ")}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Strengths + improvements */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              {feedback.pitch_strengths?.length > 0 && (
-                <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#10B981", marginBottom: 12 }}>What landed</div>
-                  <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
-                    {feedback.pitch_strengths.map((s: string, i: number) => (
-                      <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {feedback.pitch_improvements?.length > 0 && (
-                <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 12 }}>To sharpen</div>
-                  <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
-                    {feedback.pitch_improvements.map((s: string, i: number) => (
-                      <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
+            {/* Dive deeper toggle */}
+            <button
+              type="button"
+              onClick={() => setShowMetrics(v => !v)}
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, cursor: "pointer", textAlign: "left" as const, display: "flex", justifyContent: "space-between", alignItems: "center" }}
+            >
+              <span>Dive deeper</span>
+              <span style={{ fontSize: 10 }}>{showMetrics ? "▲" : "▼"}</span>
+            </button>
 
-            {/* Better version */}
-            {feedback.better_answer && (
-              <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#0EA5E9", marginBottom: 10 }}>A sharper version would sound like this</div>
-                <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
+            {showMetrics && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+                {/* Pitch dimension scores */}
+                {np && (
+                  <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 14 }}>Pitch dimensions</div>
+                    <ScoreBar label="Hook Strength" value={np.hook_strength} color={styleCol} />
+                    <ScoreBar label="Clarity of Ask" value={np.clarity_of_ask} color={styleCol} />
+                    <ScoreBar label="Credibility" value={np.credibility} color={styleCol} />
+                    <ScoreBar label="Conciseness" value={np.conciseness} color={styleCol} />
+                    <ScoreBar label="Memorability" value={np.memorability} color={styleCol} />
+                  </div>
+                )}
+
+                {/* Better version */}
+                {feedback.better_answer && (
+                  <div style={{ padding: "16px 18px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", marginBottom: 8 }}>A stronger version</div>
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
+                  </div>
+                )}
+
+                {/* Transcript */}
+                {transcript && (
+                  <details style={{ padding: "14px 18px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                    <summary style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
+                    <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{transcript}</p>
+                  </details>
+                )}
+
               </div>
-            )}
-
-            {/* Transcript */}
-            {transcript && (
-              <details style={{ padding: "16px 20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <summary style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
-                <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{transcript}</p>
-              </details>
             )}
 
             {/* Actions */}
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <button
                 onClick={reset}
-                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "none", background: "#0EA5E9", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
+                style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "none", background: "var(--accent)", color: "#fff", fontWeight: 800, fontSize: 14, cursor: "pointer" }}
               >
                 Try another scenario →
               </button>
               <Link
-                href="/dashboard"
+                href="/hub"
                 style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 700, fontSize: 14, cursor: "pointer", textDecoration: "none", textAlign: "center" }}
               >
-                Back to Dashboard
+                Back to Practice
               </Link>
             </div>
           </div>

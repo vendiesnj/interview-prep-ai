@@ -235,9 +235,29 @@ export type NaceAttemptInput = {
   prosody?: { monotoneScore?: number } | null;
   deliveryMetrics?: {
     fillersPer100?: number;
-    acoustics?: { monotoneScore?: number };
+    acoustics?: {
+      monotoneScore?: number;
+      pronunciationScore?: number;
+      fluencyScore?: number;
+      prosodyScore?: number;
+      mumbleIndex?: number;
+    };
   } | null;
   questionCategory?: string | null;
+  /**
+   * 8-dimension feedback scores from composeRichFeedback() — 0–100 scale.
+   * Keys: narrative_clarity, evidence_quality, ownership_agency, vocal_engagement,
+   *       response_control, cognitive_depth, presence_confidence, audience_awareness
+   */
+  dimensionScores?: Partial<Record<string, number>> | null;
+  /** Azure Speech pronunciation accuracy score 0–100 */
+  pronunciationScore?: number | null;
+  /** Azure Speech fluency score 0–100 */
+  fluencyScore?: number | null;
+  /** Azure Speech prosody score 0–100 */
+  azureProsodyScore?: number | null;
+  /** Mumble index 0–100 (higher = less clear) from computeMumbleMetrics() */
+  mumbleIndex?: number | null;
 };
 
 export type NaceProfileInput = {
@@ -337,6 +357,48 @@ function getMonotone(a: NaceAttemptInput): number | null {
   );
 }
 
+/** Get a 0–100 dimension score from the 8-dimension feedback engine */
+function dim(a: NaceAttemptInput, key: string): number | null {
+  const v = a.dimensionScores?.[key];
+  return typeof v === "number" && Number.isFinite(v) ? clamp(v) : null;
+}
+
+function getPronunciation(a: NaceAttemptInput): number | null {
+  return (
+    n(a.pronunciationScore) ??
+    n(a.deliveryMetrics?.acoustics?.pronunciationScore) ??
+    null
+  );
+}
+
+function getFluency(a: NaceAttemptInput): number | null {
+  return (
+    n(a.fluencyScore) ??
+    n(a.deliveryMetrics?.acoustics?.fluencyScore) ??
+    null
+  );
+}
+
+function getAzureProsody(a: NaceAttemptInput): number | null {
+  return (
+    n(a.azureProsodyScore) ??
+    n(a.deliveryMetrics?.acoustics?.prosodyScore) ??
+    null
+  );
+}
+
+/**
+ * Articulation clarity score 0–100 derived from mumble index.
+ * mumbleIndex = 0 → perfect (100); mumbleIndex = 100 → worst (0)
+ */
+function articulationScore(a: NaceAttemptInput): number | null {
+  const mi =
+    n(a.mumbleIndex) ??
+    n(a.deliveryMetrics?.acoustics?.mumbleIndex) ??
+    null;
+  return mi !== null ? clamp(100 - mi) : null;
+}
+
 function starAvg(a: NaceAttemptInput): number | null {
   const s = a.feedback?.star;
   if (!s) return null;
@@ -368,36 +430,81 @@ export function computeNaceForAttempt(a: NaceAttemptInput): Partial<Record<NaceK
   const star = a.feedback?.star;
   const starA = starAvg(a);
 
+  // New signals from 8-dimension engine + Azure Speech
+  const narrativeClarity   = dim(a, "narrative_clarity");
+  const evidenceQuality    = dim(a, "evidence_quality");
+  const ownershipAgency    = dim(a, "ownership_agency");
+  const vocalEngagement    = dim(a, "vocal_engagement");
+  const responseControl    = dim(a, "response_control");
+  const cognitiveDepth     = dim(a, "cognitive_depth");
+  const presenceConfidence = dim(a, "presence_confidence");
+  const audienceAwareness  = dim(a, "audience_awareness");
+  const pronunciation      = getPronunciation(a);
+  const fluency            = getFluency(a);
+  const azureProsody       = getAzureProsody(a);
+  const articulation       = articulationScore(a);
+
   const out: Partial<Record<NaceKey, number>> = {};
 
   // ── Communication (HIGH confidence) ──────────────────────────────────────
-  // Observable indicators: oral clarity, structure, pace, filler control
+  // Observable indicators: narrative clarity, vocal engagement, Azure pronunciation/fluency,
+  // pace, filler control, monotone; old communicationScore as fallback
   {
     let numerator = 0;
     let denominator = 0;
 
-    if (comm10 !== null) { numerator += clamp(comm10 * 10) * 0.5; denominator += 0.5; }
-    if (wpm !== null)    { numerator += wpmScore(wpm) * 0.2;       denominator += 0.2; }
-    if (fillers !== null){ numerator += fillerScore(fillers) * 0.15; denominator += 0.15; }
-    if (monotone !== null){ numerator += monotoneScore(monotone) * 0.15; denominator += 0.15; }
-    // Fall back to STAR average if no direct comm score
+    // Primary: 8-dimension engine signals
+    if (narrativeClarity !== null)  { numerator += narrativeClarity  * 0.25; denominator += 0.25; }
+    if (vocalEngagement !== null)   { numerator += vocalEngagement   * 0.20; denominator += 0.20; }
+    if (audienceAwareness !== null) { numerator += audienceAwareness * 0.10; denominator += 0.10; }
+
+    // Azure speech quality signals
+    if (pronunciation !== null) { numerator += pronunciation * 0.15; denominator += 0.15; }
+    if (fluency !== null)       { numerator += fluency       * 0.10; denominator += 0.10; }
+    if (articulation !== null)  { numerator += articulation  * 0.05; denominator += 0.05; }
+
+    // Delivery metrics
+    if (wpm !== null)          { numerator += wpmScore(wpm)          * 0.08; denominator += 0.08; }
+    if (fillers !== null)      { numerator += fillerScore(fillers)   * 0.05; denominator += 0.05; }
+    if (azureProsody !== null) { numerator += azureProsody           * 0.02; denominator += 0.02; }
+    else if (monotone !== null){ numerator += monotoneScore(monotone)* 0.02; denominator += 0.02; }
+
+    // Legacy fallback when no dimension/Azure data
+    if (denominator === 0) {
+      if (comm10 !== null) { numerator += clamp(comm10 * 10) * 0.5; denominator += 0.5; }
+      if (wpm !== null)    { numerator += wpmScore(wpm) * 0.2;       denominator += 0.2; }
+      if (fillers !== null){ numerator += fillerScore(fillers) * 0.15; denominator += 0.15; }
+      if (monotone !== null){ numerator += monotoneScore(monotone) * 0.15; denominator += 0.15; }
+    }
+
+    // Last-resort fallback to STAR average
     if (denominator === 0 && starA !== null) { numerator = clamp(starA * 10); denominator = 1; }
 
     if (denominator > 0) out.communication = clamp(numerator / denominator);
   }
 
   // ── Critical Thinking (MODERATE confidence) ──────────────────────────────
-  // Observable indicators: STAR situation + task framing, logical structure
+  // Observable indicators: cognitive depth, evidence quality, narrative clarity,
+  // STAR situation + task framing
   {
     const parts: number[] = [];
     const weights: number[] = [];
 
-    // STAR situation: how well they establish context
-    if (star?.situation != null) { parts.push(clamp((n(star.situation) ?? 0) * 10)); weights.push(0.3); }
-    // STAR task: clarity of what needed to be solved
-    if (star?.task != null)      { parts.push(clamp((n(star.task) ?? 0) * 10)); weights.push(0.3); }
-    // Overall score: general answer quality
-    if (overall !== null)        { parts.push(clamp(overall)); weights.push(0.4); }
+    // Primary: 8-dimension engine
+    if (cognitiveDepth !== null)  { parts.push(cognitiveDepth);  weights.push(0.35); }
+    if (evidenceQuality !== null) { parts.push(evidenceQuality); weights.push(0.25); }
+    if (narrativeClarity !== null){ parts.push(narrativeClarity); weights.push(0.15); }
+
+    // STAR framing: logical setup of the scenario
+    if (star?.situation != null) { parts.push(clamp((n(star.situation) ?? 0) * 10)); weights.push(0.15); }
+    if (star?.task != null)      { parts.push(clamp((n(star.task) ?? 0) * 10));      weights.push(0.10); }
+
+    // Legacy fallback when no dimension data
+    if (!parts.length) {
+      if (star?.situation != null) { parts.push(clamp((n(star.situation) ?? 0) * 10)); weights.push(0.3); }
+      if (star?.task != null)      { parts.push(clamp((n(star.task) ?? 0) * 10));      weights.push(0.3); }
+      if (overall !== null)        { parts.push(clamp(overall));                        weights.push(0.4); }
+    }
 
     if (parts.length) {
       const totalW = weights.reduce((a, b) => a + b, 0);
@@ -408,14 +515,27 @@ export function computeNaceForAttempt(a: NaceAttemptInput): Partial<Record<NaceK
   }
 
   // ── Professionalism (MODERATE confidence) ────────────────────────────────
-  // Observable indicators: ownership/accountability language, preparation, composure
+  // Observable indicators: presence/confidence, ownership/agency, response control,
+  // filler discipline, pacing
   {
     const parts: number[] = [];
     const weights: number[] = [];
 
-    if (conf10 !== null) { parts.push(clamp(conf10 * 10)); weights.push(0.6); }
-    if (fillers !== null){ parts.push(fillerScore(fillers)); weights.push(0.25); }
-    if (wpm !== null)    { parts.push(wpmScore(wpm)); weights.push(0.15); }
+    // Primary: 8-dimension engine
+    if (presenceConfidence !== null) { parts.push(presenceConfidence); weights.push(0.40); }
+    if (ownershipAgency !== null)    { parts.push(ownershipAgency);    weights.push(0.25); }
+    if (responseControl !== null)    { parts.push(responseControl);    weights.push(0.20); }
+
+    // Delivery hygiene
+    if (fillers !== null){ parts.push(fillerScore(fillers)); weights.push(0.10); }
+    if (wpm !== null)    { parts.push(wpmScore(wpm));        weights.push(0.05); }
+
+    // Legacy fallback when no dimension data
+    if (!parts.length) {
+      if (conf10 !== null) { parts.push(clamp(conf10 * 10)); weights.push(0.6); }
+      if (fillers !== null){ parts.push(fillerScore(fillers)); weights.push(0.25); }
+      if (wpm !== null)    { parts.push(wpmScore(wpm)); weights.push(0.15); }
+    }
 
     if (parts.length) {
       const totalW = weights.reduce((a, b) => a + b, 0);
@@ -426,12 +546,22 @@ export function computeNaceForAttempt(a: NaceAttemptInput): Partial<Record<NaceK
   }
 
   // ── Leadership (MODERATE confidence) ────────────────────────────────────
-  // Observable indicator: STAR action quality - describes initiative and decision-making
+  // Observable indicators: ownership/agency dimension, STAR action quality
   {
-    if (star?.action != null) {
+    const parts: number[] = [];
+    const weights: number[] = [];
+
+    if (ownershipAgency !== null) { parts.push(ownershipAgency); weights.push(0.50); }
+    if (star?.action != null)     { parts.push(clamp((n(star.action) ?? 0) * 10)); weights.push(0.50); }
+
+    // Legacy fallback: STAR action alone
+    if (!parts.length && star?.action != null) {
       out.leadership = clamp((n(star.action) ?? 0) * 10);
+    } else if (parts.length) {
+      const totalW = weights.reduce((a, b) => a + b, 0);
+      out.leadership = clamp(parts.reduce((acc, v, i) => acc + v * weights[i], 0) / totalW);
     }
-    // No action component: no score - don't infer from overall
+    // No signal → no score
   }
 
   // ── Teamwork (LOW confidence) ────────────────────────────────────────────
@@ -637,11 +767,11 @@ export function computeNaceProfile(input: NaceProfileInput): NaceScore[] {
       : null;
 
     const sources: string[] = [];
-    if (key === "communication")    sources.push("Oral clarity score", "Pace (WPM)", "Filler rate", "Vocal monotone score", ...(visualScores ? ["Eye contact (webcam)", "Expressiveness (webcam)"] : []));
-    if (key === "critical_thinking") sources.push("STAR situation score", "STAR task score", "Overall answer quality");
-    if (key === "professionalism")   sources.push("Confidence/ownership score", "Filler rate", "Pacing", ...(visualScores?.headStability != null ? ["Head stability (webcam)"] : []));
+    if (key === "communication")     sources.push("Narrative clarity (8-dim)", "Vocal engagement (8-dim)", "Azure pronunciation score", "Azure fluency score", "Articulation clarity (mumble index)", "Pace (WPM)", "Filler rate", ...(visualScores ? ["Eye contact (webcam)", "Expressiveness (webcam)"] : []));
+    if (key === "critical_thinking") sources.push("Cognitive depth (8-dim)", "Evidence quality (8-dim)", "Narrative clarity (8-dim)", "STAR situation score", "STAR task score");
+    if (key === "professionalism")   sources.push("Presence & confidence (8-dim)", "Ownership & agency (8-dim)", "Response control (8-dim)", "Filler rate", "Pacing", ...(visualScores?.headStability != null ? ["Head stability (webcam)"] : []));
     if (key === "career_dev")        sources.push("STAR result quality", "Aptitude quiz completion", "Career check-in completion", ...(checklistCompletionPct != null ? ["Checklist progress"] : []));
-    if (key === "leadership")        sources.push("STAR action score (initiative + decision-making)");
+    if (key === "leadership")        sources.push("Ownership & agency (8-dim)", "STAR action score (initiative + decision-making)");
     if (key === "teamwork")          sources.push("Performance on teamwork/collaboration questions only");
     if (key === "technology")        sources.push("Performance on technical questions only");
 

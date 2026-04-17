@@ -111,16 +111,18 @@ const DIM_ORDER = [
   "response_control",
   "cognitive_depth",
   "presence_confidence",
+  "audience_awareness",
 ] as const;
 
 const DIM_LABELS: Record<string, string> = {
-  narrative_clarity:    "Narrative Clarity",
-  evidence_quality:     "Evidence Quality",
-  ownership_agency:     "Ownership & Agency",
-  vocal_engagement:     "Vocal Engagement",
-  response_control:     "Response Control",
-  cognitive_depth:      "Cognitive Depth",
-  presence_confidence:  "Presence & Confidence",
+  narrative_clarity:   "Narrative Clarity",
+  evidence_quality:    "Evidence Quality",
+  ownership_agency:    "Ownership & Agency",
+  vocal_engagement:    "Vocal Engagement",
+  response_control:    "Response Control",
+  cognitive_depth:     "Cognitive Depth",
+  presence_confidence: "Presence & Confidence",
+  audience_awareness:  "Audience Awareness",
 };
 
 const DIM_COACHING: Record<string, { strength: string; gap: string }> = {
@@ -131,6 +133,7 @@ const DIM_COACHING: Record<string, { strength: string; gap: string }> = {
   response_control:    { strength: "Answers stay focused and controlled — no tangents.", gap: "Answers drift. Cut to the core point earlier and resist adding unrelated context." },
   cognitive_depth:     { strength: "You engage with tradeoffs and complexity well.", gap: "Answers stay surface-level. Add one sentence about a tradeoff, risk, or second-order effect." },
   presence_confidence: { strength: "You sound credible and assertive. Minimal hedging.", gap: "Hedging language softens your credibility. Cut 'I think' and 'I feel like' from answers." },
+  audience_awareness:  { strength: "Your delivery is calibrated for your listener — energy, variety, and timing all signal audience awareness.", gap: "Delivery reads as self-directed. Vary your energy and pace to signal what matters to the listener." },
 };
 type RoleFamily = "finance" | "operations" | "research" | "consulting" | "general";
 
@@ -1767,6 +1770,142 @@ export default function ProgressPage() {
     return buildUserCoachingProfile(history);
   }, [history]);
 
+  // ── Communication Signature (3 data-derived traits, min 3 sessions) ──────────
+  const communicationSignature = useMemo((): string[] | null => {
+    if (history.length < 3 || !coachingProfile) return null;
+
+    const dimMap: Record<string, number> = {};
+    for (const d of coachingProfile.dimensionProfile) dimMap[d.key] = d.allTimeAvg;
+
+    const get = (k: string) => dimMap[k] ?? null;
+    const topPriorityKey = coachingProfile.topPriorities[0]?.key ?? null;
+
+    // Slot 1 — Structure & content pattern
+    const nc = get("narrative_clarity"), eq = get("evidence_quality"), rc = get("response_control"), cd = get("cognitive_depth");
+    let s1 = "Building toward clearer structure";
+    if (nc !== null && nc >= 7.5)       s1 = "Structured, clear communicator";
+    else if (nc !== null && nc < 4.5)   s1 = "Gets lost before landing the point";
+    else if (eq !== null && eq >= 7.5)  s1 = "Backs every claim with specifics";
+    else if (eq !== null && eq < 4.5)   s1 = "Makes claims without evidence";
+    else if (rc !== null && rc >= 7.5)  s1 = "Tight, focused answers";
+    else if (rc !== null && rc < 4.5)   s1 = "Wanders before landing";
+    else if (cd !== null && cd >= 7.5)  s1 = "Thinks in tradeoffs and depth";
+
+    // Slot 2 — Delivery pattern
+    const ve = get("vocal_engagement"), pc = get("presence_confidence"), aa = get("audience_awareness");
+    let s2 = "Measured, steady delivery";
+    if (overview.avgFillers !== null && overview.avgFillers >= 5)  s2 = "Filler word habit under pressure";
+    else if (overview.avgPace !== null && overview.avgPace > 168)  s2 = "Rushes through key moments";
+    else if (overview.avgPace !== null && overview.avgPace < 95)   s2 = "Over-deliberate pacing";
+    else if (overview.avgMonotone !== null && overview.avgMonotone >= 7) s2 = "Flat delivery — limited vocal range";
+    else if (ve !== null && ve >= 7.5)                             s2 = "Dynamic, engaging vocal presence";
+    else if (pc !== null && pc >= 7.5)                             s2 = "High-authority, confident delivery";
+    else if (aa !== null && aa >= 7.5)                             s2 = "Strong audience calibration";
+    else if (pc !== null && pc < 4.5)                              s2 = "Hedges under pressure";
+
+    // Slot 3 — Impact & outcome pattern
+    const oa = get("ownership_agency");
+    let s3 = "Working toward consistent impact";
+    if (topPriorityKey === "outcome_strength" || (overview.avgStarResult !== null && overview.avgStarResult < 5)) s3 = "Skips the result — stops at the action";
+    else if (oa !== null && oa >= 7.5)                              s3 = "Takes clear, unambiguous ownership";
+    else if (oa !== null && oa < 4.5)                               s3 = "Shares credit when it should be claimed";
+    else if (aa !== null && aa >= 7.5)                              s3 = "Lands results with audience in mind";
+    else if (coachingProfile.resolvedWeaknesses.length > 0)         s3 = "Actively improving — patterns are shifting";
+    else if (archetypeStats.dominant?.toLowerCase().includes("polished")) s3 = "Consistently strong across contexts";
+
+    return [s1, s2, s3];
+  }, [history, coachingProfile, overview, archetypeStats]);
+
+  // ── Coaching Writeup (narrative prose from data, no LLM) ────────────────────
+  const coachingWriteup = useMemo((): { p1: string; p2: string } | null => {
+    if (history.length < 3 || !coachingProfile) return null;
+
+    const arch = archetypeStats.dominant ?? "developing communicator";
+    const count = history.length;
+    const topDim = coachingProfile.dimensionProfile.sort((a, b) => b.allTimeAvg - a.allTimeAvg)[0];
+    const bottomDim = coachingProfile.dimensionProfile.filter(d => d.attemptCount >= 2).sort((a, b) => a.allTimeAvg - b.allTimeAvg)[0];
+    const topPriority = coachingProfile.topPriorities[0];
+    const recentArch = coachingProfile.archetypeEvolution.recentArchetype;
+    const evolving = recentArch && recentArch !== archetypeStats.dominant;
+
+    const avgScore100 = overview.avgOverall !== null ? Math.round(overview.avgOverall * 10) : null;
+
+    let p1 = `Across ${count} sessions, your most consistent pattern is the ${arch} profile.`;
+    if (topDim && topDim.attemptCount >= 2) {
+      p1 += ` ${topDim.label} is your strongest dimension, averaging ${topDim.allTimeAvg.toFixed(1)}/10 — this is where your communication works best.`;
+    }
+    if (avgScore100 !== null) {
+      p1 += ` Your overall average sits at ${avgScore100}/100.`;
+    }
+    if (evolving) {
+      p1 += ` Your recent sessions show a shift toward the ${recentArch} pattern, which suggests your approach is changing.`;
+    }
+
+    let p2 = "";
+    if (topPriority) {
+      p2 = `Your top coaching priority is ${topPriority.area.toLowerCase()}. ${topPriority.evidence}.`;
+    }
+    if (bottomDim && bottomDim.allTimeAvg < 6.0) {
+      const gap = topPriority ? " Your" : "Your";
+      p2 += `${gap} lowest dimension is ${bottomDim.label} at ${bottomDim.allTimeAvg.toFixed(1)}/10 — this is the clearest scoring gap to close.`;
+    }
+    if (coachingProfile.resolvedWeaknesses.length > 0) {
+      const resolved = coachingProfile.resolvedWeaknesses[0].replace(/_/g, " ");
+      p2 += ` One pattern that has improved: ${resolved} is no longer showing in recent sessions.`;
+    }
+    if (!p2) {
+      p2 = "Your scores are relatively stable. The next improvement will come from pushing consistency across all dimensions, not just your strongest one.";
+    }
+
+    return { p1, p2 };
+  }, [history, coachingProfile, archetypeStats, overview]);
+
+  // ── Cross-context profile (dimension avgs grouped by practice type) ──────────
+  const crossContextProfile = useMemo(() => {
+    const groups: Record<string, { label: string; dims: Record<string, number[]> }> = {};
+    const LABELS: Record<string, string> = {
+      interview: "Interview Practice",
+      mock_interview: "Mock Interview",
+      public_speaking: "Public Speaking",
+      networking: "Networking",
+    };
+
+    for (const a of history) {
+      const fw = (a.evaluationFramework === "networking_pitch") ? "networking"
+        : (a.evaluationFramework === "public_speaking") ? "public_speaking"
+        : (a.evaluationFramework === "mock_interview") ? "mock_interview"
+        : "interview";
+
+      if (!groups[fw]) groups[fw] = { label: LABELS[fw] ?? fw, dims: {} };
+      const dims = getAttemptDimensions(a);
+      if (!dims) continue;
+      for (const key of DIM_ORDER) {
+        const v = typeof dims[key] === "number" ? dims[key] : null;
+        if (v !== null) {
+          if (!groups[fw].dims[key]) groups[fw].dims[key] = [];
+          groups[fw].dims[key].push(v);
+        }
+      }
+    }
+
+    // Only include groups with >= 2 attempts that have dimension data
+    return Object.entries(groups)
+      .filter(([, g]) => Object.values(g.dims).some(arr => arr.length >= 2))
+      .map(([type, g]) => ({
+        type,
+        label: g.label,
+        dims: DIM_ORDER.map(key => ({
+          key,
+          label: DIM_LABELS[key],
+          avg: g.dims[key]?.length
+            ? Math.round((g.dims[key].reduce((a, b) => a + b, 0) / g.dims[key].length) * 10) / 10
+            : null,
+          count: g.dims[key]?.length ?? 0,
+        })).filter(d => d.avg !== null),
+      }))
+      .sort((a, b) => b.dims.length - a.dims.length);
+  }, [history]);
+
   const interviewNotes = useMemo(() => {
     const leanInto: string[] = [];
     const watchouts: string[] = [];
@@ -1843,12 +1982,9 @@ export default function ProgressPage() {
       if (overview.avgStarResult !== null && overview.avgStarResult <= 6.5) {
         watchouts.push("Do not stop after explaining the action. Your answers need a clearer final result or business impact.");
       }
-      if (watchouts.length === 0) {
-        watchouts.push("Do not try to improve everything at once - one focused adjustment will help more than five vague ones.");
+      if (watchouts.length === 0 && overview.avgOverall !== null) {
+        watchouts.push("Do not try to improve everything at once - one focused adjustment per session will move the score faster.");
       }
-      reminders.push("Open with the answer first, then support it with 2–3 details.");
-      reminders.push("Make the final line sound finished - result, takeaway, or impact.");
-      reminders.push("If you start rambling, shorten the sentence instead of adding more explanation.");
     }
 
     return {
@@ -1932,8 +2068,159 @@ export default function ProgressPage() {
   );
 
   return (
-    <PremiumShell title="Insights">
+    <PremiumShell title="My Coach">
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 6 }}>
+
+        {/* ── My Coach Profile Header ─────────────────────────────────────── */}
+        {history.length >= 3 && coachingProfile && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+
+            {/* Left: Profile identity */}
+            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "26px 28px", boxShadow: "var(--shadow-card-soft)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
+                Your Communication Profile
+              </div>
+
+              {/* Archetype */}
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 26, fontWeight: 800, color: "var(--accent)", letterSpacing: -0.6, lineHeight: 1.1, marginBottom: 4 }}>
+                  {archetypeStats.dominant ?? "Profile building…"}
+                </div>
+                {archetypeStats.dominant && coachingProfile.archetypeEvolution.recentArchetype !== archetypeStats.dominant && (
+                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                    Recently shifting → {coachingProfile.archetypeEvolution.recentArchetype}
+                  </div>
+                )}
+              </div>
+
+              {/* Communication Signature */}
+              {communicationSignature && (
+                <div style={{ marginBottom: 18 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Communication Signature
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {communicationSignature.map((trait, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: 12, fontWeight: 600,
+                          color: i === 0 ? "var(--success)" : i === 1 ? "var(--text-muted)" : "var(--accent)",
+                          background: i === 0 ? "var(--success-soft)" : i === 1 ? "rgba(28,25,23,0.05)" : "var(--accent-soft)",
+                          border: `1px solid ${i === 0 ? "rgba(22,163,74,0.15)" : i === 1 ? "rgba(28,25,23,0.08)" : "rgba(79,70,229,0.15)"}`,
+                          padding: "4px 10px", borderRadius: 7, lineHeight: 1.3,
+                        }}
+                      >
+                        {trait}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Top priority */}
+              {coachingProfile.topPriorities[0] && (
+                <div style={{
+                  padding: "10px 14px", borderRadius: 10,
+                  background: coachingProfile.topPriorities[0].urgency === "critical" ? "rgba(220,38,38,0.06)" : "rgba(217,119,6,0.06)",
+                  border: `1px solid ${coachingProfile.topPriorities[0].urgency === "critical" ? "rgba(220,38,38,0.18)" : "rgba(217,119,6,0.18)"}`,
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.5, color: coachingProfile.topPriorities[0].urgency === "critical" ? "#DC2626" : "#D97706", marginBottom: 4 }}>
+                    Top Focus
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 2 }}>
+                    {coachingProfile.topPriorities[0].area}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                    {coachingProfile.topPriorities[0].evidence}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Coaching writeup */}
+            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "26px 28px", boxShadow: "var(--shadow-card-soft)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
+                Coaching Notes
+              </div>
+
+              {coachingWriteup && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                    {coachingWriteup.p1}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                    {coachingWriteup.p2}
+                  </p>
+                </div>
+              )}
+
+              {/* Dimension top 3 */}
+              {coachingProfile.dimensionProfile.length >= 3 && (
+                <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>
+                    Dimension Summary
+                  </div>
+                  {coachingProfile.dimensionProfile
+                    .sort((a, b) => b.allTimeAvg - a.allTimeAvg)
+                    .slice(0, 4)
+                    .map(d => {
+                      const pct = Math.round((d.allTimeAvg / 10) * 100);
+                      const color = d.allTimeAvg >= 7.5 ? "var(--success)" : d.allTimeAvg >= 5.5 ? "var(--accent)" : "#DC2626";
+                      return (
+                        <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{ flex: 1, fontSize: 12, color: "var(--text-primary)", fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {d.label}
+                          </div>
+                          <div style={{ width: 80, height: 4, borderRadius: 4, background: "rgba(28,25,23,0.07)", overflow: "hidden", flexShrink: 0 }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 4, transition: "width 400ms" }} />
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color, width: 28, textAlign: "right", flexShrink: 0 }}>
+                            {d.allTimeAvg.toFixed(1)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── Cross-Context Profile ───────────────────────────────────────── */}
+        {crossContextProfile.length >= 2 && (
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "22px 24px", boxShadow: "var(--shadow-card-soft)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
+              Cross-Context Profile
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${crossContextProfile.length}, 1fr)`, gap: 14 }}>
+              {crossContextProfile.map(ctx => (
+                <div key={ctx.type}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", marginBottom: 10 }}>{ctx.label}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {ctx.dims.slice(0, 5).map(d => {
+                      const pct = Math.round(((d.avg ?? 0) / 10) * 100);
+                      const color = (d.avg ?? 0) >= 7.5 ? "var(--success)" : (d.avg ?? 0) >= 5.5 ? "var(--accent)" : "#DC2626";
+                      return (
+                        <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ flex: 1, fontSize: 11, color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {d.label}
+                          </div>
+                          <div style={{ width: 50, height: 3, borderRadius: 3, background: "rgba(28,25,23,0.07)", overflow: "hidden", flexShrink: 0 }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 3 }} />
+                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color, width: 24, textAlign: "right", flexShrink: 0 }}>
+                            {d.avg}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Session Filter ──────────────────────────────────────────────── */}
         {history.length > 0 && (
@@ -2214,64 +2501,49 @@ export default function ProgressPage() {
             </div>
 
             {/* ── WHAT TO WORK ON ────────────────────────────────────────────────── */}
-            <PremiumCard>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-                {coachingProfile && coachingProfile.topPriorities.length > 0 ? "What to Work On" : "Next Focus"}
-              </div>
+            {history.length > 0 && coachingProfile && coachingProfile.topPriorities.length > 0 && <PremiumCard>
+              <div style={{ fontSize: 16, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>What to Work On</div>
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>
-                {coachingProfile && coachingProfile.topPriorities.length > 0
-                  ? `Patterns identified across all ${coachingProfile.totalAttempts} sessions, ranked by how much fixing them will move your score.`
-                  : "Your single highest-leverage improvement for the next session."}
+                {`Patterns identified across all ${coachingProfile!.totalAttempts} sessions, ranked by how much fixing them will move your score.`}
               </div>
 
-              {coachingProfile && coachingProfile.topPriorities.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-                  {coachingProfile.topPriorities.map((p, i) => {
-                    const urgColor = p.urgency === "critical" ? "#EF4444" : p.urgency === "high" ? "#F59E0B" : "var(--accent)";
-                    const urgBg = p.urgency === "critical" ? "rgba(239,68,68,0.05)" : p.urgency === "high" ? "rgba(245,158,11,0.05)" : "rgba(37,99,235,0.04)";
-                    const action =
-                      p.key === "outcome_strength" ? "End every behavioral answer with one explicit result sentence: what changed, improved, or was measured." :
-                      p.key === "hedging_language" ? "Replace 'I think' / 'kind of' / 'basically' with direct ownership: 'I decided', 'I led', 'I drove'." :
-                      p.key === "evidence_specificity" ? "Attach one number or concrete metric to every claim you make." :
-                      p.key === "directness" ? "Lead with your answer, then support it. Do not build to your point — start with it." :
-                      p.key === "ownership" ? "Use 'I' language throughout. Identify your specific contribution, not just the team effort." :
-                      p.key === "structural_clarity" ? "State your headline first, then use two or three supporting points. Do not ramble to the answer." :
-                      p.type === "delivery" && p.area.toLowerCase().includes("filler") ? "Replace every filler word with a one-beat pause. Silence sounds more confident than 'um'." :
-                      p.type === "delivery" && p.area.toLowerCase().includes("fast") ? "Slow down after every metric, result, or decision so the important part actually lands." :
-                      p.type === "delivery" && p.area.toLowerCase().includes("slow") ? "Cut the setup by two sentences. Get to your main point faster." :
-                      p.type === "star" ? "Do not stop after describing the action. Add one sentence: what changed, what improved, what result came from your work." :
-                      p.type === "dimension" ? `Target ${p.area.toLowerCase()} specifically in your next session — pick questions where this dimension matters most.` :
-                      "Apply this focus deliberately in your next practice session.";
-                    return (
-                      <div key={i} style={{
-                        padding: "14px 16px", borderRadius: "var(--radius-md)",
-                        background: urgBg, border: `1px solid ${urgColor}22`,
-                        display: "grid", gridTemplateColumns: "8px 1fr auto", gap: 14, alignItems: "start",
-                      }}>
-                        <div style={{ width: 8, height: 8, borderRadius: 99, background: urgColor, marginTop: 5, flexShrink: 0 }} />
-                        <div>
-                          <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" as const, marginBottom: 3 }}>{p.area}</div>
-                          <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 7 }}>{p.evidence}</div>
-                          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>{action}</div>
-                        </div>
-                        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: urgColor, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const, paddingTop: 2 }}>
-                          {p.urgency}
-                        </div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                {coachingProfile!.topPriorities.map((p, i) => {
+                  const urgColor = p.urgency === "critical" ? "#EF4444" : p.urgency === "high" ? "#F59E0B" : "var(--accent)";
+                  const urgBg = p.urgency === "critical" ? "rgba(239,68,68,0.05)" : p.urgency === "high" ? "rgba(245,158,11,0.05)" : "rgba(37,99,235,0.04)";
+                  const action =
+                    p.key === "outcome_strength" ? "End every behavioral answer with one explicit result sentence: what changed, improved, or was measured." :
+                    p.key === "hedging_language" ? "Replace 'I think' / 'kind of' / 'basically' with direct ownership: 'I decided', 'I led', 'I drove'." :
+                    p.key === "evidence_specificity" ? "Attach one number or concrete metric to every claim you make." :
+                    p.key === "directness" ? "Lead with your answer, then support it. Do not build to your point — start with it." :
+                    p.key === "ownership" ? "Use 'I' language throughout. Identify your specific contribution, not just the team effort." :
+                    p.key === "structural_clarity" ? "State your headline first, then use two or three supporting points. Do not ramble to the answer." :
+                    p.type === "delivery" && p.area.toLowerCase().includes("filler") ? "Replace every filler word with a one-beat pause. Silence sounds more confident than 'um'." :
+                    p.type === "delivery" && p.area.toLowerCase().includes("fast") ? "Slow down after every metric, result, or decision so the important part actually lands." :
+                    p.type === "delivery" && p.area.toLowerCase().includes("slow") ? "Cut the setup by two sentences. Get to your main point faster." :
+                    p.type === "star" ? "Do not stop after describing the action. Add one sentence: what changed, what improved, what result came from your work." :
+                    p.type === "dimension" ? `Target ${p.area.toLowerCase()} specifically in your next session — pick questions where this dimension matters most.` :
+                    p.evidence;
+                  return (
+                    <div key={i} style={{
+                      padding: "14px 16px", borderRadius: "var(--radius-md)",
+                      background: urgBg, border: `1px solid ${urgColor}22`,
+                      display: "grid", gridTemplateColumns: "8px 1fr auto", gap: 14, alignItems: "start",
+                    }}>
+                      <div style={{ width: 8, height: 8, borderRadius: 99, background: urgColor, marginTop: 5, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" as const, marginBottom: 3 }}>{p.area}</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.55, marginBottom: 7 }}>{p.evidence}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.5 }}>{action}</div>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>{nextFocusCard.title}</div>
-                  <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 12 }}>{nextFocusCard.body}</div>
-                  <div style={{ padding: "11px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--accent-strong)", background: "var(--accent-soft)" }}>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4 }}>FOR YOUR NEXT ATTEMPT</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", lineHeight: 1.6 }}>{nextFocusCard.action}</div>
-                  </div>
-                </>
-              )}
-            </PremiumCard>
+                      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: urgColor, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const, paddingTop: 2 }}>
+                        {p.urgency}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </PremiumCard>}
 
             {/* ── FULL COMMUNICATION SCORECARD ────────────────────────────────────── */}
             <PremiumCard>
@@ -2652,11 +2924,13 @@ export default function ProgressPage() {
             )}
 
             {/* ── PRE-INTERVIEW BRIEF ──────────────────────────────────────────────── */}
-            <InterviewNotesCard
-              strengths={interviewNotes.leanInto}
-              watchouts={interviewNotes.watchouts}
-              reminders={interviewNotes.reminders}
-            />
+            {history.length > 0 && (
+              <InterviewNotesCard
+                strengths={interviewNotes.leanInto}
+                watchouts={interviewNotes.watchouts}
+                reminders={interviewNotes.reminders}
+              />
+            )}
 
             {/* ── NACE (university only) ─────────────────────────────────────────── */}
             {isUniversity && (() => {

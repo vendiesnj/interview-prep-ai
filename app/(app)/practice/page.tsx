@@ -728,6 +728,7 @@ async function clearHistory() {
   const recordingStartRef = useRef<number | null>(null);
   const [selectedQuestion, setSelectedQuestion] = useState("");
   const [showQuestions, setShowQuestions] = useState(false);
+  const [showMetrics, setShowMetrics] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [analysisStage, setAnalysisStage] = useState<string>("Preparing analysis…");
@@ -1888,7 +1889,7 @@ setPostRecordStage("Preparing audio…");
         const blob = new Blob(chunks, { type: "audio/webm" });
 audioBlobRef.current = blob;
 
-// Keep webm for AssemblyAI/transcribe (small + reliable)
+// Keep webm for Azure Speech/transcribe (small + reliable)
 const webmFile = new File([blob], "answer.webm", { type: "audio/webm" });
 
 // ✅ Upload recording to Supabase Storage (real replay across devices)
@@ -2206,10 +2207,6 @@ if (!voiceMetricsRef.current && audioBlob && audioBlob.size > 0) {
   try {
     const freshestVoiceMetrics = voiceMetricsRef.current ?? null;
 
-console.log("[voice-metrics] result:", freshestVoiceMetrics
-  ? { acousticsKeys: freshestVoiceMetrics ? Object.keys((freshestVoiceMetrics as any).acoustics ?? {}) : null, hasAcoustics: !!(freshestVoiceMetrics as any).acoustics }
-  : "null - voice-metrics failed or not yet complete");
-
 const normalizedAcoustics = (() => {
   const m = freshestVoiceMetrics as any;
   if (!m) return null;
@@ -2508,6 +2505,7 @@ void (async () => {
   questionCategory: entry.questionCategory ?? "other",
   questionSource: entry.questionSource ?? "generated",
   evaluationFramework: entry.evaluationFramework ?? "star",
+  practiceType: "interview",
   transcript: entry.transcript,
         inputMethod: entry.inputMethod,
         wpm: entry.wpm,
@@ -4775,132 +4773,161 @@ onMouseLeave={(e) =>
         </div>
       )}
 
-      {/* ── Gauge Grid ───────────────────────────────────────────── */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 12,
-        }}
-      >
-        {/* Delivery tile - comm + conf merged */}
-        <GaugeTile
-          title="Delivery"
-          value={Math.round(((feedback?.communication_score ?? 0) + (feedback?.confidence_score ?? 0)) / 2 * 10)}
-          max={100}
-          subtitle="Communication · Confidence"
-        >
-          <MetricBar label="Communication" value={feedback?.communication_score ?? 0} max={10} />
-          <MetricBar label="Confidence" value={feedback?.confidence_score ?? 0} max={10} />
-          {feedback?.filler && (
-            <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-muted)" }}>
-              Fillers: {feedback.filler.total} ({feedback.filler.per100}/100 words)
+      {/* ── Coaching Narrative ───────────────────────────────────── */}
+      {(Array.isArray(feedback?.strengths) && feedback.strengths.length > 0) || (Array.isArray(feedback?.improvements) && feedback.improvements.length > 0) ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 14 }}>
+          {Array.isArray(feedback?.strengths) && feedback.strengths.length > 0 && (
+            <div style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "#10B981", textTransform: "uppercase" as const, marginBottom: 8 }}>What worked</div>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                {(feedback.strengths as string[]).slice(0, 3).join(" ")}
+              </p>
             </div>
           )}
-          {wpm !== null && (
-            <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)" }}>
-              Pace: <span style={{ color: "var(--text-primary)", fontWeight: 600 }}>{wpm} wpm</span>
+          {Array.isArray(feedback?.improvements) && feedback.improvements.length > 0 && (
+            <div style={{ padding: "14px 16px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 8 }}>To improve</div>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                {(feedback.improvements as string[]).slice(0, 3).join(" ")}
+              </p>
             </div>
           )}
-          {feedback?.confidence_explanation && (
-            <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>
-              {feedback.confidence_explanation}
-            </div>
-          )}
-        </GaugeTile>
+        </div>
+      ) : null}
 
-        {/* Content Quality tile */}
-        {feedback?.star ? (
-          <GaugeTile
-            title="Content Quality"
-            value={Math.round(
-              ((feedback.star.situation ?? 0) +
-                (feedback.star.task ?? 0) +
-                (feedback.star.action ?? 0) +
-                (feedback.star.result ?? 0)) / 4 * 10
-            )}
-            max={100}
-            subtitle="STAR Framework"
-          >
-            <MetricBar label="Situation" value={feedback.star.situation ?? 0} max={10} />
-            <MetricBar label="Task" value={feedback.star.task ?? 0} max={10} />
-            <MetricBar label="Action" value={feedback.star.action ?? 0} max={10} />
-            <MetricBar label="Result" value={feedback.star.result ?? 0} max={10} />
-          </GaugeTile>
-        ) : (
-          <GaugeTile
-            title="Content Quality"
-            value={overallScore100}
-            max={100}
-            subtitle="Overall answer quality"
-          >
-            <MetricBar label="Signal Score" value={overallScore100} max={100} />
-          </GaugeTile>
-        )}
-      </div>
-
-      {/* ── What Worked ──────────────────────────────────────────── */}
-      {Array.isArray(feedback?.strengths) && feedback.strengths.length > 0 && (
-        <details
+      {/* ── Compound Coaching Note ──────────────────────────────── */}
+      {feedback?.compound_note && (
+        <div
           style={{
-            marginTop: 12,
+            marginBottom: 14,
+            padding: "12px 14px",
             borderRadius: 14,
-            border: "1px solid var(--card-border-soft)",
-            background: "var(--card-bg)",
-            padding: 12,
+            border: "1px solid var(--card-border)",
+            background: "var(--card-bg-strong)",
           }}
         >
-          <summary
-            style={{
-              listStyle: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--text-primary)",
-            }}
-          >
-            What Worked ▾
-          </summary>
-          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-            {(feedback.strengths as string[]).map((s, i) => (
-              <div key={i} style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
-                <span style={{ color: "#10B981", fontWeight: 700, marginRight: 6 }}>✓</span>{s}
-              </div>
-            ))}
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 5 }}>
+            Priority note
           </div>
-        </details>
+          <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>
+            {feedback.compound_note}
+          </div>
+        </div>
       )}
 
-      {/* ── Where to Improve ─────────────────────────────────────── */}
-      {Array.isArray(feedback?.improvements) && feedback.improvements.length > 0 && (
-        <details
-          style={{
-            marginTop: 8,
-            borderRadius: 14,
-            border: "1px solid var(--card-border-soft)",
-            background: "var(--card-bg)",
-            padding: 12,
-          }}
-        >
-          <summary
-            style={{
-              listStyle: "none",
-              cursor: "pointer",
-              fontSize: 13,
-              fontWeight: 600,
-              color: "var(--text-primary)",
-            }}
-          >
-            Where to Improve ▾
-          </summary>
-          <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
-            {(feedback.improvements as string[]).map((s, i) => (
-              <div key={i} style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.5 }}>
-                <span style={{ color: "var(--accent)", fontWeight: 700, marginRight: 6 }}>→</span>{s}
+      {/* ── Dive Deeper Toggle ───────────────────────────────────── */}
+      <button
+        type="button"
+        onClick={() => setShowMetrics(v => !v)}
+        style={{
+          width: "100%",
+          padding: "10px 14px",
+          borderRadius: 10,
+          border: "1px solid var(--card-border-soft)",
+          background: "var(--card-bg)",
+          color: "var(--text-muted)",
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+          textAlign: "left" as const,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 4,
+        }}
+      >
+        <span>Dive deeper</span>
+        <span style={{ fontSize: 10 }}>{showMetrics ? "▲" : "▼"}</span>
+      </button>
+
+      {showMetrics && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+
+          {/* STAR breakdown — only when answer used STAR framework */}
+          {feedback?.star && (
+            <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>STAR breakdown</div>
+              {(["situation","task","action","result"] as const).map(k => {
+                const v = (feedback.star as any)[k] ?? 0;
+                const col = v >= 7.5 ? "#10B981" : v >= 5.5 ? "var(--accent)" : "#EF4444";
+                const advice = feedback?.star_advice?.[k];
+                return (
+                  <div key={k} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", textTransform: "capitalize" as const }}>{k}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{v.toFixed(1)}/10</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.round(v * 10)}%`, background: col, borderRadius: 99, transition: "width 0.5s ease" }} />
+                    </div>
+                    {advice && <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{advice}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Vocal delivery metrics — raw numbers not shown elsewhere */}
+          {(wpm !== null || feedback?.filler) && (
+            <div style={{ padding: "14px 18px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>Vocal delivery</div>
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" as const }}>
+                {wpm !== null && (
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: wpm > 165 ? "#EF4444" : wpm < 105 ? "#F59E0B" : "#10B981" }}>{wpm}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>words/min</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>ideal 115–150</div>
+                  </div>
+                )}
+                {feedback?.filler && (
+                  <div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: (feedback.filler.per100 ?? 0) > 4 ? "#EF4444" : (feedback.filler.per100 ?? 0) > 2 ? "#F59E0B" : "#10B981" }}>{feedback.filler.total}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 600 }}>filler words</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{feedback.filler.per100}/100 words</div>
+                  </div>
+                )}
+                {feedback?.confidence_explanation && (
+                  <div style={{ flex: 1, minWidth: 140, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, alignSelf: "center" as const }}>
+                    {feedback.confidence_explanation}
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-        </details>
+            </div>
+          )}
+
+          {/* 8 universal communication dimensions */}
+          {feedback?.dimension_scores && Object.keys(feedback.dimension_scores).length > 0 && (
+            <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>Communication dimensions</div>
+              {Object.entries(feedback.dimension_scores as Record<string, any>).map(([key, dim]) => {
+                const score = typeof dim?.score === "number" ? dim.score : 0;
+                const pct = Math.round(score * 10);
+                const col = score >= 7.5 ? "#10B981" : score >= 5.5 ? "var(--accent)" : "#EF4444";
+                return (
+                  <div key={key} style={{ marginBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{dim?.label ?? key}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: col }}>{score.toFixed(1)}/10</span>
+                    </div>
+                    <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${pct}%`, background: col, borderRadius: 99, transition: "width 0.5s ease" }} />
+                    </div>
+                    {dim?.coaching && <div style={{ marginTop: 4, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{dim.coaching}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Better answer */}
+          {feedback?.better_answer && (
+            <div style={{ padding: "16px 18px", borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", marginBottom: 10 }}>A stronger version</div>
+              <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
+            </div>
+          )}
+
+        </div>
       )}
 
     </div>

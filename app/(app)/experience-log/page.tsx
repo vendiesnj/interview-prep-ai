@@ -7,12 +7,17 @@ import PremiumShell from "../../components/PremiumShell";
 import { ToastContainer, useToast } from "@/app/components/Toast";
 import {
   type ExperienceEntry,
+  type QuestionCategory,
   loadExperiences,
   saveExperiences,
   addExperience,
   updateExperience,
   deleteExperience,
   starCompleteness,
+  autoTagEntry,
+  computeStrengthScore,
+  detectStoryGaps,
+  QUESTION_CATEGORY_LABELS,
 } from "@/app/lib/experienceLog";
 
 // ── helpers ────────────────────────────────────────────────────────────────────
@@ -146,10 +151,29 @@ function ExperienceCard({
         </div>
       )}
 
+      {/* Question category tags */}
+      {(entry.questionTags ?? []).length > 0 && (
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {(entry.questionTags as QuestionCategory[]).map(tag => (
+            <span key={tag} style={{ fontSize: 10, fontWeight: 700, color: "#4F46E5", background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.18)", padding: "2px 8px", borderRadius: 10 }}>
+              {QUESTION_CATEGORY_LABELS[tag]}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* STAR completeness + stats row */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
         <StarBadges count={completion} />
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          {entry.strengthScore != null && (
+            <span style={{
+              fontSize: 12, fontWeight: 700,
+              color: entry.strengthScore >= 70 ? "#16A34A" : entry.strengthScore >= 45 ? "#D97706" : "#DC2626",
+            }}>
+              Strength {entry.strengthScore}
+            </span>
+          )}
           {entry.practiceCount > 0 && (
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
               {entry.practiceCount} practice{entry.practiceCount !== 1 ? "s" : ""}
@@ -516,15 +540,21 @@ export default function ExperienceLogPage() {
   }
 
   function handleSave(data: FormState) {
+    // Build a temporary entry to compute tags and strength score
+    const tempEntry = { ...data, id: editingId ?? "", createdAt: 0, updatedAt: 0, practiceCount: 0, bestScore: null, lastPracticed: null, linkedAttemptIds: [] } as ExperienceEntry;
+    const questionTags = autoTagEntry(tempEntry);
+    const strengthScore = computeStrengthScore(tempEntry);
+    const enriched = { ...data, questionTags, strengthScore };
+
     if (editingId) {
       const updated = entries.map(e =>
-        e.id === editingId ? { ...e, ...data, updatedAt: Date.now() } : e
+        e.id === editingId ? { ...e, ...enriched, updatedAt: Date.now() } : e
       );
       persist(updated);
       showToast("Story updated");
     } else {
       if (!session) return;
-      addExperience(session, data);
+      addExperience(session, enriched);
       setEntries(loadExperiences(session));
       showToast("Story added");
     }
@@ -580,8 +610,15 @@ export default function ExperienceLogPage() {
       }
     : emptyForm();
 
-  const sortedEntries = [...entries].sort((a, b) => b.updatedAt - a.updatedAt);
+  const sortedEntries = [...entries].sort((a, b) => {
+    // Sort: strong stories first (strengthScore desc), then by updated
+    const aS = a.strengthScore ?? 0;
+    const bS = b.strengthScore ?? 0;
+    if (bS !== aS) return bS - aS;
+    return b.updatedAt - a.updatedAt;
+  });
   const totalPractices = entries.reduce((acc, e) => acc + e.practiceCount, 0);
+  const gaps = entries.length > 0 ? detectStoryGaps(entries) : [];
 
   return (
     <>
@@ -671,6 +708,40 @@ export default function ExperienceLogPage() {
             >
               Add your first story
             </button>
+          </div>
+        )}
+
+        {/* Story Gaps */}
+        {gaps.length > 0 && entries.length >= 1 && (
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text-primary)", marginBottom: 12 }}>
+              Story Coverage
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+              {gaps.slice(0, 8).map(gap => (
+                <div
+                  key={gap.category}
+                  style={{
+                    padding: "12px 14px", borderRadius: "var(--radius-lg)",
+                    border: `1px solid ${gap.strongCount > 0 ? "rgba(22,163,74,0.2)" : gap.storiesCount > 0 ? "rgba(217,119,6,0.2)" : "rgba(220,38,38,0.2)"}`,
+                    background: gap.strongCount > 0 ? "rgba(22,163,74,0.04)" : gap.storiesCount > 0 ? "rgba(217,119,6,0.04)" : "rgba(220,38,38,0.04)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.4, flex: 1 }}>{gap.label}</span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, flexShrink: 0,
+                      color: gap.strongCount > 0 ? "#16A34A" : gap.storiesCount > 0 ? "#D97706" : "#DC2626",
+                    }}>
+                      {gap.strongCount > 0 ? "✓" : gap.storiesCount > 0 ? "Weak" : "Gap"}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
+                    In {gap.frequency}% of interviews
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

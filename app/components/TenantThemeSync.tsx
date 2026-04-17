@@ -65,6 +65,8 @@ const preset =
       chartNegative: preset.colors.chartNegative,
       chartNeutral: preset.colors.chartNeutral,
       chartCritical: preset.colors.chartCritical,
+
+      dotColor: preset.colors.dotColor,
     };
 
     root.style.backgroundColor = colors.pageBg;
@@ -103,6 +105,10 @@ const preset =
     root.style.setProperty("--chart-negative", colors.chartNegative);
     root.style.setProperty("--chart-neutral", colors.chartNeutral);
     root.style.setProperty("--chart-critical", colors.chartCritical);
+
+    if (preset.colors.dotColor) {
+      root.style.setProperty("--dot-color", preset.colors.dotColor);
+    }
 
     root.style.setProperty("--radius-xs", `${preset.radii.xs}px`);
     root.style.setProperty("--radius-sm", `${preset.radii.sm}px`);

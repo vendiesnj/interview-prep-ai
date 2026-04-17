@@ -2,13 +2,16 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import "../app/globals.css";
-import { Inter, Manrope } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import { activeTheme } from "@/app/lib/theme";
 import type { ReactNode } from "react";
 import Providers from "./providers";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope" });
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 export const metadata: Metadata = {
   title: {
@@ -86,7 +89,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
             <body
         suppressHydrationWarning
-        className={`${inter.variable} ${manrope.variable}`}
+        className={plusJakarta.variable}
         style={
           {
             margin: 0,
@@ -133,6 +136,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             "--shadow-card-soft": activeTheme.shadows.cardSoft,
             "--shadow-glow": activeTheme.shadows.glow,
             "--shadow-none": activeTheme.shadows.none,
+
+            "--dot-color": activeTheme.colors.dotColor ?? "rgba(28,25,23,0.065)",
           } as React.CSSProperties
         }
            >
@@ -193,6 +198,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 if (shadows.cardSoft) root.style.setProperty("--shadow-card-soft", shadows.cardSoft);
                 if (shadows.glow) root.style.setProperty("--shadow-glow", shadows.glow);
                 if (shadows.none) root.style.setProperty("--shadow-none", shadows.none);
+
+                if (colors.dotColor) root.style.setProperty("--dot-color", colors.dotColor);
               } catch (e) {}
             })();
           `}

@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import PremiumShell from "@/app/components/PremiumShell";
 import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
 import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
+import { userScopedKey } from "@/app/lib/userStorage";
 
 // ── Speech prompts ────────────────────────────────────────────────────────────
 const PROMPT_CATEGORIES = [
@@ -138,6 +139,8 @@ type Stage = "select" | "ready" | "recording" | "processing" | "results";
 export default function PublicSpeakingPage() {
   const { data: session } = useSession();
   const isPro = (session?.user as any)?.subscriptionStatus === "active" || (session?.user as any)?.subscriptionStatus === "trialing";
+  const HISTORY_KEY = userScopedKey("ipc_history", session);
+  const HISTORY_FALLBACK_KEY = "ipc_history";
 
   const [stage, setStage] = useState<Stage>("select");
   const [selectedCategory, setSelectedCategory] = useState<string>("elevator");
@@ -145,6 +148,7 @@ export default function PublicSpeakingPage() {
   const [customPrompt, setCustomPrompt] = useState("");
   const [useCustom, setUseCustom] = useState(false);
 
+  const [showMetrics, setShowMetrics] = useState(false);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [transcript, setTranscript] = useState("");
@@ -288,6 +292,27 @@ export default function PublicSpeakingPage() {
       const fb = await feedbackRes.json();
       setFeedback(fb);
       setStage("results");
+
+      // Save attempt to shared history so hub + My Coach can see it
+      try {
+        const entry = {
+          id: crypto.randomUUID(),
+          ts: Date.now(),
+          question: activePrompt,
+          evaluationFramework: "public_speaking",
+          inputMethod: "spoken" as const,
+          score: fb.score ?? null,
+          communication_score: fb.communication_score ?? null,
+          feedback: fb,
+          deliveryMetrics: faceMetricsRef.current ? { face: faceMetricsRef.current } : null,
+        };
+        const rawHistory = localStorage.getItem(HISTORY_KEY) ?? localStorage.getItem(HISTORY_FALLBACK_KEY);
+        const prev: any[] = rawHistory ? JSON.parse(rawHistory) : [];
+        const next = [entry, ...prev].slice(0, 50);
+        const json = JSON.stringify(next);
+        localStorage.setItem(HISTORY_FALLBACK_KEY, json);
+        if (HISTORY_KEY) localStorage.setItem(HISTORY_KEY, json);
+      } catch {}
     } catch (e: any) {
       if (e?.message === "FREE_LIMIT") {
         setError("You have used your free attempts. Upgrade to continue practicing.");
@@ -324,8 +349,8 @@ export default function PublicSpeakingPage() {
       <div style={{ maxWidth: 800, margin: "0 auto", paddingBottom: 48 }}>
 
         {/* Back */}
-        <Link href="/dashboard" style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
-          ← Dashboard
+        <Link href="/hub" style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 800, display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 24 }}>
+          ← Practice
         </Link>
 
         {error && (
@@ -481,69 +506,101 @@ export default function PublicSpeakingPage() {
 
         {/* ── RESULTS ── */}
         {stage === "results" && feedback && (
-          <div style={{ display: "grid", gap: 16 }}>
-            {/* Overall + archetype */}
-            <div style={{ padding: "28px 32px", borderRadius: "var(--radius-xl)", border: `1px solid ${archetypeCol}`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
-              <div style={{ flex: "1 1 200px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Overall score</div>
-                <div style={{ fontSize: 56, fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 22, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
+          <div style={{ display: "grid", gap: 14 }}>
+            {/* Hero: score + archetype */}
+            <div style={{ padding: "24px 28px", borderRadius: "var(--radius-xl)", border: `1px solid ${archetypeCol}44`, background: "linear-gradient(135deg, var(--card-bg-strong), var(--card-bg))", boxShadow: "var(--shadow-card-soft)", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "flex-start" }}>
+              <div style={{ flex: "0 0 auto" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 6 }}>Score</div>
+                <div style={{ fontSize: 52, fontWeight: 800, color: archetypeCol, lineHeight: 1 }}>{overallScore}<span style={{ fontSize: 20, fontWeight: 700, color: "var(--text-muted)" }}>/100</span></div>
               </div>
-              <div style={{ flex: "1 1 220px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 6 }}>Delivery archetype</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: archetypeCol, marginBottom: 8 }}>{archetype}</div>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.65, padding: "10px 14px", background: archetypeCol + "12", borderRadius: "var(--radius-md)", borderLeft: `3px solid ${archetypeCol}` }}>
-                  <strong style={{ color: archetypeCol }}>Your lever:</strong> {feedback.archetype_coaching}
-                </div>
+              <div style={{ flex: 1, minWidth: 180 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 4 }}>Delivery archetype</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: archetypeCol, marginBottom: 8 }}>{archetype}</div>
+                {feedback.archetype_coaching && (
+                  <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6, paddingLeft: 10, borderLeft: `3px solid ${archetypeCol}` }}>
+                    {feedback.archetype_coaching}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Dimension scores */}
-            {ps && (
-              <div style={{ padding: "22px 26px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "var(--text-primary)", marginBottom: 16 }}>Delivery dimensions</div>
-                <ScoreBar label="Hook & Opening" value={ps.hook_impact} color={archetypeCol} />
-                <ScoreBar label="Structure (Intro → Body → Close)" value={ps.structure} color={archetypeCol} />
-                <ScoreBar label="Vocal Variety (Pitch & Pace)" value={ps.vocal_variety} color={archetypeCol} />
-                <ScoreBar label="Clarity & Articulation" value={ps.clarity} color={archetypeCol} />
-                <ScoreBar label="Audience Connection" value={ps.audience_connection} color={archetypeCol} />
-                <ScoreBar label="Confidence & Presence" value={ps.confidence_presence} color={archetypeCol} />
+            {/* Coaching narrative */}
+            {(feedback.speaking_strengths?.length > 0 || feedback.speaking_improvements?.length > 0) && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {feedback.speaking_strengths?.length > 0 && (
+                  <div style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "#10B981", textTransform: "uppercase" as const, marginBottom: 8 }}>What worked</div>
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                      {(feedback.speaking_strengths as string[]).slice(0, 3).join(" ")}
+                    </p>
+                  </div>
+                )}
+                {feedback.speaking_improvements?.length > 0 && (
+                  <div style={{ padding: "14px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--accent)", textTransform: "uppercase" as const, marginBottom: 8 }}>To improve</div>
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                      {(feedback.speaking_improvements as string[]).slice(0, 3).join(" ")}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Strengths + improvements */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              {feedback.speaking_strengths?.length > 0 && (
-                <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#10B981", marginBottom: 12 }}>What worked</div>
-                  <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
-                    {feedback.speaking_strengths.map((s: string, i: number) => (
-                      <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {feedback.speaking_improvements?.length > 0 && (
-                <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                  <div style={{ fontSize: 13, fontWeight: 800, color: "#F59E0B", marginBottom: 12 }}>To improve</div>
-                  <ul style={{ margin: 0, padding: "0 0 0 16px", display: "grid", gap: 8 }}>
-                    {feedback.speaking_improvements.map((s: string, i: number) => (
-                      <li key={i} style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.6 }}>{s}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* Better answer */}
-            {feedback.better_answer && (
-              <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)", boxShadow: "var(--shadow-card-soft)" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--accent)", marginBottom: 10 }}>A stronger version would sound like this</div>
-                <p style={{ margin: 0, fontSize: 14, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
+            {/* Priority note (compound) */}
+            {(feedback as any).compound_note && (
+              <div style={{ padding: "12px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 5 }}>Priority note</div>
+                <div style={{ fontSize: 13, color: "var(--text-primary)", lineHeight: 1.65 }}>{(feedback as any).compound_note}</div>
               </div>
             )}
 
-            {/* Visual Delivery (webcam) */}
-            {(() => {
+            {/* Dive deeper toggle */}
+            <button
+              type="button"
+              onClick={() => setShowMetrics(v => !v)}
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", color: "var(--text-muted)", fontSize: 12, fontWeight: 700, cursor: "pointer", textAlign: "left" as const, display: "flex", justifyContent: "space-between", alignItems: "center" }}
+            >
+              <span>Dive deeper</span>
+              <span style={{ fontSize: 10 }}>{showMetrics ? "▲" : "▼"}</span>
+            </button>
+
+            {showMetrics && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+                {/* Delivery dimensions — 6 public-speaking-specific bars */}
+                {ps && (
+                  <div style={{ padding: "20px 22px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)", marginBottom: 14 }}>Delivery dimensions</div>
+                    <ScoreBar label="Hook & Opening" value={ps.hook_impact} color={archetypeCol} />
+                    <ScoreBar label="Structure (Intro → Body → Close)" value={ps.structure} color={archetypeCol} />
+                    <ScoreBar label="Vocal Variety (Pitch & Pace)" value={ps.vocal_variety} color={archetypeCol} />
+                    <ScoreBar label="Clarity & Articulation" value={ps.clarity} color={archetypeCol} />
+                    <div style={{ marginBottom: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, alignItems: "baseline" }}>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "var(--text-primary)" }}>
+                          Audience Connection
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "#D97706", marginLeft: 6 }}>1.4× weighted</span>
+                        </span>
+                        <span style={{ fontSize: 13, fontWeight: 800, color: "#D97706" }}>{ps.audience_connection.toFixed(1)}/10</span>
+                      </div>
+                      <div style={{ height: 7, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${Math.round((ps.audience_connection / 10) * 100)}%`, background: "#D97706", borderRadius: 99, transition: "width 0.6s ease" }} />
+                      </div>
+                    </div>
+                    <ScoreBar label="Confidence & Presence" value={ps.confidence_presence} color={archetypeCol} />
+                  </div>
+                )}
+
+                {/* Better answer */}
+                {feedback.better_answer && (
+                  <div style={{ padding: "16px 18px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: "var(--accent)", marginBottom: 8 }}>A stronger version</div>
+                    <p style={{ margin: 0, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, fontStyle: "italic" }}>{feedback.better_answer}</p>
+                  </div>
+                )}
+
+                {/* Visual Delivery (webcam) */}
+                {(() => {
               const face = faceMetricsRef.current;
               const hasData = !!face;
               const METRIC_DEFS = [
@@ -584,12 +641,15 @@ export default function PublicSpeakingPage() {
               );
             })()}
 
-            {/* Transcript */}
-            {transcript && (
-              <details style={{ padding: "16px 20px", borderRadius: "var(--radius-xl)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
-                <summary style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
-                <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{transcript}</p>
-              </details>
+                {/* Transcript */}
+                {transcript && (
+                  <details style={{ padding: "14px 18px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)" }}>
+                    <summary style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", cursor: "pointer" }}>Your transcript</summary>
+                    <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{transcript}</p>
+                  </details>
+                )}
+
+              </div>
             )}
 
             {/* Actions */}
@@ -601,10 +661,10 @@ export default function PublicSpeakingPage() {
                 Practice again →
               </button>
               <Link
-                href="/dashboard"
+                href="/hub"
                 style={{ flex: 1, padding: "14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "var(--card-bg)", color: "var(--text-primary)", fontWeight: 700, fontSize: 14, cursor: "pointer", textDecoration: "none", textAlign: "center" }}
               >
-                Back to Dashboard
+                Back to Practice
               </Link>
             </div>
           </div>

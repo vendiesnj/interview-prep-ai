@@ -487,6 +487,7 @@ export function scoreArchetypes(
     response_control:    profile.response_control.score,
     cognitive_depth:     profile.cognitive_depth.score,
     presence_confidence: profile.presence_confidence.score,
+    audience_awareness:  profile.audience_awareness?.score ?? 6.5,
   };
 
   // Compute score for every archetype
@@ -575,9 +576,12 @@ export function computeArchetype(signals: {
   const cognitive_depth     = (catNum(signals.depthMode) * 0.7 + catNum(signals.specificity) * 0.3);
   const presence_confidence = signals.confidence;
 
+  const audience_awareness = (catNum(signals.vocalDynamics) * 0.5 + (signals.monotoneScore !== null ? Math.max(0, 10 - signals.monotoneScore) : 6.5) * 0.5);
+
   const d: Record<DimensionKey, number> = {
     narrative_clarity, evidence_quality, ownership_agency,
     vocal_engagement, response_control, cognitive_depth, presence_confidence,
+    audience_awareness,
   };
 
   const rawSignals: RawArchetypeSignals = {
@@ -613,6 +617,7 @@ export function computeArchetype(signals: {
     response_control:    makeScore("response_control",    response_control),
     cognitive_depth:     makeScore("cognitive_depth",     cognitive_depth),
     presence_confidence: makeScore("presence_confidence", presence_confidence),
+    audience_awareness:  makeScore("audience_awareness",  audience_awareness),
   };
   (profile as any)._weighted = d;
 

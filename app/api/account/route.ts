@@ -12,7 +12,7 @@ export async function PATCH(req: Request) {
     if (!email) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
 
     const body = await req.json().catch(() => ({}));
-    const allowed = ["demoPersona"] as const;
+    const allowed = ["demoPersona", "onboardingComplete", "careerStage", "communicationGoals"] as const;
     const updates: Record<string, unknown> = {};
     for (const key of allowed) {
       if (key in body) updates[key] = body[key];

@@ -86,7 +86,7 @@ export default function LandingPage() {
     <div style={{
       background: "#0d1e3a",
       color: "#fff",
-      fontFamily: "var(--font-inter, ui-sans-serif, system-ui, sans-serif)",
+      fontFamily: "var(--font-plus-jakarta, ui-sans-serif, system-ui, sans-serif)",
       overflowX: "hidden",
     }}>
 

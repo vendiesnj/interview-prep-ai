@@ -1126,9 +1126,9 @@ function buildSchema(framework: EvaluationFramework) {
 
 function normalizeBaseFeedback(json: any): BaseFeedbackJSON {
   return {
-    score: toScore1dp(json.score, 5.0, 1, 10),
-    communication_score: toScore1dp(json.communication_score, 5.0, 1, 10),
-    confidence_score: toScore1dp(json.confidence_score, 5.0, 1, 10),
+    score: toScore1dp(json.score, 1.5, 0, 10),
+    communication_score: toScore1dp(json.communication_score, 1.5, 0, 10),
+    confidence_score: toScore1dp(json.confidence_score, 1.5, 0, 10),
     communication_evidence: ensureStringArray(json.communication_evidence, 2, 4, [
       "The answer had some structure but could be easier to follow.",
       "Clearer signposting would improve flow.",
@@ -1142,10 +1142,10 @@ function normalizeBaseFeedback(json: any): BaseFeedbackJSON {
       : "Confidence evidence was limited.",
     relevance: {
       answered_question: Boolean(json?.relevance?.answered_question),
-      relevance_score: toScore1dp(json?.relevance?.relevance_score, 5.0, 1, 10),
-      directness_score: toScore1dp(json?.relevance?.directness_score, 5.0, 1, 10),
-      completeness_score: toScore1dp(json?.relevance?.completeness_score, 5.0, 1, 10),
-      off_topic_score: toScore1dp(json?.relevance?.off_topic_score, 5.0, 1, 10),
+      relevance_score: toScore1dp(json?.relevance?.relevance_score, 1.5, 0, 10),
+      directness_score: toScore1dp(json?.relevance?.directness_score, 1.5, 0, 10),
+      completeness_score: toScore1dp(json?.relevance?.completeness_score, 1.5, 0, 10),
+      off_topic_score: toScore1dp(json?.relevance?.off_topic_score, 1.5, 0, 10),
       missed_parts: ensureStringArray(json?.relevance?.missed_parts, 0, 6),
       relevance_explanation: isNonEmptyString(json?.relevance?.relevance_explanation)
         ? json.relevance.relevance_explanation.trim()
@@ -1329,9 +1329,9 @@ function deliveryPenalty(deliveryMetrics: any, fillerStats: ReturnType<typeof co
   let penalty = 0;
 
   const fillersPer100 = fillerStats.fillersPer100Words;
-  if (fillersPer100 >= 12) penalty += 0.6;
-  else if (fillersPer100 >= 8) penalty += 0.35;
-  else if (fillersPer100 >= 5) penalty += 0.15;
+  if (fillersPer100 >= 12) penalty += 1.5;       // severe — dominates the answer
+  else if (fillersPer100 >= 8) penalty += 0.85;   // heavy
+  else if (fillersPer100 >= 5) penalty += 0.4;    // noticeable
 
   const avgPauseMs =
     typeof deliveryMetrics?.avgPauseMs === "number"
@@ -1341,11 +1341,11 @@ function deliveryPenalty(deliveryMetrics: any, fillerStats: ReturnType<typeof co
       : null;
 
   if (typeof avgPauseMs === "number") {
-    if (avgPauseMs >= 1800) penalty += 0.35;
-    else if (avgPauseMs >= 1200) penalty += 0.2;
+    if (avgPauseMs >= 1800) penalty += 0.8;       // painfully long dead air
+    else if (avgPauseMs >= 1200) penalty += 0.4;  // noticeable hesitation
   }
 
-  return round1(Math.min(1.2, penalty));
+  return round1(penalty);
 }
 
 function computeHeadlineScore(
@@ -1381,7 +1381,7 @@ function computeHeadlineScore(
       deliveryAvg * 0.14 -
       penalty;
 
-    return round1(clamp(raw, 1, 10));
+    return round1(clamp(raw, 0, 10));
   }
 
   if (framework === "technical_explanation") {
@@ -1400,7 +1400,7 @@ function computeHeadlineScore(
       deliveryAvg * 0.14 -
       penalty;
 
-    return round1(clamp(raw, 1, 10));
+    return round1(clamp(raw, 0, 10));
   }
 
   if (framework === "public_speaking") {
@@ -1412,7 +1412,7 @@ function computeHeadlineScore(
 
     raw = psAvg * 0.72 + deliveryAvg * 0.28 - penalty;
 
-    return round1(clamp(raw, 1, 10));
+    return round1(clamp(raw, 0, 10));
   }
 
   if (framework === "networking_pitch") {
@@ -1424,7 +1424,7 @@ function computeHeadlineScore(
 
     raw = npAvg * 0.75 + deliveryAvg * 0.25 - penalty;
 
-    return round1(clamp(raw, 1, 10));
+    return round1(clamp(raw, 0, 10));
   }
 
   const n = normalized as ExperienceFeedbackJSON;
@@ -1442,7 +1442,7 @@ function computeHeadlineScore(
     deliveryAvg * 0.14 -
     penalty;
 
-  return round1(clamp(raw, 1, 10));
+  return round1(clamp(raw, 0, 10));
 }
 
 function applyDeterministicCalibration(

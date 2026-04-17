@@ -1354,6 +1354,23 @@ const longPausesPerMin =
                   </div>
                 )}
 
+                {/* Compound coaching note — fires on notable cross-signal patterns */}
+                {(feedback as any).compound_note && (
+                  <div style={{
+                    padding: "10px 12px",
+                    borderRadius: "var(--radius-md)",
+                    border: "1px solid var(--card-border)",
+                    background: "var(--card-bg-strong)",
+                  }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", marginBottom: 4, textTransform: "uppercase" as const }}>
+                      Priority Note
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--text-primary)", lineHeight: 1.6 }}>
+                      {(feedback as any).compound_note}
+                    </div>
+                  </div>
+                )}
+
               </div>
             </div>
 

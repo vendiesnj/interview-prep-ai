@@ -9,7 +9,6 @@ import { BulkEnrollForm } from "@/app/components/BulkEnrollForm";
 import {
   LayoutDashboard,
   Users,
-  UserCircle,
   Mic,
   Briefcase,
   ClipboardList,
@@ -1226,16 +1225,35 @@ export default async function AdminPage({
   );
 
   const naceCohort = computeNaceCohortAverages(
-    filteredAttempts.map((a) => ({
-      score: num(a.score),
-      communicationScore: num(a.communicationScore),
-      confidenceScore: num(a.confidenceScore),
-      wpm: num(a.wpm),
-      feedback: a.feedback,
-      prosody: a.prosody,
-      deliveryMetrics: a.deliveryMetrics,
-      questionCategory: a.questionCategory,
-    }))
+    filteredAttempts.map((a) => {
+      // Extract 8-dimension scores from feedback.dimension_scores
+      const dimScores: Record<string, number> | null = (() => {
+        const ds = (a.feedback as any)?.dimension_scores;
+        if (!ds) return null;
+        const out: Record<string, number> = {};
+        for (const key of ["narrative_clarity","evidence_quality","ownership_agency","vocal_engagement","response_control","cognitive_depth","presence_confidence","audience_awareness"]) {
+          const v = typeof ds[key]?.score === "number" ? ds[key].score : null;
+          if (v !== null) out[key] = v;
+        }
+        return Object.keys(out).length > 0 ? out : null;
+      })();
+
+      return {
+        score: num(a.score),
+        communicationScore: num(a.communicationScore),
+        confidenceScore: num(a.confidenceScore),
+        wpm: num(a.wpm),
+        feedback: a.feedback,
+        prosody: a.prosody,
+        deliveryMetrics: a.deliveryMetrics,
+        questionCategory: a.questionCategory,
+        dimensionScores: dimScores,
+        pronunciationScore: num((a.deliveryMetrics as any)?.acoustics?.pronunciationScore),
+        fluencyScore: num((a.deliveryMetrics as any)?.acoustics?.fluencyScore),
+        azureProsodyScore: num((a.deliveryMetrics as any)?.acoustics?.prosodyScore),
+        mumbleIndex: num((a.deliveryMetrics as any)?.acoustics?.mumbleIndex),
+      };
+    })
   );
 
   const avgResultImpact = round1(
@@ -1703,13 +1721,12 @@ const activeThisWeek = filteredAttempts.filter(
             flexWrap: "wrap",
           }}>
             {[
-              { key: "overview",    label: "Overview",          Icon: LayoutDashboard },
-              { key: "students",    label: "Students",          Icon: Users },
-              { key: "profiles",    label: "Student Profiles",  Icon: UserCircle },
-              { key: "practice",    label: "Speaking & Delivery", Icon: Mic },
-              { key: "jobs",        label: "Job Profiles",      Icon: Briefcase },
-              { key: "assignments", label: "Assignments",       Icon: ClipboardList },
-              { key: "outcomes",    label: "Outcomes",          Icon: TrendingUp },
+              { key: "overview",      label: "Overview",          Icon: LayoutDashboard },
+              { key: "students",      label: "Students",          Icon: Users },
+              { key: "coaching",      label: "Coaching",          Icon: Mic },
+              { key: "nace_outcomes", label: "NACE / Outcomes",   Icon: TrendingUp },
+              { key: "jobs",          label: "Job Profiles",      Icon: Briefcase },
+              { key: "admin",         label: "Admin",             Icon: ClipboardList },
             ].map((tab) => {
               const isActive = activeTab === tab.key;
               const cohortSuffix = activeCohort !== "all" ? `&cohort=${activeCohort}` : "";
@@ -1894,16 +1911,11 @@ const activeThisWeek = filteredAttempts.filter(
               </div>
             </div>
 
-            {/* ── Cohort Strengths & Weaknesses ────────────────────────── */}
+            {/* Cohort Strengths & Weaknesses → moved to Coaching tab */}
+            {false && (
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 4 }}>
-                Cohort Strengths & Weaknesses
-              </div>
-              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.5 }}>
-                Where is this cohort excelling and where do they consistently struggle?
-              </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-                {/* 7-dimension heatmap */}
+                {/* 7-dimension heatmap — now lives exclusively in Coaching tab */}
                 <Panel eyebrow="Communication Dimensions" title="What they're getting right vs. wrong">
                   {cohortDimensions.every((d) => d.avg === null) ? (
                     <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "20px 0" }}>No dimension data yet — visible after students complete scored sessions.</div>
@@ -1981,6 +1993,7 @@ const activeThisWeek = filteredAttempts.filter(
                 </div>
               </div>
             </div>
+            )}
 
             {/* ── What They're Practicing ──────────────────────────────── */}
             <div>
@@ -1990,7 +2003,7 @@ const activeThisWeek = filteredAttempts.filter(
               <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16, lineHeight: 1.5 }}>
                 Which roles and question types are students spending the most time on?
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
                 {/* Top roles */}
                 <Panel eyebrow="Target Roles" title="Most Practiced Roles">
                   {targetRolePracticeRows.length === 0 ? (
@@ -2029,32 +2042,7 @@ const activeThisWeek = filteredAttempts.filter(
                   )}
                 </Panel>
 
-                {/* Question categories */}
-                <Panel eyebrow="Question Types" title="Category Breakdown">
-                  {questionMix.length === 0 ? (
-                    <div style={{ fontSize: 13, color: "var(--text-muted)" }}>No data yet.</div>
-                  ) : (
-                    <div style={{ display: "grid", gap: 8 }}>
-                      {questionMix.map((q) => (
-                        <div key={q.label} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                            <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{q.label}</span>
-                            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{q.pct}% · {q.count}</span>
-                          </div>
-                          <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                            <div style={{ height: "100%", width: `${q.pct}%`, background: "var(--accent)", borderRadius: 99 }} />
-                          </div>
-                        </div>
-                      ))}
-                      <div style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>Mock Interviews</span>
-                          <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{filteredAttempts.filter((a) => a.evaluationFramework === "mock_interview").length} sessions</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </Panel>
+                {/* Category Breakdown → moved to Coaching tab to avoid duplication */}
 
                 {/* Top questions */}
                 <Panel eyebrow="Most Practiced" title="Top Interview Questions">
@@ -2772,8 +2760,8 @@ const activeThisWeek = filteredAttempts.filter(
           );
         })()}
 
-        {/* ── PRACTICE TAB ─────────────────────────────────────────────── */}
-        {activeTab === "practice" && (
+        {/* ── COACHING TAB ─────────────────────────────────────────────── */}
+        {activeTab === "coaching" && (
           <div style={{ display: "grid", gap: 18 }}>
             {/* Module breakdown row */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
@@ -2789,6 +2777,72 @@ const activeThisWeek = filteredAttempts.filter(
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>{desc}</div>
                 </div>
               ))}
+            </div>
+
+            {/* ── Communication Dimension Heatmap + Top Weaknesses ─────── */}
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 18 }}>
+              <Panel eyebrow="8-Dimension Analysis" title="Cohort Coaching Gaps">
+                {cohortDimensions.every((d) => d.avg === null) ? (
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", padding: "20px 0" }}>No dimension data yet — visible after students complete scored sessions.</div>
+                ) : (
+                  <div style={{ display: "grid", gap: 8 }}>
+                    {cohortDimensions.map((d) => {
+                      const score = d.avg !== null ? d.avg : 0;
+                      const pct = Math.round((score / 10) * 100);
+                      const color = score >= 7.5 ? "var(--chart-positive)" : score >= 6 ? "#F59E0B" : "var(--chart-critical)";
+                      const tag = score >= 7.5 ? "Strength" : score < 5.5 ? "Gap" : null;
+                      return (
+                        <div key={d.key} style={{ padding: "10px 14px", borderRadius: "var(--radius-lg)", border: `1px solid ${score >= 7.5 ? "rgba(34,197,94,0.18)" : score < 5.5 ? "rgba(239,68,68,0.18)" : "var(--card-border-soft)"}`, background: "var(--card-bg)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-primary)" }}>{d.label}</span>
+                              {tag && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: "var(--radius-sm)", background: score >= 7.5 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.10)", color }}>{tag}</span>}
+                            </div>
+                            <span style={{ fontSize: 14, fontWeight: 700, color }}>{d.avg !== null ? d.avg.toFixed(1) : "—"}<span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 500 }}>/10</span></span>
+                          </div>
+                          <div style={{ height: 5, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: 99 }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", paddingTop: 4 }}>Sorted lowest → highest. Red = cohort-wide coaching opportunity.</div>
+                  </div>
+                )}
+              </Panel>
+
+              <div style={{ display: "grid", gap: 16 }}>
+                <Panel eyebrow="Most Common Issues" title="Top Weakness Patterns">
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
+                    Most common areas where students struggle across speaking sessions
+                  </div>
+                  <ListRows
+                    items={
+                      weaknessRows.length > 0
+                        ? weaknessRows.map((row) => ({
+                            label: row.label,
+                            detail: "Most common coaching issue across current attempts.",
+                            value: `${row.count}`,
+                          }))
+                        : [{ label: "No weakness data yet", detail: "Complete more attempts to surface patterns." }]
+                    }
+                  />
+                </Panel>
+
+                <Panel eyebrow="Question Mix" title="Category Breakdown">
+                  <ListRows
+                    items={
+                      questionMix.length > 0
+                        ? questionMix.map((row) => ({
+                            label: row.label,
+                            detail: `${row.count} attempts in this category.`,
+                            value: `${row.pct}%`,
+                          }))
+                        : [{ label: "No category data yet", detail: "Question analytics appear after more attempts." }]
+                    }
+                  />
+                </Panel>
+              </div>
             </div>
 
             {/* Engagement Overview + Speaking Metrics */}
@@ -2891,92 +2945,8 @@ const activeThisWeek = filteredAttempts.filter(
               </Panel>
             </div>
 
-            {/* NACE Competency Cohort Panel */}
-            <Panel eyebrow="NACE Career Readiness" title="Competency Scores - Cohort Average" minHeight={280}>
-              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.6 }}>
-                Average student performance across the 8 NACE career readiness competencies, computed from interview, networking, and public speaking sessions.
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {(Object.keys(NACE_META) as NaceKey[]).map((key) => {
-                  const score = naceCohort[key];
-                  const color = naceScoreColor(score);
-                  return (
-                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{
-                        width: 36, height: 36, borderRadius: "var(--radius-sm)", flexShrink: 0,
-                        background: score !== null ? color + "18" : "var(--card-bg-strong)",
-                        border: `1px solid ${score !== null ? color + "40" : "var(--card-border)"}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 12, fontWeight: 700, color: score !== null ? color : "var(--text-muted)",
-                      }}>
-                        {score ?? "-"}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-primary)", marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {NACE_META[key].shortLabel}
-                        </div>
-                        <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${score ?? 0}%`, background: color, borderRadius: 99 }} />
-                        </div>
-                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
-                          {naceScoreLabel(score)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Panel>
-
-            {/* Top Weaknesses + Question Category Demand + Role Readiness */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr 1fr",
-                gap: 18,
-              }}
-            >
-              <Panel eyebrow="Insights" title="Top Weaknesses" minHeight={280}>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 10 }}>
-                  Most common areas where students struggle across speaking sessions
-                </div>
-                <ListRows
-                  items={
-                    weaknessRows.length > 0
-                      ? weaknessRows.map((row) => ({
-                          label: row.label,
-                          detail: "Most common coaching issue across current attempts.",
-                          value: `${row.count}`,
-                        }))
-                      : [
-                          {
-                            label: "No weakness data yet",
-                            detail: "Complete more attempts to surface school-wide weakness patterns.",
-                          },
-                        ]
-                  }
-                />
-              </Panel>
-
-              <Panel eyebrow="Question Mix" title="Question Category Demand" minHeight={280}>
-                <ListRows
-                  items={
-                    questionMix.length > 0
-                      ? questionMix.map((row) => ({
-                          label: row.label,
-                          detail: `${row.count} attempts in this category.`,
-                          value: `${row.pct}%`,
-                        }))
-                      : [
-                          {
-                            label: "No category data yet",
-                            detail: "Question category analytics will appear once attempts are available.",
-                          },
-                        ]
-                  }
-                />
-              </Panel>
-
+            {/* Role Readiness + Coaching Summary */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
               <Panel eyebrow="Role Matching" title="Role Readiness" minHeight={280}>
                 <ListRows
                   items={
@@ -3008,14 +2978,15 @@ const activeThisWeek = filteredAttempts.filter(
                   }
                 />
               </Panel>
-            </div>
 
-            {/* Coaching Summary pills */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 12 }}>
-              <MetricPill label="Avg Presence" value={avgPresenceDisplay} />
-              <MetricPill label="Spoken Attempts" value={`${spokenRate}%`} />
-              <MetricPill label="Most Common Gap" value={weaknessRows[0]?.label ?? "Still emerging"} />
-              <MetricPill label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : " - "} />
+              <Panel eyebrow="Coaching Signals" title="Cohort Summary" minHeight={280}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <SmallMetric label="Avg Presence" value={avgPresenceDisplay} subtext="Vocal + confidence dims" />
+                  <SmallMetric label="Spoken Sessions" value={`${spokenRate}%`} subtext="Sessions with audio" />
+                  <SmallMetric label="Most Common Gap" value={weaknessRows[0]?.label ?? "Emerging"} subtext="Top coaching issue" />
+                  <SmallMetric label="Avg Result Impact" value={avgResultImpact !== null ? String(avgResultImpact) : "—"} subtext="STAR result avg (0–10)" />
+                </div>
+              </Panel>
             </div>
 
             {/* Practice Frequency + Score Distribution */}
@@ -3182,7 +3153,7 @@ const activeThisWeek = filteredAttempts.filter(
         )}
 
         {/* ── ASSIGNMENTS TAB ──────────────────────────────────────────── */}
-        {activeTab === "assignments" && (
+        {activeTab === "admin" && (
           <div style={{ display: "grid", gap: 18 }}>
             <Panel eyebrow="Course Assignments" title="Active Assignments">
               <div style={{ display: "grid", gap: 14 }}>
@@ -3337,8 +3308,49 @@ const activeThisWeek = filteredAttempts.filter(
         )}
 
         {/* ── OUTCOMES TAB ─────────────────────────────────────────────── */}
-        {activeTab === "outcomes" && (
+        {activeTab === "nace_outcomes" && (
           <div style={{ display: "grid", gap: 18 }}>
+
+            {/* ── NACE Competency Cohort Panel ───────────────────────────── */}
+            <Panel eyebrow="NACE Career Readiness" title="Competency Scores — Cohort Average" minHeight={280}>
+              <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14, lineHeight: 1.6 }}>
+                Average student performance across the 8 NACE career readiness competencies. Scores now incorporate 8-dimension coaching signals, Azure pronunciation/fluency, and mumble index — producing richer, more accurate competency assessments.
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {(Object.keys(NACE_META) as NaceKey[]).map((key) => {
+                  const score = naceCohort[key];
+                  const color = naceScoreColor(score);
+                  return (
+                    <div key={key} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{
+                        width: 36, height: 36, borderRadius: "var(--radius-sm)", flexShrink: 0,
+                        background: score !== null ? color + "18" : "var(--card-bg-strong)",
+                        border: `1px solid ${score !== null ? color + "40" : "var(--card-border)"}`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, fontWeight: 700, color: score !== null ? color : "var(--text-muted)",
+                      }}>
+                        {score ?? "-"}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 11, fontWeight: 800, color: "var(--text-primary)", marginBottom: 3, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {NACE_META[key].shortLabel}
+                        </div>
+                        <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${score ?? 0}%`, background: color, borderRadius: 99 }} />
+                        </div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                          {naceScoreLabel(score)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ marginTop: 14, fontSize: 11, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                Scores build over time with data confidence weighting. A student needs 25+ sessions to reach reliable NACE scores. Evidence sources: 8-dim coaching engine, Azure speech (pronunciation, fluency, articulation clarity), STAR scores, vocal delivery metrics.
+              </div>
+            </Panel>
+
             <Panel eyebrow="Post-Graduation" title="Career Outcomes">
               {checkInCount === 0 ? (
                 <div style={{ padding: "28px 0", textAlign: "center", color: "var(--text-muted)", fontSize: 14 }}>

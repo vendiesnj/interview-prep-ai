@@ -7,12 +7,21 @@ import { rateLimitFixedWindow } from "@/app/lib/rateLimit";
 
 export const runtime = "nodejs";
 
+/** Derive practiceType from evaluationFramework for backward compatibility with existing attempts */
+function derivePracticeType(framework?: string | null): string {
+  if (framework === "mock_interview") return "mock_interview";
+  if (framework === "public_speaking") return "public_speaking";
+  if (framework === "networking_pitch") return "networking";
+  return "interview";
+}
+
 type Body = {
   ts: number;
   question: string;
   questionCategory?: string | null;
   questionSource?: string | null;
   evaluationFramework?: string | null;
+  practiceType?: string | null;
   transcript: string;
   inputMethod?: "spoken" | "pasted";
   wpm?: number | null;
@@ -85,6 +94,7 @@ const { userId, tenantId } = auth;
   questionCategory: true,
   questionSource: true,
   evaluationFramework: true,
+  practiceType: true,
   transcript: true,
   inputMethod: true,
   score: true,
@@ -147,6 +157,7 @@ if (!rlUser.ok || !rlIp.ok) {
   questionCategory: a.questionCategory ?? "other",
   questionSource: a.questionSource ?? "generated",
   evaluationFramework: a.evaluationFramework ?? "star",
+  practiceType: a.practiceType ?? derivePracticeType(a.evaluationFramework),
   inputMethod: (a.inputMethod as "spoken" | "pasted" | undefined) ?? undefined,
   score: a.score ?? (a.feedback as any)?.score ?? null,
   feedback: a.feedback as any,
@@ -325,6 +336,7 @@ if (body.jobProfileId) {
     questionCategory: body.questionCategory ?? null,
     questionSource: body.questionSource ?? null,
     evaluationFramework: body.evaluationFramework ?? null,
+    practiceType: body.practiceType ?? derivePracticeType(body.evaluationFramework),
     transcript: body.transcript,
         inputMethod: body.inputMethod,
 
