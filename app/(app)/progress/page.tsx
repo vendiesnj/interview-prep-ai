@@ -1859,26 +1859,26 @@ export default function ProgressPage() {
 
     // ── Archetype → personality description ──────────────────────────────────
     const archetypePersonality: Record<string, { style: string; strength: string; tension: string }> = {
-      "storyteller":        { style: "You're a natural storyteller — you lead with narrative and bring real energy to your answers.", strength: "That instinct creates answers people actually remember, and it's a genuine edge when the story is tight.", tension: "The risk is that the story sometimes takes a scenic route to its point, and by the time you land the conclusion, you've lost the listener." },
-      "circling the point": { style: "You're an expressive communicator who tends to build up to your point rather than leading with it.", strength: "The ideas are there and the energy is engaging — interviewers can tell there's something worth hearing.", tension: "The habit of circling before landing means your strongest point often arrives late, after attention has wandered." },
-      "polished performer": { style: "You're a clean, composed communicator — structure is natural, delivery is controlled, and ownership language is consistent.", strength: "That combination is rare and it already puts you ahead of most candidates at the same level.", tension: "The next gap isn't a fix — it's a ceiling. You're executing well; what separates you now is one specific, memorable detail per answer." },
-      "anxious achiever":   { style: "You have genuinely strong content — the work experience is real, the examples are solid, and the thinking is there.", strength: "When you let the story stand on its own, it's compelling. The evidence is good.", tension: "The habit of hedging and qualifying is softening it. Phrases like 'I think' and 'kind of' are costing you credibility you've already earned." },
-      "vague narrator":     { style: "You're a fluent speaker with a natural storytelling rhythm — answers flow well and you're easy to follow.", strength: "That conversational quality is disarming in the right way — you don't sound rehearsed.", tension: "The gap is that claims are landing without proof. An answer can sound plausible and specific at the same time — right now it's mostly the former." },
-      "fading closer":      { style: "You build answers well — the setup is clear, the context lands, and the middle section is usually strong.", strength: "That structural instinct means interviewers are with you through most of the answer.", tension: "The habit to break is closing too softly. The result section is where the score is earned, and yours tends to trail off rather than land." },
-      "monotone expert":    { style: "You're a knowledgeable communicator — the depth is clearly there and you don't overclaim.", strength: "That measured quality reads as credible, which is valuable in technical and analytical roles.", tension: "The delivery is working against the content. Acoustically flat answers make even strong ideas sound routine — the voice needs to reflect the quality of the thinking." },
-      "scattered thinker":  { style: "You bring strong ideas and clearly think fast — there's real substance in your answers.", strength: "The raw material is there. This isn't a content problem.", tension: "The sequencing is breaking down before the ideas can land. You're starting threads that don't connect back, and the listener ends up reconstructing the story themselves." },
-      "quiet achiever":     { style: "You're a composed, understated communicator — delivery is controlled and the content tends to be solid.", strength: "That calm, unhurried quality reads as confidence in the right settings.", tension: "The risk is that the delivery energy isn't matching the quality of what you're describing. Strong work deserves a more engaged voice." },
-      "fragmented expert":  { style: "You clearly know your material deeply — the expertise is real and comes through.", strength: "That depth of knowledge is an asset that most candidates don't have.", tension: "The habit of starting sentences before finishing them is fragmenting the signal. The intelligence is there, but the delivery is breaking it into pieces before it can land." },
-      "phantom expert":     { style: "You're a sophisticated communicator — language is precise, framing is strong, and you sound substantive.", strength: "That vocabulary and structural sophistication stands out.", tension: "The gap is that the sophistication is covering for missing evidence. When you go to find the concrete proof point, it isn't there. One real number changes everything." },
-      "process narrator":   { style: "You describe work clearly — the process, the steps, and the context are all well-communicated.", strength: "That clarity is genuinely useful and means interviewers understand what you did.", tension: "The answer is reading like a project log rather than a personal story. The 'I decided' moment — the one that shows your judgment — is missing." },
-      "the creditor":       { style: "You tell strong stories and the structure is usually clear — setup, problem, action, and result all tend to appear.", strength: "That structural discipline means answers are easy to follow and complete.", tension: "The habit of sharing credit too broadly is diffusing your contribution. 'We built' and 'the team decided' hides the part interviewers actually need to evaluate — what you specifically did." },
+      "storyteller":        { style: "You're a natural storyteller. You lead with narrative and bring real energy to your answers.", strength: "That instinct creates answers people actually remember, and it's a genuine edge when the story is tight.", tension: "The risk is that the story sometimes takes a scenic route to its point. By the time you land the conclusion, you've lost the listener." },
+      "circling the point": { style: "You're an expressive communicator who tends to build up to your point rather than leading with it.", strength: "The ideas are there and the energy is engaging. Interviewers can tell there's something worth hearing.", tension: "The habit of circling before landing means your strongest point often arrives late, after attention has wandered." },
+      "polished performer": { style: "You're a clean, composed communicator. Structure is natural, delivery is controlled, and ownership language is consistent.", strength: "That combination is rare and it already puts you ahead of most candidates at the same level.", tension: "You're executing well at this level. What separates you now is one specific, memorable detail per answer." },
+      "anxious achiever":   { style: "You have genuinely strong content. The work experience is real, the examples are solid, and the thinking is there.", strength: "When you let the story stand on its own, it's compelling. The evidence is good.", tension: "The habit of hedging and qualifying is softening it. Phrases like 'I think' and 'kind of' are costing you credibility you've already earned." },
+      "vague narrator":     { style: "You're a fluent speaker with a natural storytelling rhythm. Answers flow well and you're easy to follow.", strength: "That conversational quality is disarming. You sound unscripted.", tension: "The gap is that claims are landing without proof. An answer can sound plausible and be specific at the same time. Right now it's landing as the former." },
+      "fading closer":      { style: "You build answers well. The setup is clear, the context lands, and the middle section is usually strong.", strength: "That structural instinct means interviewers are with you through most of the answer.", tension: "The habit to break is closing too softly. The result section is where the score is earned, and yours tends to trail off rather than land." },
+      "monotone expert":    { style: "You're a knowledgeable communicator. The depth is clearly there and your claims stay within what you can back up.", strength: "That measured quality reads as credible, which is valuable in technical and analytical roles.", tension: "The delivery is working against the content. Acoustically flat answers make even strong ideas sound routine. The voice needs to reflect the quality of the thinking." },
+      "scattered thinker":  { style: "You bring strong ideas and clearly think fast. There's real substance in your answers.", strength: "The raw material is solid. The challenge is purely structural.", tension: "The sequencing is breaking down before the ideas can land. You're starting threads that don't connect back, and the listener ends up reconstructing the story themselves." },
+      "quiet achiever":     { style: "You're a composed, understated communicator. Delivery is controlled and the content tends to be solid.", strength: "That calm, unhurried quality reads as confidence in the right settings.", tension: "The delivery energy is lagging behind the quality of what you're describing. Strong work deserves a more engaged voice." },
+      "fragmented expert":  { style: "You clearly know your material deeply. The expertise is real and comes through.", strength: "That depth of knowledge is an asset that most candidates don't have.", tension: "The habit of starting sentences before finishing them is fragmenting the signal. The intelligence is there, and the delivery is breaking it into pieces before it can land." },
+      "phantom expert":     { style: "You're a sophisticated communicator. Language is precise, framing is strong, and you sound substantive.", strength: "That vocabulary and structural sophistication stands out.", tension: "The sophistication is covering for missing evidence. When you reach for the concrete proof point, it tends to be thin. One real number changes everything." },
+      "process narrator":   { style: "You describe work clearly. The process, the steps, and the context are all well-communicated.", strength: "That clarity is genuinely useful and means interviewers understand what you did.", tension: "The answer is reading like a project log rather than a personal story. The 'I decided' moment, the one that shows your judgment, is what's missing." },
+      "the creditor":       { style: "You tell strong stories and the structure is usually clear. Setup, problem, action, and result all tend to appear.", strength: "That structural discipline means answers are easy to follow and complete.", tension: "The habit of sharing credit too broadly is diffusing your contribution. 'We built' and 'the team decided' obscures what interviewers need to evaluate. Describe what you specifically did." },
     };
 
     const matched = Object.entries(archetypePersonality).find(([key]) => arch.includes(key));
     const personality = matched?.[1] ?? {
       style: `Across ${count} sessions, a consistent communication pattern is emerging.`,
       strength: "You bring a natural approach to answering that comes through across different question types.",
-      tension: "The growth opportunity is making that approach more deliberate — tighter structure and more specific evidence.",
+      tension: "The growth opportunity is making that approach more deliberate. Tighter structure and more specific evidence will lift the scores.",
     };
 
     // ── Secondary archetype modifiers ─────────────────────────────────────────
@@ -1888,7 +1888,7 @@ export default function ProgressPage() {
       "polished performer": "a composed, controlled quality that shows up especially in structured questions",
       "anxious achiever":   "a habit of qualifying and hedging that surfaces when the stakes feel higher",
       "vague narrator":     "a fluency that can make answers sound more specific than the details support",
-      "fading closer":      "a tendency to lose steam in the final stretch — the close needs as much care as the setup",
+      "fading closer":      "a tendency to lose steam in the final stretch, where the close needs as much care as the setup",
       "monotone expert":    "a delivery that can flatten out when the content gets technical or detailed",
       "scattered thinker":  "a pattern of branching mid-thought before the current thread is finished",
       "quiet achiever":     "an understated quality that occasionally undersells the strength of the work",
@@ -1911,9 +1911,9 @@ export default function ProgressPage() {
         narrative_clarity:   ["Your answers are well-organized and easy to follow", "Your answers sometimes meander before reaching the main point"],
         evidence_quality:    ["You consistently back claims with specific examples", "Your answers tell the story but often lack the concrete proof that makes them stick"],
         ownership_agency:    ["You take clear, direct ownership of your decisions and outcomes", "You sometimes share credit too broadly, diluting your individual contribution"],
-        vocal_engagement:    ["Your delivery is varied and engaging — the voice reflects the content", "Your delivery can be flat, which undersells the quality of your content"],
+        vocal_engagement:    ["Your delivery is varied and engaging, with the voice reflecting the content", "Your delivery can be flat, which undersells the quality of your content"],
         response_control:    ["You stay on point and manage the shape of your answers well", "You sometimes lose control of where the answer is going"],
-        cognitive_depth:     ["You show genuine depth of thinking — answers go beyond the obvious", "Your answers tend to stay at the surface — there's more thinking behind them than you're showing"],
+        cognitive_depth:     ["You show genuine depth of thinking, with answers that go beyond the obvious", "Your answers tend to stay at the surface, with more thinking behind them than you're showing"],
         presence_confidence: ["You come across as confident and self-assured", "Your answers sometimes lack the confidence that the work you're describing deserves"],
         audience_awareness:  ["You pitch answers well for who's listening", "You could calibrate better for the context you're in"],
       };
@@ -1924,12 +1924,12 @@ export default function ProgressPage() {
     // ── Overall trajectory ────────────────────────────────────────────────────
     const trajectoryNote = (() => {
       const { trend, trendStrength } = traj;
-      if (trend === "improving" && trendStrength === "strong")    return "Your scores have been improving significantly — the practice is visibly compounding.";
-      if (trend === "improving" && trendStrength === "moderate")  return "Your trajectory is trending upward — recent sessions are tracking higher than your overall average.";
-      if (trend === "improving" && trendStrength === "slight")    return "There's a slight upward lean in recent sessions — not dramatic, but moving in the right direction.";
-      if (trend === "plateau")                                    return "Your performance has leveled off — you're getting consistent results, but breaking through the ceiling now requires a new deliberate challenge.";
-      if (trend === "declining" && trendStrength === "strong")    return "Recent sessions are tracking notably lower than your historical average — worth examining whether question difficulty has increased or a new habit has crept in.";
-      if (trend === "declining")                                  return "Recent sessions are dipping slightly — worth staying aware of what's shifting.";
+      if (trend === "improving" && trendStrength === "strong")    return "Your scores have been improving significantly. The practice is visibly compounding.";
+      if (trend === "improving" && trendStrength === "moderate")  return "Your trajectory is trending upward. Recent sessions are tracking higher than your overall average.";
+      if (trend === "improving" && trendStrength === "slight")    return "There's a slight upward lean in recent sessions. It's gradual, and the trajectory is positive.";
+      if (trend === "plateau")                                    return "Your performance has leveled off. You're getting consistent results, and breaking through will take a new deliberate challenge.";
+      if (trend === "declining" && trendStrength === "strong")    return "Recent sessions are tracking notably lower than your historical average. Worth examining whether question difficulty has increased or a new habit has crept in.";
+      if (trend === "declining")                                  return "Recent sessions are dipping slightly. Worth staying aware of what's shifting.";
       return null;
     })();
 
@@ -1948,7 +1948,7 @@ export default function ProgressPage() {
       if (best.category === worst.category) return null;
       const fmtCat = (c: string) => c.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
       if (best.avgScore - worst.avgScore >= 8) {
-        return `Your strongest question category is ${fmtCat(best.category)}, and ${fmtCat(worst.category)} is where the biggest performance gap sits — it's worth dedicating focused sessions there.`;
+        return `Your strongest question category is ${fmtCat(best.category)}. ${fmtCat(worst.category)} is where the biggest performance gap sits, and it's worth dedicating focused sessions there.`;
       } else if (best.avgScore - worst.avgScore >= 4) {
         return `${fmtCat(best.category)} questions are where you consistently show up best.`;
       }
@@ -1970,7 +1970,7 @@ export default function ProgressPage() {
     }
     if (topStrengthPattern) {
       const label = topStrengthPattern.key.replace(/_/g, " ");
-      p1 += ` One of your most consistent patterns is ${label} — it shows up reliably across sessions.`;
+      p1 += ` One of your most consistent patterns is ${label}. It shows up reliably across sessions.`;
     }
     p1 += ` ${personality.strength}`;
     if (fieldPhrase) p1 += ` That combination is a real asset ${fieldPhrase}.`;
@@ -1984,21 +1984,21 @@ export default function ProgressPage() {
         p2 += ` Specifically: ${gapDesc.toLowerCase()}.`;
         if (bottomDims[1] && bottomDims[1].key !== bottomDims[0].key && bottomDims[1].allTimeAvg < 6.5) {
           const gap2 = dimQuality(bottomDims[1].key, bottomDims[1].allTimeAvg);
-          if (gap2) p2 += ` ${gap2} — that's the second gap to close.`;
+          if (gap2) p2 += ` ${gap2}. That's the second gap to close.`;
         }
       }
     }
     if (lp.avgHedgingScore !== null && lp.avgHedgingScore >= 6) {
-      p2 += ` Your language carries a higher-than-ideal amount of hedging — softening phrases are diffusing answers that don't need softening.`;
+      p2 += ` Your language carries a higher-than-ideal amount of hedging. Softening phrases are diffusing answers that benefit from directness.`;
     } else if (lp.avgCognitiveComplexity !== null && lp.avgCognitiveComplexity >= 7.5) {
-      p2 += ` Analytically, your language is a real strength — the cognitive depth in how you frame ideas is above average.`;
+      p2 += ` Analytically, your language is a real strength. The cognitive depth in how you frame ideas is above average.`;
     }
     if (sp.weakestComponent && sp.behavioralAttemptCount >= 3) {
       const starMap: Record<string, string> = {
-        situation: "the setup and context section of your STAR answers tends to be the thinnest — interviewers need more grounding before the action lands",
-        task: "defining your specific responsibility and goal is the STAR component most often left vague — make your assignment explicit early",
-        action: "the action section — what you specifically did — is the weakest STAR component, which is the most critical gap since it's where your judgment gets evaluated",
-        result: "the result section is where your STAR answers tend to fade — that's the highest-value real estate in any behavioral answer",
+        situation: "the setup and context section of your STAR answers tends to be the thinnest. Interviewers need more grounding before the action lands",
+        task: "defining your specific responsibility and goal is the STAR component most often left vague. Make your assignment explicit early",
+        action: "the action section (what you specifically did) is the weakest STAR component, which is the most critical gap since it's where your judgment gets evaluated",
+        result: "the result section is where your STAR answers tend to fade. It's the highest-value real estate in any behavioral answer",
       };
       const starNote = starMap[sp.weakestComponent];
       if (starNote) p2 += ` On structure: ${starNote}.`;
@@ -2006,11 +2006,11 @@ export default function ProgressPage() {
     if (catNote) p2 += ` ${catNote}`;
     if (coachingProfile.resolvedWeaknesses.length > 0) {
       const resolved = coachingProfile.resolvedWeaknesses[0].replace(/_/g, " ");
-      p2 += ` Worth noting: ${resolved} has stopped showing up in your recent sessions — that's real progress.`;
+      p2 += ` Worth noting: ${resolved} has stopped showing up in your recent sessions. That's real progress.`;
     }
     if (evolving && recentArch) {
       const recentLabel = archetypeStats.all.find(a => a.name.toLowerCase() === recentArch)?.name ?? recentArch;
-      p2 += ` Your most recent sessions are trending toward a ${recentLabel} pattern, which suggests you're adapting — keep watching that shift.`;
+      p2 += ` Your most recent sessions are trending toward a ${recentLabel} pattern, which suggests you're adapting. Keep watching that shift.`;
     }
 
     // ── Paragraph 3: Delivery & Presence ─────────────────────────────────────
@@ -2018,65 +2018,65 @@ export default function ProgressPage() {
 
     // Voice layer: pace + fillers + monotone (categorical — no raw numbers)
     const voiceSentences: string[] = [];
-    if (dp.wpmCategory === "very_fast")  voiceSentences.push("your pace is notably fast — slowing down for results and key claims will change how they land");
-    else if (dp.wpmCategory === "fast")  voiceSentences.push("you're speaking faster than ideal in key moments — the listener needs a beat to absorb results before you move on");
-    else if (dp.wpmCategory === "slow")  voiceSentences.push("your pace lingers in the setup — a slightly brisker tempo will keep the listener more engaged");
-    else if (dp.wpmCategory === "good")  voiceSentences.push("your pace is comfortable and conversational — that's a real advantage");
+    if (dp.wpmCategory === "very_fast")  voiceSentences.push("your pace is notably fast. Slowing down for results and key claims will change how they land");
+    else if (dp.wpmCategory === "fast")  voiceSentences.push("you're speaking faster than ideal in key moments. The listener needs a beat to absorb results before you move on");
+    else if (dp.wpmCategory === "slow")  voiceSentences.push("your pace lingers in the setup. A slightly brisker tempo will keep the listener more engaged");
+    else if (dp.wpmCategory === "good")  voiceSentences.push("your pace is comfortable and conversational, which is a real advantage");
 
-    if (dp.fillerCategory === "high")        voiceSentences.push("filler words are a consistent habit — they create interference in an otherwise strong delivery, and replacing each one with a deliberate pause is the fastest fix");
-    else if (dp.fillerCategory === "good")   voiceSentences.push("filler words are mostly under control — an occasional one slips in but not at a rate that undermines you");
-    else if (dp.fillerCategory === "excellent") voiceSentences.push("filler word control is clean — that's harder than it sounds and it's reinforcing your composure signal");
+    if (dp.fillerCategory === "high")        voiceSentences.push("filler words are a consistent habit. Replacing each one with a deliberate pause is the fastest fix");
+    else if (dp.fillerCategory === "good")   voiceSentences.push("filler words are mostly under control. An occasional one slips in at a level that's manageable");
+    else if (dp.fillerCategory === "excellent") voiceSentences.push("filler word control is clean. That reinforces your composure signal");
 
-    if (dp.monotoneCategory === "flat")        voiceSentences.push("the delivery is acoustically flat — the ideas are stronger than the voice carrying them right now");
-    else if (dp.monotoneCategory === "moderate") voiceSentences.push("vocal variety is serviceable but not yet adding energy to your answers — there's more range available");
-    else if (dp.monotoneCategory === "engaging") voiceSentences.push("vocal dynamics are engaging — the voice is reflecting the content well");
+    if (dp.monotoneCategory === "flat")        voiceSentences.push("the delivery is acoustically flat. The ideas are stronger than what the voice is currently carrying");
+    else if (dp.monotoneCategory === "moderate") voiceSentences.push("vocal variety is serviceable. There's more range available to add energy to your answers");
+    else if (dp.monotoneCategory === "engaging") voiceSentences.push("vocal dynamics are engaging. The voice is reflecting the content well");
 
     // Vocal dynamics layer: energy variation + tempo (only add nuance if not covered by monotoneCategory)
     const dynamicsSentences: string[] = [];
     if (overview.avgEnergyVar !== null && dp.monotoneCategory !== "engaging") {
-      if (overview.avgEnergyVar >= 7)     dynamicsSentences.push("energy variation is a genuine asset — the voice carries different weight in different parts of the answer");
-      else if (overview.avgEnergyVar < 3) dynamicsSentences.push("energy variation is low — the delivery stays at a consistent level when stronger moments call for a lift");
+      if (overview.avgEnergyVar >= 7)     dynamicsSentences.push("energy variation is a genuine asset. The voice carries different weight in different parts of the answer");
+      else if (overview.avgEnergyVar < 3) dynamicsSentences.push("energy variation is low. The delivery stays at a consistent level when stronger moments call for a lift");
     }
     if (overview.avgTempoDyn !== null) {
-      if (overview.avgTempoDyn >= 7)     dynamicsSentences.push("tempo dynamics are strong — you vary your pace deliberately, which keeps the listener oriented");
-      else if (overview.avgTempoDyn < 3) dynamicsSentences.push("tempo is relatively static — varying the pace around key moments would add dimension to the delivery");
+      if (overview.avgTempoDyn >= 7)     dynamicsSentences.push("tempo dynamics are strong. You vary your pace deliberately, which keeps the listener oriented");
+      else if (overview.avgTempoDyn < 3) dynamicsSentences.push("tempo is relatively static. Varying the pace around key moments would add dimension to the delivery");
     }
 
     // Camera layer: eye contact, expressiveness, stability, warmth, engagement, look-away
     const webcamSentences: string[] = [];
     if (overview.avgEyeContact !== null) {
-      if (overview.avgEyeContact < 50)      webcamSentences.push("eye contact is below where it should be — looking directly at the camera consistently projects more authority");
+      if (overview.avgEyeContact < 50)      webcamSentences.push("eye contact is below where it should be. Looking directly at the camera consistently projects more authority");
       else if (overview.avgEyeContact >= 75) webcamSentences.push("eye contact is strong, which reinforces the confidence your voice is building");
     }
     if (overview.avgExpressiveness !== null) {
-      if (overview.avgExpressiveness >= 70) webcamSentences.push("facial expressiveness is working in your favor — you read as visually engaged and present on camera");
-      else if (overview.avgExpressiveness < 30) webcamSentences.push("facial expression tends toward neutral on camera — more animation in key moments would reinforce what you're saying verbally");
+      if (overview.avgExpressiveness >= 70) webcamSentences.push("facial expressiveness is working in your favor. You read as visually engaged and present on camera");
+      else if (overview.avgExpressiveness < 30) webcamSentences.push("facial expression tends toward neutral on camera. More animation in key moments would reinforce what you're saying verbally");
     }
     if (overview.avgHeadStability !== null) {
-      if (overview.avgHeadStability >= 75)   webcamSentences.push("physical composure is strong — that steadiness on camera projects authority");
-      else if (overview.avgHeadStability < 40) webcamSentences.push("head movement is creating a slightly restless appearance — staying stiller adds authority and focus");
+      if (overview.avgHeadStability >= 75)   webcamSentences.push("physical composure is strong. That steadiness on camera projects authority");
+      else if (overview.avgHeadStability < 40) webcamSentences.push("head movement is creating a slightly restless appearance. A steadier posture adds authority and focus");
     }
     if (overview.avgSmileRate !== null && overview.avgSmileRate >= 35) {
-      webcamSentences.push("natural warmth shows up in your expression — that's a social asset, especially in culture-fit conversations");
+      webcamSentences.push("natural warmth shows up in your expression. That's a social asset, especially in culture-fit conversations");
     }
     if (overview.avgBrowEngagement !== null && overview.avgBrowEngagement >= 55) {
-      webcamSentences.push("brow engagement is active — you're visually communicating emphasis and interest, not just speaking into the camera");
+      webcamSentences.push("brow engagement is active. You're visually communicating emphasis and interest to the camera");
     }
     if (overview.avgLookAwayRate !== null && overview.avgLookAwayRate >= 45) {
-      webcamSentences.push("you look away from the camera more frequently than ideal — a more consistent direct look forward will significantly strengthen your on-camera presence");
+      webcamSentences.push("you look away from the camera more frequently than ideal. A more consistent direct look forward will significantly strengthen your on-camera presence");
     }
 
     // STAR result quality
     const starResultNote =
       overview.avgStarResult !== null && overview.avgStarResult < 5.5
-        ? "The pattern costing you the most is weak result statements — answers that build well but don't close with a measurable outcome."
+        ? "The pattern costing you the most is weak result statements. Answers are building well but closing before a measurable outcome lands."
         : overview.avgStarResult !== null && overview.avgStarResult >= 7.0
-        ? "Your answers close well — result statements are landing with impact, which is one of the most valued signals in behavioral interviews."
+        ? "Your answers close well. Result statements are landing with impact, which is one of the most valued signals in behavioral interviews."
         : null;
 
     const hasAnyDelivery = voiceSentences.length > 0 || dynamicsSentences.length > 0 || webcamSentences.length > 0 || starResultNote !== null;
     if (!hasAnyDelivery) {
-      p3 = `Complete a few spoken sessions to unlock delivery analysis — pace, filler rate, and vocal variety add a significant layer to this coaching picture.`;
+      p3 = `Complete a few spoken sessions to unlock delivery analysis. Pace, filler rate, and vocal variety add a significant layer to this coaching picture.`;
     } else {
       const p3Parts: string[] = [];
       if (voiceSentences.length > 0) {
@@ -2103,15 +2103,15 @@ export default function ProgressPage() {
 
     // ── Paragraph 4: Coaching priority + practice context ────────────────────
     const priorityMap: Record<string, string> = {
-      outcome_strength:    "Every answer needs to end with a result that an interviewer can measure — a number, a timeline, or a named outcome. Right now, the setup is often stronger than the close.",
-      evidence_specificity:"The pattern to break is making claims without proof. Before your next session, find one specific number — a percentage, a dollar amount, a timeframe — for each story you're planning to tell.",
-      hedging_language:    "The language habit to target is hedging. 'I think', 'kind of', and 'we' are softening answers that don't need softening. Try leading your next three answers with 'I decided' or 'I drove' and notice the difference.",
-      directness:          "You're building up to your point when you should be leading with it. Try opening your next answer with the outcome — 'I drove X result by doing Y' — and then work backwards into the story.",
-      ownership:           "The word to watch is 'we'. When describing your own decisions, 'we' hides the contribution the interviewer is trying to evaluate. Name what you specifically did.",
-      structural_clarity:  "Before your next answer, say the core of it in one sentence: 'I did X and the outcome was Y.' That sentence is your anchor — build the story around it, not away from it.",
+      outcome_strength:    "Every answer needs to end with a result that an interviewer can measure: a number, a timeline, or a named outcome. The setup is consistently stronger than the close.",
+      evidence_specificity:"The pattern to break is making claims without proof. Before your next session, find one specific number, a percentage, a dollar amount, or a timeframe, for each story you're planning to tell.",
+      hedging_language:    "The language habit to target is hedging. 'I think', 'kind of', and 'we' are softening answers that benefit from directness. Try leading your next three answers with 'I decided' or 'I drove' and notice the difference.",
+      directness:          "You're building up to your point when leading with it would be stronger. Try opening your next answer with the outcome: 'I drove X result by doing Y,' and then work backwards into the story.",
+      ownership:           "The word to watch is 'we'. When describing your own decisions, it diffuses the contribution the interviewer is trying to evaluate. Name what you specifically did.",
+      structural_clarity:  "Before your next answer, say the core of it in one sentence: 'I did X and the outcome was Y.' That sentence is your anchor. Build the story around it.",
       filler_words:        "The filler word habit is the most actionable thing to target right now. Replace every 'um' or 'like' with a deliberate one-second pause. It sounds better and it signals composure.",
-      pace_fast:           "Slow down after your result statement. That's the moment where the answer either lands or disappears, and rushing through it means you're doing all the work for none of the credit.",
-      pace_slow:           "Get to your action faster. The setup is longer than it needs to be — try cutting the first third and opening with what you actually did.",
+      pace_fast:           "Slow down after your result statement. That's the moment where the answer lands or gets lost, and rushing through it means the credit doesn't follow the effort.",
+      pace_slow:           "Get to your action faster. The setup is longer than it needs to be. Try cutting the first third and opening with what you actually did.",
     };
 
     let p4 = "";
@@ -2125,7 +2125,7 @@ export default function ProgressPage() {
       const gapDesc = dimQuality(bottomDims[0].key, bottomDims[0].allTimeAvg);
       p4 = `The clearest thing to work on is ${bottomDims[0].label.toLowerCase()}. ${gapDesc || "Focus your next few sessions on building this dimension up."} The score will follow the habit.`;
     } else {
-      p4 = `No single dominant gap has emerged yet — which means the opportunity is in execution, not repair. Focus your next sessions on one thing: end every answer with a specific, named result that someone could verify.`;
+      p4 = `No single dominant gap has emerged yet. The opportunity is in execution. Focus your next sessions on one thing: end every answer with a specific, named result that someone could verify.`;
     }
     if (overview.topCategory) {
       const catLabel = overview.topCategory.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());

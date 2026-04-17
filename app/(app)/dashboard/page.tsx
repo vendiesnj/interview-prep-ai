@@ -1058,7 +1058,7 @@ interface SignalData {
   profile: { name?: string; graduationYear?: string; stage?: string; targetIndustry?: string };
   speaking: { interview: { count: number; avgScore: number | null }; networking: { count: number }; publicSpeaking: { count: number } };
   completeness: number;
-  nextAction: { label: string; href: string; naceKey?: string; currentScore?: number | null } | null;
+  nextAction: { title: string; description: string; href: string; naceKey?: string; currentScore?: number | null } | null;
   aptitude: {
     primary: string;
     secondary?: string;
@@ -1340,7 +1340,7 @@ function PracticeStatsCard({ data, lastMockInterview }: { data: SignalData; last
       {/* Next action */}
       {next && (
         <Link href={next.href} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 9, background: "var(--accent-soft)", border: "1px solid var(--accent-strong)", textDecoration: "none" }}>
-          <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{next.label}</span>
+          <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, flex: 1, lineHeight: 1.4 }}>{next.title}</span>
           <span style={{ fontSize: 14, color: "var(--accent)" }}>→</span>
         </Link>
       )}
@@ -1447,10 +1447,15 @@ export default function DashboardPage() {
   const careerStageLabel = careerStage ? (CAREER_STAGE_LABELS[careerStage] ?? null) : null;
 
   // Next action for hero card
+  // Primary button always routes to /practice — NACE next action informs subtitle only
+  const PRACTICE_ROUTES = new Set(["/practice", "/mock-interview", "/public-speaking", "/networking"]);
   const heroNextAction = (() => {
     if (!totalSessions) return { label: "Start your first session", sub: "Establish your baseline Communication Level", href: "/practice" };
     if (totalSessions < 3) return { label: "Keep the momentum going", sub: `${3 - totalSessions} more session${3 - totalSessions !== 1 ? "s" : ""} to unlock your full Communication Profile`, href: "/practice" };
-    if (data?.nextAction) return { label: data.nextAction.label, sub: data.nextAction.currentScore !== undefined && data.nextAction.currentScore !== null ? `Current score: ${data.nextAction.currentScore}` : "Based on your recent sessions", href: data.nextAction.href };
+    if (data?.nextAction) {
+      const href = PRACTICE_ROUTES.has(data.nextAction.href) ? data.nextAction.href : "/practice";
+      return { label: data.nextAction.title ?? "Continue practicing", sub: data.nextAction.description ?? "Based on your recent sessions", href };
+    }
     return { label: "Continue practicing", sub: "Keep building your Communication Level", href: "/practice" };
   })();
 
