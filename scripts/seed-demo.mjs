@@ -188,6 +188,7 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
         response_control:    { label: "Response Control",      s: Math.min(10, Math.max(0, score + 0.3 + v())) },
         cognitive_depth:     { label: "Cognitive Depth",       s: Math.min(10, Math.max(0, score - 1.2 + v())) },
         presence_confidence: { label: "Presence & Confidence", s: Math.min(10, Math.max(0, confScore - 0.4 + v())) },
+        audience_awareness:  { label: "Audience Awareness",    s: Math.min(10, Math.max(0, score - 0.5 + v())) },
       };
       // Per-dimension coaching that is score-tier-aware and non-generic
       const coachingMap = {
@@ -226,6 +227,11 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
           : sc >= 5.5
           ? "Good presence overall. Stay on camera during the result sentence specifically, which is the moment eye contact matters most."
           : "Confidence signals are undermining otherwise good content. On your next attempt, commit to sustained eye contact from your first sentence. It will feel uncomfortable, and that discomfort is the signal improving.",
+        audience_awareness: (sc) => sc >= 7.5
+          ? "You're pitching answers well for the context. The level of detail and framing are landing appropriately for the role and audience."
+          : sc >= 5.5
+          ? "Good calibration overall. Stay attentive to whether the interviewer looks for technical depth or high-level impact — adjust your detail level accordingly."
+          : "The answer needs better audience calibration. Match the level of detail to who's listening — senior interviewers want decision-making judgment; hiring managers want outcomes.",
       };
       const result = {};
       for (const [key, { label, s }] of Object.entries(dims)) {
@@ -233,7 +239,7 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
         result[key] = {
           label,
           score: sc,
-          coaching: coachingMap[key](sc),
+          coaching: coachingMap[key] ? coachingMap[key](sc) : "Focus on developing this area in your next sessions.",
           isStrength: sc >= 7.5,
           isGap: sc < 5.5,
           driverSignals: [],
@@ -265,6 +271,11 @@ function makeDeliveryMetrics(wpm, fillers, score) {
       energyMean: 0.55 + Math.random() * 0.15,
       energyStd: 0.04 + Math.random() * 0.04,
       tempoDynamics: tempoDyn,
+      // Azure Speech SDK signals
+      pronunciationScore: parseFloat(Math.min(96, Math.max(62, 75 + score * 2.2 + (Math.random() * 6 - 3))).toFixed(1)),
+      fluencyScore:       parseFloat(Math.min(95, Math.max(58, 70 + score * 2.8 + (Math.random() * 6 - 3))).toFixed(1)),
+      prosodyScore:       parseFloat(Math.min(94, Math.max(50, 62 + score * 3.0 + (Math.random() * 8 - 4))).toFixed(1)),
+      mumbleIndex:        parseFloat(Math.max(4,  Math.min(42, 32 - score * 2.8 + (Math.random() * 8 - 4))).toFixed(1)),
     },
     face: {
       eyeContact: parseFloat(eyeContact.toFixed(2)),
@@ -310,19 +321,20 @@ const questions = [
 ];
 
 // Improving arc: starts around 5.8, ends around 8.2
+// Archetypes use the new 12-archetype system (matches coachingWriteup lookup table)
 const attemptData = [
-  { daysAgoN: 21, score: 5.8, comm: 5.6, conf: 5.4, arch: "The Hedger",    wpm: 148, fillers: 9  },
-  { daysAgoN: 19, score: 6.1, comm: 6.0, conf: 5.8, arch: "The Hedger",    wpm: 152, fillers: 7  },
-  { daysAgoN: 17, score: 6.3, comm: 6.2, conf: 6.1, arch: "The Rusher",    wpm: 162, fillers: 6  },
-  { daysAgoN: 15, score: 6.5, comm: 6.4, conf: 6.3, arch: "The Rusher",    wpm: 158, fillers: 5  },
-  { daysAgoN: 13, score: 6.8, comm: 6.7, conf: 6.6, arch: "The Lecturer",  wpm: 145, fillers: 4  },
-  { daysAgoN: 11, score: 7.1, comm: 7.0, conf: 6.9, arch: "The Lecturer",  wpm: 143, fillers: 4  },
-  { daysAgoN: 9,  score: 7.2, comm: 7.1, conf: 7.0, arch: "The Pauser",    wpm: 138, fillers: 3  },
-  { daysAgoN: 7,  score: 7.4, comm: 7.3, conf: 7.2, arch: "The Pauser",    wpm: 135, fillers: 3  },
-  { daysAgoN: 5,  score: 7.6, comm: 7.5, conf: 7.4, arch: "The Storyteller", wpm: 132, fillers: 2 },
-  { daysAgoN: 4,  score: 7.8, comm: 7.7, conf: 7.6, arch: "The Storyteller", wpm: 130, fillers: 2 },
-  { daysAgoN: 2,  score: 8.0, comm: 7.9, conf: 7.9, arch: "The Storyteller", wpm: 128, fillers: 1 },
-  { daysAgoN: 1,  score: 8.2, comm: 8.1, conf: 8.0, arch: "The Storyteller", wpm: 126, fillers: 1 },
+  { daysAgoN: 21, score: 5.8, comm: 5.6, conf: 5.4, arch: "Anxious Achiever",   wpm: 148, fillers: 9  },
+  { daysAgoN: 19, score: 6.1, comm: 6.0, conf: 5.8, arch: "Anxious Achiever",   wpm: 152, fillers: 7  },
+  { daysAgoN: 17, score: 6.3, comm: 6.2, conf: 6.1, arch: "Circling the Point", wpm: 162, fillers: 6  },
+  { daysAgoN: 15, score: 6.5, comm: 6.4, conf: 6.3, arch: "Circling the Point", wpm: 158, fillers: 5  },
+  { daysAgoN: 13, score: 6.8, comm: 6.7, conf: 6.6, arch: "Vague Narrator",     wpm: 145, fillers: 4  },
+  { daysAgoN: 11, score: 7.1, comm: 7.0, conf: 6.9, arch: "Vague Narrator",     wpm: 143, fillers: 4  },
+  { daysAgoN: 9,  score: 7.2, comm: 7.1, conf: 7.0, arch: "Fading Closer",      wpm: 138, fillers: 3  },
+  { daysAgoN: 7,  score: 7.4, comm: 7.3, conf: 7.2, arch: "Fading Closer",      wpm: 135, fillers: 3  },
+  { daysAgoN: 5,  score: 7.6, comm: 7.5, conf: 7.4, arch: "Polished Performer", wpm: 132, fillers: 2  },
+  { daysAgoN: 4,  score: 7.8, comm: 7.7, conf: 7.6, arch: "Polished Performer", wpm: 130, fillers: 2  },
+  { daysAgoN: 2,  score: 8.0, comm: 7.9, conf: 7.9, arch: "Polished Performer", wpm: 128, fillers: 1  },
+  { daysAgoN: 1,  score: 8.2, comm: 8.1, conf: 8.0, arch: "Polished Performer", wpm: 126, fillers: 1  },
 ];
 
 for (let i = 0; i < attemptData.length; i++) {

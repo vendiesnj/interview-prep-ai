@@ -1715,6 +1715,7 @@ export async function POST(req: Request) {
         freeAttemptsUsed: true,
         freeAttemptCap: true,
         subscriptionStatus: true,
+        currentPeriodEnd: true,
       },
     });
 
@@ -1763,8 +1764,12 @@ export async function POST(req: Request) {
       );
     }
 
+    const _now = Date.now();
+    const _periodEndMs = user.currentPeriodEnd ? new Date(user.currentPeriodEnd).getTime() : null;
     const isPro =
-      user.subscriptionStatus === "active" || user.subscriptionStatus === "trialing";
+      user.subscriptionStatus === "active" ||
+      user.subscriptionStatus === "trialing" ||
+      (_periodEndMs !== null && _periodEndMs > _now);
 
     if (!isPro && user.freeAttemptsUsed >= user.freeAttemptCap) {
       return new Response(

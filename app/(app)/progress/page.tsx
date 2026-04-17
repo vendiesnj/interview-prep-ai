@@ -1191,6 +1191,8 @@ export default function ProgressPage() {
   const [history, setHistory] = useState<Attempt[]>([]);
   const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
   const [resumeHistory, setResumeHistory] = useState<any[]>([]);
+  const [studentProfile, setStudentProfile] = useState<{ targetRole?: string | null; targetIndustry?: string | null; major?: string | null } | null>(null);
+  const [isPro, setIsPro] = useState<boolean>(true); // optimistic until entitlement loads
   const { data: session, status } = useSession();
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const [activeTab, setActiveTab] = useState<InsightsTab>("overview");
@@ -1214,10 +1216,20 @@ export default function ProgressPage() {
             const data = await attRes.json();
             const attempts = Array.isArray(data?.attempts) ? (data.attempts as Attempt[]) : [];
             if (!cancelled && attempts.length > 0) setHistory(attempts);
+            if (!cancelled && data?.entitlement) {
+              setIsPro(data.entitlement.isPro === true);
+            }
           }
           if (profRes.ok) {
             const prof = await profRes.json();
-            if (!cancelled) setResumeHistory(prof?.resumeHistory ?? []);
+            if (!cancelled) {
+              setResumeHistory(prof?.resumeHistory ?? []);
+              setStudentProfile({
+                targetRole: prof?.targetRole ?? null,
+                targetIndustry: prof?.targetIndustry ?? null,
+                major: prof?.major ?? null,
+              });
+            }
           }
           if (!cancelled) { setLoadState("ready"); return; }
         }
@@ -1820,100 +1832,308 @@ export default function ProgressPage() {
   const coachingWriteup = useMemo((): { p1: string; p2: string; p3: string; p4: string } | null => {
     if (history.length < 3 || !coachingProfile) return null;
 
-    const arch = archetypeStats.dominant ?? "developing communicator";
+    const arch = (archetypeStats.dominant ?? "").toLowerCase();
+    const secondArch = (archetypeStats.all[1]?.name ?? "").toLowerCase();
     const count = history.length;
     const sortedDims = [...coachingProfile.dimensionProfile].sort((a, b) => b.allTimeAvg - a.allTimeAvg);
-    const topDims = sortedDims.filter(d => d.attemptCount >= 2).slice(0, 2);
-    const bottomDims = sortedDims.filter(d => d.attemptCount >= 2).reverse().slice(0, 2);
+    const topDims = sortedDims.filter(d => d.attemptCount >= 2);
+    const bottomDims = [...sortedDims].reverse().filter(d => d.attemptCount >= 2);
     const topPriority = coachingProfile.topPriorities[0];
     const secondPriority = coachingProfile.topPriorities[1];
-    const recentArch = coachingProfile.archetypeEvolution.recentArchetype;
-    const evolving = recentArch && recentArch !== archetypeStats.dominant;
+    const recentArch = (coachingProfile.archetypeEvolution.recentArchetype ?? "").toLowerCase();
+    const evolving = recentArch && recentArch !== arch && arch;
+    const dp = coachingProfile.deliveryProfile;
+    const traj = coachingProfile.overallTrajectory;
+    const sp = coachingProfile.starPattern;
+    const lp = coachingProfile.linguisticProfile;
+    const catPerf = coachingProfile.categoryPerformance;
 
-    // avgOverall is already 0–100 — do NOT multiply by 10
-    const avgScore100 = overview.avgOverall !== null ? Math.round(overview.avgOverall) : null;
+    // Role/industry context (optional — used when available)
+    const roleContext = studentProfile?.targetRole || overview.topProfile || null;
+    const industryContext = studentProfile?.targetIndustry || null;
+    const fieldPhrase = roleContext
+      ? `in ${roleContext.toLowerCase().replace(/^(a |an )/i, "").replace(/ role$| position$/i, "")}`
+      : industryContext
+      ? `in ${industryContext.toLowerCase()}`
+      : null;
 
-    // ── Paragraph 1: Identity + overall pattern ──────────────────────────────
-    let p1 = `Across ${count} sessions, your most consistent communication pattern is the ${arch} profile.`;
-    if (topDims[0] && topDims[0].attemptCount >= 2) {
-      p1 += ` ${topDims[0].label} is your strongest dimension at ${topDims[0].allTimeAvg.toFixed(1)}/10`;
-      if (topDims[1] && topDims[1].attemptCount >= 2) {
-        p1 += `, followed closely by ${topDims[1].label} (${topDims[1].allTimeAvg.toFixed(1)}/10)`;
-      }
-      p1 += ` — this is the foundation your communication style is built on.`;
-    }
-    if (avgScore100 !== null) {
-      p1 += ` Your overall average sits at ${avgScore100}/100.`;
-    }
-    if (evolving) {
-      p1 += ` Your recent sessions show a shift toward the ${recentArch} pattern — your style is actively evolving.`;
-    }
+    // ── Archetype → personality description ──────────────────────────────────
+    const archetypePersonality: Record<string, { style: string; strength: string; tension: string }> = {
+      "storyteller":        { style: "You're a natural storyteller — you lead with narrative and bring real energy to your answers.", strength: "That instinct creates answers people actually remember, and it's a genuine edge when the story is tight.", tension: "The risk is that the story sometimes takes a scenic route to its point, and by the time you land the conclusion, you've lost the listener." },
+      "circling the point": { style: "You're an expressive communicator who tends to build up to your point rather than leading with it.", strength: "The ideas are there and the energy is engaging — interviewers can tell there's something worth hearing.", tension: "The habit of circling before landing means your strongest point often arrives late, after attention has wandered." },
+      "polished performer": { style: "You're a clean, composed communicator — structure is natural, delivery is controlled, and ownership language is consistent.", strength: "That combination is rare and it already puts you ahead of most candidates at the same level.", tension: "The next gap isn't a fix — it's a ceiling. You're executing well; what separates you now is one specific, memorable detail per answer." },
+      "anxious achiever":   { style: "You have genuinely strong content — the work experience is real, the examples are solid, and the thinking is there.", strength: "When you let the story stand on its own, it's compelling. The evidence is good.", tension: "The habit of hedging and qualifying is softening it. Phrases like 'I think' and 'kind of' are costing you credibility you've already earned." },
+      "vague narrator":     { style: "You're a fluent speaker with a natural storytelling rhythm — answers flow well and you're easy to follow.", strength: "That conversational quality is disarming in the right way — you don't sound rehearsed.", tension: "The gap is that claims are landing without proof. An answer can sound plausible and specific at the same time — right now it's mostly the former." },
+      "fading closer":      { style: "You build answers well — the setup is clear, the context lands, and the middle section is usually strong.", strength: "That structural instinct means interviewers are with you through most of the answer.", tension: "The habit to break is closing too softly. The result section is where the score is earned, and yours tends to trail off rather than land." },
+      "monotone expert":    { style: "You're a knowledgeable communicator — the depth is clearly there and you don't overclaim.", strength: "That measured quality reads as credible, which is valuable in technical and analytical roles.", tension: "The delivery is working against the content. Acoustically flat answers make even strong ideas sound routine — the voice needs to reflect the quality of the thinking." },
+      "scattered thinker":  { style: "You bring strong ideas and clearly think fast — there's real substance in your answers.", strength: "The raw material is there. This isn't a content problem.", tension: "The sequencing is breaking down before the ideas can land. You're starting threads that don't connect back, and the listener ends up reconstructing the story themselves." },
+      "quiet achiever":     { style: "You're a composed, understated communicator — delivery is controlled and the content tends to be solid.", strength: "That calm, unhurried quality reads as confidence in the right settings.", tension: "The risk is that the delivery energy isn't matching the quality of what you're describing. Strong work deserves a more engaged voice." },
+      "fragmented expert":  { style: "You clearly know your material deeply — the expertise is real and comes through.", strength: "That depth of knowledge is an asset that most candidates don't have.", tension: "The habit of starting sentences before finishing them is fragmenting the signal. The intelligence is there, but the delivery is breaking it into pieces before it can land." },
+      "phantom expert":     { style: "You're a sophisticated communicator — language is precise, framing is strong, and you sound substantive.", strength: "That vocabulary and structural sophistication stands out.", tension: "The gap is that the sophistication is covering for missing evidence. When you go to find the concrete proof point, it isn't there. One real number changes everything." },
+      "process narrator":   { style: "You describe work clearly — the process, the steps, and the context are all well-communicated.", strength: "That clarity is genuinely useful and means interviewers understand what you did.", tension: "The answer is reading like a project log rather than a personal story. The 'I decided' moment — the one that shows your judgment — is missing." },
+      "the creditor":       { style: "You tell strong stories and the structure is usually clear — setup, problem, action, and result all tend to appear.", strength: "That structural discipline means answers are easy to follow and complete.", tension: "The habit of sharing credit too broadly is diffusing your contribution. 'We built' and 'the team decided' hides the part interviewers actually need to evaluate — what you specifically did." },
+    };
 
-    // ── Paragraph 2: Dimension gaps ──────────────────────────────────────────
-    let p2 = "";
-    if (bottomDims[0] && bottomDims[0].allTimeAvg < 7.0) {
-      p2 = `Your clearest coaching gap is ${bottomDims[0].label} at ${bottomDims[0].allTimeAvg.toFixed(1)}/10.`;
-      if (bottomDims[1] && bottomDims[1].allTimeAvg < 7.0 && bottomDims[1].key !== bottomDims[0].key) {
-        p2 += ` ${bottomDims[1].label} (${bottomDims[1].allTimeAvg.toFixed(1)}/10) is a secondary gap worth tracking.`;
+    const matched = Object.entries(archetypePersonality).find(([key]) => arch.includes(key));
+    const personality = matched?.[1] ?? {
+      style: `Across ${count} sessions, a consistent communication pattern is emerging.`,
+      strength: "You bring a natural approach to answering that comes through across different question types.",
+      tension: "The growth opportunity is making that approach more deliberate — tighter structure and more specific evidence.",
+    };
+
+    // ── Secondary archetype modifiers ─────────────────────────────────────────
+    const secondaryModifiers: Record<string, string> = {
+      "storyteller":        "a narrative instinct that makes your answers feel lived-in and real",
+      "circling the point": "a tendency to spiral toward the answer rather than open with it",
+      "polished performer": "a composed, controlled quality that shows up especially in structured questions",
+      "anxious achiever":   "a habit of qualifying and hedging that surfaces when the stakes feel higher",
+      "vague narrator":     "a fluency that can make answers sound more specific than the details support",
+      "fading closer":      "a tendency to lose steam in the final stretch — the close needs as much care as the setup",
+      "monotone expert":    "a delivery that can flatten out when the content gets technical or detailed",
+      "scattered thinker":  "a pattern of branching mid-thought before the current thread is finished",
+      "quiet achiever":     "an understated quality that occasionally undersells the strength of the work",
+      "fragmented expert":  "a habit of leaving thoughts slightly incomplete before moving to the next point",
+      "phantom expert":     "a linguistic sophistication that can paper over missing specifics",
+      "process narrator":   "a tendency to narrate what happened without centering your own judgment in the story",
+      "the creditor":       "a habit of distributing credit that can obscure your personal contribution",
+    };
+
+    const secMatched = Object.entries(secondaryModifiers).find(([key]) => secondArch.includes(key));
+    const secondaryNote = secMatched && secondArch && secondArch !== arch
+      ? `A secondary pattern also runs through your sessions: ${secMatched[1]}.`
+      : null;
+
+    // ── Dimension qualitative translations ───────────────────────────────────
+    const dimQuality = (key: string, avg: number): string => {
+      const high = avg >= 7.0;
+      const low  = avg < 5.5;
+      const map: Record<string, [string, string]> = {
+        narrative_clarity:   ["Your answers are well-organized and easy to follow", "Your answers sometimes meander before reaching the main point"],
+        evidence_quality:    ["You consistently back claims with specific examples", "Your answers tell the story but often lack the concrete proof that makes them stick"],
+        ownership_agency:    ["You take clear, direct ownership of your decisions and outcomes", "You sometimes share credit too broadly, diluting your individual contribution"],
+        vocal_engagement:    ["Your delivery is varied and engaging — the voice reflects the content", "Your delivery can be flat, which undersells the quality of your content"],
+        response_control:    ["You stay on point and manage the shape of your answers well", "You sometimes lose control of where the answer is going"],
+        cognitive_depth:     ["You show genuine depth of thinking — answers go beyond the obvious", "Your answers tend to stay at the surface — there's more thinking behind them than you're showing"],
+        presence_confidence: ["You come across as confident and self-assured", "Your answers sometimes lack the confidence that the work you're describing deserves"],
+        audience_awareness:  ["You pitch answers well for who's listening", "You could calibrate better for the context you're in"],
+      };
+      const [highDesc, lowDesc] = map[key] ?? ["This dimension is a strength", "This is an area for development"];
+      return high ? highDesc : low ? lowDesc : "";
+    };
+
+    // ── Overall trajectory ────────────────────────────────────────────────────
+    const trajectoryNote = (() => {
+      const { trend, trendStrength } = traj;
+      if (trend === "improving" && trendStrength === "strong")    return "Your scores have been improving significantly — the practice is visibly compounding.";
+      if (trend === "improving" && trendStrength === "moderate")  return "Your trajectory is trending upward — recent sessions are tracking higher than your overall average.";
+      if (trend === "improving" && trendStrength === "slight")    return "There's a slight upward lean in recent sessions — not dramatic, but moving in the right direction.";
+      if (trend === "plateau")                                    return "Your performance has leveled off — you're getting consistent results, but breaking through the ceiling now requires a new deliberate challenge.";
+      if (trend === "declining" && trendStrength === "strong")    return "Recent sessions are tracking notably lower than your historical average — worth examining whether question difficulty has increased or a new habit has crept in.";
+      if (trend === "declining")                                  return "Recent sessions are dipping slightly — worth staying aware of what's shifting.";
+      return null;
+    })();
+
+    // ── Consistent strength pattern ───────────────────────────────────────────
+    const topStrengthPattern = coachingProfile.strengthPatterns
+      .filter(s => s.consistent && s.allTimeFrequency >= 0.5)
+      .sort((a, b) => b.allTimeFrequency - a.allTimeFrequency)[0] ?? null;
+
+    // ── Category performance ──────────────────────────────────────────────────
+    const catNote = (() => {
+      if (!catPerf || catPerf.length < 2) return null;
+      const sorted = [...catPerf].filter(c => c.attempts >= 2).sort((a, b) => b.avgScore - a.avgScore);
+      if (sorted.length < 2) return null;
+      const best = sorted[0];
+      const worst = sorted[sorted.length - 1];
+      if (best.category === worst.category) return null;
+      const fmtCat = (c: string) => c.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+      if (best.avgScore - worst.avgScore >= 8) {
+        return `Your strongest question category is ${fmtCat(best.category)}, and ${fmtCat(worst.category)} is where the biggest performance gap sits — it's worth dedicating focused sessions there.`;
+      } else if (best.avgScore - worst.avgScore >= 4) {
+        return `${fmtCat(best.category)} questions are where you consistently show up best.`;
       }
-      const spread = topDims[0] ? topDims[0].allTimeAvg - bottomDims[0].allTimeAvg : 0;
-      if (spread >= 2.0) {
-        p2 += ` The ${spread.toFixed(1)}-point spread between your best and weakest dimension means you're inconsistent — work on raising the floor, not just your ceiling.`;
-      } else if (spread < 1.0) {
-        p2 += ` Your dimensions are tightly clustered, which suggests a consistent baseline. The growth opportunity is raising all of them together.`;
+      return null;
+    })();
+
+    // ── Paragraph 1: Who you are as a communicator ───────────────────────────
+    let p1 = personality.style;
+    if (secondaryNote) p1 += ` ${secondaryNote}`;
+    if (topDims[0]) {
+      const strengthDesc = dimQuality(topDims[0].key, topDims[0].allTimeAvg);
+      if (strengthDesc) {
+        p1 += ` ${strengthDesc}.`;
+        if (topDims[1]) {
+          const strength2 = dimQuality(topDims[1].key, topDims[1].allTimeAvg);
+          if (strength2 && topDims[1].allTimeAvg >= 6.5) p1 += ` ${strength2} as well.`;
+        }
       }
-    } else if (sortedDims.length >= 2) {
-      p2 = `Your dimensions are relatively balanced, with most sitting in a solid range. The next level of improvement will come from adding precision and specificity rather than fixing structural gaps.`;
     }
+    if (topStrengthPattern) {
+      const label = topStrengthPattern.key.replace(/_/g, " ");
+      p1 += ` One of your most consistent patterns is ${label} — it shows up reliably across sessions.`;
+    }
+    p1 += ` ${personality.strength}`;
+    if (fieldPhrase) p1 += ` That combination is a real asset ${fieldPhrase}.`;
+    if (trajectoryNote) p1 += ` ${trajectoryNote}`;
+
+    // ── Paragraph 2: The tension / gap ───────────────────────────────────────
+    let p2 = personality.tension;
+    if (bottomDims[0] && bottomDims[0].allTimeAvg < 6.5) {
+      const gapDesc = dimQuality(bottomDims[0].key, bottomDims[0].allTimeAvg);
+      if (gapDesc) {
+        p2 += ` Specifically: ${gapDesc.toLowerCase()}.`;
+        if (bottomDims[1] && bottomDims[1].key !== bottomDims[0].key && bottomDims[1].allTimeAvg < 6.5) {
+          const gap2 = dimQuality(bottomDims[1].key, bottomDims[1].allTimeAvg);
+          if (gap2) p2 += ` ${gap2} — that's the second gap to close.`;
+        }
+      }
+    }
+    if (lp.avgHedgingScore !== null && lp.avgHedgingScore >= 6) {
+      p2 += ` Your language carries a higher-than-ideal amount of hedging — softening phrases are diffusing answers that don't need softening.`;
+    } else if (lp.avgCognitiveComplexity !== null && lp.avgCognitiveComplexity >= 7.5) {
+      p2 += ` Analytically, your language is a real strength — the cognitive depth in how you frame ideas is above average.`;
+    }
+    if (sp.weakestComponent && sp.behavioralAttemptCount >= 3) {
+      const starMap: Record<string, string> = {
+        situation: "the setup and context section of your STAR answers tends to be the thinnest — interviewers need more grounding before the action lands",
+        task: "defining your specific responsibility and goal is the STAR component most often left vague — make your assignment explicit early",
+        action: "the action section — what you specifically did — is the weakest STAR component, which is the most critical gap since it's where your judgment gets evaluated",
+        result: "the result section is where your STAR answers tend to fade — that's the highest-value real estate in any behavioral answer",
+      };
+      const starNote = starMap[sp.weakestComponent];
+      if (starNote) p2 += ` On structure: ${starNote}.`;
+    }
+    if (catNote) p2 += ` ${catNote}`;
     if (coachingProfile.resolvedWeaknesses.length > 0) {
       const resolved = coachingProfile.resolvedWeaknesses[0].replace(/_/g, " ");
-      p2 += ` One pattern that has improved: ${resolved} is no longer appearing in recent sessions — that's measurable progress.`;
+      p2 += ` Worth noting: ${resolved} has stopped showing up in your recent sessions — that's real progress.`;
     }
-    if (!p2) {
-      p2 = "Your dimension profile is still building — more scored sessions will surface a clearer gap pattern.";
-    }
-
-    // ── Paragraph 3: Delivery signals ────────────────────────────────────────
-    const deliveryParts: string[] = [];
-    if (overview.avgPace !== null) {
-      if (overview.avgPace < 100) deliveryParts.push(`your pace is slow at ${overview.avgPace} wpm — speed up slightly to hold attention`);
-      else if (overview.avgPace > 165) deliveryParts.push(`your pace is fast at ${overview.avgPace} wpm — slow down on key points so they land`);
-      else deliveryParts.push(`your pace averages ${overview.avgPace} wpm, which is in a strong interview range`);
-    }
-    if (overview.avgFillers !== null) {
-      if (overview.avgFillers >= 4) deliveryParts.push(`filler word rate is elevated at ${overview.avgFillers.toFixed(1)} per 100 words — this is the delivery metric most worth targeting first`);
-      else if (overview.avgFillers >= 2) deliveryParts.push(`filler word rate is ${overview.avgFillers.toFixed(1)} per 100 words — manageable, but reducing it further will improve perceived confidence`);
-      else deliveryParts.push(`filler word rate is ${overview.avgFillers.toFixed(1)} per 100 words — well controlled`);
-    }
-    if (overview.avgEyeContact !== null) {
-      if (overview.avgEyeContact >= 70) deliveryParts.push(`eye contact reads as strong at ${overview.avgEyeContact}%`);
-      else if (overview.avgEyeContact < 50) deliveryParts.push(`eye contact is below target at ${overview.avgEyeContact}% — work on looking directly at the camera`);
+    if (evolving && recentArch) {
+      const recentLabel = archetypeStats.all.find(a => a.name.toLowerCase() === recentArch)?.name ?? recentArch;
+      p2 += ` Your most recent sessions are trending toward a ${recentLabel} pattern, which suggests you're adapting — keep watching that shift.`;
     }
 
+    // ── Paragraph 3: Delivery & Presence ─────────────────────────────────────
     let p3 = "";
-    if (deliveryParts.length > 0) {
-      p3 = `On delivery: ${deliveryParts.join("; ")}.`;
-      if (overview.avgStarResult !== null) {
-        const resultLabel = overview.avgStarResult >= 7 ? "strong" : overview.avgStarResult >= 5.5 ? "developing" : "weak";
-        p3 += ` Your STAR result statements average ${overview.avgStarResult.toFixed(1)}/10 — ${resultLabel} closing impact is one of the highest-value areas to develop.`;
-      }
-    } else {
-      p3 = `Spoken delivery data will appear after completing sessions with audio. Vocal metrics like pace, filler rate, and pitch variety add significant signal to this analysis.`;
+
+    // Voice layer: pace + fillers + monotone (categorical — no raw numbers)
+    const voiceSentences: string[] = [];
+    if (dp.wpmCategory === "very_fast")  voiceSentences.push("your pace is notably fast — slowing down for results and key claims will change how they land");
+    else if (dp.wpmCategory === "fast")  voiceSentences.push("you're speaking faster than ideal in key moments — the listener needs a beat to absorb results before you move on");
+    else if (dp.wpmCategory === "slow")  voiceSentences.push("your pace lingers in the setup — a slightly brisker tempo will keep the listener more engaged");
+    else if (dp.wpmCategory === "good")  voiceSentences.push("your pace is comfortable and conversational — that's a real advantage");
+
+    if (dp.fillerCategory === "high")        voiceSentences.push("filler words are a consistent habit — they create interference in an otherwise strong delivery, and replacing each one with a deliberate pause is the fastest fix");
+    else if (dp.fillerCategory === "good")   voiceSentences.push("filler words are mostly under control — an occasional one slips in but not at a rate that undermines you");
+    else if (dp.fillerCategory === "excellent") voiceSentences.push("filler word control is clean — that's harder than it sounds and it's reinforcing your composure signal");
+
+    if (dp.monotoneCategory === "flat")        voiceSentences.push("the delivery is acoustically flat — the ideas are stronger than the voice carrying them right now");
+    else if (dp.monotoneCategory === "moderate") voiceSentences.push("vocal variety is serviceable but not yet adding energy to your answers — there's more range available");
+    else if (dp.monotoneCategory === "engaging") voiceSentences.push("vocal dynamics are engaging — the voice is reflecting the content well");
+
+    // Vocal dynamics layer: energy variation + tempo (only add nuance if not covered by monotoneCategory)
+    const dynamicsSentences: string[] = [];
+    if (overview.avgEnergyVar !== null && dp.monotoneCategory !== "engaging") {
+      if (overview.avgEnergyVar >= 7)     dynamicsSentences.push("energy variation is a genuine asset — the voice carries different weight in different parts of the answer");
+      else if (overview.avgEnergyVar < 3) dynamicsSentences.push("energy variation is low — the delivery stays at a consistent level when stronger moments call for a lift");
+    }
+    if (overview.avgTempoDyn !== null) {
+      if (overview.avgTempoDyn >= 7)     dynamicsSentences.push("tempo dynamics are strong — you vary your pace deliberately, which keeps the listener oriented");
+      else if (overview.avgTempoDyn < 3) dynamicsSentences.push("tempo is relatively static — varying the pace around key moments would add dimension to the delivery");
     }
 
-    // ── Paragraph 4: Priority + next action ──────────────────────────────────
+    // Camera layer: eye contact, expressiveness, stability, warmth, engagement, look-away
+    const webcamSentences: string[] = [];
+    if (overview.avgEyeContact !== null) {
+      if (overview.avgEyeContact < 50)      webcamSentences.push("eye contact is below where it should be — looking directly at the camera consistently projects more authority");
+      else if (overview.avgEyeContact >= 75) webcamSentences.push("eye contact is strong, which reinforces the confidence your voice is building");
+    }
+    if (overview.avgExpressiveness !== null) {
+      if (overview.avgExpressiveness >= 70) webcamSentences.push("facial expressiveness is working in your favor — you read as visually engaged and present on camera");
+      else if (overview.avgExpressiveness < 30) webcamSentences.push("facial expression tends toward neutral on camera — more animation in key moments would reinforce what you're saying verbally");
+    }
+    if (overview.avgHeadStability !== null) {
+      if (overview.avgHeadStability >= 75)   webcamSentences.push("physical composure is strong — that steadiness on camera projects authority");
+      else if (overview.avgHeadStability < 40) webcamSentences.push("head movement is creating a slightly restless appearance — staying stiller adds authority and focus");
+    }
+    if (overview.avgSmileRate !== null && overview.avgSmileRate >= 35) {
+      webcamSentences.push("natural warmth shows up in your expression — that's a social asset, especially in culture-fit conversations");
+    }
+    if (overview.avgBrowEngagement !== null && overview.avgBrowEngagement >= 55) {
+      webcamSentences.push("brow engagement is active — you're visually communicating emphasis and interest, not just speaking into the camera");
+    }
+    if (overview.avgLookAwayRate !== null && overview.avgLookAwayRate >= 45) {
+      webcamSentences.push("you look away from the camera more frequently than ideal — a more consistent direct look forward will significantly strengthen your on-camera presence");
+    }
+
+    // STAR result quality
+    const starResultNote =
+      overview.avgStarResult !== null && overview.avgStarResult < 5.5
+        ? "The pattern costing you the most is weak result statements — answers that build well but don't close with a measurable outcome."
+        : overview.avgStarResult !== null && overview.avgStarResult >= 7.0
+        ? "Your answers close well — result statements are landing with impact, which is one of the most valued signals in behavioral interviews."
+        : null;
+
+    const hasAnyDelivery = voiceSentences.length > 0 || dynamicsSentences.length > 0 || webcamSentences.length > 0 || starResultNote !== null;
+    if (!hasAnyDelivery) {
+      p3 = `Complete a few spoken sessions to unlock delivery analysis — pace, filler rate, and vocal variety add a significant layer to this coaching picture.`;
+    } else {
+      const p3Parts: string[] = [];
+      if (voiceSentences.length > 0) {
+        const joined = voiceSentences.length === 1
+          ? voiceSentences[0]
+          : voiceSentences.slice(0, -1).join(", ") + ", and " + voiceSentences[voiceSentences.length - 1];
+        p3Parts.push(`On voice: ${joined}.`);
+      }
+      if (dynamicsSentences.length > 0) {
+        const joined = dynamicsSentences.length === 1
+          ? dynamicsSentences[0]
+          : dynamicsSentences.slice(0, -1).join(", ") + ", and " + dynamicsSentences[dynamicsSentences.length - 1];
+        p3Parts.push(`Vocally, ${joined}.`);
+      }
+      if (webcamSentences.length > 0) {
+        const joined = webcamSentences.length === 1
+          ? webcamSentences[0]
+          : webcamSentences.slice(0, -1).join(", ") + ", and " + webcamSentences[webcamSentences.length - 1];
+        p3Parts.push(`On camera: ${joined}.`);
+      }
+      if (starResultNote) p3Parts.push(starResultNote);
+      p3 = p3Parts.join(" ");
+    }
+
+    // ── Paragraph 4: Coaching priority + practice context ────────────────────
+    const priorityMap: Record<string, string> = {
+      outcome_strength:    "Every answer needs to end with a result that an interviewer can measure — a number, a timeline, or a named outcome. Right now, the setup is often stronger than the close.",
+      evidence_specificity:"The pattern to break is making claims without proof. Before your next session, find one specific number — a percentage, a dollar amount, a timeframe — for each story you're planning to tell.",
+      hedging_language:    "The language habit to target is hedging. 'I think', 'kind of', and 'we' are softening answers that don't need softening. Try leading your next three answers with 'I decided' or 'I drove' and notice the difference.",
+      directness:          "You're building up to your point when you should be leading with it. Try opening your next answer with the outcome — 'I drove X result by doing Y' — and then work backwards into the story.",
+      ownership:           "The word to watch is 'we'. When describing your own decisions, 'we' hides the contribution the interviewer is trying to evaluate. Name what you specifically did.",
+      structural_clarity:  "Before your next answer, say the core of it in one sentence: 'I did X and the outcome was Y.' That sentence is your anchor — build the story around it, not away from it.",
+      filler_words:        "The filler word habit is the most actionable thing to target right now. Replace every 'um' or 'like' with a deliberate one-second pause. It sounds better and it signals composure.",
+      pace_fast:           "Slow down after your result statement. That's the moment where the answer either lands or disappears, and rushing through it means you're doing all the work for none of the credit.",
+      pace_slow:           "Get to your action faster. The setup is longer than it needs to be — try cutting the first third and opening with what you actually did.",
+    };
+
     let p4 = "";
     if (topPriority) {
-      p4 = `Your top priority: ${topPriority.area}. ${topPriority.evidence}.`;
+      p4 = priorityMap[topPriority.area] ?? priorityMap[topPriority.key] ?? `${topPriority.area}: ${topPriority.evidence}.`;
       if (secondPriority) {
-        p4 += ` A close second is ${secondPriority.area.toLowerCase()} — ${secondPriority.evidence}.`;
+        const secondMsg = priorityMap[secondPriority.area] ?? priorityMap[secondPriority.key] ?? "";
+        if (secondMsg) p4 += ` Once that's consistent, the next focus: ${secondMsg.split(".")[0].toLowerCase()}.`;
       }
+    } else if (bottomDims[0] && bottomDims[0].allTimeAvg < 6.0) {
+      const gapDesc = dimQuality(bottomDims[0].key, bottomDims[0].allTimeAvg);
+      p4 = `The clearest thing to work on is ${bottomDims[0].label.toLowerCase()}. ${gapDesc || "Focus your next few sessions on building this dimension up."} The score will follow the habit.`;
     } else {
-      p4 = `No single dominant weakness has emerged yet. Focus your next sessions on asking yourself one question after each answer: "Did I include a specific, measurable result?"`;
+      p4 = `No single dominant gap has emerged yet — which means the opportunity is in execution, not repair. Focus your next sessions on one thing: end every answer with a specific, named result that someone could verify.`;
+    }
+    if (overview.topCategory) {
+      const catLabel = overview.topCategory.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+      p4 += ` You've spent most of your sessions on ${catLabel} questions — that focus is showing.`;
     }
 
     return { p1, p2, p3, p4 };
-  }, [history, coachingProfile, archetypeStats, overview]);
+  }, [history, coachingProfile, archetypeStats, overview, studentProfile]);
 
   // ── Cross-context profile (dimension avgs grouped by practice type) ──────────
   const crossContextProfile = useMemo(() => {
@@ -2201,24 +2421,73 @@ export default function ProgressPage() {
 
               {coachingWriteup && (
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {/* P1: always visible */}
                   <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
                     {coachingWriteup.p1}
                   </p>
-                  <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
-                    {coachingWriteup.p2}
-                  </p>
-                  {coachingWriteup.p3 && (
-                    <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
-                      {coachingWriteup.p3}
-                    </p>
+
+                  {/* P2–P4: blurred + gated for free users */}
+                  {isPro ? (
+                    <>
+                      <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                        {coachingWriteup.p2}
+                      </p>
+                      {coachingWriteup.p3 && (
+                        <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                          {coachingWriteup.p3}
+                        </p>
+                      )}
+                      <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75, borderTop: "1px solid var(--card-border-soft)", paddingTop: 14 }}>
+                        {coachingWriteup.p4}
+                      </p>
+                    </>
+                  ) : (
+                    <div style={{ position: "relative", borderRadius: 10, overflow: "hidden" }}>
+                      {/* Blurred preview */}
+                      <div style={{ filter: "blur(5px)", userSelect: "none", pointerEvents: "none" }} aria-hidden="true">
+                        <p style={{ margin: "0 0 14px", fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                          {coachingWriteup.p2}
+                        </p>
+                        {coachingWriteup.p3 && (
+                          <p style={{ margin: "0 0 14px", fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                            {coachingWriteup.p3}
+                          </p>
+                        )}
+                        <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75 }}>
+                          {coachingWriteup.p4}
+                        </p>
+                      </div>
+                      {/* Upgrade overlay */}
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        background: "linear-gradient(to bottom, transparent 0%, var(--card-bg) 35%)",
+                        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
+                        paddingBottom: 16, gap: 8,
+                      }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", textAlign: "center" }}>
+                          Unlock full coaching analysis
+                        </div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", maxWidth: 280, lineHeight: 1.5 }}>
+                          Pro includes your gap analysis, delivery breakdown, and personalized action plan.
+                        </div>
+                        <Link href="/settings" style={{ textDecoration: "none" }}>
+                          <button style={{
+                            padding: "9px 20px", borderRadius: 8,
+                            background: "linear-gradient(135deg, var(--accent-2-soft), var(--accent-soft))",
+                            border: "1px solid var(--accent-strong)",
+                            color: "var(--text-primary)", fontWeight: 700, fontSize: 13,
+                            cursor: "pointer", boxShadow: "var(--shadow-glow)",
+                          }}>
+                            Upgrade to Pro
+                          </button>
+                        </Link>
+                      </div>
+                    </div>
                   )}
-                  <p style={{ margin: 0, fontSize: 14, color: "var(--text-primary)", lineHeight: 1.75, borderTop: "1px solid var(--card-border-soft)", paddingTop: 14 }}>
-                    {coachingWriteup.p4}
-                  </p>
                 </div>
               )}
 
-              {/* Dimension top 3 */}
+              {/* Dimension Summary */}
               {coachingProfile.dimensionProfile.length >= 3 && (
                 <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 8 }}>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>
@@ -2226,7 +2495,7 @@ export default function ProgressPage() {
                   </div>
                   {coachingProfile.dimensionProfile
                     .sort((a, b) => b.allTimeAvg - a.allTimeAvg)
-                    .slice(0, 4)
+                    .slice(0, isPro ? 8 : 2)
                     .map(d => {
                       const pct = Math.round((d.allTimeAvg / 10) * 100);
                       const color = d.allTimeAvg >= 7.5 ? "var(--success)" : d.allTimeAvg >= 5.5 ? "var(--accent)" : "#DC2626";
@@ -2244,14 +2513,19 @@ export default function ProgressPage() {
                         </div>
                       );
                     })}
+                  {!isPro && coachingProfile.dimensionProfile.length > 2 && (
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4 }}>
+                      +{coachingProfile.dimensionProfile.length - 2} more dimensions unlocked with Pro
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* ── Cross-Context Profile ───────────────────────────────────────── */}
-        {crossContextProfile.length >= 2 && (
+        {/* ── Cross-Context Profile (Pro only) ────────────────────────────── */}
+        {isPro && crossContextProfile.length >= 2 && (
           <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "22px 24px", boxShadow: "var(--shadow-card-soft)" }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
               Cross-Context Profile

@@ -275,17 +275,24 @@ if (typeof body.jobDesc === "string" && body.jobDesc.length > 12000) {
     // Lock the user row to prevent concurrent "free attempt" bypass.
 // Prisma doesn't expose FOR UPDATE on findUnique, so use a raw query.
 const rows = await tx.$queryRaw<
-  Array<{ subscriptionStatus: string | null; freeAttemptCap: number | null }>
->`SELECT "subscriptionStatus", "freeAttemptCap" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+  Array<{ subscriptionStatus: string | null; freeAttemptCap: number | null; currentPeriodEnd: Date | null }>
+>`SELECT "subscriptionStatus", "freeAttemptCap", "currentPeriodEnd" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
 
 const user = rows[0] ?? null;
 
-    const isPro = user?.subscriptionStatus === "active" || user?.subscriptionStatus === "trialing";
+    const now = Date.now();
+    const periodEndMs = user?.currentPeriodEnd ? new Date(user.currentPeriodEnd).getTime() : null;
+    const hasPaidTimeRemaining = periodEndMs ? periodEndMs > now : false;
+    const isPro =
+      user?.subscriptionStatus === "active" ||
+      user?.subscriptionStatus === "trialing" ||
+      hasPaidTimeRemaining;
     const cap = user?.freeAttemptCap ?? 3;
 
     if (!isPro) {
-            const used = await tx.attempt.count({
-        where: { userId, tenantId, deletedAt: null },
+      // Count ALL attempts (including soft-deleted) to prevent delete-cycle bypass
+      const used = await tx.attempt.count({
+        where: { userId, tenantId },
       });
 
       if (used >= cap) {
