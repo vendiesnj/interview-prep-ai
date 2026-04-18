@@ -505,7 +505,7 @@ export default function LandingPage() {
                     textTransform: "uppercase" as const, marginBottom: 16,
                   }}>Language Analytics</div>
                   <h2 className="ipc-section-h2" style={{ fontSize: "clamp(24px,3vw,34px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 16px", color: "#1C1917" }}>
-                    IBM-grade language profiling.
+                    Research-backed language profiling.
                   </h2>
                   <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.8, margin: "0 0 28px" }}>
                     Every answer is analyzed for hedging patterns, ownership language, lexical richness, and answer fragmentation. These are the signals that compound over a job search.
