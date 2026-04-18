@@ -310,7 +310,7 @@ export default function HubPage() {
         </div>
 
         {/* ── Quick links row ───────────────────────────────────────────── */}
-        <div style={{
+        <div className="ipc-grid-4" style={{
           display: "grid",
           gridTemplateColumns: "repeat(4, 1fr)",
           gap: 10,

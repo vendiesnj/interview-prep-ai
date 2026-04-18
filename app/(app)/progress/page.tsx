@@ -7,6 +7,7 @@ import NaceScoreCard from "../../components/NaceScoreCard";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useIsUniversity } from "@/app/hooks/usePlan";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 import { userScopedKey } from "@/app/lib/userStorage";
 import { computeNaceProfile } from "@/app/lib/nace";
 import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
@@ -838,6 +839,7 @@ function InterviewNotesCard({
       />
 
       <div
+        className="ipc-grid-3"
         style={{
           marginTop: 16,
           display: "grid",
@@ -1188,6 +1190,7 @@ function interpretFrameworkRow(row: {
 }
 
 export default function ProgressPage() {
+  const isMobile = useIsMobile();
   const [history, setHistory] = useState<Attempt[]>([]);
   const [loadState, setLoadState] = useState<"hydrating" | "ready">("hydrating");
   const [resumeHistory, setResumeHistory] = useState<any[]>([]);
@@ -3291,7 +3294,7 @@ export default function ProgressPage() {
                     )}
                   </div>
                   {scored.length > 0 && (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
+                    <div className="ipc-grid-4" style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 10, marginBottom: 16 }}>
                       {scored.map((s) => (
                         <div key={s.key} style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", textAlign: "center" as const }}>
                           <div style={{ fontSize: 22, fontWeight: 800, color: s.score !== null && s.score >= 65 ? "#10B981" : "#F59E0B" }}>{s.score}</div>

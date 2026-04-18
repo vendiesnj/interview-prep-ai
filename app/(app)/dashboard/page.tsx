@@ -17,6 +17,7 @@ import { matchOccupations } from "@/app/lib/onet-occupations";
 import JourneySidebar from "@/app/components/JourneySidebar";
 import TasksPanel, { type Task as DbTask } from "@/app/components/TasksPanel";
 import { useIsUniversity } from "@/app/hooks/usePlan";
+import { useIsMobile } from "@/app/hooks/useIsMobile";
 import RoleClusterSection from "@/app/components/RoleClusterSection";
 import { STAGE_COLORS } from "@/app/lib/stages";
 
@@ -661,15 +662,17 @@ function FullMonthCalendar({
         </button>
       </div>
 
+      {/* Scrollable calendar body for mobile */}
+      <div className="ipc-table-scroll">
       {/* Day labels */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid var(--card-border)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", borderBottom: "1px solid var(--card-border)", minWidth: 320 }}>
         {DAY_LABELS_SHORT.map(d => (
           <div key={d} style={{ textAlign: "center", padding: "8px 0", fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6 }}>{d}</div>
         ))}
       </div>
 
       {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", minWidth: 320 }}>
         {cells.map(({ dateKey, inMonth }, idx) => {
           const isToday    = dateKey === todayKey;
           const isDragOver = dragOverDay === dateKey;
@@ -723,6 +726,7 @@ function FullMonthCalendar({
           );
         })}
       </div>
+      </div>{/* end ipc-table-scroll */}
     </div>
   );
 }
@@ -1364,6 +1368,7 @@ export default function DashboardPage() {
   const [dashView, setDashView]   = useState<"dashboard" | "planner">("dashboard");
   const { data: session } = useSession();
   const isUniversity = useIsUniversity();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetch("/api/student-profile")
@@ -1560,7 +1565,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── Hero: Communication Level + Next Action ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 14, marginBottom: 24 }}>
+        <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 320px", gap: 14, marginBottom: 24 }}>
 
           {/* Communication Level card */}
           <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "28px 32px", boxShadow: "var(--shadow-card-soft)" }}>
@@ -1693,7 +1698,7 @@ export default function DashboardPage() {
 
             {/* Career assessment + last mock interview + practice stats */}
             {loading && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              <div className="ipc-grid-3" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14 }}>
                 {[0, 1, 2].map(i => (
                   <div key={i} style={{ borderRadius: 14, border: "1px solid var(--card-border-soft)", background: "var(--card-bg)", padding: "18px 20px", minHeight: 140, display: "flex", flexDirection: "column", gap: 10 }}>
                     <div className="skeleton" style={{ height: 14, width: "55%", borderRadius: "var(--radius-xs)" }} />
@@ -1706,7 +1711,7 @@ export default function DashboardPage() {
               </div>
             )}
             {!loading && (data?.aptitude || lastMockInterview || data) && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, alignItems: "stretch" }}>
+              <div className="ipc-grid-3" style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 14, alignItems: "stretch" }}>
                 {data?.aptitude ? (
                   <Link href="/aptitude?view=results" style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column" }}>
                     <CareerAssessmentCard aptitude={data.aptitude} />
@@ -1832,7 +1837,7 @@ export default function DashboardPage() {
         )}
 
         {/* ── PLANNER VIEW: Calendar + Tasks/Habits/Goals (university only) ── */}
-        {isUniversity && dashView === "planner" && <div style={{ marginTop: 16, display: "grid", gridTemplateColumns: "1fr 400px", gap: 24, alignItems: "start" }}>
+        {isUniversity && dashView === "planner" && <div className="ipc-grid-2" style={{ marginTop: 16, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 400px", gap: 24, alignItems: "start" }}>
 
           {/* Calendar */}
           <div>

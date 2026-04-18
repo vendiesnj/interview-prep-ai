@@ -4397,7 +4397,7 @@ e.currentTarget.style.borderColor = "var(--card-border)";
       </svg>
 
       <div style={{ flex: "1 1 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, minmax(0, 1fr))", gap: 10 }}>
           <div>
             <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Avg</div>
             <div style={{ marginTop: 4, fontWeight: 700 }}>{avgScore ?? " - "}</div>

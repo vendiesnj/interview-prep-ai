@@ -1563,7 +1563,7 @@ const longPausesPerMin =
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", marginBottom: 12 }}>
                     STAR Breakdown {starAvg !== null ? <span style={{ fontWeight: 500, color: "var(--text-muted)", fontSize: 12 }}>(avg {displayTenPointAs100(starAvg)}/100)</span> : null}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: isMobile ? 6 : 10, marginBottom: 14 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: isMobile ? 6 : 10, marginBottom: 14 }}>
                     <StarChip letter="S" label="Situation" status={starMissingList.includes("situation") ? "missing" : "detected"} />
                     <StarChip letter="T" label="Task"      status={starMissingList.includes("task")      ? "missing" : "detected"} />
                     <StarChip letter="A" label="Action"    status={starMissingList.includes("action")    ? "missing" : "detected"} />

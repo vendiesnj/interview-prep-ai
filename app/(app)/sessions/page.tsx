@@ -272,7 +272,7 @@ async function ensureSignedUrl(path: string) {
     title="Sessions"
     subtitle="View and manage your saved interview attempts."
   >
-        <div style={{ maxWidth: 1100 }}>
+        <div style={{ maxWidth: 1100, width: "100%" }}>
       {loadState === "hydrating" ? (
         <div style={{ marginTop: 18 }}>
           <PremiumCard>

@@ -1,569 +1,669 @@
 "use client";
-
-import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 
-// ── Scroll reveal ──────────────────────────────────────────────────────────────
-
-function useReveal(threshold = 0.12) {
+/* ── Fade-in wrapper ─────────────────────────────────────── */
+function Fade({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [vis, setVis] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) setVisible(true); },
-      { threshold }
+      ([entry]) => { if (entry.isIntersecting) { setVis(true); obs.disconnect(); } },
+      { threshold: 0.1 }
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, visible };
-}
-
-// ── Animated dimension bar ─────────────────────────────────────────────────────
-
-function DimBar({ label, score, delay, visible }: { label: string; score: number; delay: number; visible: boolean }) {
-  const pct = score * 10;
-  const color = score >= 7 ? "#10B981" : score < 5 ? "#EF4444" : "#2563EB";
-  return (
-    <div style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(12px)",
-      transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
-    }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-        <span style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.55)" }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color }}>{score.toFixed(1)}</span>
-      </div>
-      <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
-        <div style={{
-          height: "100%",
-          width: visible ? `${pct}%` : "0%",
-          background: color,
-          borderRadius: 99,
-          transition: `width 0.7s cubic-bezier(0.4,0,0.2,1) ${delay + 100}ms`,
-        }} />
-      </div>
-    </div>
-  );
-}
-
-// ── Fade wrapper ───────────────────────────────────────────────────────────────
-
-function Fade({ children, delay = 0, up = true }: { children: React.ReactNode; delay?: number; up?: boolean }) {
-  const { ref, visible } = useReveal();
+  }, []);
   return (
     <div ref={ref} style={{
-      opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : up ? "translateY(24px)" : "none",
-      transition: `opacity 0.65s ease ${delay}ms, transform 0.65s ease ${delay}ms`,
+      opacity: vis ? 1 : 0,
+      transform: vis ? "translateY(0)" : "translateY(12px)",
+      transition: `opacity 0.5s ease ${delay}ms, transform 0.5s ease ${delay}ms`,
     }}>
       {children}
     </div>
   );
 }
 
-// ── Main ───────────────────────────────────────────────────────────────────────
-
-export default function LandingPage() {
-  const dims = useReveal(0.2);
-  const arch = useReveal(0.15);
-  const vocal  = useReveal(0.15);
-  const visual = useReveal(0.15);
-
-  const dimensions = [
-    { label: "Narrative Clarity",    score: 6.4 },
-    { label: "Evidence Quality",     score: 4.1 },
-    { label: "Ownership & Agency",   score: 7.8 },
-    { label: "Vocal Engagement",     score: 5.2 },
-    { label: "Response Control",     score: 6.7 },
-    { label: "Cognitive Depth",      score: 7.3 },
-    { label: "Presence & Confidence",score: 4.6 },
-  ];
-
+/* ── Dimension score bar ─────────────────────────────────── */
+function DimBar({ label, score, color, delay = 0 }: { label: string; score: number; color: string; delay?: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setMounted(true), delay + 200); return () => clearTimeout(t); }, [delay]);
   return (
-    <div style={{
-      background: "#0d1e3a",
-      color: "#fff",
-      fontFamily: "var(--font-plus-jakarta, ui-sans-serif, system-ui, sans-serif)",
-      overflowX: "hidden",
-    }}>
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 13, color: "#78716C", fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color }}>{score.toFixed(1)}</span>
+      </div>
+      <div style={{ height: 6, borderRadius: 99, background: "rgba(28,25,23,0.08)", overflow: "hidden" }}>
+        <div style={{
+          height: "100%", borderRadius: 99, background: color,
+          width: mounted ? `${score * 10}%` : "0%",
+          transition: "width 0.9s cubic-bezier(0.4,0,0.2,1)",
+          opacity: 0.85,
+        }} />
+      </div>
+    </div>
+  );
+}
 
-      {/* ── Nav ── */}
+/* ── Main landing page ───────────────────────────────────── */
+export default function LandingPage() {
+  return (
+    <div style={{ background: "#F5EEE0", color: "#1C1917", minHeight: "100vh", fontFamily: "inherit" }}>
+
+      {/* ── Nav ─────────────────────────────────────────────── */}
       <nav style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
-        height: 56, display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "0 32px",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-        background: "rgba(13,30,58,0.85)",
-        backdropFilter: "blur(16px)",
+        position: "sticky", top: 0, zIndex: 50,
+        padding: "0 24px",
+        height: 60,
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "rgba(245,238,224,0.92)",
+        backdropFilter: "blur(12px)",
+        borderBottom: "1px solid rgba(28,25,23,0.08)",
       }}>
-        <div style={{ fontSize: 17, fontWeight: 800, letterSpacing: -0.4, color: "#fff" }}>Signal</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link href="/login" style={{
-            padding: "7px 16px", borderRadius: "var(--radius-sm)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            color: "rgba(255,255,255,0.7)", textDecoration: "none",
-            fontSize: 13, fontWeight: 700,
-          }}>Log in</Link>
+        <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: -0.3, color: "#1C1917" }}>Signal</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Link href="/login" className="ipc-nav-login-hide" style={{
+            padding: "8px 16px", borderRadius: 8,
+            color: "#78716C", textDecoration: "none",
+            fontWeight: 600, fontSize: 14,
+          }}>
+            Log in
+          </Link>
           <Link href="/signup" style={{
-            padding: "7px 16px", borderRadius: "var(--radius-sm)",
-            background: "#2563EB", color: "#fff",
-            textDecoration: "none", fontSize: 13, fontWeight: 800,
-          }}>Get started</Link>
+            padding: "8px 18px", borderRadius: 8,
+            background: "#4F46E5",
+            color: "#fff", textDecoration: "none",
+            fontWeight: 700, fontSize: 14,
+          }}>
+            Get started free
+          </Link>
         </div>
       </nav>
 
       <main>
 
-      {/* ── Hero ── */}
-      <section aria-label="Hero" style={{
-        minHeight: "100vh",
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: "120px 24px 80px",
-        background: `
-          radial-gradient(ellipse 90% 60% at 20% -5%, rgba(37,99,235,0.22), transparent 60%),
-          radial-gradient(ellipse 70% 50% at 85% 20%, rgba(14,165,233,0.12), transparent 55%),
-          radial-gradient(ellipse 50% 40% at 50% 100%, rgba(37,99,235,0.08), transparent 60%)
-        `,
-        backgroundImage: `
-          radial-gradient(ellipse 90% 60% at 20% -5%, rgba(37,99,235,0.22), transparent 60%),
-          radial-gradient(ellipse 70% 50% at 85% 20%, rgba(14,165,233,0.12), transparent 55%),
-          radial-gradient(ellipse 50% 40% at 50% 100%, rgba(37,99,235,0.08), transparent 60%),
-          radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px)
-        `,
-        backgroundSize: "auto, auto, auto, 32px 32px",
-      }}>
-        <HeroContent />
-      </section>
+        {/* ── Hero ────────────────────────────────────────────── */}
+        <section aria-label="Hero" style={{
+          minHeight: "calc(100vh - 60px)",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          padding: "60px 24px 80px",
+          position: "relative", overflow: "hidden",
+        }}>
+          {/* Subtle warm gradient wash */}
+          <div style={{
+            position: "absolute", inset: 0, pointerEvents: "none",
+            background: "radial-gradient(900px 600px at 70% 30%, rgba(79,70,229,0.06), transparent 60%), radial-gradient(700px 500px at 10% 80%, rgba(217,119,6,0.07), transparent 55%)",
+          }} />
+          <HeroContent />
+        </section>
 
-      {/* ── Problem ── */}
-      <section aria-label="The Problem with Interview Feedback" style={{ padding: "100px 24px", maxWidth: 760, margin: "0 auto" }}>
-        <Fade>
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 24px", color: "#fff" }}>
-            Interview feedback is almost always wrong.
-          </h2>
-        </Fade>
-        <Fade delay={140}>
-          <p style={{ fontSize: 17, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-            "Be more confident." "Work on your communication." These are observations, not instructions.
-            You walk out not knowing what actually happened, and the next interview starts the same way.
-          </p>
-        </Fade>
-        <Fade delay={200}>
-          <p style={{ fontSize: 17, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-            The problem isn't your experience. It's that nobody has ever shown you your actual communication
-            pattern: what you say, how you say it, and how those two things are landing at the same time.
-          </p>
-        </Fade>
-      </section>
-
-      {/* ── Dimensions ── */}
-      <section aria-label="Seven Communication Dimensions" style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
-
-          <div>
-            <Fade>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
-                Seven dimensions. One honest read.
-              </h2>
-            </Fade>
-            <Fade delay={140}>
-              <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                Every answer you give is scored across seven communication dimensions.
-                Not just "good" or "needs work," but where specifically your signal is breaking down.
-              </p>
-            </Fade>
-            <Fade delay={200}>
-              <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                Narrative Clarity. Evidence Quality. Ownership & Agency. Vocal Engagement. Response Control.
-                Cognitive Depth. Presence & Confidence. Each scored independently. Each with a coaching action.
-              </p>
-            </Fade>
-          </div>
-
-          <div ref={dims.ref} style={{
-            padding: "28px 24px",
-            borderRadius: "var(--radius-xl)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "rgba(255,255,255,0.03)",
-            display: "grid", gap: 18,
-          }}>
-            <div style={{ marginBottom: 4 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 2 }}>Sample profile</div>
-              <div style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.3)" }}>avg. across 8 sessions</div>
+        {/* ── Stats bar ───────────────────────────────────────── */}
+        <div className="ipc-stats-bar" style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          borderTop: "1px solid rgba(28,25,23,0.07)",
+          borderBottom: "1px solid rgba(28,25,23,0.07)",
+          background: "#FDFAF4",
+        }}>
+          {[
+            { val: "8", label: "Communication dimensions scored" },
+            { val: "12", label: "Distinct communication archetypes" },
+            { val: "3", label: "Free sessions to start" },
+            { val: "2 min", label: "To your first full analysis" },
+          ].map((s, i) => (
+            <div key={i} className={`ipc-stat-pop ipc-stat-pop-d${i + 1}`} style={{
+              padding: "28px 24px",
+              borderRight: i < 3 ? "1px solid rgba(28,25,23,0.07)" : "none",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "clamp(26px,3.5vw,36px)", fontWeight: 800, letterSpacing: -0.5, color: "#4F46E5", lineHeight: 1 }}>{s.val}</div>
+              <div style={{ fontSize: 12, color: "#78716C", marginTop: 6, lineHeight: 1.4 }}>{s.label}</div>
             </div>
-            {dimensions.map((d, i) => (
-              <DimBar key={d.label} label={d.label} score={d.score} delay={i * 60} visible={dims.visible} />
+          ))}
+        </div>
+
+        {/* ── How it works ────────────────────────────────────── */}
+        <section className="ipc-section" aria-label="How it works" style={{ padding: "96px 24px", maxWidth: 1080, margin: "0 auto" }}>
+          <Fade>
+            <div style={{ marginBottom: 56, maxWidth: 520 }}>
+              <div style={{
+                display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                background: "rgba(79,70,229,0.09)", border: "1px solid rgba(79,70,229,0.20)",
+                fontSize: 11, fontWeight: 700, color: "#4F46E5", letterSpacing: 0.8,
+                textTransform: "uppercase" as const, marginBottom: 16,
+              }}>How it works</div>
+              <h2 className="ipc-section-h2" style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 14px", color: "#1C1917" }}>
+                From answer to action in three steps.
+              </h2>
+              <p style={{ fontSize: 16, color: "#78716C", lineHeight: 1.7, margin: 0 }}>
+                No setup. No coaching subscription. Just practice, analysis, and a clear target.
+              </p>
+            </div>
+          </Fade>
+
+          <div className="ipc-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+            {[
+              {
+                num: "01", color: "#4F46E5",
+                head: "Answer a real interview question",
+                body: "Speak your answer or paste your text. Works for behavioral, situational, and case-style questions. Mobile-ready with one tap.",
+              },
+              {
+                num: "02", color: "#D97706",
+                head: "Get scored across 8 dimensions",
+                body: "Narrative clarity, evidence quality, ownership, vocal engagement, response control, cognitive depth, confidence, and audience awareness. Every answer, every time.",
+              },
+              {
+                num: "03", color: "#16A34A",
+                head: "Follow your My Coach profile",
+                body: "Your communication archetype, trajectory trend, and a personalized coaching writeup that updates as you improve. Know exactly what to fix.",
+              },
+            ].map((step) => (
+              <Fade key={step.num} delay={Number(step.num) * 60}>
+                <div className="ipc-card-lift" style={{
+                  padding: "28px 24px", borderRadius: 14,
+                  border: "1px solid rgba(28,25,23,0.08)",
+                  background: "#FDFAF4",
+                  height: "100%", boxSizing: "border-box" as const,
+                }}>
+                  <div style={{
+                    fontSize: 11, fontWeight: 800, color: step.color,
+                    letterSpacing: 1.2, textTransform: "uppercase" as const, marginBottom: 16,
+                    fontFamily: "monospace",
+                  }}>{step.num}</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#1C1917", lineHeight: 1.4, marginBottom: 10 }}>{step.head}</div>
+                  <div style={{ fontSize: 14, color: "#78716C", lineHeight: 1.75 }}>{step.body}</div>
+                </div>
+              </Fade>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Archetype ── */}
-      <section aria-label="Communication Archetypes" style={{ padding: "100px 24px" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
+        {/* ── 8 Dimensions ────────────────────────────────────── */}
+        <section aria-label="Dimensions" style={{
+          padding: "96px 24px",
+          borderTop: "1px solid rgba(28,25,23,0.07)",
+          borderBottom: "1px solid rgba(28,25,23,0.07)",
+          background: "#FDFAF4",
+        }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+            <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "center" }}>
 
-          <div ref={arch.ref}>
-            <div style={{
-              padding: "28px 24px",
-              borderRadius: "var(--radius-xl)",
-              border: "1px solid rgba(139,92,246,0.25)",
-              background: "rgba(139,92,246,0.06)",
-              opacity: arch.visible ? 1 : 0,
-              transform: arch.visible ? "translateY(0)" : "translateY(24px)",
-              transition: "opacity 0.65s ease, transform 0.65s ease",
-            }}>
-              <div style={{ fontSize: 11, fontWeight: 500, color: "#A78BFA", marginBottom: 12 }}>
-                Communication archetype
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", marginBottom: 5, letterSpacing: -0.2 }}>The Hedger</div>
-              <div style={{ fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>
-                Sharp thinking, softened delivery
-              </div>
-
-              <div style={{ padding: "14px 16px", borderRadius: "var(--radius-md)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>What interviewers hear</div>
-                <div style={{ fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.6)", fontStyle: "italic" }}>
-                  "A well-prepared candidate who seems uncertain whether they deserve the credit."
-                </div>
-              </div>
-
-              <div style={{ padding: "14px 16px", borderRadius: "var(--radius-md)", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)" }}>
-                <div style={{ fontSize: 11, fontWeight: 500, color: "#93C5FD", marginBottom: 8 }}>Coaching action</div>
-                <div style={{ fontSize: 14, lineHeight: 1.65, color: "rgba(255,255,255,0.6)" }}>
-                  Replace "I helped with" → "I owned". Replace "we kind of" → "I drove".
-                  Say the revised version out loud once before your next attempt.
-                </div>
+              {/* Left: copy */}
+              <div>
+                <Fade>
+                  <div style={{
+                    display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                    background: "rgba(79,70,229,0.09)", border: "1px solid rgba(79,70,229,0.20)",
+                    fontSize: 11, fontWeight: 700, color: "#4F46E5", letterSpacing: 0.8,
+                    textTransform: "uppercase" as const, marginBottom: 16,
+                  }}>8 Dimensions</div>
+                  <h2 className="ipc-section-h2" style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 18px", color: "#1C1917" }}>
+                    Every answer scored eight ways.
+                  </h2>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.8, margin: "0 0 32px" }}>
+                    Most feedback tools give you a vague rating. Signal breaks your answer into eight dimensions, scores each one separately, and shows you exactly which area is dragging your profile down.
+                  </p>
+                  <p style={{ fontSize: 14, color: "#A8A29E", lineHeight: 1.7, margin: 0 }}>
+                    Scores compound across sessions so you see real trajectory, not just snapshots.
+                  </p>
+                </Fade>
               </div>
 
-              <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                {["Ownership & Agency", "Presence & Confidence"].map(d => (
-                  <div key={d} style={{ padding: "4px 10px", borderRadius: "var(--radius-xs)", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.2)", fontSize: 11, fontWeight: 700, color: "#F87171" }}>{d}</div>
+              {/* Right: bars */}
+              <div style={{ display: "grid", gap: 18 }}>
+                {[
+                  { label: "Narrative Clarity",    score: 8.1, color: "#4F46E5", delay: 0   },
+                  { label: "Evidence Quality",     score: 4.8, color: "#D97706", delay: 60  },
+                  { label: "Ownership & Agency",   score: 7.6, color: "#16A34A", delay: 120 },
+                  { label: "Vocal Engagement",     score: 6.2, color: "#0EA5E9", delay: 180 },
+                  { label: "Response Control",     score: 5.9, color: "#8B5CF6", delay: 240 },
+                  { label: "Cognitive Depth",      score: 6.8, color: "#F59E0B", delay: 300 },
+                  { label: "Presence & Confidence",score: 7.1, color: "#EC4899", delay: 360 },
+                  { label: "Audience Awareness",   score: 5.4, color: "#10B981", delay: 420 },
+                ].map((d) => (
+                  <Fade key={d.label} delay={d.delay}>
+                    <DimBar label={d.label} score={d.score} color={d.color} delay={d.delay} />
+                  </Fade>
                 ))}
               </div>
             </div>
           </div>
+        </section>
 
-          <div>
+        {/* ── Communication Archetypes ─────────────────────────── */}
+        <section aria-label="Archetypes" style={{ padding: "96px 24px" }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto" }}>
             <Fade>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
-                You have a communication pattern. Most people never find out what it is.
-              </h2>
-            </Fade>
-            <Fade delay={140}>
-              <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                After enough sessions, Signal identifies your communication archetype: the specific
-                pattern that's showing up across your answers. Not a vague category. A named behavior with
-                a concrete coaching action to break it.
-              </p>
-            </Fade>
-            <Fade delay={200}>
-              <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                15 archetypes. Each comes with what interviewers are actually hearing,
-                which dimensions are driving the pattern, and what to do differently in the next attempt.
-              </p>
-            </Fade>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Vocal ── */}
-      <section aria-label="Vocal Delivery Analysis" style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start", marginBottom: 48 }}>
-            <Fade>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
-                Your voice has a pattern. Most interviewers can hear it. You can not.
-              </h2>
-              <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                Signal runs a full acoustic analysis on every spoken answer. Pitch range in Hz, amplitude variation, long pause detection, filler density, and speaking pace are scored and combined into a delivery archetype with a single targeted fix.
-              </p>
-            </Fade>
-
-            {/* Delivery archetype card */}
-            <Fade delay={80}>
-              <div style={{
-                padding: "24px",
-                borderRadius: "var(--radius-xl)",
-                border: "1px solid rgba(14,165,233,0.25)",
-                background: "rgba(14,165,233,0.06)",
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "#93C5FD", marginBottom: 10 }}>Delivery archetype</div>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", marginBottom: 4 }}>Flat Articulate</div>
-                <div style={{ fontSize: 13, color: "rgba(255,255,255,0.45)", marginBottom: 18 }}>Clear words, flat delivery</div>
-                <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 12 }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>What interviewers hear</div>
-                  <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)", fontStyle: "italic" }}>
-                    "Smart candidate, but hard to stay engaged with. Everything sounds the same."
-                  </div>
-                </div>
-                <div style={{ padding: "12px 14px", borderRadius: "var(--radius-md)", background: "rgba(14,165,233,0.08)", border: "1px solid rgba(14,165,233,0.2)" }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "#60A5FA", marginBottom: 6 }}>One fix</div>
-                  <div style={{ fontSize: 13, lineHeight: 1.65, color: "rgba(255,255,255,0.55)" }}>
-                    Pick the single most important outcome in your answer and hit it louder, slower, and with a half-second pause before it. Record yourself doing it once.
-                  </div>
-                </div>
-              </div>
-            </Fade>
-          </div>
-
-          {/* Metric tiles: 3 columns x 2 rows */}
-          <div ref={vocal.ref} style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
-            {[
-              { label: "Speaking pace",       value: "152 WPM",    note: "Controlled range. Slightly fast on outcome sentences.", color: "#10B981", delay: 0   },
-              { label: "Filler density",       value: "6.1 / 100",  note: "Above threshold. 'Kind of' appearing 8 times in 5 min.", color: "#EF4444", delay: 60  },
-              { label: "Pitch range",          value: "82 Hz",      note: "Narrow. Flat delivery is reducing perceived confidence.", color: "#EF4444", delay: 120 },
-              { label: "Amplitude variation",  value: "4.2 / 10",   note: "Low energy contrast. Key points not landing with weight.", color: "#F59E0B", delay: 180 },
-              { label: "Long pause rate",      value: "2.3 / min",  note: "Hesitation detected mid-answer. Breaks answer momentum.",  color: "#F59E0B", delay: 240 },
-              { label: "Eye contact",          value: "71%",        note: "Solid baseline. Drops during structured STAR transitions.", color: "#10B981", delay: 300 },
-            ].map((m) => (
-              <div key={m.label} style={{
-                padding: "20px",
-                borderRadius: 14,
-                border: `1px solid ${m.color}25`,
-                background: `${m.color}08`,
-                opacity: vocal.visible ? 1 : 0,
-                transform: vocal.visible ? "translateY(0)" : "translateY(20px)",
-                transition: `opacity 0.55s ease ${m.delay}ms, transform 0.55s ease ${m.delay}ms`,
-              }}>
-                <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{m.label}</div>
-                <div style={{ fontSize: 26, fontWeight: 800, color: m.color, letterSpacing: -0.3, marginBottom: 8 }}>{m.value}</div>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.55 }}>{m.note}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Visual Intelligence ── */}
-      <section aria-label="Visual Intelligence" style={{ padding: "100px 24px" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
-
-            <div ref={visual.ref} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              {[
-                { label: "Eye Contact",      value: "74%",       note: "Drops to 48% during STAR transitions",   color: "#F59E0B", delay: 0   },
-                { label: "Smile Rate",        value: "18%",       note: "Neutral affect — warmth is below threshold", color: "#EF4444", delay: 60  },
-                { label: "Brow Engagement",   value: "Animated",  note: "Face is actively expressive",             color: "#10B981", delay: 120 },
-                { label: "Head Stability",    value: "91%",       note: "Composed — minimal distracting movement",  color: "#10B981", delay: 180 },
-                { label: "Blink Rate",        value: "22/min",    note: "Slightly elevated — nerves showing",       color: "#F59E0B", delay: 240 },
-                { label: "Look-Away Rate",    value: "21%",       note: "Occasional glances down at notes",         color: "#F59E0B", delay: 300 },
-              ].map(m => (
-                <div key={m.label} style={{
-                  padding: "16px",
-                  borderRadius: "var(--radius-lg)",
-                  border: `1px solid ${m.color}22`,
-                  background: `${m.color}08`,
-                  opacity: visual.visible ? 1 : 0,
-                  transform: visual.visible ? "translateY(0)" : "translateY(16px)",
-                  transition: `opacity 0.5s ease ${m.delay}ms, transform 0.5s ease ${m.delay}ms`,
-                }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.38)", marginBottom: 8 }}>{m.label}</div>
-                  <div style={{ fontSize: 20, fontWeight: 800, color: m.color, marginBottom: 6 }}>{m.value}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.5 }}>{m.note}</div>
-                </div>
-              ))}
-            </div>
-
-            <div>
-              <Fade>
-                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
-                  Your face is giving an interview too.
+              <div style={{ marginBottom: 48, maxWidth: 560 }}>
+                <div style={{
+                  display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                  background: "rgba(217,119,6,0.10)", border: "1px solid rgba(217,119,6,0.22)",
+                  fontSize: 11, fontWeight: 700, color: "#D97706", letterSpacing: 0.8,
+                  textTransform: "uppercase" as const, marginBottom: 16,
+                }}>Communication Archetype</div>
+                <h2 className="ipc-section-h2" style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 14px", color: "#1C1917" }}>
+                  Your pattern has a name.
                 </h2>
-              </Fade>
+                <p style={{ fontSize: 16, color: "#78716C", lineHeight: 1.7, margin: 0 }}>
+                  Signal identifies which of 12 communication archetypes describes your current interview behavior. Each archetype comes with a precise coaching prescription.
+                </p>
+              </div>
+            </Fade>
+
+            <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "start" }}>
+
+              {/* Left: archetype card */}
               <Fade delay={80}>
-                <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                  When you enable your webcam, Signal runs real-time facial landmark analysis on every frame. Eye contact drops, frozen brows, high blink rate, low smile affect — these are the signals that shape how interviewers read confidence before you say a word.
-                </p>
-              </Fade>
-              <Fade delay={160}>
-                <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 28px" }}>
-                  Seven visual metrics per session. All scored, trended over time, and factored into your overall presence score alongside your vocal delivery.
-                </p>
-              </Fade>
-              <Fade delay={220}>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {["Eye contact %", "Smile rate", "Brow engagement", "Head stability", "Blink rate", "Look-away detection", "Presence score"].map(tag => (
-                    <span key={tag} style={{ padding: "4px 10px", borderRadius: "var(--radius-xs)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>{tag}</span>
-                  ))}
-                </div>
-              </Fade>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── IBM language analytics ── */}
-      <section aria-label="Language Analytics" style={{ padding: "100px 24px" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1.1fr 0.9fr", gap: "60px 80px", alignItems: "start" }}>
-            <div>
-              <Fade>
-                <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 20px" }}>
-                  What your word choices are signaling.
-                </h2>
-              </Fade>
-              <Fade delay={120}>
-                <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: "0 0 20px" }}>
-                  Signal runs competitive linguistics analysis on every answer,
-                  the same class of signals used by enterprise hiring tools.
-                  Hedging density, behavioral ownership language, lexical range, cognitive complexity, answer fragmentation.
-                </p>
-              </Fade>
-              <Fade delay={180}>
-                <p style={{ fontSize: 16, lineHeight: 1.8, color: "rgba(255,255,255,0.5)", margin: 0 }}>
-                  Most people don't know they say "I think," "I feel like," or "I guess" 14 times in a five-minute answer.
-                  It compounds. And interviewers notice before you do.
-                </p>
-              </Fade>
-            </div>
-
-            <div style={{ display: "grid", gap: 12 }}>
-              {[
-                { label: "Hedging penalty",         val: "High",   desc: "14 hedge phrases detected", bad: true },
-                { label: "Behavioral indicators",   val: "Strong", desc: "Clear I-language and ownership",  bad: false },
-                { label: "Lexical richness",         val: "74",     desc: "Vocabulary range score",          bad: false },
-                { label: "Answer fragmentation",    val: "Medium", desc: "Some incomplete thoughts",         bad: true },
-              ].map((item, i) => (
-                <Fade key={item.label} delay={i * 60}>
+                <div style={{
+                  borderRadius: 16, overflow: "hidden",
+                  border: "1px solid rgba(28,25,23,0.08)",
+                  background: "#FDFAF4",
+                  boxShadow: "0 4px 20px rgba(28,25,23,0.06)",
+                }}>
+                  {/* Header */}
                   <div style={{
-                    padding: "14px 16px",
-                    borderRadius: "var(--radius-md)",
-                    border: `1px solid ${item.bad ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)"}`,
-                    background: item.bad ? "rgba(239,68,68,0.04)" : "rgba(16,185,129,0.04)",
-                    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                    padding: "20px 22px",
+                    borderBottom: "1px solid rgba(28,25,23,0.07)",
+                    background: "rgba(79,70,229,0.04)",
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
                   }}>
                     <div>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.55)", marginBottom: 2 }}>{item.label}</div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{item.desc}</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: "#78716C", letterSpacing: 0.8, textTransform: "uppercase" as const, marginBottom: 4 }}>Your archetype</div>
+                      <div style={{ fontSize: 18, fontWeight: 800, color: "#1C1917", letterSpacing: -0.2 }}>Anxious Achiever</div>
                     </div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: item.bad ? "#F87171" : "#34D399", flexShrink: 0 }}>{item.val}</div>
+                    <div style={{
+                      padding: "6px 14px", borderRadius: 20,
+                      background: "rgba(79,70,229,0.10)", border: "1px solid rgba(79,70,229,0.22)",
+                      fontSize: 12, fontWeight: 700, color: "#4F46E5",
+                    }}>Session 4 of 12</div>
+                  </div>
+                  {/* Coaching note */}
+                  <div style={{ padding: "20px 22px 16px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#A8A29E", letterSpacing: 0.8, textTransform: "uppercase" as const, marginBottom: 10 }}>Coaching insight</div>
+                    <p style={{ fontSize: 14, color: "#3C3633", lineHeight: 1.75, margin: "0 0 18px" }}>
+                      Your answers carry real substance. The drag comes from qualifying language that softens claims before the interviewer even absorbs them. Ownership language is strong when you commit to it.
+                    </p>
+                    <p style={{ fontSize: 14, color: "#78716C", lineHeight: 1.7, margin: 0 }}>
+                      One targeted fix: state the outcome first, then the context. You&apos;re burying your strongest material mid-answer.
+                    </p>
+                  </div>
+                  {/* Score row */}
+                  <div style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "14px 22px",
+                    borderTop: "1px solid rgba(28,25,23,0.06)",
+                    background: "rgba(28,25,23,0.02)",
+                  }}>
+                    <span style={{ fontSize: 13, color: "#78716C" }}>Session score</span>
+                    <span style={{ fontSize: 18, fontWeight: 800, color: "#4F46E5" }}>6.4 <span style={{ fontSize: 13, fontWeight: 400, color: "#A8A29E" }}>/ 10</span></span>
+                  </div>
+                </div>
+              </Fade>
+
+              {/* Right: 12-archetype grid */}
+              <div>
+                <Fade>
+                  <div style={{ fontSize: 14, color: "#78716C", lineHeight: 1.7, marginBottom: 24 }}>
+                    Each archetype describes a repeating pattern. Most people hold one primary archetype for 6-10 sessions before shifting. Knowing yours lets you target the exact behavior to change.
+                  </div>
+                </Fade>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  {[
+                    { name: "Polished Performer",  color: "#16A34A" },
+                    { name: "Anxious Achiever",    color: "#4F46E5", active: true },
+                    { name: "Vague Narrator",       color: "#D97706" },
+                    { name: "Fading Closer",        color: "#DC2626" },
+                    { name: "Monotone Expert",      color: "#0EA5E9" },
+                    { name: "Scattered Thinker",    color: "#8B5CF6" },
+                    { name: "Quiet Achiever",       color: "#10B981" },
+                    { name: "Circling the Point",   color: "#F59E0B" },
+                    { name: "Fragmented Expert",    color: "#EC4899" },
+                    { name: "Phantom Expert",       color: "#6366F1" },
+                    { name: "Process Narrator",     color: "#0891B2" },
+                    { name: "The Creditor",         color: "#B45309" },
+                  ].map((a, i) => (
+                    <Fade key={a.name} delay={i * 40}>
+                      <div style={{
+                        padding: "10px 12px", borderRadius: 8,
+                        border: `1px solid ${a.active ? "rgba(79,70,229,0.30)" : "rgba(28,25,23,0.07)"}`,
+                        background: a.active ? "rgba(79,70,229,0.06)" : "rgba(28,25,23,0.015)",
+                        display: "flex", alignItems: "center", gap: 8,
+                      }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: a.color, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, fontWeight: a.active ? 700 : 500, color: a.active ? "#4F46E5" : "#78716C", lineHeight: 1.3 }}>{a.name}</span>
+                      </div>
+                    </Fade>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── My Coach ──────────────────────────────────────────── */}
+        <section aria-label="My Coach" style={{
+          padding: "96px 24px",
+          borderTop: "1px solid rgba(28,25,23,0.07)",
+          borderBottom: "1px solid rgba(28,25,23,0.07)",
+          background: "#FDFAF4",
+        }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+            <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "center" }}>
+
+              {/* Left: copy */}
+              <Fade>
+                <div>
+                  <div style={{
+                    display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                    background: "rgba(16,185,129,0.09)", border: "1px solid rgba(16,185,129,0.22)",
+                    fontSize: 11, fontWeight: 700, color: "#059669", letterSpacing: 0.8,
+                    textTransform: "uppercase" as const, marginBottom: 16,
+                  }}>My Coach</div>
+                  <h2 className="ipc-section-h2" style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 18px", color: "#1C1917" }}>
+                    A profile that grows with you.
+                  </h2>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.8, margin: "0 0 24px" }}>
+                    My Coach is your persistent communication identity. It tracks your archetype, trajectory, delivery profile, and writing patterns across every session.
+                  </p>
+                  <div style={{ display: "grid", gap: 14 }}>
+                    {[
+                      { icon: "↗", label: "Trajectory tracking", desc: "See if you're improving, plateauing, or drifting. Week-over-week trend with strength indicators." },
+                      { icon: "⬡", label: "Dimension radar", desc: "8-dimension profile updated after every session. See which areas are your floor and which are your ceiling." },
+                      { icon: "✎", label: "Personalized coaching writeup", desc: "A 4-paragraph coaching narrative written specifically to your current pattern. Updates as your profile shifts." },
+                    ].map((item) => (
+                      <div key={item.label} style={{ display: "flex", gap: 14 }}>
+                        <div style={{
+                          width: 32, height: 32, borderRadius: 8, flexShrink: 0,
+                          background: "rgba(79,70,229,0.09)", border: "1px solid rgba(79,70,229,0.18)",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 15, color: "#4F46E5",
+                        }}>{item.icon}</div>
+                        <div>
+                          <div style={{ fontSize: 14, fontWeight: 700, color: "#1C1917", marginBottom: 2 }}>{item.label}</div>
+                          <div style={{ fontSize: 13, color: "#78716C", lineHeight: 1.65 }}>{item.desc}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Fade>
+
+              {/* Right: mock coach panel */}
+              <Fade delay={80}>
+                <div style={{
+                  borderRadius: 16, overflow: "hidden",
+                  border: "1px solid rgba(28,25,23,0.08)",
+                  background: "#FDFAF4",
+                  boxShadow: "0 4px 20px rgba(28,25,23,0.06)",
+                }}>
+                  {/* Header */}
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(28,25,23,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#1C1917" }}>My Coach</div>
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "4px 10px", borderRadius: 20,
+                      background: "rgba(22,163,74,0.10)", border: "1px solid rgba(22,163,74,0.22)",
+                      fontSize: 11, fontWeight: 700, color: "#16A34A",
+                    }}>
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#16A34A" }} />
+                      Improving
+                    </div>
+                  </div>
+                  {/* Trajectory */}
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(28,25,23,0.06)" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#A8A29E", letterSpacing: 0.8, textTransform: "uppercase" as const, marginBottom: 10 }}>12-session trajectory</div>
+                    <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 40 }}>
+                      {[3.2, 3.8, 4.1, 4.4, 5.2, 5.1, 5.9, 6.1, 6.4, 6.8, 7.0, 7.2].map((v, i) => (
+                        <div key={i} style={{
+                          flex: 1, borderRadius: "3px 3px 0 0",
+                          height: `${(v / 10) * 100}%`,
+                          background: i >= 9 ? "#4F46E5" : "rgba(79,70,229,0.20)",
+                          minWidth: 0,
+                        }} />
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                      <span style={{ fontSize: 11, color: "#A8A29E" }}>Session 1</span>
+                      <span style={{ fontSize: 11, color: "#A8A29E" }}>Latest</span>
+                    </div>
+                  </div>
+                  {/* Coaching paragraph preview */}
+                  <div style={{ padding: "16px 20px 18px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: "#A8A29E", letterSpacing: 0.8, textTransform: "uppercase" as const, marginBottom: 10 }}>Coaching notes</div>
+                    <p style={{ fontSize: 13, color: "#3C3633", lineHeight: 1.75, margin: "0 0 12px" }}>
+                      Your communication identity is Anxious Achiever. Substance and structure are present. The signal loss comes from hedging patterns in the first third of each answer.
+                    </p>
+                    <p style={{ fontSize: 13, color: "#78716C", lineHeight: 1.7, margin: 0 }}>
+                      Primary focus: lead with your strongest claim, then support it. Your closing statements are consistently stronger than your openings.
+                    </p>
+                  </div>
+                </div>
+              </Fade>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Vocal Intelligence ──────────────────────────────── */}
+        <section aria-label="Vocal Analysis" style={{ padding: "96px 24px" }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+            <div className="ipc-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "60px 80px", alignItems: "center" }}>
+
+              {/* Left: metric tiles */}
+              <div>
+                <Fade>
+                  <div style={{
+                    display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                    background: "rgba(14,165,233,0.09)", border: "1px solid rgba(14,165,233,0.22)",
+                    fontSize: 11, fontWeight: 700, color: "#0EA5E9", letterSpacing: 0.8,
+                    textTransform: "uppercase" as const, marginBottom: 16,
+                  }}>Vocal Analysis</div>
+                  <h2 className="ipc-section-h2" style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 16px", color: "#1C1917" }}>
+                    Delivery signals most tools ignore.
+                  </h2>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.8, margin: "0 0 32px" }}>
+                    Azure Speech AI extracts pronunciation, fluency, prosody, and filler frequency. Signal converts them into plain-language coaching notes, not raw numbers.
+                  </p>
+                </Fade>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  {[
+                    { label: "Speaking Pace",     val: "138 wpm", sub: "Optimal range",  good: true  },
+                    { label: "Filler Rate",        val: "2.8%",    sub: "Low frequency",  good: true  },
+                    { label: "Pronunciation",      val: "88/100",  sub: "Strong clarity", good: true  },
+                    { label: "Prosody Score",      val: "62/100",  sub: "Needs variation",good: false },
+                    { label: "Energy Variation",   val: "Low",     sub: "Flat delivery",  good: false },
+                    { label: "Fluency Score",      val: "79/100",  sub: "Good flow",      good: true  },
+                  ].map((m, i) => (
+                    <Fade key={m.label} delay={i * 50}>
+                      <div style={{
+                        padding: "14px 16px", borderRadius: 10,
+                        border: `1px solid ${m.good ? "rgba(22,163,74,0.18)" : "rgba(220,38,38,0.15)"}`,
+                        background: m.good ? "rgba(22,163,74,0.04)" : "rgba(220,38,38,0.04)",
+                      }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: "#A8A29E", marginBottom: 4 }}>{m.label}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: m.good ? "#16A34A" : "#DC2626", letterSpacing: -0.3 }}>{m.val}</div>
+                        <div style={{ fontSize: 11, color: "#A8A29E", marginTop: 2 }}>{m.sub}</div>
+                      </div>
+                    </Fade>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: language analytics */}
+              <div>
+                <Fade delay={80}>
+                  <div style={{
+                    display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                    background: "rgba(139,92,246,0.09)", border: "1px solid rgba(139,92,246,0.22)",
+                    fontSize: 11, fontWeight: 700, color: "#8B5CF6", letterSpacing: 0.8,
+                    textTransform: "uppercase" as const, marginBottom: 16,
+                  }}>Language Analytics</div>
+                  <h2 className="ipc-section-h2" style={{ fontSize: "clamp(24px,3vw,34px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 16px", color: "#1C1917" }}>
+                    IBM-grade language profiling.
+                  </h2>
+                  <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.8, margin: "0 0 28px" }}>
+                    Every answer is analyzed for hedging patterns, ownership language, lexical richness, and answer fragmentation. These are the signals that compound over a job search.
+                  </p>
+                </Fade>
+
+                <div style={{ display: "grid", gap: 10 }}>
+                  {[
+                    { label: "Hedging penalty",       val: "Low",    desc: "3 hedge phrases detected",           bad: false },
+                    { label: "Ownership language",    val: "Strong", desc: "Consistent I-language and agency",   bad: false },
+                    { label: "Lexical richness",      val: "74",     desc: "Vocabulary range score",             bad: false },
+                    { label: "Answer fragmentation",  val: "Medium", desc: "Some incomplete thought sequences",  bad: true  },
+                    { label: "STAR pattern coverage", val: "3 / 4",  desc: "Result section often missing",       bad: true  },
+                  ].map((item, i) => (
+                    <Fade key={item.label} delay={i * 60}>
+                      <div style={{
+                        padding: "12px 16px", borderRadius: 10,
+                        border: `1px solid ${item.bad ? "rgba(220,38,38,0.15)" : "rgba(22,163,74,0.18)"}`,
+                        background: item.bad ? "rgba(220,38,38,0.04)" : "rgba(22,163,74,0.04)",
+                        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                      }}>
+                        <div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#1C1917", marginBottom: 2 }}>{item.label}</div>
+                          <div style={{ fontSize: 11, color: "#78716C" }}>{item.desc}</div>
+                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: item.bad ? "#DC2626" : "#16A34A", flexShrink: 0 }}>{item.val}</div>
+                      </div>
+                    </Fade>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Career Tools ────────────────────────────────────── */}
+        <section aria-label="Career Tools" style={{
+          padding: "96px 24px",
+          background: "#FDFAF4",
+          borderTop: "1px solid rgba(28,25,23,0.07)",
+          borderBottom: "1px solid rgba(28,25,23,0.07)",
+        }}>
+          <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+            <Fade>
+              <div style={{ marginBottom: 48, maxWidth: 520 }}>
+                <div style={{
+                  display: "inline-block", padding: "4px 12px", borderRadius: 6,
+                  background: "rgba(28,25,23,0.06)", border: "1px solid rgba(28,25,23,0.12)",
+                  fontSize: 11, fontWeight: 700, color: "#78716C", letterSpacing: 0.8,
+                  textTransform: "uppercase" as const, marginBottom: 16,
+                }}>Career Tools</div>
+                <h2 className="ipc-section-h2" style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 14px", color: "#1C1917" }}>
+                  Everything else the job search requires.
+                </h2>
+                <p style={{ fontSize: 15, color: "#78716C", lineHeight: 1.7, margin: 0 }}>
+                  Interview prep in context. Signal includes the tools that make practice relevant to specific roles and companies.
+                </p>
+              </div>
+            </Fade>
+
+            <div className="ipc-grid-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+              {[
+                {
+                  label: "Resume Analysis",
+                  color: "#8B5CF6",
+                  delay: 0,
+                  head: "Know if your resume clears the first filter.",
+                  body: "ATS compatibility scoring, gap analysis against your target role, and a prioritized action list. Run it before every application.",
+                },
+                {
+                  label: "Experience Log",
+                  color: "#0EA5E9",
+                  delay: 80,
+                  head: "Stop rebuilding stories from scratch under pressure.",
+                  body: "Write, refine, and score your best career stories ahead of time. STAR structure, stronger language, practiced until fluent.",
+                },
+                {
+                  label: "Job Tracker",
+                  color: "#16A34A",
+                  delay: 160,
+                  head: "See where applications are stalling.",
+                  body: "Track every role from applied to offer. Pipeline stage, response rate, and funnel visibility so you know where to push.",
+                },
+              ].map((tool) => (
+                <Fade key={tool.label} delay={tool.delay}>
+                  <div className="ipc-card-lift" style={{
+                    padding: "26px 22px", borderRadius: 14,
+                    border: `1px solid rgba(28,25,23,0.08)`,
+                    background: "#FFFFFF",
+                    height: "100%", boxSizing: "border-box" as const,
+                    boxShadow: "0 1px 3px rgba(28,25,23,0.05)",
+                  }}>
+                    <div style={{
+                      display: "inline-block", padding: "3px 9px", borderRadius: 5,
+                      background: `${tool.color}12`, border: `1px solid ${tool.color}22`,
+                      fontSize: 11, fontWeight: 600, color: tool.color, marginBottom: 16,
+                    }}>{tool.label}</div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#1C1917", lineHeight: 1.4, marginBottom: 10 }}>{tool.head}</div>
+                    <div style={{ fontSize: 14, lineHeight: 1.75, color: "#78716C" }}>{tool.body}</div>
                   </div>
                 </Fade>
               ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ── Tools ── */}
-      <section aria-label="Career Tools" style={{ padding: "80px 24px 100px", background: "rgba(255,255,255,0.025)", borderTop: "1px solid rgba(255,255,255,0.06)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto" }}>
+        {/* ── CTA ─────────────────────────────────────────────── */}
+        <section aria-label="Get Started" style={{ padding: "120px 24px", textAlign: "center" }}>
           <Fade>
-            <h2 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.3, letterSpacing: -0.2, margin: "0 0 40px", maxWidth: 560 }}>
-              Everything you need to run a real job search.
+            <h2 style={{ fontSize: "clamp(26px,3.5vw,42px)", fontWeight: 800, letterSpacing: -0.4, margin: "0 0 16px", lineHeight: 1.2, color: "#1C1917" }}>
+              Three sessions free. No card required.
             </h2>
           </Fade>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-            {[
-              {
-                label: "Resume Analysis",
-                color: "#8B5CF6",
-                delay: 0,
-                head: "Know if your resume clears the first filter.",
-                body: "ATS compatibility score, gap analysis against your target role, and a prioritized action list. Run it before every application.",
-              },
-              {
-                label: "Experience Log",
-                color: "#0EA5E9",
-                delay: 100,
-                head: "Stop rebuilding stories from scratch under pressure.",
-                body: "Write, refine, and score your best career stories ahead of time. STAR structure, stronger language, practiced until fluent.",
-              },
-              {
-                label: "Job Tracker",
-                color: "#10B981",
-                delay: 200,
-                head: "See where applications are stalling.",
-                body: "Track every role from applied to offer. Pipeline stage, response rate, and funnel visibility so you know exactly where to push.",
-              },
-            ].map((tool) => (
-              <Fade key={tool.label} delay={tool.delay}>
-                <div style={{
-                  padding: "28px 24px",
-                  borderRadius: "var(--radius-xl)",
-                  border: `1px solid ${tool.color}20`,
-                  background: "rgba(255,255,255,0.02)",
-                  height: "100%",
-                  boxSizing: "border-box",
-                }}>
-                  <div style={{
-                    display: "inline-block",
-                    padding: "3px 9px",
-                    borderRadius: 5,
-                    background: `${tool.color}12`,
-                    border: `1px solid ${tool.color}25`,
-                    fontSize: 11,
-                    fontWeight: 500,
-                    color: tool.color,
-                    marginBottom: 16,
-                  }}>
-                    {tool.label}
-                  </div>
-                  <div style={{ fontSize: 16, fontWeight: 600, color: "#fff", lineHeight: 1.45, marginBottom: 12 }}>{tool.head}</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.75, color: "rgba(255,255,255,0.45)" }}>{tool.body}</div>
-                </div>
-              </Fade>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section aria-label="Get Started" style={{ padding: "120px 24px", textAlign: "center" }}>
-        <Fade>
-          <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 700, letterSpacing: -0.2, margin: "0 0 16px", lineHeight: 1.25 }}>
-            Three sessions free. No card required.
-          </h2>
-        </Fade>
-        <Fade delay={80}>
-          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.45)", margin: "0 0 40px", lineHeight: 1.7 }}>
-            Enough to see your dimension profile, get an archetype read,<br />and know exactly what to fix.
-          </p>
-        </Fade>
-        <Fade delay={160}>
-          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/signup" style={{
-              padding: "15px 36px", borderRadius: "var(--radius-lg)",
-              background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
-              color: "#fff", textDecoration: "none",
-              fontWeight: 800, fontSize: 15,
-              boxShadow: "0 4px 32px rgba(37,99,235,0.4)",
-            }}>
-              Start for free
-            </Link>
-            <Link href="/login" style={{
-              padding: "15px 36px", borderRadius: "var(--radius-lg)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.65)", textDecoration: "none",
-              fontWeight: 800, fontSize: 15,
-              background: "transparent",
-            }}>
-              Log in
-            </Link>
-          </div>
-        </Fade>
-      </section>
+          <Fade delay={80}>
+            <p style={{ fontSize: 17, color: "#78716C", margin: "0 0 40px", lineHeight: 1.7 }}>
+              Enough to see your dimension profile, get your archetype read,<br className="ipc-nav-login-hide" /> and know exactly what to fix before the next real interview.
+            </p>
+          </Fade>
+          <Fade delay={160}>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/signup" className="ipc-cta-pulse" style={{
+                padding: "16px 40px", borderRadius: 10,
+                background: "#4F46E5",
+                color: "#fff", textDecoration: "none",
+                fontWeight: 800, fontSize: 15,
+                boxShadow: "0 4px 24px rgba(79,70,229,0.30)",
+                display: "inline-block",
+              }}>
+                Start for free
+              </Link>
+              <Link href="/login" style={{
+                padding: "16px 40px", borderRadius: 10,
+                border: "1px solid rgba(28,25,23,0.14)",
+                color: "#78716C", textDecoration: "none",
+                fontWeight: 700, fontSize: 15,
+                background: "transparent",
+              }}>
+                Log in
+              </Link>
+            </div>
+          </Fade>
+        </section>
 
       </main>
 
-      {/* ── Footer ── */}
+      {/* ── Footer ────────────────────────────────────────────── */}
       <footer style={{
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        padding: "28px 32px",
+        borderTop: "1px solid rgba(28,25,23,0.08)",
+        padding: "24px 32px",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexWrap: "wrap", gap: 12,
+        flexWrap: "wrap" as const, gap: 12,
+        background: "#FDFAF4",
       }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>Signal</div>
+        <div style={{ fontSize: 14, fontWeight: 800, color: "#78716C" }}>Signal</div>
         <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-          <a href="/privacy" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Privacy Policy</a>
-          <a href="/terms" style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textDecoration: "none" }}>Terms of Service</a>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.2)" }}>
+          <a href="/privacy" style={{ fontSize: 12, color: "#A8A29E", textDecoration: "none" }}>Privacy Policy</a>
+          <a href="/terms" style={{ fontSize: 12, color: "#A8A29E", textDecoration: "none" }}>Terms of Service</a>
+          <div style={{ fontSize: 12, color: "#A8A29E" }}>
             © {new Date().getFullYear()} Signal. All rights reserved.
           </div>
         </div>
@@ -572,8 +672,7 @@ export default function LandingPage() {
   );
 }
 
-// ── Hero content (separate to isolate the entrance animation) ─────────────────
-
+/* ── Mock interview card (hero right column) ────────────── */
 function MockInterviewCard({ visible }: { visible: boolean }) {
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -584,10 +683,10 @@ function MockInterviewCard({ visible }: { visible: boolean }) {
 
   const bars = [0.3, 0.7, 0.5, 0.9, 0.4, 0.75, 0.55, 0.85, 0.45, 0.65, 0.35, 0.8];
   const dims = [
-    { label: "Narrative Clarity",    score: 8.2, color: "#10B981" },
-    { label: "Evidence Quality",     score: 4.1, color: "#EF4444" },
-    { label: "Ownership & Agency",   score: 7.8, color: "#10B981" },
-    { label: "Vocal Engagement",     score: 6.4, color: "#2563EB" },
+    { label: "Narrative Clarity",   score: 7.8, color: "#4F46E5" },
+    { label: "Evidence Quality",    score: 4.2, color: "#DC2626" },
+    { label: "Ownership & Agency",  score: 7.1, color: "#16A34A" },
+    { label: "Vocal Engagement",    score: 5.9, color: "#D97706" },
   ];
   const secs = 14 + Math.floor(tick * 0.18);
   const mm = String(Math.floor(secs / 60)).padStart(2, "0");
@@ -604,53 +703,52 @@ function MockInterviewCard({ visible }: { visible: boolean }) {
       <div style={{
         position: "absolute", top: -18, right: -8, zIndex: 2,
         padding: "6px 14px", borderRadius: 20,
-        background: "linear-gradient(135deg, rgba(139,92,246,0.9), rgba(99,102,241,0.9))",
-        border: "1px solid rgba(139,92,246,0.5)",
+        background: "rgba(79,70,229,0.92)",
+        border: "1px solid rgba(79,70,229,0.40)",
         backdropFilter: "blur(8px)",
-        fontSize: 12, fontWeight: 600, color: "#fff",
-        boxShadow: "0 4px 20px rgba(139,92,246,0.35)",
+        fontSize: 12, fontWeight: 700, color: "#fff",
+        boxShadow: "0 4px 20px rgba(79,70,229,0.25)",
         whiteSpace: "nowrap" as const,
         opacity: visible ? 1 : 0,
         transition: "opacity 0.5s ease 900ms",
       }}>
-        Archetype: The Hedger
+        Archetype: Anxious Achiever
       </div>
 
       {/* Main card */}
-      <div style={{
-        borderRadius: "var(--radius-xl)",
-        border: "1px solid rgba(255,255,255,0.10)",
-        background: "rgba(15,28,58,0.85)",
-        backdropFilter: "blur(20px)",
+      <div className="ipc-glow-border" style={{
+        borderRadius: 16,
+        border: "1px solid rgba(28,25,23,0.10)",
+        background: "#FDFAF4",
         overflow: "hidden",
-        boxShadow: "0 8px 48px rgba(0,0,0,0.5), 0 1px 0 rgba(255,255,255,0.07)",
-        width: "min(440px, 100%)",
+        boxShadow: "0 8px 40px rgba(28,25,23,0.10), 0 1px 0 rgba(255,255,255,0.90)",
+        width: "min(420px, 100%)",
       }}>
         {/* Recording bar */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "12px 16px",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
-          background: "rgba(255,255,255,0.03)",
+          borderBottom: "1px solid rgba(28,25,23,0.07)",
+          background: "rgba(28,25,23,0.02)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{
-              width: 8, height: 8, borderRadius: "50%", background: "#EF4444",
-              boxShadow: "0 0 6px rgba(239,68,68,0.8)",
+              width: 8, height: 8, borderRadius: "50%", background: "#DC2626",
+              boxShadow: "0 0 6px rgba(220,38,38,0.7)",
               display: "inline-block",
               animation: "pulse 1.2s ease-in-out infinite",
             }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>Recording</span>
-            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.35)", fontFamily: "monospace" }}>{mm}:{ss}</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#78716C" }}>Recording</span>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "#A8A29E", fontFamily: "monospace" }}>{mm}:{ss}</span>
           </div>
           {/* Waveform */}
           <div style={{ display: "flex", alignItems: "center", gap: 2, height: 20 }}>
             {bars.map((h, i) => (
               <div key={i} style={{
                 width: 3, borderRadius: 2,
-                background: "#2563EB",
+                background: "#4F46E5",
                 height: `${(((h + (tick * 0.13 + i * 0.7)) % 1) * 0.65 + 0.2) * 100}%`,
-                opacity: 0.7 + (i % 3) * 0.1,
+                opacity: 0.5 + (i % 3) * 0.15,
                 transition: "height 0.18s ease",
               }} />
             ))}
@@ -658,16 +756,16 @@ function MockInterviewCard({ visible }: { visible: boolean }) {
         </div>
 
         {/* Question */}
-        <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 5, textTransform: "uppercase" as const, letterSpacing: 0.8 }}>Current question</div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+        <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid rgba(28,25,23,0.06)" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "#A8A29E", marginBottom: 5, textTransform: "uppercase" as const, letterSpacing: 0.8 }}>Current question</div>
+          <div style={{ fontSize: 13, fontWeight: 500, color: "#3C3633", lineHeight: 1.55 }}>
             "Tell me about a time you had to navigate a difficult stakeholder relationship."
           </div>
         </div>
 
         {/* Live dimension scores */}
         <div style={{ padding: "14px 16px" }}>
-          <div style={{ fontSize: 10, fontWeight: 500, color: "rgba(255,255,255,0.35)", marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.8 }}>Live analysis</div>
+          <div style={{ fontSize: 10, fontWeight: 600, color: "#A8A29E", marginBottom: 12, textTransform: "uppercase" as const, letterSpacing: 0.8 }}>Live analysis</div>
           <div style={{ display: "grid", gap: 10 }}>
             {dims.map((d, i) => (
               <div key={d.label} style={{
@@ -675,10 +773,10 @@ function MockInterviewCard({ visible }: { visible: boolean }) {
                 transition: `opacity 0.4s ease ${600 + i * 100}ms`,
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{d.label}</span>
+                  <span style={{ fontSize: 12, color: "#78716C" }}>{d.label}</span>
                   <span style={{ fontSize: 12, fontWeight: 700, color: d.color }}>{d.score.toFixed(1)}</span>
                 </div>
-                <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+                <div style={{ height: 4, borderRadius: 99, background: "rgba(28,25,23,0.08)", overflow: "hidden" }}>
                   <div style={{
                     height: "100%", borderRadius: 99,
                     width: visible ? `${d.score * 10}%` : "0%",
@@ -695,34 +793,34 @@ function MockInterviewCard({ visible }: { visible: boolean }) {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "10px 16px",
-          borderTop: "1px solid rgba(255,255,255,0.07)",
-          background: "rgba(37,99,235,0.08)",
+          borderTop: "1px solid rgba(28,25,23,0.07)",
+          background: "rgba(79,70,229,0.05)",
         }}>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Overall score</span>
-          <span style={{ fontSize: 16, fontWeight: 700, color: "#F1F5F9" }}>6.7 <span style={{ fontSize: 12, fontWeight: 400, color: "rgba(255,255,255,0.4)" }}>/ 10</span></span>
+          <span style={{ fontSize: 12, color: "#78716C" }}>Overall score</span>
+          <span style={{ fontSize: 16, fontWeight: 800, color: "#4F46E5" }}>6.2 <span style={{ fontSize: 12, fontWeight: 400, color: "#A8A29E" }}>/ 10</span></span>
         </div>
       </div>
 
-      {/* Floating social proof pip */}
+      {/* Floating improvement pip */}
       <div style={{
         position: "absolute", bottom: -14, left: -12, zIndex: 2,
         display: "flex", alignItems: "center", gap: 8,
         padding: "8px 14px", borderRadius: 20,
-        background: "rgba(15,28,58,0.95)",
-        border: "1px solid rgba(255,255,255,0.10)",
-        backdropFilter: "blur(12px)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+        background: "#FDFAF4",
+        border: "1px solid rgba(28,25,23,0.10)",
+        boxShadow: "0 4px 16px rgba(28,25,23,0.08)",
         opacity: visible ? 1 : 0,
         transition: "opacity 0.5s ease 1100ms",
       }}>
         <span style={{ fontSize: 14 }}>📈</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "#10B981" }}>+2.3 pts</span>
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>since last session</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "#16A34A" }}>+2.3 pts</span>
+        <span style={{ fontSize: 12, color: "#78716C" }}>since last session</span>
       </div>
     </div>
   );
 }
 
+/* ── Hero content ────────────────────────────────────────── */
 function HeroContent() {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -742,66 +840,66 @@ function HeroContent() {
       <div style={{ textAlign: "left" as const }}>
         <div style={{
           display: "inline-flex", alignItems: "center", gap: 7,
-          padding: "5px 12px", borderRadius: "var(--radius-xs)",
-          border: "1px solid rgba(59,130,246,0.3)",
-          background: "rgba(59,130,246,0.08)",
-          fontSize: 12, fontWeight: 600,
-          color: "#93C5FD", letterSpacing: 0.2,
+          padding: "5px 12px", borderRadius: 6,
+          border: "1px solid rgba(79,70,229,0.22)",
+          background: "rgba(79,70,229,0.08)",
+          fontSize: 12, fontWeight: 700,
+          color: "#4F46E5", letterSpacing: 0.2,
           marginBottom: 28,
           opacity: visible ? 1 : 0,
           transition: "opacity 0.6s ease",
         }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#3B82F6" }} />
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#4F46E5" }} />
           Interview intelligence
         </div>
 
-        <h1 style={{
+        <h1 className="ipc-hero-h1" style={{
           margin: "0 0 22px",
           fontSize: "clamp(34px, 4vw, 52px)",
-          fontWeight: 700,
-          lineHeight: 1.18,
-          letterSpacing: -0.3,
-          color: "#F1F5F9",
+          fontWeight: 800,
+          lineHeight: 1.15,
+          letterSpacing: -0.5,
+          color: "#1C1917",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(20px)",
           transition: "opacity 0.65s ease 120ms, transform 0.65s ease 120ms",
         }}>
-          Know exactly how you interview.
+          Know exactly how<br />you interview.
         </h1>
 
         <p style={{
           margin: "0 0 44px",
           fontSize: "clamp(15px, 1.8vw, 18px)",
-          color: "rgba(255,255,255,0.5)",
-          lineHeight: 1.75,
+          color: "#78716C",
+          lineHeight: 1.8,
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(16px)",
           transition: "opacity 0.65s ease 200ms, transform 0.65s ease 200ms",
         }}>
-          Signal scores your answers across seven dimensions, identifies your communication archetype,
-          and tells you the one thing to fix before your next real interview.
+          Signal scores your answers across eight dimensions, identifies your communication archetype,
+          and builds a coaching profile that tells you exactly what to fix before your next real interview.
         </p>
 
         <div style={{
-          display: "flex", gap: 14, flexWrap: "wrap",
+          display: "flex", gap: 12, flexWrap: "wrap" as const,
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(14px)",
           transition: "opacity 0.65s ease 300ms, transform 0.65s ease 300ms",
         }}>
           <Link href="/signup" style={{
-            padding: "14px 32px", borderRadius: "var(--radius-md)",
-            background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
+            padding: "14px 32px", borderRadius: 10,
+            background: "#4F46E5",
             color: "#fff", textDecoration: "none",
-            fontWeight: 700, fontSize: 15,
-            boxShadow: "0 4px 32px rgba(37,99,235,0.4)",
+            fontWeight: 800, fontSize: 15,
+            boxShadow: "0 4px 24px rgba(79,70,229,0.28)",
             whiteSpace: "nowrap" as const,
           }}>
             Start for free
           </Link>
           <Link href="/login" style={{
-            padding: "14px 32px", borderRadius: "var(--radius-md)",
-            border: "1px solid rgba(255,255,255,0.12)",
-            color: "rgba(255,255,255,0.7)", textDecoration: "none",
+            padding: "14px 32px", borderRadius: 10,
+            border: "1px solid rgba(28,25,23,0.14)",
+            color: "#78716C", textDecoration: "none",
             fontWeight: 700, fontSize: 15,
             background: "transparent",
             whiteSpace: "nowrap" as const,
@@ -812,13 +910,13 @@ function HeroContent() {
 
         {/* Trust line */}
         <div style={{
-          marginTop: 36, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap",
+          marginTop: 32, display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" as const,
           opacity: visible ? 1 : 0,
           transition: "opacity 0.5s ease 500ms",
         }}>
-          {["No credit card required", "Works on mobile", "Results in 2 minutes"].map((t, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
-              <span style={{ color: "#10B981", fontSize: 13 }}>✓</span> {t}
+          {["No credit card required", "Works on mobile", "First analysis in 2 minutes"].map((t, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#A8A29E" }}>
+              <span style={{ color: "#16A34A", fontSize: 13, fontWeight: 700 }}>✓</span> {t}
             </div>
           ))}
         </div>
