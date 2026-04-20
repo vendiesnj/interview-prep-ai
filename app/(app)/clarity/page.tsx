@@ -243,11 +243,38 @@ export default function ClarityPage() {
       setVoiceMetrics(vmData);
       setStage("results");
 
-      // Save to shared history
+      // Persist to DB (enforces free cap) + save to shared history
+      const nowMs = Date.now();
+      const saveRes = await fetch("/api/attempts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ts: nowMs,
+          question: activeDrill?.text ?? "Voice warmup",
+          questionCategory: "warmup",
+          evaluationFramework: "warmup",
+          practiceType: "warmup",
+          inputMethod: "spoken",
+          transcript: text,
+          wpm: computeWpm(text, durationRef.current),
+          deliveryMetrics: vmData ?? null,
+          score: vmData?.pronunciationScore != null ? vmData.pronunciationScore / 10 : null,
+        }),
+      });
+
+      if (!saveRes.ok) {
+        const errData = await saveRes.json().catch(() => ({}));
+        if (errData?.error === "FREE_LIMIT_REACHED") {
+          setError("You've used all 3 free sessions. Upgrade to keep practicing.");
+          setStage("ready");
+          return;
+        }
+      }
+
       try {
         const entry = {
           id: crypto.randomUUID(),
-          ts: Date.now(),
+          ts: nowMs,
           question: activeDrill?.text ?? "Voice warmup",
           evaluationFramework: "warmup",
           inputMethod: "spoken" as const,

@@ -456,6 +456,31 @@ async function handleSave(
     s.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/ +/g, "_").slice(0, 30)
   );
 
+  // Cap check — same pattern as /api/attempts POST
+  const capResult = await prisma.$transaction(async (tx: any) => {
+    const rows = await tx.$queryRaw<
+      Array<{ subscriptionStatus: string | null; freeAttemptCap: number | null; currentPeriodEnd: Date | null }>
+    >`SELECT "subscriptionStatus", "freeAttemptCap", "currentPeriodEnd" FROM "User" WHERE "id" = ${userId} FOR UPDATE`;
+    const user = rows[0] ?? null;
+    const now = Date.now();
+    const periodEndMs = user?.currentPeriodEnd ? new Date(user.currentPeriodEnd).getTime() : null;
+    const isPro =
+      user?.subscriptionStatus === "active" ||
+      user?.subscriptionStatus === "trialing" ||
+      (periodEndMs !== null && periodEndMs > now);
+    if (!isPro) {
+      const used = await tx.attempt.count({ where: { userId, tenantId } });
+      if (used >= (user?.freeAttemptCap ?? 3)) {
+        return { ok: false as const };
+      }
+    }
+    return { ok: true as const };
+  });
+
+  if (!capResult.ok) {
+    return NextResponse.json({ error: "FREE_LIMIT_REACHED", remaining: 0 }, { status: 402 });
+  }
+
   const attempt = await prisma.attempt.create({
     data: {
       userId,

@@ -1452,21 +1452,21 @@ export default function DashboardPage() {
   const careerStageLabel = careerStage ? (CAREER_STAGE_LABELS[careerStage] ?? null) : null;
 
   // Next action for hero card
-  // Primary button always routes to a practice destination — non-practice next actions fall back to /practice
-  const PRACTICE_ROUTES = new Set(["/practice", "/mock-interview", "/public-speaking", "/networking"]);
+  // Primary button always routes to a practice destination — non-practice next actions fall back to /hub
+  const PRACTICE_ROUTES = new Set(["/practice", "/hub", "/mock-interview", "/public-speaking", "/networking"]);
   const heroNextAction = (() => {
-    if (!totalSessions) return { label: "Start your first session", sub: "Establish your baseline Communication Level", href: "/practice" };
-    if (totalSessions < 3) return { label: "Keep the momentum going", sub: `${3 - totalSessions} more session${3 - totalSessions !== 1 ? "s" : ""} to unlock your full Communication Profile`, href: "/practice" };
+    if (!totalSessions) return { label: "Start your first session", sub: "Establish your baseline Communication Level", href: "/hub" };
+    if (totalSessions < 3) return { label: "Keep the momentum going", sub: `${3 - totalSessions} more session${3 - totalSessions !== 1 ? "s" : ""} to unlock your full Communication Profile`, href: "/hub" };
     if (data?.nextAction) {
       const isPracticeHref = PRACTICE_ROUTES.has(data.nextAction.href);
-      const href  = isPracticeHref ? data.nextAction.href : "/practice";
+      const href  = isPracticeHref ? data.nextAction.href : "/hub";
       const label = isPracticeHref ? (data.nextAction.title ?? "Continue practicing") : "Continue practicing";
       const sub   = isPracticeHref
         ? (data.nextAction.description ?? "Based on your recent sessions")
         : "Keep building your Communication Level with another practice session.";
       return { label, sub, href };
     }
-    return { label: "Continue practicing", sub: "Keep building your Communication Level", href: "/practice" };
+    return { label: "Continue practicing", sub: "Keep building your Communication Level", href: "/hub" };
   })();
 
   const riasecProfile = data?.aptitude?.scores?.riasecProfile ?? data?.aptitude?.primary ?? null;
@@ -1651,7 +1651,7 @@ export default function DashboardPage() {
               {totalSessions === 0 ? "Start baseline session" : "Practice now"}
             </Link>
 
-            <Link href="/practice" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+            <Link href="/hub" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
               <Mic size={14} /> All Practice Modes
             </Link>
             <div style={{ display: "flex", gap: 8 }}>
