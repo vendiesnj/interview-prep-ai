@@ -250,12 +250,26 @@ function makeFeedback(score, commScore, confScore, archetype, question) {
   };
 }
 
-function makeDeliveryMetrics(wpm, fillers, score) {
+// progressFactor: 0 (early/worst) → 1 (recent/best) — drives the gesture/fidget arc
+function makeDeliveryMetrics(wpm, fillers, score, progressFactor = 0.5) {
   const monotone = parseFloat(Math.max(1, Math.min(9, 7 - (score - 6) * 1.2 + (Math.random() * 1.4 - 0.7))).toFixed(1));
   const pitchRange = 80 + Math.floor(score * 8) + Math.floor(Math.random() * 30);
   const energyVar = parseFloat(Math.max(1, Math.min(9, (score - 5) * 1.5 + (Math.random() * 1.0 - 0.5))).toFixed(1));
   const tempoDyn = parseFloat(Math.max(1.5, Math.min(9.5, (score - 4.5) * 1.2 + (Math.random() * 1.2 - 0.6))).toFixed(1));
   const eyeContact = Math.min(0.95, 0.45 + (score - 5.5) * 0.08 + Math.random() * 0.08);
+
+  // Hand metrics: start with heavy face-touching + restricted gestures, improve over time
+  const faceTouchCount  = Math.max(0, Math.round(7 - progressFactor * 6 + (Math.random() * 2 - 1)));
+  const neckTouchCount  = Math.max(0, Math.round(3 - progressFactor * 2.5 + (Math.random() * 1.4 - 0.7)));
+  const gestureScore    = Math.min(100, Math.round(26 + progressFactor * 50 + (Math.random() * 10 - 5)));
+  const fidgetScore     = Math.max(0,  Math.round(72 - progressFactor * 55 + (Math.random() * 10 - 5)));
+  const openGestureRate = parseFloat(Math.min(0.9, 0.12 + progressFactor * 0.55 + Math.random() * 0.06).toFixed(2));
+  const fistRate        = parseFloat(Math.max(0,   0.28 - progressFactor * 0.22 + Math.random() * 0.05).toFixed(2));
+  const gestureSpan     = parseFloat(Math.min(0.8, 0.12 + progressFactor * 0.42 + Math.random() * 0.06).toFixed(2));
+  const gestureEnergy   = parseFloat(Math.min(0.9, 0.08 + progressFactor * 0.30 + Math.random() * 0.05).toFixed(2));
+  const handVisibility  = parseFloat(Math.min(0.95, 0.42 + progressFactor * 0.40 + Math.random() * 0.06).toFixed(2));
+  const chestZoneRate   = parseFloat(Math.min(0.85, 0.30 + progressFactor * 0.38 + Math.random() * 0.06).toFixed(2));
+
   return {
     wpm,
     fillersPer100: parseFloat((fillers / (wpm * 1.8 / 100)).toFixed(2)),
@@ -271,7 +285,6 @@ function makeDeliveryMetrics(wpm, fillers, score) {
       energyMean: 0.55 + Math.random() * 0.15,
       energyStd: 0.04 + Math.random() * 0.04,
       tempoDynamics: tempoDyn,
-      // Azure Speech SDK signals
       pronunciationScore: parseFloat(Math.min(96, Math.max(62, 75 + score * 2.2 + (Math.random() * 6 - 3))).toFixed(1)),
       fluencyScore:       parseFloat(Math.min(95, Math.max(58, 70 + score * 2.8 + (Math.random() * 6 - 3))).toFixed(1)),
       prosodyScore:       parseFloat(Math.min(94, Math.max(50, 62 + score * 3.0 + (Math.random() * 8 - 4))).toFixed(1)),
@@ -286,6 +299,24 @@ function makeDeliveryMetrics(wpm, fillers, score) {
       browEngagement: parseFloat(Math.min(0.4, 0.05 + score * 0.02 + Math.random() * 0.05).toFixed(2)),
       lookAwayRate: parseFloat(Math.max(0.02, 0.25 - score * 0.02 + Math.random() * 0.05).toFixed(2)),
       framesAnalyzed: Math.floor(380 + Math.random() * 140),
+    },
+    hands: {
+      faceTouchCount,
+      neckTouchCount,
+      gestureScore,
+      fidgetScore,
+      openGestureRate,
+      pointingRate:       parseFloat(Math.min(0.3, 0.05 + progressFactor * 0.12 + Math.random() * 0.04).toFixed(2)),
+      fistRate,
+      gestureSpan,
+      gestureEnergy,
+      handVisibilityRate: handVisibility,
+      twoHandRate:        parseFloat(Math.min(0.5, 0.05 + progressFactor * 0.28 + Math.random() * 0.05).toFixed(2)),
+      chestZoneRate,
+      lowZoneRate:        parseFloat(Math.max(0,   0.32 - progressFactor * 0.28 + Math.random() * 0.04).toFixed(2)),
+      highZoneRate:       parseFloat(Math.min(0.15, 0.04 + Math.random() * 0.05).toFixed(2)),
+      framesAnalyzed:     Math.floor(380 + Math.random() * 140),
+      durationSeconds:    108,
     },
   };
 }
@@ -342,6 +373,7 @@ for (let i = 0; i < attemptData.length; i++) {
   const q = questions[i];
   const ts = daysAgo(d.daysAgoN);
   ts.setHours(9 + Math.floor(Math.random() * 8));
+  const progressFactor = i / (attemptData.length - 1); // 0 → 1
 
   await prisma.attempt.create({
     data: {
@@ -363,14 +395,67 @@ for (let i = 0; i < attemptData.length; i++) {
       wpm: d.wpm,
       durationSeconds: 95 + Math.floor(Math.random() * 30),
       feedback: makeFeedback(d.score, d.comm, d.conf, d.arch, q.q),
-      deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers, d.score),
+      deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers, d.score, progressFactor),
       prosody: makeProsody(d.wpm, d.score),
     },
   });
 }
-console.log("Created 12 attempts with improving score arc");
+console.log("Created 12 practice attempts with improving score arc + hand metrics");
 
-// ── 5. Resume Analysis ────────────────────────────────────────────────────────
+// ── 5. Mock Interview Attempts ────────────────────────────────────────────────
+
+const mockInterviewData = [
+  { daysAgoN: 18, score: 6.0, comm: 5.8, conf: 5.6, arch: "Anxious Achiever",   wpm: 150, fillers: 8,  progressFactor: 0.0 },
+  { daysAgoN: 14, score: 6.4, comm: 6.3, conf: 6.1, arch: "Circling the Point", wpm: 155, fillers: 6,  progressFactor: 0.2 },
+  { daysAgoN: 10, score: 6.9, comm: 6.8, conf: 6.7, arch: "Vague Narrator",     wpm: 145, fillers: 4,  progressFactor: 0.45 },
+  { daysAgoN: 6,  score: 7.3, comm: 7.2, conf: 7.1, arch: "Fading Closer",      wpm: 138, fillers: 3,  progressFactor: 0.7 },
+  { daysAgoN: 3,  score: 7.7, comm: 7.6, conf: 7.5, arch: "Polished Performer", wpm: 131, fillers: 2,  progressFactor: 0.88 },
+  { daysAgoN: 1,  score: 8.0, comm: 7.9, conf: 7.8, arch: "Polished Performer", wpm: 127, fillers: 1,  progressFactor: 1.0 },
+];
+
+const mockQuestions = [
+  { q: "Tell me about a time you had to lead a team through a major product pivot.", cat: "behavioral" },
+  { q: "How do you decide which features to cut when you're behind on a release?", cat: "product" },
+  { q: "Describe a time you used data to challenge a senior leader's assumption.", cat: "behavioral" },
+  { q: "Walk me through how you'd design an onboarding flow for a B2B SaaS product.", cat: "product" },
+  { q: "Tell me about a time you failed to meet a key product metric. What did you do?", cat: "behavioral" },
+  { q: "How would you approach pricing strategy for a new enterprise tier?", cat: "product" },
+];
+
+for (let i = 0; i < mockInterviewData.length; i++) {
+  const d = mockInterviewData[i];
+  const q = mockQuestions[i];
+  const ts = daysAgo(d.daysAgoN);
+  ts.setHours(14 + Math.floor(Math.random() * 5));
+
+  await prisma.attempt.create({
+    data: {
+      userId,
+      ts,
+      question: q.q,
+      transcript: `${d.score >= 7.5 ? "Great question." : "Sure."} Let me walk you through a specific example. ${d.score >= 7 ? "At my previous company, we were mid-sprint when a major competitor launched a feature that directly threatened our core retention metric." : "We had a situation where things got complicated really fast and we kind of had to figure it out."} ${d.score >= 7.5 ? "I immediately pulled together the key stakeholders — engineering lead, design, and our head of CS — and we ran a 2-hour war room to reprioritize the roadmap." : "I tried to get everyone together to talk through the options, though it took a few days to align."} The outcome: ${d.score >= 7 ? `we shipped a counter-feature in ${Math.floor(d.score * 1.8)} days flat and retained ${Math.floor(d.score * 8)}% of at-risk accounts.` : "we got something shipped eventually and it helped stabilize things."} What I took away was that cross-functional alignment upfront saves far more time than you invest in it.`,
+      inputMethod: "microphone",
+      score: d.score,
+      communicationScore: d.comm,
+      confidenceScore: d.conf,
+      questionCategory: q.cat,
+      questionSource: "mock_interview",
+      evaluationFramework: "STAR",
+      jobProfileId: jp1.id,
+      jobProfileTitle: "Product Manager",
+      jobProfileCompany: "Stripe",
+      jobProfileRoleType: "full_time",
+      wpm: d.wpm,
+      durationSeconds: 100 + Math.floor(Math.random() * 40),
+      feedback: makeFeedback(d.score, d.comm, d.conf, d.arch, q.q),
+      deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers, d.score, d.progressFactor),
+      prosody: makeProsody(d.wpm, d.score),
+    },
+  });
+}
+console.log("Created 6 mock interview attempts with hand gesture arc");
+
+// ── 6. Resume Analysis ────────────────────────────────────────────────────────
 
 await prisma.resumeAnalysis.create({
   data: {
@@ -423,7 +508,7 @@ for (const app of jobApps) {
 }
 console.log("Created 6 job tracker entries");
 
-// ── 7. Student Skills (extracted from attempts) ───────────────────────────────
+// ── 8. Student Skills (extracted from attempts) ───────────────────────────────
 
 const skills = [
   { skill: "Stakeholder Management", category: "interpersonal", confidence: 0.88 },
@@ -443,7 +528,7 @@ for (const s of skills) {
 }
 console.log("Created 8 student skills");
 
-// ── 8. Life Buddy Data ────────────────────────────────────────────────────────
+// ── 9. Life Buddy Data ────────────────────────────────────────────────────────
 
 // Calendar events: mix of completed past events + upcoming
 const today = dateStr(new Date());
@@ -522,7 +607,9 @@ console.log("Created Life Buddy data (calendar, budget, one-time expenses, retir
 // ── Done ──────────────────────────────────────────────────────────────────────
 
 console.log("\n✅ Seed complete for", TARGET_EMAIL);
-console.log("   12 attempts   | improving arc 5.8 → 8.2");
+console.log("   12 practice   | improving arc 5.8 → 8.2 + hand metrics arc");
+console.log("   6 mock intrvw | improving arc 6.0 → 8.0 + gesture/fidget coaching arc");
+console.log("   Hand arc      | faceTouchCount 6→1, gestureScore 26→76, fidgetScore 72→17");
 console.log("   2 job profiles| Stripe PM, Google APM");
 console.log("   6 job apps    | 1 offer (Vercel $175K), 1 final round (Stripe)");
 console.log("   1 resume scan | score 74, ATS 68");

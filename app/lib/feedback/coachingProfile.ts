@@ -59,6 +59,13 @@ export type DeliveryProfile = {
   monotoneCategory: "engaging" | "moderate" | "flat" | null;
   avgEyeContact: number | null;
   eyeContactCategory: "strong" | "moderate" | "weak" | null;
+  // Hand & gesture signals (from webcam hand analysis)
+  avgGestureScore: number | null;      // 0-100; higher = more expressive
+  gestureCategory: "expressive" | "moderate" | "restricted" | null;
+  avgFidgetScore: number | null;       // 0-100; lower is better
+  fidgetCategory: "composed" | "some_fidgeting" | "high_fidgeting" | null;
+  avgFaceTouchRate: number | null;     // avg face touch events per session
+  faceTouchFlag: boolean;              // true if consistent face touching across sessions
 };
 
 export type StarPattern = {
@@ -190,6 +197,18 @@ function getMonotone(h: any): number | null {
 
 function getEyeContact(h: any): number | null {
   return n(h?.deliveryMetrics?.face?.eyeContact);
+}
+
+function getGestureScore(h: any): number | null {
+  return n(h?.deliveryMetrics?.hands?.gestureScore);
+}
+
+function getFidgetScore(h: any): number | null {
+  return n(h?.deliveryMetrics?.hands?.fidgetScore);
+}
+
+function getFaceTouchCount(h: any): number | null {
+  return n(h?.deliveryMetrics?.hands?.faceTouchCount);
 }
 
 function getDimensions(h: any): Record<string, number> | null {
@@ -468,14 +487,22 @@ export function buildUserCoachingProfile(history: any[]): UserCoachingProfile {
 
   // ── Delivery profile ─────────────────────────────────────────────────────
   const wpmVals = all.map(getWpm).filter((v): v is number => v !== null);
-  const fillerVals = all.map(getFillersPer100).filter((v): v is number => v !== null);
+  const fillerVals   = all.map(getFillersPer100).filter((v): v is number => v !== null);
   const monotoneVals = all.map(getMonotone).filter((v): v is number => v !== null);
-  const eyeVals = all.map(getEyeContact).filter((v): v is number => v !== null);
+  const eyeVals      = all.map(getEyeContact).filter((v): v is number => v !== null);
+  const gestureVals  = all.map(getGestureScore).filter((v): v is number => v !== null);
+  const fidgetVals   = all.map(getFidgetScore).filter((v): v is number => v !== null);
+  const faceTouchVals = all.map(getFaceTouchCount).filter((v): v is number => v !== null);
 
-  const avgWpm = round1(avg(wpmVals));
-  const avgFillers = round1(avg(fillerVals));
-  const avgMonotone = round1(avg(monotoneVals));
+  const avgWpm        = round1(avg(wpmVals));
+  const avgFillers    = round1(avg(fillerVals));
+  const avgMonotone   = round1(avg(monotoneVals));
   const avgEyeContact = round1(avg(eyeVals));
+  const avgGestureScore = gestureVals.length ? Math.round(avg(gestureVals)!) : null;
+  const avgFidgetScore  = fidgetVals.length  ? Math.round(avg(fidgetVals)!)  : null;
+  const avgFaceTouchRate = faceTouchVals.length ? round1(avg(faceTouchVals)) : null;
+  // Flag if face touching is a consistent pattern (avg ≥ 3 events and seen in 2+ sessions)
+  const faceTouchFlag = faceTouchVals.length >= 2 && (avgFaceTouchRate ?? 0) >= 3;
 
   const deliveryProfile: DeliveryProfile = {
     avgWpm,
@@ -490,7 +517,7 @@ export function buildUserCoachingProfile(history: any[]): UserCoachingProfile {
       : avgFillers <= 1.5 ? "excellent"
       : avgFillers < 3.0 ? "good"
       : "high",
-    fillerTrend: fillerVals.length >= 4 ? trendDir(fillerVals.slice().reverse().map(v => -v)) : null, // invert: lower fillers = improving
+    fillerTrend: fillerVals.length >= 4 ? trendDir(fillerVals.slice().reverse().map(v => -v)) : null,
     avgMonotone,
     monotoneCategory: avgMonotone === null ? null
       : avgMonotone <= 4 ? "engaging"
@@ -501,6 +528,18 @@ export function buildUserCoachingProfile(history: any[]): UserCoachingProfile {
       : avgEyeContact >= 0.65 ? "strong"
       : avgEyeContact >= 0.35 ? "moderate"
       : "weak",
+    avgGestureScore,
+    gestureCategory: avgGestureScore === null ? null
+      : avgGestureScore >= 65 ? "expressive"
+      : avgGestureScore >= 40 ? "moderate"
+      : "restricted",
+    avgFidgetScore,
+    fidgetCategory: avgFidgetScore === null ? null
+      : avgFidgetScore <= 20 ? "composed"
+      : avgFidgetScore <= 45 ? "some_fidgeting"
+      : "high_fidgeting",
+    avgFaceTouchRate,
+    faceTouchFlag,
   };
 
   // ── STAR pattern ─────────────────────────────────────────────────────────
@@ -637,6 +676,39 @@ export function buildUserCoachingProfile(history: any[]): UserCoachingProfile {
       area: deliveryProfile.wpmCategory === "slow" ? "Pace (too slow)" : "Pace (too fast)",
       evidence: `Avg ${deliveryProfile.avgWpm} WPM`,
       urgency: deliveryProfile.wpmCategory === "very_fast" ? "high" : "medium",
+      type: "delivery",
+    });
+  }
+
+  // 6. Delivery: face touching (if consistent pattern)
+  if (deliveryProfile.faceTouchFlag && faceTouchVals.length >= 2) {
+    topPriorities.push({
+      key: "face_touching",
+      area: "Face touching habit",
+      evidence: `Avg ${deliveryProfile.avgFaceTouchRate} face-touch events/session — reads as nervous on camera`,
+      urgency: (deliveryProfile.avgFaceTouchRate ?? 0) >= 5 ? "high" : "medium",
+      type: "delivery",
+    });
+  }
+
+  // 7. Delivery: low gesture expressiveness (if restricted and seen in 2+ sessions)
+  if (deliveryProfile.gestureCategory === "restricted" && gestureVals.length >= 2) {
+    topPriorities.push({
+      key: "gesture_restricted",
+      area: "Gesture expressiveness",
+      evidence: `Avg gesture score ${deliveryProfile.avgGestureScore}/100 — hands mostly hidden or still`,
+      urgency: "medium",
+      type: "delivery",
+    });
+  }
+
+  // 8. Delivery: high fidgeting
+  if (deliveryProfile.fidgetCategory === "high_fidgeting" && fidgetVals.length >= 2) {
+    topPriorities.push({
+      key: "high_fidgeting",
+      area: "Nervous movement / fidgeting",
+      evidence: `Avg fidget score ${deliveryProfile.avgFidgetScore}/100 — erratic hand movement detected`,
+      urgency: "medium",
       type: "delivery",
     });
   }
@@ -793,6 +865,18 @@ function buildLLMContext(p: {
   if (p.deliveryProfile.monotoneCategory) {
     delParts.push(`vocal variety: ${p.deliveryProfile.monotoneCategory}`);
   }
+  if (p.deliveryProfile.eyeContactCategory) {
+    delParts.push(`eye contact: ${p.deliveryProfile.eyeContactCategory}`);
+  }
+  if (p.deliveryProfile.gestureCategory) {
+    delParts.push(`gesture expressiveness: ${p.deliveryProfile.gestureCategory} (avg ${p.deliveryProfile.avgGestureScore}/100)`);
+  }
+  if (p.deliveryProfile.fidgetCategory && p.deliveryProfile.fidgetCategory !== "composed") {
+    delParts.push(`fidgeting: ${p.deliveryProfile.fidgetCategory} (avg ${p.deliveryProfile.avgFidgetScore}/100)`);
+  }
+  if (p.deliveryProfile.faceTouchFlag) {
+    delParts.push(`face touching: consistent pattern (avg ${p.deliveryProfile.avgFaceTouchRate} events/session) — nervous habit`);
+  }
   if (delParts.length > 0) {
     lines.push("");
     lines.push(`Delivery: ${delParts.join(" | ")}`);
@@ -861,6 +945,12 @@ function buildEmptyProfile(): UserCoachingProfile {
       monotoneCategory: null,
       avgEyeContact: null,
       eyeContactCategory: null,
+      avgGestureScore: null,
+      gestureCategory: null,
+      avgFidgetScore: null,
+      fidgetCategory: null,
+      avgFaceTouchRate: null,
+      faceTouchFlag: false,
     },
     starPattern: {
       behavioralAttemptCount: 0,

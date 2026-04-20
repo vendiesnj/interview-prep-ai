@@ -2,15 +2,21 @@
 
 import { useRef, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import { useFaceAnalysis, type FaceMetrics } from "@/app/hooks/useFaceAnalysis";
+import { useHandAnalysis, type HandMetrics } from "@/app/hooks/useHandAnalysis";
+
+export interface CombinedMetrics {
+  face: FaceMetrics | null;
+  hands: HandMetrics | null;
+}
 
 export interface WebcamOverlayHandle {
   start: () => Promise<void>;
-  stop: () => FaceMetrics | null;
+  stop: () => CombinedMetrics;
 }
 
 interface Props {
   isRecording: boolean;
-  onMetrics?: (metrics: FaceMetrics) => void;
+  onMetrics?: (metrics: CombinedMetrics) => void;
   /** position relative to its parent container */
   position?: "bottom-right" | "bottom-left" | "top-right" | "top-left";
 }
@@ -25,57 +31,58 @@ const POSITION_STYLES: Record<NonNullable<Props["position"]>, React.CSSPropertie
 const WebcamOverlay = forwardRef<WebcamOverlayHandle, Props>(
   ({ isRecording, onMetrics, position = "bottom-right" }, ref) => {
     const videoElRef = useRef<HTMLVideoElement>(null);
-    const { startAnalysis, stopAnalysis } = useFaceAnalysis();
+    const { startAnalysis: startFace, stopAnalysis: stopFace } = useFaceAnalysis();
+    const { startAnalysis: startHands, stopAnalysis: stopHands } = useHandAnalysis();
     const [status, setStatus] = useState<"idle" | "loading" | "active" | "denied" | "unsupported">("idle");
-    const [liveMetric, setLiveMetric] = useState<{ eyeContact: number } | null>(null);
     const metricIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+    async function startBoth() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setStatus("unsupported");
+        return;
+      }
+      setStatus("loading");
+      try {
+        const videoEl = videoElRef.current!;
+        await startFace(videoEl);
+        // Hand analysis reuses the same video element (already has stream attached)
+        startHands(videoEl);
+        setStatus("active");
+      } catch {
+        setStatus("denied");
+      }
+    }
+
+    function stopBoth(): CombinedMetrics {
+      const face  = stopFace();
+      const hands = stopHands();
+      setStatus("idle");
+      if (metricIntervalRef.current) clearInterval(metricIntervalRef.current);
+      const combined: CombinedMetrics = { face, hands };
+      if (onMetrics) onMetrics(combined);
+      return combined;
+    }
+
     useImperativeHandle(ref, () => ({
-      start: async () => {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          setStatus("unsupported");
-          return;
-        }
-        setStatus("loading");
-        try {
-          await startAnalysis(videoElRef.current!);
-          setStatus("active");
-        } catch {
-          setStatus("denied");
-        }
-      },
-      stop: () => {
-        const metrics = stopAnalysis();
-        setStatus("idle");
-        if (metricIntervalRef.current) clearInterval(metricIntervalRef.current);
-        if (metrics && onMetrics) onMetrics(metrics);
-        return metrics;
-      },
+      start: startBoth,
+      stop:  stopBoth,
     }));
 
     // Kick off / tear down when isRecording changes
     useEffect(() => {
       if (isRecording) {
-        if (!navigator.mediaDevices?.getUserMedia) { setStatus("unsupported"); return; }
-        setStatus("loading");
-        startAnalysis(videoElRef.current!).then(() => {
-          setStatus("active");
-        }).catch(() => setStatus("denied"));
+        startBoth();
       } else if (status === "active") {
-        const metrics = stopAnalysis();
-        setStatus("idle");
-        if (metricIntervalRef.current) clearInterval(metricIntervalRef.current);
-        if (metrics && onMetrics) onMetrics(metrics);
+        stopBoth();
       }
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isRecording]);
 
-    // Force stop stream when component unmounts (e.g., user navigates away mid-recording)
     useEffect(() => {
       return () => {
-        stopAnalysis();
+        stopFace();
+        stopHands();
         if (metricIntervalRef.current) clearInterval(metricIntervalRef.current);
-        setStatus("idle");
       };
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

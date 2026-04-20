@@ -2052,8 +2052,8 @@ function stopRecording() {
   if (!mr) return;
 
   // Collect face analysis metrics before stopping
-  const faceResult = webcamRef.current?.stop();
-  if (faceResult) faceMetricsRef.current = faceResult;
+  const combined = webcamRef.current?.stop();
+  if (combined?.face) faceMetricsRef.current = combined.face;
 
   cleanupWaveform();
 

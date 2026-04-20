@@ -49,12 +49,25 @@ interface RespondBody {
   competencyQuestions?: CompetencyQuestion[];
 }
 
+interface WebcamHandMetrics {
+  handVisibilityRate?: number;
+  faceTouchCount?: number;
+  neckTouchCount?: number;
+  openGestureRate?: number;
+  gestureSpan?: number;
+  gestureEnergy?: number;
+  gestureScore?: number;
+  fidgetScore?: number;
+  chestZoneRate?: number;
+}
+
 interface ScoreBody {
   action: "score";
   role: string;
   industry: string;
   history: ConversationTurn[];
   faceMetrics?: Record<string, number> | null;
+  handMetrics?: WebcamHandMetrics | null;
 }
 
 interface SaveBody {
@@ -64,6 +77,7 @@ interface SaveBody {
   history: ConversationTurn[];
   scoreResult: MockScoreResult;
   faceMetrics?: Record<string, number> | null;
+  handMetrics?: WebcamHandMetrics | null;
   voiceMetrics?: Record<string, number> | null;
   wpm?: number | null;
 }
@@ -241,8 +255,49 @@ async function handleRespond(body: RespondBody): Promise<NextResponse> {
   });
 }
 
+// Build a concise delivery signal block from webcam data for prompt injection
+function buildDeliveryContext(
+  faceMetrics: Record<string, number> | null | undefined,
+  handMetrics: WebcamHandMetrics | null | undefined,
+): string {
+  const parts: string[] = [];
+
+  if (faceMetrics) {
+    const eyePct = faceMetrics.eyeContact != null ? `${Math.round(faceMetrics.eyeContact * 100)}%` : null;
+    const smilePct = faceMetrics.smileRate != null ? `${Math.round(faceMetrics.smileRate * 100)}%` : null;
+    const blinkRate = faceMetrics.blinkRate != null ? Math.round(faceMetrics.blinkRate) : null;
+    const lookAway = faceMetrics.lookAwayRate != null ? `${Math.round(faceMetrics.lookAwayRate * 100)}%` : null;
+    const brow = faceMetrics.browEngagement != null ? faceMetrics.browEngagement.toFixed(2) : null;
+
+    if (eyePct) parts.push(`Eye contact: ${eyePct} of frames (${parseFloat(eyePct) >= 75 ? "strong" : parseFloat(eyePct) >= 50 ? "moderate" : "weak"})`);
+    if (smilePct) parts.push(`Smile/warmth rate: ${smilePct} (${parseFloat(smilePct) >= 25 ? "approachable" : "minimal warmth shown"})`);
+    if (lookAway) parts.push(`Look-away rate: ${lookAway} (${parseFloat(lookAway) <= 10 ? "stays focused" : parseFloat(lookAway) <= 25 ? "occasional distraction" : "frequently looks away"})`);
+    if (blinkRate != null) parts.push(`Blink rate: ${blinkRate}/min (${blinkRate >= 12 && blinkRate <= 22 ? "normal" : blinkRate > 22 ? "elevated — possible nerves" : "low"})`);
+    if (brow) parts.push(`Brow engagement: ${brow} (${parseFloat(brow) >= 0.15 ? "expressive" : "frozen/flat expression"})`);
+  }
+
+  if (handMetrics) {
+    const vis = handMetrics.handVisibilityRate != null ? `${Math.round(handMetrics.handVisibilityRate * 100)}%` : null;
+    const gestScore = handMetrics.gestureScore;
+    const fidget = handMetrics.fidgetScore;
+    const faceTouch = handMetrics.faceTouchCount ?? 0;
+    const neckTouch = handMetrics.neckTouchCount ?? 0;
+    const openRate = handMetrics.openGestureRate != null ? `${Math.round(handMetrics.openGestureRate * 100)}%` : null;
+
+    if (vis) parts.push(`Hands visible: ${vis} of session`);
+    if (gestScore != null) parts.push(`Gesture expressiveness score: ${gestScore}/100 (${gestScore >= 70 ? "effective open gestures" : gestScore >= 45 ? "some gesturing" : "hands mostly hidden or still"})`);
+    if (openRate) parts.push(`Open gesture rate: ${openRate} (open palms signal confidence and trustworthiness)`);
+    if (fidget != null) parts.push(`Fidget score: ${fidget}/100 (${fidget <= 20 ? "composed" : fidget <= 45 ? "some nervous movement" : "high fidgeting detected"})`);
+    if (faceTouch > 0) parts.push(`Face touches: ${faceTouch} events (${faceTouch >= 4 ? "frequent face touching — strong nervous signal" : "occasional face touching"})`);
+    if (neckTouch > 0) parts.push(`Neck/chest touches: ${neckTouch} events (self-soothing gesture)`);
+  }
+
+  if (parts.length === 0) return "";
+  return `\n\nOBSERVED ON-CAMERA DELIVERY SIGNALS (captured by webcam analysis — use these to calibrate presence_confidence and vocal_engagement scores and coaching notes):\n${parts.map(p => `- ${p}`).join("\n")}`;
+}
+
 async function handleScore(body: ScoreBody): Promise<NextResponse> {
-  const { role, industry, history } = body;
+  const { role, industry, history, faceMetrics, handMetrics } = body;
 
   // Build a clean transcript for scoring
   const transcript = history
@@ -254,6 +309,8 @@ async function handleScore(body: ScoreBody): Promise<NextResponse> {
     .map((t, i) => `Q${i + 1} [${t.competency ?? "general"}]: ${t.content}`)
     .join("\n");
 
+  const deliveryContext = buildDeliveryContext(faceMetrics, handMetrics);
+
   const res = await openai.chat.completions.create({
     model: "gpt-4o",
     response_format: { type: "json_object" },
@@ -262,7 +319,7 @@ async function handleScore(body: ScoreBody): Promise<NextResponse> {
         role: "system",
         content: `You are an expert interview coach scoring a mock interview for a ${role} position in ${industry}.
 
-Score everything based strictly on what you observe in the transcript — not on what a typical candidate would say.
+Score everything based strictly on what you observe in the transcript — not on what a typical candidate would say.${deliveryContext ? " When webcam delivery signals are provided, use them as grounding evidence for presence_confidence and vocal_engagement scores and reference them in coaching notes." : ""}
 
 DIMENSION SCORING (1–10 scale, use the full range):
 - 1–3: Critically absent or harmful (e.g., no structure, completely off-topic, entirely passive language)
@@ -288,7 +345,7 @@ QUESTIONS ASKED:
 ${questionList}
 
 FULL TRANSCRIPT:
-${transcript}
+${transcript}${deliveryContext}
 
 DIMENSION WEIGHTS (use these to inform overall score):
 - narrative_clarity: 18% — did answers tell a coherent, easy-to-follow story?
@@ -296,8 +353,8 @@ DIMENSION WEIGHTS (use these to inform overall score):
 - ownership_agency: 16% — did the candidate use "I" language and own their contributions?
 - cognitive_depth: 16% — did answers show analytical thinking, tradeoffs, or reasoning?
 - response_control: 14% — were answers appropriately scoped (not too long, not too short)?
-- presence_confidence: 10% — did the candidate project conviction and assertiveness?
-- vocal_engagement: 8% — was delivery varied and engaging (based on transcript patterns)?
+- presence_confidence: 10% — did the candidate project conviction and assertiveness? ${faceMetrics || handMetrics ? "(webcam signals provided above — use them)" : ""}
+- vocal_engagement: 8% — was delivery varied and engaging? ${faceMetrics || handMetrics ? "(webcam signals provided above — factor in gesture and eye contact)" : ""}
 
 Respond with JSON only:
 {
@@ -370,6 +427,54 @@ Respond with JSON only:
     else                scored.interviewArc.pitchDrift = "stable";
   }
 
+  // ── Deterministic presence_confidence nudge from webcam data ────────────────
+  // GPT sees the signals in the prompt, but we also enforce a hard ceiling/floor
+  // so camera data actually moves the needle rather than being ignored.
+  if ((faceMetrics || handMetrics) && scored.dimensionScores?.presence_confidence) {
+    const aiPresence = scored.dimensionScores.presence_confidence.score;
+
+    // Build a 0-10 webcam presence signal
+    let webcamSignal = 5; // neutral baseline when data is sparse
+    let signalCount = 0;
+
+    // Eye contact (0-1 → 0-10, weight 3)
+    if (faceMetrics?.eyeContact != null) {
+      webcamSignal += (faceMetrics.eyeContact * 10 - webcamSignal) * 3;
+      signalCount += 3;
+    }
+    // Look-away penalty (inverted, weight 2)
+    if (faceMetrics?.lookAwayRate != null) {
+      const lookAwayScore = Math.max(0, 10 - faceMetrics.lookAwayRate * 20);
+      webcamSignal += (lookAwayScore - webcamSignal) * 2;
+      signalCount += 2;
+    }
+    // Gesture score (0-100 → 0-10, weight 2)
+    if (handMetrics?.gestureScore != null) {
+      const gestureSignal = handMetrics.gestureScore / 10;
+      webcamSignal += (gestureSignal - webcamSignal) * 2;
+      signalCount += 2;
+    }
+    // Fidget penalty (0-100 → inverted 0-10, weight 2)
+    if (handMetrics?.fidgetScore != null) {
+      const fidgetSignal = Math.max(0, 10 - handMetrics.fidgetScore / 10);
+      webcamSignal += (fidgetSignal - webcamSignal) * 2;
+      signalCount += 2;
+    }
+    // Face touch penalty
+    if (handMetrics?.faceTouchCount != null && handMetrics.faceTouchCount > 0) {
+      const touchPenalty = Math.min(1.5, handMetrics.faceTouchCount * 0.3);
+      webcamSignal -= touchPenalty;
+      signalCount += 1;
+    }
+
+    if (signalCount > 0) {
+      webcamSignal = Math.max(1, Math.min(10, webcamSignal));
+      // Blend: AI score 60% + webcam signal 40% — camera data has real weight
+      const blended = Math.round((aiPresence * 0.6 + webcamSignal * 0.4) * 10) / 10;
+      scored.dimensionScores.presence_confidence.score = Math.max(1, Math.min(10, blended));
+    }
+  }
+
   // ── Deterministic overallScore — never accept AI's free-form number directly ──
   // Compute from dimension scores (weighted) and question breakdowns (weighted).
   // The AI's overallScore is treated as advisory and constrained to ±8 of this.
@@ -429,7 +534,7 @@ async function handleSave(
   userId: string,
   tenantId: string | null,
 ): Promise<NextResponse> {
-  const { role, history, scoreResult, faceMetrics, voiceMetrics, wpm } = body;
+  const { role, history, scoreResult, faceMetrics, handMetrics, voiceMetrics, wpm } = body;
 
   // Build a clean transcript string
   const transcript = history
@@ -520,8 +625,9 @@ async function handleSave(
       },
       deliveryMetrics: {
         ...(voiceMetrics ?? {}),
-        ...(faceMetrics ? { face: faceMetrics } : {}),
-      },
+        ...(faceMetrics ? { face:  faceMetrics  } : {}),
+        ...(handMetrics ? { hands: handMetrics  } : {}),
+      } as any,
       prosody: voiceMetrics ? {
         monotoneScore: voiceMetrics.monotoneScore ?? undefined,
         energyVariation: voiceMetrics.energyVariation ?? undefined,

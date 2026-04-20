@@ -234,7 +234,7 @@ export default function PublicSpeakingPage() {
     setRecording(false);
 
     // Stop webcam and capture face metrics
-    faceMetricsRef.current = webcamRef.current?.stop() ?? null;
+    faceMetricsRef.current = webcamRef.current?.stop()?.face ?? null;
 
     const mr = mediaRecorderRef.current;
     await new Promise<void>((res) => { mr.onstop = () => res(); mr.stop(); });

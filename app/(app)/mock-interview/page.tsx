@@ -5,8 +5,9 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Search, X } from "lucide-react";
 import PremiumShell from "@/app/components/PremiumShell";
-import WebcamOverlay, { type WebcamOverlayHandle } from "@/app/components/WebcamOverlay";
+import WebcamOverlay, { type WebcamOverlayHandle, type CombinedMetrics } from "@/app/components/WebcamOverlay";
 import type { FaceMetrics } from "@/app/hooks/useFaceAnalysis";
+import type { HandMetrics } from "@/app/hooks/useHandAnalysis";
 import type { ConversationTurn, MockScoreResult, CompetencyQuestion } from "@/app/api/mock-interview/route";
 import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
 import OCCUPATIONS, { type Occupation } from "@/app/lib/onet-occupations";
@@ -117,13 +118,21 @@ function SetupScreen({
   onStart: (cfg: SessionConfig) => void;
   savedRoleKeys: string[];
 }) {
-  // Past session history for aggregate view
+  // Tab
+  const [tab, setTab] = useState<"new" | "history">("new");
+
+  // Past session history
   const [pastSessions, setPastSessions] = useState<any[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   useEffect(() => {
+    setHistoryLoading(true);
     fetch("/api/mock-interview?all=1", { cache: "no-store" })
       .then(r => r.ok ? r.json() : { attempts: [] })
       .then(d => { if (Array.isArray(d?.attempts)) setPastSessions(d.attempts); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setHistoryLoading(false));
   }, []);
 
   // Role selection
@@ -232,6 +241,178 @@ function SetupScreen({
           coaching report tied to your full practice history.
         </p>
       </div>
+
+      {/* ── Tab bar ── */}
+      <div style={{ display: "flex", gap: 4, marginBottom: 20, background: "var(--card-bg-strong)", borderRadius: "var(--radius-lg)", padding: 4, border: "1px solid var(--card-border-soft)" }}>
+        {([["new", "New Session"], ["history", `History${pastSessions.length > 0 ? ` (${pastSessions.length})` : ""}`]] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            style={{
+              flex: 1, padding: "9px 0", borderRadius: "var(--radius-md)", fontSize: 13, fontWeight: 700,
+              border: "none", cursor: "pointer",
+              background: tab === key ? "var(--card-bg)" : "transparent",
+              color: tab === key ? "var(--text-primary)" : "var(--text-muted)",
+              boxShadow: tab === key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.15s",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── History tab ── */}
+      {tab === "history" && (() => {
+        if (historyLoading) {
+          return <div style={{ textAlign: "center", padding: "40px 0", color: "var(--text-muted)", fontSize: 14 }}>Loading sessions…</div>;
+        }
+        if (pastSessions.length === 0) {
+          return (
+            <div style={{ textAlign: "center", padding: "48px 20px" }}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>🎤</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 6 }}>No sessions yet</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 20 }}>Complete your first mock interview to see your history here.</div>
+              <button onClick={() => setTab("new")} style={{ padding: "10px 24px", borderRadius: "var(--radius-md)", background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}>
+                Start Interview →
+              </button>
+            </div>
+          );
+        }
+
+        const scores = pastSessions.map(s => {
+          const fb = s.feedback as any;
+          const raw = typeof s.score === "number" ? s.score : (typeof fb?.score === "number" ? fb.score : null);
+          return raw !== null ? (raw <= 10 ? Math.round(raw * 10) : Math.round(raw)) : null;
+        }).filter((v): v is number => v !== null);
+        const avg  = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+        const best = scores.length ? Math.max(...scores) : null;
+        const trend = scores.length >= 2 ? scores[0] - scores[scores.length - 1] : null;
+
+        return (
+          <div>
+            {/* Aggregate stats */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
+              {[
+                { label: "Sessions",  value: pastSessions.length.toString() },
+                { label: "Avg Score", value: avg  !== null ? `${avg}`  : "—" },
+                { label: "Best",      value: best !== null ? `${best}` : "—" },
+                { label: "Trend",     value: trend !== null ? (trend > 0 ? `+${trend}` : `${trend}`) : "—",
+                  color: trend !== null ? (trend > 0 ? "#10B981" : trend < 0 ? "#EF4444" : "var(--text-primary)") : undefined },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ padding: "12px 10px", borderRadius: "var(--radius-md)", background: "var(--card-bg)", border: "1px solid var(--card-border-soft)", textAlign: "center" }}>
+                  <div style={{ fontSize: 20, fontWeight: 800, color: color ?? "var(--text-primary)" }}>{value}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2, fontWeight: 600 }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Session list */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {pastSessions.map((s, i) => {
+                const fb = s.feedback as any;
+                const rawScore = typeof s.score === "number" ? s.score : (typeof fb?.score === "number" ? fb.score : null);
+                const pct = rawScore !== null ? (rawScore <= 10 ? Math.round(rawScore * 10) : Math.round(rawScore)) : null;
+                const color = pct === null ? "var(--text-muted)" : pct >= 75 ? "#10B981" : pct >= 55 ? "#F59E0B" : "#EF4444";
+                const role = fb?.role ?? fb?.config?.role ?? s.question ?? "Mock Interview";
+                const date = s.ts ? new Date(s.ts).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "";
+                const readiness = fb?.readiness_level ?? fb?.readinessLevel ?? null;
+                const isExpanded = expandedId === (s.id ?? i.toString());
+
+                const dimScores: Record<string, { label: string; score: number; coaching: string }> = fb?.dimension_scores ?? {};
+                const strengths: string[] = fb?.strengths ?? [];
+                const improvements: string[] = fb?.improvements ?? [];
+                const coachingSummary: string = fb?.coaching_summary ?? "";
+
+                return (
+                  <div key={s.id ?? i} style={{ borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg)", overflow: "hidden" }}>
+                    {/* Row header — always visible */}
+                    <button
+                      onClick={() => setExpandedId(isExpanded ? null : (s.id ?? i.toString()))}
+                      style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
+                    >
+                      <div style={{ width: 40, height: 40, borderRadius: "var(--radius-md)", background: `${color}18`, border: `1px solid ${color}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <span style={{ fontSize: 14, fontWeight: 800, color }}>{pct ?? "—"}</span>
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{role}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                          {date}{readiness ? ` · ${readiness.replace(/_/g, " ")}` : ""}
+                        </div>
+                      </div>
+                      <span style={{ fontSize: 16, color: "var(--text-muted)", flexShrink: 0, transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}>⌄</span>
+                    </button>
+
+                    {/* Expanded detail */}
+                    {isExpanded && (
+                      <div style={{ padding: "0 16px 16px", borderTop: "1px solid var(--card-border-soft)" }}>
+                        {coachingSummary && (
+                          <div style={{ marginTop: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", borderLeft: "3px solid var(--accent)", fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                            {coachingSummary}
+                          </div>
+                        )}
+
+                        {/* Dimension scores */}
+                        {Object.keys(dimScores).length > 0 && (
+                          <div style={{ marginTop: 14 }}>
+                            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 10 }}>Scorecard</div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 20px" }}>
+                              {Object.entries(dimScores).map(([key, d]) => {
+                                const sc = d.score;
+                                const c = sc >= 7.5 ? "#10B981" : sc >= 5.5 ? "var(--accent)" : "#EF4444";
+                                return (
+                                  <div key={key} style={{ paddingBottom: 8 }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                                      <span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)" }}>{d.label}</span>
+                                      <span style={{ fontSize: 12, fontWeight: 700, color: c }}>{sc.toFixed(1)}</span>
+                                    </div>
+                                    <div style={{ height: 4, borderRadius: 99, background: "var(--card-border-soft)", overflow: "hidden" }}>
+                                      <div style={{ width: `${Math.round(sc * 10)}%`, height: "100%", background: c, borderRadius: 99 }} />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Strengths / improvements */}
+                        {(strengths.length > 0 || improvements.length > 0) && (
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+                            {strengths.length > 0 && (
+                              <div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "#10B981", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6 }}>Strengths</div>
+                                {strengths.slice(0, 3).map((st, j) => (
+                                  <div key={j} style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, display: "flex", gap: 6, marginBottom: 3 }}>
+                                    <span style={{ color: "#10B981" }}>✓</span>{st}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {improvements.length > 0 && (
+                              <div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "#F59E0B", textTransform: "uppercase", letterSpacing: 0.6, marginBottom: 6 }}>Work On</div>
+                                {improvements.slice(0, 3).map((imp, j) => (
+                                  <div key={j} style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, display: "flex", gap: 6, marginBottom: 3 }}>
+                                    <span style={{ color: "#F59E0B" }}>→</span>{imp}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── New session tab ── */}
+      {tab === "new" && <div>
 
       <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: 24, marginBottom: 16, display: "flex", flexDirection: "column", gap: 20 }}>
 
@@ -438,60 +619,6 @@ function SetupScreen({
         </div>
       </div>
 
-      {/* Past sessions aggregate */}
-      {pastSessions.length > 0 && (() => {
-        const scores = pastSessions.map(s => {
-          const fb = s.feedback as any;
-          const raw = typeof s.score === "number" ? s.score : (typeof fb?.score === "number" ? fb.score : null);
-          return raw !== null ? (raw <= 10 ? Math.round(raw * 10) : Math.round(raw)) : null;
-        }).filter((v): v is number => v !== null);
-        const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-        const best = scores.length ? Math.max(...scores) : null;
-        const last3 = pastSessions.slice(0, 3);
-        return (
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" as const, letterSpacing: 0.7, marginBottom: 10 }}>Past Mock Sessions</div>
-            {/* Aggregate stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 12 }}>
-              {[
-                { label: "Sessions", value: pastSessions.length.toString() },
-                { label: "Avg Score", value: avg !== null ? `${avg}` : "—" },
-                { label: "Best Score", value: best !== null ? `${best}` : "—" },
-              ].map(({ label, value }) => (
-                <div key={label} style={{ padding: "10px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)", textAlign: "center" as const }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "var(--text-primary)" }}>{value}</div>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>{label}</div>
-                </div>
-              ))}
-            </div>
-            {/* Recent sessions list */}
-            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
-              {last3.map((s, i) => {
-                const fb = s.feedback as any;
-                const rawScore = typeof s.score === "number" ? s.score : (typeof fb?.score === "number" ? fb.score : null);
-                const pct = rawScore !== null ? (rawScore <= 10 ? Math.round(rawScore * 10) : Math.round(rawScore)) : null;
-                const color = pct === null ? "var(--text-muted)" : pct >= 75 ? "#10B981" : pct >= 55 ? "#F59E0B" : "#EF4444";
-                const role = fb?.role ?? fb?.config?.role ?? "Mock Interview";
-                const date = s.ts ? new Date(s.ts).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : "";
-                const readiness = fb?.readinessLevel ?? (s.feedback as any)?.readiness_level ?? null;
-                return (
-                  <div key={s.id ?? i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "var(--radius-sm)", background: `${color}18`, border: `1px solid ${color}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <span style={{ fontSize: 13, fontWeight: 700, color }}>{pct ?? "—"}</span>
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-primary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{role}</div>
-                      {readiness && <div style={{ fontSize: 10, color: "var(--text-muted)", textTransform: "capitalize" as const }}>{readiness.replace(/_/g, " ")}</div>}
-                    </div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>{date}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })()}
-
       <button
         onClick={() => onStart({
           role: roleLabel || "a professional role",
@@ -511,6 +638,62 @@ function SetupScreen({
       >
         {loadingCompetency ? "Loading role questions…" : "Start Interview →"}
       </button>
+      </div>}
+    </div>
+  );
+}
+
+// ── On-Camera Presence Card ───────────────────────────────────────────────────
+
+function OnCameraCard({ face, hands }: { face: Record<string, number> | null; hands: HandMetrics | null }) {
+  if (!face && !hands) return null;
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+  const scoreColor = (s: number) => s >= 70 ? "#10B981" : s >= 45 ? "#F59E0B" : "#EF4444";
+
+  const rows: { label: string; value: string; note: string; color?: string }[] = [];
+
+  // Face signals
+  if (face?.eyeContact != null)
+    rows.push({ label: "Eye Contact", value: pct(face.eyeContact), note: face.eyeContact >= 0.75 ? "Strong camera presence" : face.eyeContact >= 0.5 ? "Room to improve" : "Look directly at camera", color: face.eyeContact >= 0.75 ? "#10B981" : face.eyeContact >= 0.5 ? "#F59E0B" : "#EF4444" });
+  if (face?.smileRate != null)
+    rows.push({ label: "Warmth / Smile", value: pct(face.smileRate), note: face.smileRate >= 0.25 ? "Approachable energy" : "Try to smile more naturally" });
+  if (face?.headStability != null)
+    rows.push({ label: "Head Stability", value: pct(face.headStability), note: face.headStability >= 0.75 ? "Composed and still" : "Reduce head movement" });
+  if (face?.browEngagement != null)
+    rows.push({ label: "Brow Engagement", value: pct(face.browEngagement), note: face.browEngagement >= 0.15 ? "Expressive face" : "Avoid a frozen expression" });
+  if (face?.blinkRate != null)
+    rows.push({ label: "Blink Rate", value: `${Math.round(face.blinkRate)}/min`, note: face.blinkRate >= 12 && face.blinkRate <= 22 ? "Normal range" : face.blinkRate > 22 ? "Elevated — may signal nerves" : "Very low — check screen distance" });
+
+  // Hand signals
+  if (hands) {
+    if (hands.handVisibilityRate > 0.05) {
+      rows.push({ label: "Gesture Expressiveness", value: `${hands.gestureScore}/100`, note: hands.gestureScore >= 70 ? "Effective use of open gestures" : hands.gestureScore >= 45 ? "Some gesturing — push for wider, open movements" : "Hands mostly hidden or still", color: scoreColor(hands.gestureScore) });
+      if (hands.openGestureRate > 0.05)
+        rows.push({ label: "Open Gesture Rate", value: pct(hands.openGestureRate), note: "Open palms read as confident and trustworthy" });
+      if (hands.faceTouchCount > 0)
+        rows.push({ label: "Face Touches", value: `${hands.faceTouchCount}×`, note: hands.faceTouchCount >= 4 ? "Frequent face touching — a nervous signal to reduce" : "Minor — worth being mindful of", color: hands.faceTouchCount >= 4 ? "#EF4444" : "#F59E0B" });
+      if (hands.neckTouchCount > 0)
+        rows.push({ label: "Neck / Chest Touches", value: `${hands.neckTouchCount}×`, note: "Self-soothing gesture — try to keep hands at chest level", color: "#F59E0B" });
+      rows.push({ label: "Fidget Score", value: `${hands.fidgetScore}/100`, note: hands.fidgetScore <= 20 ? "Minimal nervous movement" : hands.fidgetScore <= 45 ? "Some fidgeting — stay aware" : "High fidgeting detected — slow down and breathe", color: hands.fidgetScore <= 20 ? "#10B981" : hands.fidgetScore <= 45 ? "#F59E0B" : "#EF4444" });
+    }
+  }
+
+  if (rows.length === 0) return null;
+
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: 14, padding: 24 }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 18 }}>On-Camera Presence</div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
+        {rows.map((row, i) => (
+          <div key={i} style={{ padding: "10px 14px", borderRadius: "var(--radius-md)", background: "var(--card-bg-strong)", border: "1px solid var(--card-border-soft)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.5 }}>{row.label}</span>
+              <span style={{ fontSize: 15, fontWeight: 800, color: row.color ?? "var(--text-primary)" }}>{row.value}</span>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{row.note}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -524,6 +707,8 @@ function ResultsScreen({
   saved,
   onSave,
   onRetry,
+  faceMetrics,
+  handMetrics,
 }: {
   config: SessionConfig;
   score: MockScoreResult;
@@ -531,6 +716,8 @@ function ResultsScreen({
   saved: boolean;
   onSave: () => void;
   onRetry: () => void;
+  faceMetrics?: Record<string, number> | null;
+  handMetrics?: HandMetrics | null;
 }) {
   const readinessColor: Record<string, string> = {
     strong: "#10B981", ready: "#10B981", developing: "#F59E0B", not_ready: "#EF4444",
@@ -766,6 +953,8 @@ function ResultsScreen({
           </div>
         </div>
       )}
+
+      <OnCameraCard face={faceMetrics ?? null} hands={handMetrics ?? null} />
     </div>
   );
 }
@@ -818,10 +1007,13 @@ function MockInterviewPageInner() {
   const [scoreResult, setScoreResult] = useState<MockScoreResult | null>(null);
   const [saved, setSaved] = useState(false);
 
-  // Face metrics
+  // Face + hand metrics
   const webcamRef = useRef<WebcamOverlayHandle>(null);
   const [webcamEnabled, setWebcamEnabled] = useState(false);
   const faceSessionSamples = useRef<FaceMetrics[]>([]);
+  const handSessionSamples = useRef<HandMetrics[]>([]);
+  const [sessionFaceMetrics, setSessionFaceMetrics] = useState<Record<string, number> | null>(null);
+  const [sessionHandMetrics, setSessionHandMetrics] = useState<HandMetrics | null>(null);
 
   // Coaching profile context from practice history
   const [coachingContext, setCoachingContext] = useState<string | null>(null);
@@ -887,11 +1079,12 @@ function MockInterviewPageInner() {
       .catch(() => {});
   }, [searchParams]);
 
-  // Webcam: collect face samples after each answer
+  // Webcam: collect face + hand samples after each answer
   function collectFaceSample() {
     if (!webcamEnabled) return;
-    const metrics = webcamRef.current?.stop();
-    if (metrics) faceSessionSamples.current.push(metrics);
+    const combined = webcamRef.current?.stop();
+    if (combined?.face)  faceSessionSamples.current.push(combined.face);
+    if (combined?.hands) handSessionSamples.current.push(combined.hands);
     // Restart for next question
     webcamRef.current?.start().catch(() => {});
   }
@@ -908,6 +1101,35 @@ function MockInterviewPageInner() {
     return Object.keys(out).length > 0 ? out : null;
   }
 
+  function avgHandMetrics(): HandMetrics | null {
+    const samples = handSessionSamples.current;
+    if (samples.length === 0) return null;
+    const avgNum = (key: keyof HandMetrics) => {
+      const vals = samples.map(s => s[key] as number).filter(v => typeof v === "number");
+      return vals.length ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 100) / 100 : 0;
+    };
+    const sumNum = (key: keyof HandMetrics) =>
+      samples.reduce((acc, s) => acc + (s[key] as number), 0);
+    return {
+      handVisibilityRate: avgNum("handVisibilityRate"),
+      twoHandRate:        avgNum("twoHandRate"),
+      faceTouchCount:     sumNum("faceTouchCount"),
+      neckTouchCount:     sumNum("neckTouchCount"),
+      openGestureRate:    avgNum("openGestureRate"),
+      pointingRate:       avgNum("pointingRate"),
+      fistRate:           avgNum("fistRate"),
+      gestureSpan:        avgNum("gestureSpan"),
+      gestureEnergy:      avgNum("gestureEnergy"),
+      chestZoneRate:      avgNum("chestZoneRate"),
+      lowZoneRate:        avgNum("lowZoneRate"),
+      highZoneRate:       avgNum("highZoneRate"),
+      gestureScore:       Math.round(avgNum("gestureScore")),
+      fidgetScore:        Math.round(avgNum("fidgetScore")),
+      framesAnalyzed:     sumNum("framesAnalyzed"),
+      durationSeconds:    sumNum("durationSeconds"),
+    };
+  }
+
   // ── Start session ───────────────────────────────────────────────────────────
 
   async function handleStart(cfg: SessionConfig) {
@@ -917,6 +1139,7 @@ function MockInterviewPageInner() {
     setScoreResult(null);
     setSaved(false);
     faceSessionSamples.current = [];
+    handSessionSamples.current = [];
 
     // Request mic
     try {
@@ -1081,10 +1304,13 @@ function MockInterviewPageInner() {
         industry: config!.industry,
         history: finalHistory,
         faceMetrics: avgFaceMetrics(),
+        handMetrics: avgHandMetrics(),
       }),
     });
     const scored: MockScoreResult = await scoreRes.json();
     setScoreResult(scored);
+    setSessionFaceMetrics(avgFaceMetrics());
+    setSessionHandMetrics(avgHandMetrics());
     setPhase("results");
   }
 
@@ -1102,6 +1328,7 @@ function MockInterviewPageInner() {
         history,
         scoreResult,
         faceMetrics: avgFaceMetrics(),
+        handMetrics: avgHandMetrics(),
       }),
     });
     if (res.ok) setSaved(true);
@@ -1184,6 +1411,8 @@ function MockInterviewPageInner() {
           saved={saved}
           onSave={saveToProfile}
           onRetry={() => setPhase("setup")}
+          faceMetrics={sessionFaceMetrics}
+          handMetrics={sessionHandMetrics}
         />
       </PremiumShell>
     );
