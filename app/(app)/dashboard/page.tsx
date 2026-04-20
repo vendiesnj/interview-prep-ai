@@ -1459,11 +1459,12 @@ export default function DashboardPage() {
     if (totalSessions < 3) return { label: "Keep the momentum going", sub: `${3 - totalSessions} more session${3 - totalSessions !== 1 ? "s" : ""} to unlock your full Communication Profile`, href: "/practice" };
     if (data?.nextAction) {
       const isPracticeHref = PRACTICE_ROUTES.has(data.nextAction.href);
-      const href = isPracticeHref ? data.nextAction.href : "/practice";
-      const sub  = isPracticeHref
+      const href  = isPracticeHref ? data.nextAction.href : "/practice";
+      const label = isPracticeHref ? (data.nextAction.title ?? "Continue practicing") : "Continue practicing";
+      const sub   = isPracticeHref
         ? (data.nextAction.description ?? "Based on your recent sessions")
         : "Keep building your Communication Level with another practice session.";
-      return { label: data.nextAction.title ?? "Continue practicing", sub, href };
+      return { label, sub, href };
     }
     return { label: "Continue practicing", sub: "Keep building your Communication Level", href: "/practice" };
   })();
@@ -1650,10 +1651,10 @@ export default function DashboardPage() {
               {totalSessions === 0 ? "Start baseline session" : "Practice now"}
             </Link>
 
+            <Link href="/practice" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "11px 16px", borderRadius: "var(--radius-lg)", border: "1px solid var(--card-border)", background: "var(--card-bg-strong)", color: "var(--text-primary)", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+              <Mic size={14} /> All Practice Modes
+            </Link>
             <div style={{ display: "flex", gap: 8 }}>
-              <Link href="/practice" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
-                <Mic size={13} /> Practice
-              </Link>
               <Link href="/hub" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
                 <BarChart2 size={13} /> My Coach
               </Link>
