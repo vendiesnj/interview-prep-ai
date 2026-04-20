@@ -3,6 +3,7 @@
 import React from "react";
 import { signIn, getSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { SignalLockup } from "@/app/components/SignalLogo";
 
 export default function LoginPage() {
   const sp = useSearchParams();
@@ -66,9 +67,8 @@ export default function LoginPage() {
         }}
       >
         <div style={{ padding: 6 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: "linear-gradient(135deg, #2563EB, #0EA5E9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>💬</div>
-            <span style={{ fontSize: 17, fontWeight: 800, color: "var(--text-primary)", letterSpacing: -0.3 }}>Signal</span>
+          <div style={{ marginBottom: 14 }}>
+            <SignalLockup iconSize={32} />
           </div>
 
           <h1

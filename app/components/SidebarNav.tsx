@@ -72,7 +72,7 @@ const STUDENT_NAV_FLAT: NavItem[] = STUDENT_GROUPS.flatMap((g) => g.items);
 const STUDENT_BOTTOM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={22} /> },
   { label: "Practice", href: "/practice", icon: <Mic size={22} /> },
-  { label: "Journey", href: "/my-journey", icon: <User size={22} /> },
+  { label: "My Coach", href: "/hub", icon: <TrendingUp size={22} /> },
   { label: "Explore", href: "/career-guide", icon: <BookOpen size={22} /> },
 ];
 
