@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { X, MoreHorizontal, ChevronLeft, Home, Mic, BarChart2, Map, HelpCircle } from "lucide-react";
+import { X, MoreHorizontal, ChevronLeft, Home, Mic, BarChart2, Map, HelpCircle, TrendingUp } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import BillingSidebarButton from "./BillingSidebarButton";
 import { useIsMobile } from "@/app/hooks/useIsMobile";
@@ -87,7 +87,7 @@ function getPageLabel(pathname: string): string {
 const MOBILE_NAV = [
   { label: "Home",      href: "/dashboard",  Icon: Home },
   { label: "Practice",  href: "/hub",        Icon: Mic },
-  { label: "Journey",   href: "/my-journey", Icon: BarChart2 },
+  { label: "My Coach",  href: "/hub",        Icon: TrendingUp },
   { label: "Explore",   href: "/career-guide", Icon: Map },
 ];
 
