@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Zap,
   Calendar,
+  Lightbulb,
 } from "lucide-react";
 import LogoutButton from "../components/LogoutButton";
 import BillingSidebarButton from "@/app/components/BillingSidebarButton";
@@ -55,6 +56,13 @@ const STUDENT_GROUPS: NavGroup[] = [
     ],
   },
   {
+    heading: "Coaching",
+    items: [
+      { label: "My Coach", href: "/progress", icon: <BarChart2 size={18} /> },
+      { label: "Insights", href: "/insights", icon: <Lightbulb size={18} /> },
+    ],
+  },
+  {
     heading: "Explore",
     items: [
       { label: "Career Assessment", href: "/aptitude", icon: <Zap size={18} /> },
@@ -72,7 +80,7 @@ const STUDENT_NAV_FLAT: NavItem[] = STUDENT_GROUPS.flatMap((g) => g.items);
 const STUDENT_BOTTOM_NAV: NavItem[] = [
   { label: "Home", href: "/dashboard", icon: <LayoutDashboard size={22} /> },
   { label: "Practice", href: "/practice", icon: <Mic size={22} /> },
-  { label: "My Coach", href: "/hub", icon: <TrendingUp size={22} /> },
+  { label: "My Coach", href: "/progress", icon: <TrendingUp size={22} /> },
   { label: "Explore", href: "/career-guide", icon: <BookOpen size={22} /> },
 ];
 
