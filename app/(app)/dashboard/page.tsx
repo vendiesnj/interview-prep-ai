@@ -1655,7 +1655,7 @@ export default function DashboardPage() {
               <Mic size={14} /> All Practice Modes
             </Link>
             <div style={{ display: "flex", gap: 8 }}>
-              <Link href="/hub" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
+              <Link href="/progress" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
                 <BarChart2 size={13} /> My Coach
               </Link>
               <Link href="/planner" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>

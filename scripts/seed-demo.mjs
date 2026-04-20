@@ -422,32 +422,68 @@ const mockQuestions = [
   { q: "How would you approach pricing strategy for a new enterprise tier?", cat: "product" },
 ];
 
+const readinessLevel = (score) =>
+  score >= 8.0 ? "strong" : score >= 7.0 ? "ready" : score >= 5.5 ? "developing" : "not_ready";
+
 for (let i = 0; i < mockInterviewData.length; i++) {
   const d = mockInterviewData[i];
   const q = mockQuestions[i];
   const ts = daysAgo(d.daysAgoN);
   ts.setHours(14 + Math.floor(Math.random() * 5));
 
+  const baseFeedback = makeFeedback(d.score, d.comm, d.conf, d.arch, q.q);
+  const mockFeedback = {
+    ...baseFeedback,
+    score: d.score,
+    coaching_summary: baseFeedback.summary,
+    readiness_level: readinessLevel(d.score),
+    dimension_scores: baseFeedback.dimension_scores,
+    strengths: baseFeedback.strengths,
+    improvements: baseFeedback.improvements,
+    star: {
+      situation: d.score >= 6.5 ? 7 : 5,
+      task:      d.score >= 6.0 ? 6.5 : 4.5,
+      action:    d.score >= 7.0 ? 7.5 : 5.5,
+      result:    d.score >= 7.5 ? 7 : 4,
+    },
+    mock_interview: true,
+    conversation_turns: 6 + Math.floor(Math.random() * 4),
+    question_breakdowns: [
+      { question: q.q, score: Math.round(d.score * 10), note: baseFeedback.star_advice, starComplete: d.score >= 6.5, competency: "leadership", wordCount: Math.floor(d.wpm * 1.5), confidenceSignal: parseFloat(d.conf.toFixed(1)), ownershipScore: parseFloat((d.conf - 0.3).toFixed(1)) },
+    ],
+    interview_arc: {
+      qualityArc: [Math.round(d.score * 10 - 8), Math.round(d.score * 10 - 3), Math.round(d.score * 10)],
+      confidenceArc: [d.conf - 0.4, d.conf - 0.1, d.conf],
+      wordCountArc: [d.wpm * 1.4, d.wpm * 1.6, d.wpm * 1.5].map(Math.round),
+      consistencyScore: Math.round(60 + d.progressFactor * 30),
+      warmupEffect: d.progressFactor < 0.5,
+      fatigueSigns: false,
+      pitchDrift: d.progressFactor > 0.6 ? "stable" : "recovering",
+      openingNote: d.score >= 7 ? "Strong setup — context established quickly" : "Opening was hesitant; take a breath and commit to the first sentence",
+      closingNote: d.score >= 7.5 ? "Result landed clearly" : "Result was vague — name a number or observable outcome next time",
+    },
+  };
+
   await prisma.attempt.create({
     data: {
       userId,
       ts,
-      question: q.q,
+      question: `Mock Interview — Product Manager`,
       transcript: `${d.score >= 7.5 ? "Great question." : "Sure."} Let me walk you through a specific example. ${d.score >= 7 ? "At my previous company, we were mid-sprint when a major competitor launched a feature that directly threatened our core retention metric." : "We had a situation where things got complicated really fast and we kind of had to figure it out."} ${d.score >= 7.5 ? "I immediately pulled together the key stakeholders — engineering lead, design, and our head of CS — and we ran a 2-hour war room to reprioritize the roadmap." : "I tried to get everyone together to talk through the options, though it took a few days to align."} The outcome: ${d.score >= 7 ? `we shipped a counter-feature in ${Math.floor(d.score * 1.8)} days flat and retained ${Math.floor(d.score * 8)}% of at-risk accounts.` : "we got something shipped eventually and it helped stabilize things."} What I took away was that cross-functional alignment upfront saves far more time than you invest in it.`,
-      inputMethod: "microphone",
+      inputMethod: "spoken",
       score: d.score,
       communicationScore: d.comm,
       confidenceScore: d.conf,
-      questionCategory: q.cat,
-      questionSource: "mock_interview",
-      evaluationFramework: "STAR",
+      questionCategory: "mock_interview",
+      evaluationFramework: "mock_interview",
+      practiceType: "mock_interview",
       jobProfileId: jp1.id,
       jobProfileTitle: "Product Manager",
       jobProfileCompany: "Stripe",
       jobProfileRoleType: "full_time",
       wpm: d.wpm,
       durationSeconds: 100 + Math.floor(Math.random() * 40),
-      feedback: makeFeedback(d.score, d.comm, d.conf, d.arch, q.q),
+      feedback: mockFeedback,
       deliveryMetrics: makeDeliveryMetrics(d.wpm, d.fillers, d.score, d.progressFactor),
       prosody: makeProsody(d.wpm, d.score),
     },

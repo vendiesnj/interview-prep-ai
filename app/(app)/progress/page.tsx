@@ -1862,15 +1862,15 @@ export default function ProgressPage() {
 
     // ── Archetype → personality description ──────────────────────────────────
     const archetypePersonality: Record<string, { style: string; strength: string; tension: string }> = {
-      "storyteller":        { style: "You're a natural storyteller. You lead with narrative and bring real energy to your answers.", strength: "That instinct creates answers people actually remember, and it's a genuine edge when the story is tight.", tension: "The risk is that the story sometimes takes a scenic route to its point. By the time you land the conclusion, you've lost the listener." },
-      "circling the point": { style: "You're an expressive communicator who tends to build up to your point rather than leading with it.", strength: "The ideas are there and the energy is engaging. Interviewers can tell there's something worth hearing.", tension: "The habit of circling before landing means your strongest point often arrives late, after attention has wandered." },
-      "polished performer": { style: "You're a clean, composed communicator. Structure is natural, delivery is controlled, and ownership language is consistent.", strength: "That combination is rare and it already puts you ahead of most candidates at the same level.", tension: "You're executing well at this level. What separates you now is one specific, memorable detail per answer." },
-      "anxious achiever":   { style: "You have genuinely strong content. The work experience is real, the examples are solid, and the thinking is there.", strength: "When you let the story stand on its own, it's compelling. The evidence is good.", tension: "The habit of hedging and qualifying is softening it. Phrases like 'I think' and 'kind of' are costing you credibility you've already earned." },
-      "vague narrator":     { style: "You're a fluent speaker with a natural storytelling rhythm. Answers flow well and you're easy to follow.", strength: "That conversational quality is disarming. You sound unscripted.", tension: "The gap is that claims are landing without proof. An answer can sound plausible and be specific at the same time. Right now it's landing as the former." },
+      "storyteller":        { style: "You're a natural storyteller. You lead with narrative and bring real energy to your answers.", strength: "That instinct works — when the story is tight. Answers with a clear structure underneath the narrative are genuinely memorable.", tension: "The risk is that the story sometimes takes a scenic route to its point. By the time you land the conclusion, you've lost the listener." },
+      "circling the point": { style: "You tend to build toward your point rather than opening with it.", strength: "The ideas are usually there once you get to them.", tension: "The habit of circling before landing means your strongest point often arrives late, after the listener's attention has moved on. The answer needs to open with what it's about." },
+      "polished performer": { style: "You're a clean, composed communicator. Structure is natural, delivery is controlled, and ownership language is consistent.", strength: "That structural discipline means interviewers can follow and evaluate your answers without working for it — which is more uncommon than it sounds.", tension: "The next level isn't about doing more. It's about one specific, verifiable detail per answer that makes the story stick after the interview ends." },
+      "anxious achiever":   { style: "Your content is there. The examples are real, the thinking is evident, and the structure is mostly in place.", strength: "When the hedging drops out, the answer underneath is solid.", tension: "The habit costing you the most is qualifying before you've said anything worth qualifying. Phrases like 'I think' and 'kind of' are doing damage before the interviewer even hears the substance." },
+      "vague narrator":     { style: "You're a fluent speaker with a natural storytelling rhythm. Answers flow and you're easy to follow.", strength: "That conversational quality means the listener stays with you.", tension: "The problem is that fluency is masking a lack of specifics. An answer can sound plausible without actually saying anything measurable. Right now yours is landing as the former." },
       "fading closer":      { style: "You build answers well. The setup is clear, the context lands, and the middle section is usually strong.", strength: "That structural instinct means interviewers are with you through most of the answer.", tension: "The habit to break is closing too softly. The result section is where the score is earned, and yours tends to trail off rather than land." },
       "monotone expert":    { style: "You're a knowledgeable communicator. The depth is clearly there and your claims stay within what you can back up.", strength: "That measured quality reads as credible, which is valuable in technical and analytical roles.", tension: "The delivery is working against the content. Acoustically flat answers make even strong ideas sound routine. The voice needs to reflect the quality of the thinking." },
       "scattered thinker":  { style: "You bring strong ideas and clearly think fast. There's real substance in your answers.", strength: "The raw material is solid. The challenge is purely structural.", tension: "The sequencing is breaking down before the ideas can land. You're starting threads that don't connect back, and the listener ends up reconstructing the story themselves." },
-      "quiet achiever":     { style: "You're a composed, understated communicator. Delivery is controlled and the content tends to be solid.", strength: "That calm, unhurried quality reads as confidence in the right settings.", tension: "The delivery energy is lagging behind the quality of what you're describing. Strong work deserves a more engaged voice." },
+      "quiet achiever":     { style: "You're a composed, understated communicator. Delivery is controlled and mostly on structure.", strength: "The calm, unhurried quality doesn't read as nervous — which is real.", tension: "The problem is that the delivery energy is lagging behind the quality of what you're describing. A flat voice on a good answer leaves points on the table." },
       "fragmented expert":  { style: "You clearly know your material deeply. The expertise is real and comes through.", strength: "That depth of knowledge is an asset that most candidates don't have.", tension: "The habit of starting sentences before finishing them is fragmenting the signal. The intelligence is there, and the delivery is breaking it into pieces before it can land." },
       "phantom expert":     { style: "You're a sophisticated communicator. Language is precise, framing is strong, and you sound substantive.", strength: "That vocabulary and structural sophistication stands out.", tension: "The sophistication is covering for missing evidence. When you reach for the concrete proof point, it tends to be thin. One real number changes everything." },
       "process narrator":   { style: "You describe work clearly. The process, the steps, and the context are all well-communicated.", strength: "That clarity is genuinely useful and means interviewers understand what you did.", tension: "The answer is reading like a project log rather than a personal story. The 'I decided' moment, the one that shows your judgment, is what's missing." },
@@ -1879,9 +1879,9 @@ export default function ProgressPage() {
 
     const matched = Object.entries(archetypePersonality).find(([key]) => arch.includes(key));
     const personality = matched?.[1] ?? {
-      style: `Across ${count} sessions, a consistent communication pattern is emerging.`,
-      strength: "You bring a natural approach to answering that comes through across different question types.",
-      tension: "The growth opportunity is making that approach more deliberate. Tighter structure and more specific evidence will lift the scores.",
+      style: `Across ${count} sessions, a communication pattern is starting to take shape.`,
+      strength: "The raw material is there.",
+      tension: "The work is making it more deliberate. Tighter structure and more specific evidence are the two levers that will move the scores.",
     };
 
     // ── Secondary archetype modifiers ─────────────────────────────────────────
@@ -1976,7 +1976,7 @@ export default function ProgressPage() {
       p1 += ` One of your most consistent patterns is ${label}. It shows up reliably across sessions.`;
     }
     p1 += ` ${personality.strength}`;
-    if (fieldPhrase) p1 += ` That combination is a real asset ${fieldPhrase}.`;
+    if (fieldPhrase && traj.recentAvg !== null && traj.recentAvg >= 70) p1 += ` That matters ${fieldPhrase}.`;
     if (trajectoryNote) p1 += ` ${trajectoryNote}`;
 
     // ── Paragraph 2: The tension / gap ───────────────────────────────────────
@@ -2009,7 +2009,7 @@ export default function ProgressPage() {
     if (catNote) p2 += ` ${catNote}`;
     if (coachingProfile.resolvedWeaknesses.length > 0) {
       const resolved = coachingProfile.resolvedWeaknesses[0].replace(/_/g, " ");
-      p2 += ` Worth noting: ${resolved} has stopped showing up in your recent sessions. That's real progress.`;
+      p2 += ` Worth noting: ${resolved} has cleared from your recent sessions. That pattern has shifted.`;
     }
     if (evolving && recentArch) {
       const recentLabel = archetypeStats.all.find(a => a.name.toLowerCase() === recentArch)?.name ?? recentArch;
@@ -2024,7 +2024,7 @@ export default function ProgressPage() {
     if (dp.wpmCategory === "very_fast")  voiceSentences.push("your pace is notably fast. Slowing down for results and key claims will change how they land");
     else if (dp.wpmCategory === "fast")  voiceSentences.push("you're speaking faster than ideal in key moments. The listener needs a beat to absorb results before you move on");
     else if (dp.wpmCategory === "slow")  voiceSentences.push("your pace lingers in the setup. A slightly brisker tempo will keep the listener more engaged");
-    else if (dp.wpmCategory === "good")  voiceSentences.push("your pace is comfortable and conversational, which is a real advantage");
+    else if (dp.wpmCategory === "good")  voiceSentences.push("your pace is comfortable and conversational");
 
     if (dp.fillerCategory === "high")        voiceSentences.push("filler words are a consistent habit. Replacing each one with a deliberate pause is the fastest fix");
     else if (dp.fillerCategory === "good")   voiceSentences.push("filler words are mostly under control. An occasional one slips in at a level that's manageable");
