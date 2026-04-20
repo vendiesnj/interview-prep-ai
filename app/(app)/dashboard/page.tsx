@@ -1452,14 +1452,18 @@ export default function DashboardPage() {
   const careerStageLabel = careerStage ? (CAREER_STAGE_LABELS[careerStage] ?? null) : null;
 
   // Next action for hero card
-  // Primary button always routes to /practice — NACE next action informs subtitle only
+  // Primary button always routes to a practice destination — non-practice next actions fall back to /practice
   const PRACTICE_ROUTES = new Set(["/practice", "/mock-interview", "/public-speaking", "/networking"]);
   const heroNextAction = (() => {
     if (!totalSessions) return { label: "Start your first session", sub: "Establish your baseline Communication Level", href: "/practice" };
     if (totalSessions < 3) return { label: "Keep the momentum going", sub: `${3 - totalSessions} more session${3 - totalSessions !== 1 ? "s" : ""} to unlock your full Communication Profile`, href: "/practice" };
     if (data?.nextAction) {
-      const href = PRACTICE_ROUTES.has(data.nextAction.href) ? data.nextAction.href : "/practice";
-      return { label: data.nextAction.title ?? "Continue practicing", sub: data.nextAction.description ?? "Based on your recent sessions", href };
+      const isPracticeHref = PRACTICE_ROUTES.has(data.nextAction.href);
+      const href = isPracticeHref ? data.nextAction.href : "/practice";
+      const sub  = isPracticeHref
+        ? (data.nextAction.description ?? "Based on your recent sessions")
+        : "Keep building your Communication Level with another practice session.";
+      return { label: data.nextAction.title ?? "Continue practicing", sub, href };
     }
     return { label: "Continue practicing", sub: "Keep building your Communication Level", href: "/practice" };
   })();
@@ -1646,16 +1650,17 @@ export default function DashboardPage() {
               {totalSessions === 0 ? "Start baseline session" : "Practice now"}
             </Link>
 
-            {totalSessions !== null && totalSessions > 0 && (
-              <div style={{ display: "flex", gap: 8 }}>
-                <Link href="/progress" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
-                  <BarChart2 size={13} /> My Coach
-                </Link>
-                <Link href="/planner" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
-                  <Clock size={13} /> My Plan
-                </Link>
-              </div>
-            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <Link href="/practice" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
+                <Mic size={13} /> Practice
+              </Link>
+              <Link href="/hub" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
+                <BarChart2 size={13} /> My Coach
+              </Link>
+              <Link href="/planner" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "9px 12px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-muted)", fontWeight: 600, fontSize: 12, textDecoration: "none" }}>
+                <Clock size={13} /> My Plan
+              </Link>
+            </div>
           </div>
         </div>
 

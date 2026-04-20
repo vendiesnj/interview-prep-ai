@@ -2230,6 +2230,17 @@ export default function ProgressPage() {
       if (overview.avgMonotone !== null && overview.avgMonotone >= 6 && watchouts.length < 2) {
         watchouts.push("Do not deliver key outcomes in the same flat tone as background detail — add more vocal lift on results.");
       }
+      // Fallback: if topPriorities yielded nothing, pull from weakest dimension
+      if (watchouts.length === 0) {
+        const weakDim = coachingProfile.dimensionProfile
+          .filter(d => d.attemptCount >= 2)
+          .sort((a, b) => a.allTimeAvg - b.allTimeAvg)[0];
+        if (weakDim) {
+          watchouts.push(`Do not neglect ${weakDim.label.toLowerCase()} — at ${weakDim.allTimeAvg.toFixed(1)}/10 it is your lowest-scoring dimension across sessions.`);
+        } else {
+          watchouts.push("Do not try to improve everything at once — pick one dimension per session and focus there.");
+        }
+      }
 
       // Reminders: role-specific focus + universal
       const topDimGap = coachingProfile.dimensionProfile
