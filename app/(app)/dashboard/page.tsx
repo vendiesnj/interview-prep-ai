@@ -1614,8 +1614,8 @@ export default function DashboardPage() {
                 {/* Level progression */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {COMM_LEVELS.map((l, i) => {
-                    const isCurrent = signalScore >= l.low && signalScore <= l.high;
-                    const isPast = signalScore > l.high;
+                    const isCurrent = (signalScore ?? 0) >= l.low && (signalScore ?? 0) <= l.high;
+                    const isPast = (signalScore ?? 0) > l.high;
                     return (
                       <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                         <div style={{ width: 8, height: 8, borderRadius: "50%", background: isCurrent ? l.color : isPast ? l.color : "rgba(28,25,23,0.12)", flexShrink: 0, boxShadow: isCurrent ? `0 0 0 3px ${l.color}22` : "none" }} />
