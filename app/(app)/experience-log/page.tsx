@@ -531,7 +531,35 @@ export default function ExperienceLogPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (session) setEntries(loadExperiences(session));
+    if (!session) return;
+    const existing = loadExperiences(session);
+    if (existing.length > 0) { setEntries(existing); return; }
+
+    // Seed one demo entry so new users can see what the log looks like
+    const now = Date.now();
+    const demo: ExperienceEntry = {
+      id: `exp_demo_seed`,
+      title: "Led cross-functional launch of self-serve onboarding flow",
+      company: "Acme Corp",
+      roleAtTime: "Product Manager",
+      timeframe: "Q2 2024",
+      skills: ["roadmap", "stakeholder mgmt", "A/B testing", "data analysis"],
+      situation: "Our activation rate for new signups was 34% — well below industry benchmark of 55%. The sales team was manually onboarding every customer, which didn't scale past 50 new accounts per month.",
+      task: "I owned the project to design and ship a fully self-serve onboarding experience that could get new users to their first 'aha moment' without any human touch.",
+      action: "I ran discovery interviews with 12 churned users to identify the friction points, mapped the drop-off funnel in Amplitude, and designed a 3-step onboarding checklist with contextual tooltips. I worked with engineering (4 sprints) and ran an A/B test against the existing flow for 3 weeks.",
+      result: "Activation rate improved from 34% to 61% in 6 weeks. Sales capacity freed up by ~40%, and we were able to scale to 120 new accounts per month without adding headcount. The pattern was adopted by two other product lines.",
+      notes: "Strong story for 'tell me about a product you owned end-to-end' and 'how do you use data to make decisions'.",
+      questionTags: ["achievement", "initiative", "problem_solving", "leadership"],
+      strengthScore: 88,
+      practiceCount: 3,
+      bestScore: 76,
+      lastPracticed: now - 1000 * 60 * 60 * 24 * 4,
+      linkedAttemptIds: [],
+      createdAt: now - 1000 * 60 * 60 * 24 * 30,
+      updatedAt: now - 1000 * 60 * 60 * 24 * 4,
+    };
+    saveExperiences(session, [demo]);
+    setEntries([demo]);
   }, [session]);
 
   function persist(updated: ExperienceEntry[]) {
