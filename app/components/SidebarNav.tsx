@@ -58,6 +58,7 @@ const STUDENT_GROUPS: NavGroup[] = [
     heading: "Coaching",
     items: [
       { label: "My Coach", href: "/progress", icon: <BarChart2 size={18} /> },
+      { label: "Sessions", href: "/sessions", icon: <LineChart size={18} /> },
     ],
   },
   {

@@ -5,6 +5,30 @@ import { prisma } from "@/app/lib/prisma";
 
 export const runtime = "nodejs";
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email;
+    if (!email) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+
+    const user = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+    if (!user) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
+
+    const attempt = await prisma.attempt.findFirst({
+      where: { id, userId: user.id, deletedAt: null },
+    });
+
+    if (!attempt) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
+    return NextResponse.json({ attempt });
+  } catch (err: any) {
+    return NextResponse.json({ error: "FAILED", message: err?.message }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

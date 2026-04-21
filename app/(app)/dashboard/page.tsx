@@ -1361,6 +1361,7 @@ export default function DashboardPage() {
   const [tasks, setTasks]         = useState<DbTask[]>([]);
   const [activeTab, setActiveTab] = useState<"tasks" | "habits" | "goals">("tasks");
   const [lastMockInterview, setLastMockInterview] = useState<any | null>(null);
+  const [recentAttempts, setRecentAttempts] = useState<any[]>([]);
   const [calView, setCalView]     = useState<"month" | "week" | "day">("week");
   const [calAddDate, setCalAddDate] = useState<string | null>(null);
   const [journeyOpen, setJourneyOpen] = useState(false);
@@ -1387,6 +1388,13 @@ export default function DashboardPage() {
   }
 
   useEffect(() => { refreshTasks(); }, []);
+
+  useEffect(() => {
+    fetch("/api/attempts?limit=5", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : { attempts: [] })
+      .then(d => { if (Array.isArray(d?.attempts)) setRecentAttempts(d.attempts); })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!isUniversity) return;
@@ -1687,6 +1695,44 @@ export default function DashboardPage() {
         </div>
 
         {isUniversity && <StreakBanner />}
+
+        {/* ── Recent Sessions tile ────────────────────────────────────────── */}
+        {recentAttempts.length > 0 && (
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "20px 24px", boxShadow: "var(--shadow-card-soft)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text-primary)" }}>Recent Sessions</div>
+              <Link href="/sessions" style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", textDecoration: "none" }}>View all →</Link>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {recentAttempts.map((a: any, i: number) => {
+                const raw = a.score ?? a.feedback?.score;
+                const score = raw != null ? (raw <= 10 ? Math.round(raw * 10) : Math.round(raw)) : null;
+                const scoreColor = score === null ? "var(--text-muted)" : score >= 75 ? "#10B981" : score >= 55 ? "#F59E0B" : "#EF4444";
+                const label = a.question
+                  ? (a.question.length > 55 ? a.question.slice(0, 55) + "…" : a.question)
+                  : "Practice session";
+                const dateStr = a.ts ? new Date(a.ts).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+                const arch = a.feedback?.archetype;
+                return (
+                  <Link
+                    key={i}
+                    href="/sessions"
+                    style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border-soft)", background: i === 0 ? "var(--accent-soft)" : "transparent", transition: "background 120ms" }}
+                  >
+                    <div style={{ fontSize: 18, fontWeight: 800, color: scoreColor, width: 36, flexShrink: 0, textAlign: "center" as const, lineHeight: 1 }}>
+                      {score ?? "—"}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</div>
+                      {arch && <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{arch}</div>}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>{dateStr}</div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── OVERVIEW VIEW (university) ── */}
         {isUniversity && dashView === "dashboard" && (
