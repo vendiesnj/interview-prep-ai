@@ -1598,7 +1598,7 @@ export default function DashboardPage() {
                 <div style={{ background: "rgba(28,25,23,0.07)", borderRadius: 4, height: 6, overflow: "hidden", marginBottom: 8 }}>
                   <div style={{ height: "100%", width: `${commLevel.pct}%`, background: commLevel.color, borderRadius: 4, transition: "width 600ms ease" }} />
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
                   <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{commLevel.low}</span>
                   {commLevel.ptsToNext !== null && commLevel.next && (
                     <span style={{ fontSize: 11, fontWeight: 700, color: commLevel.color }}>
@@ -1609,6 +1609,27 @@ export default function DashboardPage() {
                     <span style={{ fontSize: 11, fontWeight: 700, color: commLevel.color }}>Peak level</span>
                   )}
                   <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{commLevel.high}</span>
+                </div>
+
+                {/* Level progression */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {COMM_LEVELS.map((l, i) => {
+                    const isCurrent = signalScore >= l.low && signalScore <= l.high;
+                    const isPast = signalScore > l.high;
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: isCurrent ? l.color : isPast ? l.color : "rgba(28,25,23,0.12)", flexShrink: 0, boxShadow: isCurrent ? `0 0 0 3px ${l.color}22` : "none" }} />
+                        <div style={{ fontSize: 12, fontWeight: isCurrent ? 700 : 500, color: isCurrent ? "var(--text-primary)" : isPast ? "var(--text-muted)" : "rgba(28,25,23,0.3)", lineHeight: 1.3, flex: 1 }}>
+                          {l.name}
+                        </div>
+                        {isCurrent && (
+                          <span style={{ fontSize: 10, fontWeight: 700, color: l.color, background: `${l.color}18`, border: `1px solid ${l.color}33`, padding: "1px 7px", borderRadius: 99 }}>
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </>
             ) : (
