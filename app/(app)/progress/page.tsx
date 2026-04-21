@@ -2898,8 +2898,8 @@ export default function ProgressPage() {
           </PremiumCard>
         ) : (
           <>
-            {/* ── THE BRIEF ──────────────────────────────────────────────────────── */}
-            <div style={{
+            {/* ── THE BRIEF (only shown when full profile header isn't available) ── */}
+            {!(history.length >= 3 && coachingProfile) && <div style={{
               padding: "26px 30px",
               borderRadius: "var(--radius-lg)",
               background: "linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(14,165,233,0.04) 100%)",
@@ -2982,7 +2982,7 @@ export default function ProgressPage() {
                   )}
                 </div>
               </div>
-            </div>
+            </div>}
 
             {/* ── WHAT TO WORK ON ────────────────────────────────────────────────── */}
             {history.length > 0 && coachingProfile && coachingProfile.topPriorities.length > 0 && <PremiumCard>
