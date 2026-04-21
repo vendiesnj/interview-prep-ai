@@ -1219,26 +1219,24 @@ const FINDING_TYPE_META: Record<string, { label: string; color: string }> = {
   dimension:    { label: "Dimension",     color: "#0EA5E9" },
 };
 
-function FindingCard({ f }: { f: Finding }) {
+function FindingCard({ f, isMobile }: { f: Finding; isMobile?: boolean }) {
   const meta = FINDING_TYPE_META[f.type] ?? { label: f.type, color: "var(--accent)" };
   return (
-    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
-          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${meta.color}18`, color: meta.color, border: `1px solid ${meta.color}33`, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>
-            {meta.label}
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: isMobile ? "14px 16px" : 20, display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap" as const, alignItems: "center" }}>
+        <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 99, background: `${meta.color}18`, color: meta.color, border: `1px solid ${meta.color}33`, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>
+          {meta.label}
+        </span>
+        {f.r != null && (
+          <span style={{ fontSize: 9, fontWeight: 600, color: "var(--text-muted)", padding: "2px 6px", borderRadius: 99, background: "var(--card-bg-strong)" }}>
+            r={f.r.toFixed(2)}
           </span>
-          {f.r != null && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", padding: "2px 6px", borderRadius: 99, background: "var(--card-bg-strong)" }}>
-              r={f.r.toFixed(2)}
-            </span>
-          )}
-          <span style={{ fontSize: 10, color: "var(--text-muted)", padding: "2px 6px" }}>n={f.n}</span>
-        </div>
+        )}
+        <span style={{ fontSize: 9, color: "var(--text-muted)", padding: "2px 4px" }}>n={f.n}</span>
       </div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.5 }}>{f.headline}</div>
-      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>{f.detail}</div>
-      {f.chartData && <MiniBar data={f.chartData} />}
+      <div style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.4 }}>{f.headline}</div>
+      <div style={{ fontSize: isMobile ? 11 : 12, color: "var(--text-muted)", lineHeight: 1.6 }}>{f.detail}</div>
+      {f.chartData && !isMobile && <MiniBar data={f.chartData} />}
     </div>
   );
 }
@@ -2418,13 +2416,14 @@ export default function ProgressPage() {
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 6 }}>
 
         {/* ── Page-level tab bar ──────────────────────────────────────────── */}
-        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-lg)", background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: "flex-start" }}>
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-lg)", background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: isMobile ? "stretch" : "flex-start" }}>
           {(["coaching", "data"] as const).map(v => (
             <button
               key={v}
               type="button"
               onClick={() => setPageView(v)}
               style={{
+                flex: isMobile ? 1 : undefined,
                 padding: "7px 18px", borderRadius: 9, border: "none",
                 background: pageView === v ? "var(--accent)" : "transparent",
                 color: pageView === v ? "#fff" : "var(--text-muted)",
@@ -2439,11 +2438,11 @@ export default function ProgressPage() {
 
         {/* ── Signal Insights tab ─────────────────────────────────────────── */}
         {pageView === "data" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 12 : 16 }}>
             {loadState === "hydrating" ? (
               <div style={{ color: "var(--text-muted)", fontSize: 14, padding: 24 }}>Loading data…</div>
             ) : findings.length === 0 ? (
-              <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "32px 28px" }}>
+              <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: isMobile ? "24px 18px" : "32px 28px" }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>Not enough data yet</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
                   Signal Insights need at least 4 practice sessions with consistent data (face, acoustic, or dimension scores) before patterns become meaningful. Keep practicing and check back.
@@ -2451,12 +2450,12 @@ export default function ProgressPage() {
               </div>
             ) : (
               <>
-                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 680 }}>
-                  Cross-signal patterns found in your {history.length} sessions. These correlate signals from different measurement domains — body language vs. language quality, acoustics vs. cognitive score — so they surface non-obvious relationships.
+                <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65, maxWidth: 680 }}>
+                  Cross-signal patterns from your {history.length} sessions — body language vs. language quality, acoustics vs. cognitive score. Nothing shown unless it clears a statistical threshold.
                 </div>
-                <div style={{ display: "grid", gap: 14 }}>
+                <div style={{ display: "grid", gap: isMobile ? 10 : 14 }}>
                   {findings.map(f => (
-                    <FindingCard key={f.id} f={f} />
+                    <FindingCard key={f.id} f={f} isMobile={isMobile} />
                   ))}
                 </div>
               </>
@@ -2680,7 +2679,34 @@ export default function ProgressPage() {
           </div>
         )}
 
+        {/* ── Session History tile ────────────────────────────────────────── */}
+        {history.length > 0 && (
+          <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "18px 22px", boxShadow: "var(--shadow-card-soft)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", marginBottom: 3 }}>Session History</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {history.length} session{history.length !== 1 ? "s" : ""} · last {history[0]?.ts ? new Date(history[0].ts).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "—"}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+              {history.slice(0, 5).map((a, i) => {
+                const s = getAttemptScore(a);
+                const color = s === null ? "var(--card-border)" : s >= 75 ? "#10B981" : s >= 55 ? "#F59E0B" : "#EF4444";
+                return <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: color }} />;
+              })}
+              <button
+                type="button"
+                onClick={() => { const el = document.getElementById("session-history-list"); el?.scrollIntoView({ behavior: "smooth" }); }}
+                style={{ marginLeft: 8, padding: "7px 14px", borderRadius: "var(--radius-md)", border: "1px solid var(--card-border)", background: "transparent", color: "var(--text-primary)", fontWeight: 600, fontSize: 12, cursor: "pointer" }}
+              >
+                View all →
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Session Filter ──────────────────────────────────────────────── */}
+        <div id="session-history-list" />
         {history.length > 0 && (
           <div style={{ display: "flex", gap: 6, padding: "4px", borderRadius: "var(--radius-lg)", background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: "flex-start" }}>
             {(["all", "mock_interview"] as const).map(f => (
