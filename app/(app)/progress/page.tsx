@@ -2468,10 +2468,10 @@ export default function ProgressPage() {
 
         {/* ── My Coach Profile Header ─────────────────────────────────────── */}
         {history.length >= 3 && coachingProfile && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 14 }}>
 
             {/* Left: Profile identity */}
-            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "26px 28px", boxShadow: "var(--shadow-card-soft)" }}>
+            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: isMobile ? "18px 16px" : "26px 28px", boxShadow: "var(--shadow-card-soft)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
                 Your Communication Profile
               </div>
@@ -2534,7 +2534,7 @@ export default function ProgressPage() {
             </div>
 
             {/* Right: Coaching writeup */}
-            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "26px 28px", boxShadow: "var(--shadow-card-soft)" }}>
+            <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: isMobile ? "18px 16px" : "26px 28px", boxShadow: "var(--shadow-card-soft)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
                 Coaching Notes
               </div>
@@ -2650,7 +2650,7 @@ export default function ProgressPage() {
             <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: 0.7, marginBottom: 16 }}>
               Cross-Context Profile
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: `repeat(${crossContextProfile.length}, 1fr)`, gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : `repeat(${crossContextProfile.length}, 1fr)`, gap: 14 }}>
               {crossContextProfile.map(ctx => (
                 <div key={ctx.type}>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--accent)", marginBottom: 10 }}>{ctx.label}</div>
@@ -2798,7 +2798,7 @@ export default function ProgressPage() {
                       return (
                         <div style={{ padding: "12px 18px", background: "var(--card-bg)", borderBottom: "1px solid var(--card-border)" }}>
                           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 0.5, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 10 }}>Interview Arc</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 14, marginBottom: 10 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
                             {([
                               { label: "Quality", vals: qs, max: 100 },
                               { label: "Confidence", vals: cs ?? [], max: 10 },
@@ -3042,7 +3042,7 @@ export default function ProgressPage() {
                   <span style={{ fontSize: 12, color: "var(--text-muted)", marginLeft: "auto", whiteSpace: "nowrap" as const }}>{biggestGap.value.toFixed(1)}/10</span>
                 </div>
               )}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? 24 : 32 }}>
                 {/* Left: 7 communication dimensions */}
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.6, color: "var(--text-muted)", textTransform: "uppercase" as const, marginBottom: 14 }}>
@@ -3278,7 +3278,7 @@ export default function ProgressPage() {
               coachingProfile.strengthPatterns.filter(p => p.consistent && p.allTimeFrequency >= 0.3).length > 0 ||
               coachingProfile.resolvedWeaknesses.length > 0
             ) && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 16 }}>
                 <PremiumCard>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 14 }}>What You Do Consistently</div>
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
