@@ -12,6 +12,7 @@ import { userScopedKey } from "@/app/lib/userStorage";
 import { computeNaceProfile } from "@/app/lib/nace";
 import { buildUserCoachingProfile } from "@/app/lib/feedback/coachingProfile";
 import { downloadNacePdf } from "@/app/lib/nace-pdf";
+import { generateFindings, type Finding } from "@/app/lib/insightFindings";
 import {
   asOverall100,
   asTenPoint,
@@ -1189,6 +1190,59 @@ function interpretFrameworkRow(row: {
   return "This framework will become more interpretable with more attempts.";
 }
 
+// ── Signal Insights UI components ────────────────────────────────────────────
+
+function MiniBar({ data }: { data: { label: string; value: number; highlight?: boolean }[] }) {
+  const max = Math.max(...data.map(d => d.value), 1);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 8, height: 52, marginTop: 14 }}>
+      {data.map((d, i) => {
+        const pct = Math.max(6, Math.round((d.value / max) * 100));
+        const color = d.highlight ? "var(--accent)" : "var(--card-border)";
+        return (
+          <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: d.highlight ? "var(--accent)" : "var(--text-muted)" }}>{d.value}</div>
+            <div style={{ width: "100%", height: `${pct}%`, background: color, borderRadius: "3px 3px 0 0", minHeight: 4 }} />
+            <div style={{ fontSize: 9, color: "var(--text-muted)", textAlign: "center" as const, lineHeight: 1.2 }}>{d.label}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const FINDING_TYPE_META: Record<string, { label: string; color: string }> = {
+  cross_signal: { label: "Cross-signal",  color: "#8B5CF6" },
+  inverse:      { label: "Unexpected",    color: "#EF4444" },
+  pattern:      { label: "Pattern",       color: "#10B981" },
+  threshold:    { label: "Threshold",     color: "#F59E0B" },
+  dimension:    { label: "Dimension",     color: "#0EA5E9" },
+};
+
+function FindingCard({ f }: { f: Finding }) {
+  const meta = FINDING_TYPE_META[f.type] ?? { label: f.type, color: "var(--accent)" };
+  return (
+    <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-lg)", padding: 20, display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
+          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99, background: `${meta.color}18`, color: meta.color, border: `1px solid ${meta.color}33`, textTransform: "uppercase" as const, letterSpacing: 0.5 }}>
+            {meta.label}
+          </span>
+          {f.r != null && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", padding: "2px 6px", borderRadius: 99, background: "var(--card-bg-strong)" }}>
+              r={f.r.toFixed(2)}
+            </span>
+          )}
+          <span style={{ fontSize: 10, color: "var(--text-muted)", padding: "2px 6px" }}>n={f.n}</span>
+        </div>
+      </div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text-primary)", lineHeight: 1.5 }}>{f.headline}</div>
+      <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.65 }}>{f.detail}</div>
+      {f.chartData && <MiniBar data={f.chartData} />}
+    </div>
+  );
+}
+
 export default function ProgressPage() {
   const isMobile = useIsMobile();
   const [history, setHistory] = useState<Attempt[]>([]);
@@ -1200,6 +1254,7 @@ export default function ProgressPage() {
   const HISTORY_KEY = userScopedKey("ipc_history", session);
   const [activeTab, setActiveTab] = useState<InsightsTab>("overview");
   const [sessionFilter, setSessionFilter] = useState<"all" | "mock_interview">("all");
+  const [pageView, setPageView] = useState<"coaching" | "data">("coaching");
   const isUniversity = useIsUniversity();
 
   useEffect(() => {
@@ -2356,9 +2411,61 @@ export default function ProgressPage() {
     [history],
   );
 
+  const findings = useMemo(() => generateFindings(history), [history]);
+
   return (
     <PremiumShell title="My Coach">
       <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 6 }}>
+
+        {/* ── Page-level tab bar ──────────────────────────────────────────── */}
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-lg)", background: "var(--card-bg)", border: "1px solid var(--card-border)", alignSelf: "flex-start" }}>
+          {(["coaching", "data"] as const).map(v => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setPageView(v)}
+              style={{
+                padding: "7px 18px", borderRadius: 9, border: "none",
+                background: pageView === v ? "var(--accent)" : "transparent",
+                color: pageView === v ? "#fff" : "var(--text-muted)",
+                fontWeight: 600, fontSize: 13, cursor: "pointer",
+                transition: "all 150ms ease",
+              }}
+            >
+              {v === "coaching" ? "My Coach" : "Signal Insights"}
+            </button>
+          ))}
+        </div>
+
+        {/* ── Signal Insights tab ─────────────────────────────────────────── */}
+        {pageView === "data" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {loadState === "hydrating" ? (
+              <div style={{ color: "var(--text-muted)", fontSize: 14, padding: 24 }}>Loading data…</div>
+            ) : findings.length === 0 ? (
+              <div style={{ background: "var(--card-bg)", border: "1px solid var(--card-border)", borderRadius: "var(--radius-xl)", padding: "32px 28px" }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>Not enough data yet</div>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  Signal Insights need at least 4 practice sessions with consistent data (face, acoustic, or dimension scores) before patterns become meaningful. Keep practicing and check back.
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 680 }}>
+                  Cross-signal patterns found in your {history.length} sessions. These correlate signals from different measurement domains — body language vs. language quality, acoustics vs. cognitive score — so they surface non-obvious relationships.
+                </div>
+                <div style={{ display: "grid", gap: 14 }}>
+                  {findings.map(f => (
+                    <FindingCard key={f.id} f={f} />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── Coaching content ────────────────────────────────────────────── */}
+        {pageView === "coaching" && (<>
 
         {/* ── My Coach Profile Header ─────────────────────────────────────── */}
         {history.length >= 3 && coachingProfile && (
@@ -3320,6 +3427,8 @@ export default function ProgressPage() {
             })()}
           </>
         )}
+
+        </>)}
       </div>
     </PremiumShell>
   );

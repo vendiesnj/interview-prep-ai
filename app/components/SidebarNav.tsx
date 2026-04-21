@@ -20,7 +20,6 @@ import {
   ShieldCheck,
   Zap,
   Calendar,
-  Lightbulb,
 } from "lucide-react";
 import LogoutButton from "../components/LogoutButton";
 import BillingSidebarButton from "@/app/components/BillingSidebarButton";
@@ -59,7 +58,6 @@ const STUDENT_GROUPS: NavGroup[] = [
     heading: "Coaching",
     items: [
       { label: "My Coach", href: "/progress", icon: <BarChart2 size={18} /> },
-      { label: "Insights", href: "/insights", icon: <Lightbulb size={18} /> },
     ],
   },
   {
