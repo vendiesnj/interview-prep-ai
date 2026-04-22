@@ -831,112 +831,102 @@ function HeroContent() {
   }, []);
 
   return (
-    <div className="ipc-hero-grid" style={{
-      maxWidth: 1160, width: "100%",
-      display: "grid",
-      gridTemplateColumns: "2fr 3fr",
-      gap: "40px 80px",
-      alignItems: "center",
-    }}>
-      {/* Left: compact text */}
-      <div style={{ textAlign: "left" as const }}>
-        <h1 className="ipc-hero-h1" style={{
-          margin: "0 0 10px",
-          fontSize: "clamp(30px, 3.6vw, 48px)",
-          fontWeight: 800,
-          lineHeight: 1.12,
-          letterSpacing: -1,
+    <div style={{ maxWidth: 960, width: "100%", display: "flex", flexDirection: "column", alignItems: "center", gap: 0 }}>
+
+      {/* Headline — serif, centered, above the card */}
+      <div style={{
+        textAlign: "center" as const,
+        marginBottom: 44,
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(18px)",
+        transition: "opacity 0.65s ease 80ms, transform 0.65s ease 80ms",
+      }}>
+        <h1 style={{
+          margin: "0 0 16px",
+          fontFamily: "var(--font-dm-serif), Georgia, serif",
+          fontSize: "clamp(38px, 5vw, 64px)",
+          fontWeight: 400,
+          lineHeight: 1.1,
+          letterSpacing: -0.5,
           color: "#1C1917",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(20px)",
-          transition: "opacity 0.65s ease 80ms, transform 0.65s ease 80ms",
         }}>
-          Know exactly how<br />
-          <span style={{ color: "#4F46E5" }}>you interview.</span>
+          Know exactly how you interview.
         </h1>
-
         <p style={{
-          margin: "0 0 36px",
-          fontSize: 15,
+          margin: 0,
+          fontSize: 16,
           color: "#78716C",
-          lineHeight: 1.7,
-          maxWidth: 340,
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(12px)",
-          transition: "opacity 0.65s ease 180ms, transform 0.65s ease 180ms",
+          lineHeight: 1.6,
+          maxWidth: 520,
+          marginLeft: "auto",
+          marginRight: "auto",
+          fontFamily: "var(--font-plus-jakarta), sans-serif",
         }}>
-          Real-time scoring across 8 dimensions, webcam and voice analysis, and a coaching profile built from your sessions.
+          Voice and webcam analysis. 8 scored dimensions. A coaching profile that tells you exactly what to fix.
         </p>
+      </div>
 
-        {/* Stats row */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1,
-          marginBottom: 36,
-          borderRadius: 12, overflow: "hidden",
-          border: "1px solid rgba(28,25,23,0.10)",
-          opacity: visible ? 1 : 0,
-          transition: "opacity 0.5s ease 260ms",
-        }}>
-          {[
-            { val: "8", label: "Dimensions" },
-            { val: "15", label: "Archetypes" },
-            { val: "2 min", label: "First analysis" },
-          ].map((s, i) => (
-            <div key={i} style={{
-              padding: "14px 12px", textAlign: "center" as const,
-              background: i === 1 ? "rgba(79,70,229,0.05)" : "#FDFAF4",
-              borderLeft: i > 0 ? "1px solid rgba(28,25,23,0.08)" : "none",
-            }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#1C1917", letterSpacing: -0.5, lineHeight: 1 }}>{s.val}</div>
-              <div style={{ fontSize: 11, color: "#A8A29E", fontWeight: 600, marginTop: 3 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
+      {/* Card — centered and dominant */}
+      <div className="ipc-hero-preview" style={{
+        display: "flex", justifyContent: "center", width: "100%",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(24px)",
+        transition: "opacity 0.75s ease 260ms, transform 0.75s ease 260ms",
+      }}>
+        <MockInterviewCard visible={visible} />
+      </div>
 
-        <div style={{
-          display: "flex", gap: 10, flexWrap: "wrap" as const,
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(10px)",
-          transition: "opacity 0.65s ease 340ms, transform 0.65s ease 340ms",
-        }}>
+      {/* CTAs + stats below card */}
+      <div style={{
+        marginTop: 52,
+        display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 20,
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.6s ease 500ms",
+      }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" as const, justifyContent: "center" }}>
           <Link href="/signup" style={{
-            padding: "13px 28px", borderRadius: 9,
+            padding: "14px 36px", borderRadius: 9,
             background: "#4F46E5",
             color: "#fff", textDecoration: "none",
-            fontWeight: 800, fontSize: 14,
+            fontWeight: 700, fontSize: 15,
             boxShadow: "0 4px 20px rgba(79,70,229,0.28)",
-            whiteSpace: "nowrap" as const,
+            fontFamily: "var(--font-plus-jakarta), sans-serif",
           }}>
             Start for free
           </Link>
           <Link href="/login" style={{
-            padding: "13px 24px", borderRadius: 9,
+            padding: "14px 28px", borderRadius: 9,
             border: "1px solid rgba(28,25,23,0.14)",
             color: "#78716C", textDecoration: "none",
-            fontWeight: 600, fontSize: 14,
+            fontWeight: 600, fontSize: 15,
             background: "transparent",
-            whiteSpace: "nowrap" as const,
+            fontFamily: "var(--font-plus-jakarta), sans-serif",
           }}>
             Log in
           </Link>
         </div>
 
-        <div style={{
-          marginTop: 24, display: "flex", flexDirection: "column" as const, gap: 7,
-          opacity: visible ? 1 : 0,
-          transition: "opacity 0.5s ease 480ms",
-        }}>
-          {["Free to start — no credit card", "Works on mobile", "Voice + webcam analysis"].map((t, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "#A8A29E" }}>
+        {/* Inline stats */}
+        <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          {[
+            { val: "8", label: "dimensions scored" },
+            { val: "15", label: "archetypes" },
+            { val: "2 min", label: "first analysis" },
+          ].map((s, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: "#1C1917", fontFamily: "var(--font-plus-jakarta), sans-serif" }}>{s.val}</span>
+              <span style={{ fontSize: 12, color: "#A8A29E", fontWeight: 500 }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 18 }}>
+          {["Free to start", "Works on mobile", "Voice + webcam"].map((t, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#A8A29E" }}>
               <span style={{ color: "#16A34A", fontWeight: 700 }}>✓</span> {t}
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Right: mock interview card — bigger, more dominant */}
-      <div className="ipc-hero-preview" style={{ display: "flex", justifyContent: "center", paddingTop: 20 }}>
-        <MockInterviewCard visible={visible} />
       </div>
     </div>
   );
