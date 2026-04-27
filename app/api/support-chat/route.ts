@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { rateLimitFixedWindow } from "@/app/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -42,13 +44,13 @@ Signal helps users prepare for job interviews through:
 
 export async function POST(req: Request) {
   try {
-    const ip =
-      (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const limit = await rateLimitFixedWindow({
-      key: `rl:support-chat:${ip}`,
+      key: `rl:support-chat:${session.user.email}`,
       limit: 20,
       windowMs: 60 * 60 * 1000,
     });
