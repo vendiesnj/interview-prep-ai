@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { rateLimitFixedWindow } from "@/app/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -41,6 +42,27 @@ Signal helps users prepare for job interviews through:
 
 export async function POST(req: Request) {
   try {
+    const ip =
+      (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
+
+    const limit = await rateLimitFixedWindow({
+      key: `rl:support-chat:${ip}`,
+      limit: 20,
+      windowMs: 60 * 60 * 1000,
+    });
+
+    if (!limit.ok) {
+      return Response.json(
+        { error: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(limit.resetMs / 1000)) },
+        }
+      );
+    }
+
     const { messages } = await req.json() as {
       messages: Array<{ role: "user" | "assistant"; content: string }>;
     };

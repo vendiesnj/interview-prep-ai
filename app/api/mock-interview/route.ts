@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/app/lib/prisma";
 import OpenAI from "openai";
+import { rateLimitFixedWindow } from "@/app/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -696,6 +697,24 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const { action } = body;
+
+  if (action === "start" || action === "respond" || action === "score") {
+    const limit = await rateLimitFixedWindow({
+      key: `rl:mock-interview:${session.user.email}`,
+      limit: 50,
+      windowMs: 24 * 60 * 60 * 1000,
+    });
+
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "Daily limit reached. Please try again tomorrow." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(limit.resetMs / 1000)) },
+        }
+      );
+    }
+  }
 
   if (action === "start") return handleStart(body as StartBody);
   if (action === "respond") return handleRespond(body as RespondBody);
