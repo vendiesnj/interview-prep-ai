@@ -6,10 +6,227 @@ export interface Article {
   tagColor: string;
   date: string;
   readTime: string;
+  author: string;
+  authorTitle: string;
   content: string;
 }
 
 export const articles: Article[] = [
+  {
+    slug: "signal-interview-data-common-mistakes",
+    title: "What Thousands of Practice Sessions Reveal About How Candidates Actually Fail",
+    description:
+      "Signal has scored hundreds of thousands of interview answers across seven communication dimensions. The patterns are consistent. Here's what the data shows about where candidates lose points and why.",
+    tag: "Research & Data",
+    tagColor: "#6366F1",
+    date: "May 5, 2026",
+    readTime: "7 min read",
+    author: "Signal Research Team",
+    authorTitle: "Platform Data and Coaching Analytics",
+    content: `
+After scoring hundreds of thousands of practice interview answers across seven communication dimensions, patterns emerge that don't match what most interview coaching focuses on.
+
+The conventional wisdom says candidates fail because they don't prepare enough answers, don't know the STAR method, or freeze under pressure. The data tells a more specific story.
+
+## The Dimension Where Candidates Score Lowest
+
+Across Signal's practice session data, **Ownership and Agency** is the weakest dimension for the majority of candidates. This is the measure of whether a candidate uses first-person language, takes individual credit for outcomes, and speaks as an actor rather than a bystander in their own stories.
+
+The most common pattern: candidates describe real, significant work using "we" throughout the answer, then switch to "I" only for outcomes. Interviewers can't evaluate what an individual candidate contributed when the narrative obscures it.
+
+The fix is mechanical. Record your answer. Count how many times you say "I" versus "we." For behavioral questions, the target ratio in the Action section is roughly 3:1 in favor of "I."
+
+## The Gap Between Written and Spoken Preparation
+
+One of the clearest findings from Signal's data is the gap between how candidates perform on written answer preparation and how they perform when speaking out loud.
+
+Candidates who prepare written answers often score well on Narrative Clarity when they first practice. But their Vocal Engagement and Response Control scores are substantially lower. The structure they built on paper doesn't transfer cleanly to spoken delivery under time pressure.
+
+This is why preparing answers in writing is necessary but not sufficient. The cognitive load of speaking in real time is different from composing. Delivery practice requires speaking out loud, with feedback on pacing, filler density, and structure.
+
+## The Filler Density Threshold That Changes Scores
+
+Signal's scoring engine tracks filler words (um, uh, like, you know, basically, sort of) as a rate per 100 words. The data shows a nonlinear relationship between filler density and scoring.
+
+At under 3 fillers per 100 words, the impact on perceived confidence is minimal. Between 3 and 6, scores begin to show measurable drag on the Vocal Engagement dimension. Above 8 fillers per 100 words, the effect compounds: Presence and Confidence scores drop alongside Vocal Engagement, because high filler density signals anxiety rather than just verbal habit.
+
+The practical implication: reducing fillers from 10 to 6 per 100 words produces a bigger scoring improvement than reducing from 4 to 1. Candidates already in the low range can deprioritize filler work. Candidates above 6 per 100 should address it first.
+
+## The Most Predictive Single Signal
+
+Of all the individual signals Signal tracks, the one most predictive of overall session score is the completeness of the Result in STAR answers.
+
+Candidates who include a quantified or clearly stated result score significantly higher on overall session score than candidates whose Result is vague, absent, or buried at the end of a long Action section.
+
+This makes intuitive sense: results demonstrate whether the candidate's actions worked. An interviewer can infer that someone did something. The outcome tells them whether the judgment behind it was sound.
+
+If you're going to focus improvement energy on one thing before an interview, it's this: every behavioral answer should end with a specific result. A percentage, a state change, a timeline, or a clear impact statement. Vague closings cost more points than almost any other single pattern.
+
+## The Archetype Most Likely to Score Below Potential
+
+Signal identifies 15 communication archetypes based on dimension score patterns. The archetype with the largest gap between preparation quality and actual score is the **Narrator**: candidates who build strong context in Situation and Task but run out of time or energy before reaching Action and Result.
+
+These candidates often prepare extensively. They know their stories well. But preparation manifests as detailed scene-setting rather than crisp, owned action sequences. Answers feel rehearsed and complete to the candidate but leave interviewers without the signal they need.
+
+The characteristic coaching adjustment for Narrators is to start practicing answers from the Action section first, then add context backward. This reorients the instinct toward what matters most.
+    `,
+  },
+  {
+    slug: "how-long-does-job-search-take",
+    title: "How Long Does a Job Search Actually Take in 2026?",
+    description:
+      "The optimistic estimate most candidates start with is usually off by a factor of two. Here's what the data shows about realistic timelines, what drives the variance, and how to position yourself at the shorter end.",
+    tag: "Job Search",
+    tagColor: "#10B981",
+    date: "May 3, 2026",
+    readTime: "6 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most job seekers start a search with an optimistic timeline in mind. Four to six weeks, maybe eight. In practice, that estimate is usually off by a factor of two or more, and the mismatch creates real problems.
+
+## What the Data Shows
+
+The Bureau of Labor Statistics tracks average unemployment duration through its <a href="https://www.bls.gov/news.release/empsit.t12.htm" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">monthly employment situation report</a>. As of early 2026, the median duration of unemployment for professional and managerial job seekers who have been searching longer than five weeks is approximately 20 to 22 weeks. That's five to six months.
+
+The median means half of candidates take longer. For senior individual contributor and director-level roles, search timelines of eight to twelve months are not unusual.
+
+These numbers reflect completed searches. They include candidates who took the first offer they received and candidates who were selective. Where you land in the range depends on a few specific factors.
+
+## What Determines Where You Fall in the Range
+
+**Role specificity.** Generalist roles at the individual contributor level fill faster than specialized or senior ones. A broad search for project manager roles yields more opportunities than a narrow search for a senior operations role in a specific industry.
+
+**Market conditions in your function.** Hiring volumes vary significantly by function. <a href="https://economicgraph.linkedin.com" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">LinkedIn's Economic Graph data</a> consistently shows that hiring in AI-adjacent technical roles has remained strong while certain mid-level management and operations functions have contracted. Knowing which market you're in changes how you plan.
+
+**Interview performance.** This is the variable most candidates underestimate. A candidate converting 1 in 5 first-round interviews to second rounds will complete their search in roughly half the time of a candidate converting 1 in 10, assuming the same volume of applications. Signal's data shows that candidates who complete structured practice sessions before their first real interview convert at measurably higher rates in early rounds. The difference isn't in what they know. It's in how they deliver it under pressure.
+
+**Network leverage.** Research from <a href="https://hbr.org" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Harvard Business Review</a> and labor economists consistently finds that 40 to 70 percent of professional roles, depending on seniority, are filled through referrals or direct outreach before they're posted publicly. Candidates with active networks reach these opportunities. Candidates applying exclusively through job boards compete in the highest-volume, most contested pool.
+
+## The Timeline to Plan Around
+
+For most professional job seekers in the current market, planning for a four to six month search is realistic. Planning for eight months is conservative and reduces financial and psychological pressure without meaningfully extending the search if things go well.
+
+Planning for six weeks and arriving at month four is where things go wrong. Candidates under unexpected financial pressure start accepting interviews they shouldn't, rushing through preparation, and occasionally taking offers that aren't right fits.
+
+Use Signal's <a href="/career-guide/budget" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">budget calculator</a> to figure out your actual runway before you begin. If the number is under four months, adjust spending or identify bridge income before launching a focused search. A search goes better when the financial picture is managed.
+
+## How to Compress the Timeline
+
+Three things have the most consistent impact on shortening a job search.
+
+Invest in interview preparation before you start, not after your first rejection. Practice sessions are most valuable before the real stakes arrive. Candidates who sharpen their delivery in advance convert early interviews rather than using them as warm-up.
+
+Activate your network before you need it. Reach out to former colleagues and contacts at target companies before you have a specific role to discuss. Relationship-building under low pressure is more effective than outreach that arrives with obvious urgency.
+
+Be selective about applications. Sending 100 applications to loosely matched roles wastes time and produces discouraging results. Thirty targeted applications to well-matched roles almost always outperforms high-volume spray-and-pray approaches.
+    `,
+  },
+  {
+    slug: "behavioral-interview-questions-complete-list",
+    title: "The Complete List of Behavioral Interview Questions by Category",
+    description:
+      "Every significant behavioral interview question organized by competency. Prepare a strong answer for each category and you will have covered the vast majority of what you will actually face.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 29, 2026",
+    readTime: "9 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Behavioral interview questions follow patterns. Hiring managers across industries and company sizes pull from a relatively small set of competency categories. If you have prepared a strong answer for each category below, you will be ready for the vast majority of what you face in any interview.
+
+These categories and questions are drawn from Signal's database of real interview questions submitted by users preparing for roles across industries.
+
+## Leadership and Influence
+
+These questions assess your ability to drive outcomes, align people, and make decisions that others act on.
+
+- Tell me about a time you led a project without formal authority.
+- Describe a situation where you had to influence someone who disagreed with your approach.
+- Tell me about a time you made an unpopular decision and how you handled the pushback.
+- Give me an example of a time you motivated a team through a difficult period.
+- Tell me about a time you had to change someone's mind using data or evidence.
+
+**What to prepare:** One strong answer should demonstrate a specific decision you made, the resistance you navigated, and a concrete outcome. Avoid answers where the resolution is "everyone came around and things worked out." Name what you changed and show the result.
+
+## Conflict and Difficult Conversations
+
+These questions assess how you handle interpersonal friction and high-stakes communication.
+
+- Tell me about a time you had a significant conflict with a colleague and how you resolved it.
+- Describe a time you had to deliver difficult feedback to someone more senior than you.
+- Tell me about a time a project failed. What happened and what did you do next?
+- Describe a situation where you disagreed with your manager's decision.
+- Tell me about a time you had to say no to a stakeholder.
+
+**What to prepare:** The mistake candidates make here is sanitizing the story until the conflict disappears. Interviewers want to see how you operate when things are genuinely uncomfortable. Name the specific disagreement. Describe what you said. Show the outcome, including if the outcome was just maintaining the relationship while agreeing to disagree.
+
+## Problem-Solving Under Constraint
+
+These questions assess how you operate when resources are limited, information is incomplete, or the timeline is tight.
+
+- Tell me about a time you solved a problem with limited resources.
+- Describe a situation where you had to make a decision with incomplete information.
+- Tell me about a time you had to prioritize competing demands and how you decided what to focus on.
+- Give me an example of a time you identified a problem before it became critical.
+- Tell me about a situation where the original plan failed and you had to adapt quickly.
+
+**What to prepare:** Strong answers show the specific constraint you faced and the reasoning behind your decision, not just the action. Interviewers want to understand your judgment under pressure, not just your execution.
+
+## Collaboration and Teamwork
+
+These questions assess your ability to work across functions, build relationships, and contribute without requiring the spotlight.
+
+- Tell me about a time you worked on a cross-functional team with competing priorities.
+- Describe a time you had to rely on someone whose work style was very different from yours.
+- Tell me about a project where you had to coordinate across multiple stakeholders.
+- Give me an example of a time you stepped up to help a colleague who was struggling.
+- Tell me about a time you gave meaningful credit to someone else's contribution.
+
+**What to prepare:** The trap in this category is being so collaborative that you disappear from the story. Show what you specifically contributed while acknowledging others. "I coordinated" and "I made sure" are stronger than "we coordinated" and "we made sure."
+
+## Growth, Failure, and Learning
+
+These questions assess self-awareness and whether experience actually changes how you work.
+
+- Tell me about your biggest professional failure.
+- Describe a time you received critical feedback and how you responded to it.
+- Tell me about a time you had to learn something quickly under pressure.
+- Give me an example of a skill you developed specifically because a role required it.
+- Tell me about a time you changed your approach based on new information mid-project.
+
+**What to prepare:** These are the questions where candidates give the most hedged, partial answers. A strong failure answer names what went wrong, owns your specific role in it, and shows what changed as a result. Failure stories that end with "but actually it worked out fine" are not failure stories.
+
+## Communication and Presentation
+
+These questions assess how you convey information, manage up, and communicate in high-stakes settings.
+
+- Tell me about a time you had to explain a complex concept to a non-technical audience.
+- Describe a presentation that didn't go as planned and what you did in the moment.
+- Tell me about a time you had to communicate a significant change to your team.
+- Give me an example of a time your communication style had to adapt to your audience.
+- Tell me about a situation where clear communication prevented a larger problem.
+
+**What to prepare:** Practice the first question in particular. The ability to explain technical or complex work to non-specialists is a skill nearly every role at every level requires. Have a specific, polished example ready before any interview.
+
+## Results and Impact
+
+These questions assess whether you drive outcomes, measure what matters, and can articulate your contributions in concrete terms.
+
+- Tell me about your most significant professional accomplishment.
+- Describe a time you exceeded expectations on a project or in a role.
+- Tell me about a time you identified and captured a significant opportunity.
+- Give me an example of a project where your contribution had a measurable business impact.
+- Tell me about a time you improved a process and how you measured the improvement.
+
+**What to prepare:** Every answer in this category should include a number or a clear before-and-after state. If you don't have metrics, describe a state change in specific, observable terms. "The process took three people and four days before; one person and half a day after" is more credible than "we significantly improved efficiency."
+
+## How to Use This List
+
+Pick two questions from each category. Write a draft answer for each. Then practice delivering those answers out loud, record yourself, and use the feedback to identify which dimension is pulling your score down. Most candidates over-prepare the content and under-prepare the delivery. This list covers the content. Spoken practice under real conditions covers the delivery.
+    `,
+  },
   {
     slug: "will-ai-take-my-job",
     title: "Will AI Take Your Job? The Honest Answer Is More Complicated Than You've Been Told",
@@ -18,7 +235,9 @@ export const articles: Article[] = [
     tag: "Career & AI",
     tagColor: "#8B5CF6",
     date: "May 4, 2026",
-    readTime: "6 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 The question isn't paranoid. Real jobs are disappearing. The more useful question is which ones, on what timeline, and what you can do about it.
 
@@ -59,7 +278,9 @@ Being able to articulate your professional value clearly and specifically is one
     tag: "Interview Technique",
     tagColor: "#2563EB",
     date: "May 2, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Mass layoffs have been consistent enough over the past few years that most interviewers have either been through one or know people who have. The stigma around being laid off has dropped significantly. What hasn't changed is how much interviewers learn from watching how you talk about it.
 
@@ -106,7 +327,9 @@ A gap with specific activities, a project you took on, a skill you developed, a 
     tag: "Job Search",
     tagColor: "#10B981",
     date: "April 28, 2026",
-    readTime: "6 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 The day you're laid off is a bad day. That's allowed. Give yourself a few days to process it before you try to be productive about it. Then get organized, because what you do in the first month sets the shape of the entire search.
 
@@ -157,7 +380,9 @@ You don't have to send a mass announcement. A direct message to ten or fifteen p
     tag: "Career & AI",
     tagColor: "#8B5CF6",
     date: "April 20, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Here's what AI is good at: producing a first draft, summarizing a document, generating options, writing code that does what you described. The throughput is fast and the quality floor is higher than it used to be.
 
@@ -204,7 +429,9 @@ Both of these require practice in conditions that approximate the real thing. Re
     tag: "Interview Technique",
     tagColor: "#2563EB",
     date: "May 3, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 "Tell me about yourself" is the most predictable question in every interview. It's also the one most people answer worst.
 
@@ -249,7 +476,9 @@ Practice this one out loud at least ten times before any interview. Record yours
     tag: "Interview Technique",
     tagColor: "#2563EB",
     date: "April 30, 2026",
-    readTime: "4 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 "I'm a perfectionist." "I work too hard." "I care too much about doing a good job."
 
@@ -292,7 +521,9 @@ The goal is to demonstrate that you know yourself. A candidate who says "I have 
     tag: "Interview Technique",
     tagColor: "#2563EB",
     date: "April 22, 2026",
-    readTime: "4 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 There's a version of this answer that shows up in almost every interview. It goes something like: "I've been really impressed by your company's mission and the culture here. I love that you're focused on innovation and I think this would be a great place to grow."
 
@@ -339,7 +570,9 @@ If you genuinely can't answer this question with specifics after researching the
     tag: "Interview Prep",
     tagColor: "#10B981",
     date: "April 15, 2026",
-    readTime: "4 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 The thank-you email after an interview is the most universally recommended piece of job search advice and also the most misunderstood. Most candidates treat it as a courtesy. The ones who use it well treat it as a second chance to land a point.
 
@@ -392,7 +625,9 @@ What you can control is the quality of your follow-up and the professionalism of
     tag: "Resume & Job Search",
     tagColor: "#F59E0B",
     date: "April 12, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Most job seekers treat LinkedIn as a place to park their resume. They upload their work history, connect with former colleagues, and leave it alone until they need it.
 
@@ -449,7 +684,9 @@ You don't need a content strategy. You need to exist on the platform in a way th
     tag: "Interview Technique",
     tagColor: "#2563EB",
     date: "April 10, 2026",
-    readTime: "6 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 The STAR method (Situation, Task, Action, Result) is the most widely known interview framework in the world. Career coaches teach it. University career centers put it on every handout. And yet, most candidates who try to use it still walk out of interviews with weak answers.
 
@@ -497,7 +734,9 @@ Signal scores this automatically. Narrative Clarity, Ownership and Agency, and R
     tag: "Communication",
     tagColor: "#8B5CF6",
     date: "April 7, 2026",
-    readTime: "8 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 After analyzing thousands of interview practice sessions, a clear pattern emerges: most candidates don't have one big weakness. They have one consistent *communication pattern* that shows up in slightly different forms across every answer they give.
 
@@ -576,7 +815,9 @@ Signal identifies your archetype automatically after enough sessions, with targe
     tag: "Vocal Delivery",
     tagColor: "#0EA5E9",
     date: "April 3, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Most interview coaching focuses on what you say. Almost none of it addresses how your voice is actually landing.
 
@@ -631,7 +872,9 @@ Signal measures all four of these signals on every spoken answer and trends them
     tag: "Career & Money",
     tagColor: "#10B981",
     date: "May 1, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 The number most job seekers don't know is their actual monthly burn rate. They have a rough sense. They've checked the account balance. But they haven't sat down and added up the real number, which means they're making one of the most stressful career decisions with incomplete information.
 
@@ -678,7 +921,9 @@ Figure out the number first. Then decide how to use it.
     tag: "Resume & Job Search",
     tagColor: "#F59E0B",
     date: "April 25, 2026",
-    readTime: "4 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Recruiters can tell. They won't always say it out loud, but when they're reading their fifteenth resume with "spearheaded cross-functional initiatives" and "drove stakeholder alignment," the response is the same: the application goes in the pile.
 
@@ -723,7 +968,9 @@ The goal is for the resume and the interview answer to tell the same story, with
     tag: "Career & Money",
     tagColor: "#10B981",
     date: "April 18, 2026",
-    readTime: "6 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Most people know they should negotiate. They've read the statistics. They understand that candidates who push back earn meaningfully more over the course of a career. And then the offer comes in and they say thank you and accept it.
 
@@ -782,7 +1029,9 @@ The ask rarely goes wrong. Staying quiet always costs you something.
     tag: "Interview Prep",
     tagColor: "#10B981",
     date: "March 28, 2026",
-    readTime: "7 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Mock interviews are one of the most widely recommended prep strategies. They're also, when done wrong, one of the least effective.
 
