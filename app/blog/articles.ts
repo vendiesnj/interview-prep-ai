@@ -11,6 +11,192 @@ export interface Article {
 
 export const articles: Article[] = [
   {
+    slug: "will-ai-take-my-job",
+    title: "Will AI Take Your Job? The Honest Answer Is More Complicated Than You've Been Told",
+    description:
+      "The question everyone is asking right now. Here's what the actual research shows, which jobs are most exposed, and what makes people genuinely harder to replace.",
+    tag: "Career & AI",
+    tagColor: "#8B5CF6",
+    date: "May 4, 2026",
+    readTime: "6 min read",
+    content: `
+The question isn't paranoid. Real jobs are disappearing. The more useful question is which ones, on what timeline, and what you can do about it.
+
+The short version: AI is better at eliminating tasks than eliminating jobs. But tasks make up jobs, and when enough tasks get automated, the headcount math changes. That's already happening in certain roles and it's going to keep happening.
+
+## Where the Exposure Is Highest
+
+The roles most at risk share a few characteristics. The outputs are well-defined. The inputs are largely digital. The work is repetitive across cases. And the judgment required is narrow enough that a well-prompted model can replicate it.
+
+Data entry, basic research and summarization, first-draft writing, routine customer support, simple code review, and templated financial analysis all fall into this category. These aren't bad jobs. But the volume of humans needed to do them is contracting.
+
+The roles that are harder to automate share a different profile. The inputs are messy and human. The judgment calls depend on context that isn't in any document. The work requires building trust with real people in real time. And the consequences of being wrong are high enough that someone accountable needs to own the outcome.
+
+Senior strategy work, complex sales, clinical judgment, skilled trades, therapy, and leadership all fit here. Not because AI can't generate output in these areas. It can. But because the value isn't just in the output. It's in the person who produced it taking responsibility for it.
+
+## The Part Most Predictions Miss
+
+Most AI job displacement conversations focus on what models can generate. They underestimate what organizations are willing to trust a model to decide.
+
+There's a large category of work where AI can produce a draft, a plan, or an analysis that's 80% of the way there. But the 20% that remains requires someone who understands the politics of the room, the history of the relationship, or the regulatory risk that isn't in any training dataset. That person still has a job. Their job just looks different now.
+
+## What You Can Actually Do
+
+Two things are genuinely useful here.
+
+The first is becoming the person on your team who uses the tools well. The people who get cut in AI-driven restructuring are usually the ones who resisted the tools. The ones who get promoted or reassigned are the ones who figured out how to multiply their output using them.
+
+The second is strengthening the skills that are harder to replicate. Judgment under ambiguity. Communication that moves people. The ability to synthesize information from conflicting sources and make a call. These capabilities have always mattered. They matter more now because they're increasingly what's left after automation takes everything else.
+
+Being able to articulate your professional value clearly and specifically is one of those skills. If you can't explain what you do and why it matters in a way that lands with someone who doesn't already know your work, that's a liability that compounds as hiring gets more competitive.
+    `,
+  },
+  {
+    slug: "how-to-explain-layoff-in-interview",
+    title: "How to Explain a Layoff in an Interview Without It Becoming the Whole Story",
+    description:
+      "Layoffs are common enough now that most interviewers won't hold one against you. What they're evaluating is how you handle it. Here's the structure that works.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "May 2, 2026",
+    readTime: "5 min read",
+    content: `
+Mass layoffs have been consistent enough over the past few years that most interviewers have either been through one or know people who have. The stigma around being laid off has dropped significantly. What hasn't changed is how much interviewers learn from watching how you talk about it.
+
+## What the Interviewer Is Actually Evaluating
+
+They're not trying to figure out if you were laid off because you were bad at your job. They're watching for three things.
+
+**Composure.** Can you talk about something difficult without becoming defensive, bitter, or visibly uncomfortable? Losing a job is stressful. That's understood. But if the topic derails you, it raises questions about how you handle harder conversations.
+
+**Honesty.** Does the explanation make sense? Large-scale layoffs are easy to verify and the details usually check out. Vague or evasive answers about a small company's layoff are more likely to be questioned.
+
+**Forward momentum.** What have you done with the time since? Candidates who treated the gap purposefully, whether through skill development, freelance work, caregiving, or a genuine search with thought behind it, come across differently from candidates who clearly just waited.
+
+## The Structure That Works
+
+The answer to "what happened at your last role?" should take about 30 to 45 seconds.
+
+**The factual sentence.** One sentence describing what happened without editorializing. "The company did a company-wide reduction that affected my department" or "The role was eliminated as part of a restructuring." Keep it clean and don't over-explain.
+
+**What you did with the time.** One or two sentences. "I used the first few weeks to decompress and then started a structured search. I've also been doing some consulting work and completed a certification in X." If you've been doing Signal sessions to sharpen your interview skills, that counts too.
+
+**What you're looking for.** One sentence that pivots the conversation forward. "I'm specifically targeting roles where I can do X, which is why this opportunity stood out."
+
+## What to Avoid
+
+Do not apologize for being laid off. You don't owe anyone an apology for a business decision that was made above your level.
+
+Do not trash the company, the leadership, or the decision-making that led to it. Even if the layoff was handled badly and the criticism would be fair, this is not the place. It raises questions about how you'll talk about the new employer if things go wrong.
+
+Do not spend more than a minute on it. Once you've given the factual summary and pivoted to where you are now, move on. Candidates who over-explain tend to seem like they're working to convince the interviewer of something. That creates doubt where there wasn't any.
+
+## When There's a Longer Gap
+
+If significant time has passed since the layoff, the interviewer will want more context. The same principles apply, but you'll need to give more detail on how you spent the time. Be specific. Vague answers about "exploring options" sound like you're covering something up, even when you're not.
+
+A gap with specific activities, a project you took on, a skill you developed, a family situation you were managing, is a gap you can explain. A gap with no accounting is harder to defend.
+    `,
+  },
+  {
+    slug: "what-to-do-when-laid-off",
+    title: "What to Actually Do in the First 30 Days After a Layoff",
+    description:
+      "The first month after losing a job is where most people either set themselves up for a solid search or create problems they'll deal with for months. Here's what matters and in what order.",
+    tag: "Job Search",
+    tagColor: "#10B981",
+    date: "April 28, 2026",
+    readTime: "6 min read",
+    content: `
+The day you're laid off is a bad day. That's allowed. Give yourself a few days to process it before you try to be productive about it. Then get organized, because what you do in the first month sets the shape of the entire search.
+
+## The Logistics That Have Hard Deadlines
+
+Some things need to happen fast because there are deadlines attached to them.
+
+**File for unemployment immediately.** Many states have a waiting period before benefits begin, and the clock starts when you file. There's no benefit to waiting. File the day you're laid off or the next business day.
+
+**Understand your COBRA window.** You typically have 60 days from your coverage loss date to elect COBRA continuation coverage. Missing that window means losing the option. COBRA is expensive, but it's your existing coverage with no new enrollment paperwork. Compare it against marketplace plans before deciding.
+
+**Clarify your severance terms.** If you received a severance agreement, read it carefully before signing. Most include a release of claims against the employer. Some have non-disparagement clauses. A few restrict your ability to take jobs at competitors. If the agreement has a signing deadline, you usually have at least 21 days. Use them.
+
+## The Financial Picture
+
+Before you start applying anywhere, figure out your actual runway. How much do you have in liquid savings, and what does your monthly burn rate look like?
+
+Most people estimate this and get it wrong by 15 to 25 percent because they forget irregular expenses: annual subscriptions, car maintenance, medical bills, the seasonal stuff. Signal's <a href="/career-guide/budget" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">budget calculator</a> walks you through the full picture in about five minutes.
+
+Knowing your runway changes how you search. If you have four months of savings, you can be selective. If you have six weeks, you need a different strategy.
+
+## What to Update Before You Start Applying
+
+Your resume and your LinkedIn profile should reflect your most recent role before you send a single application. Applying with an outdated profile is a waste of the application and the attention it might have gotten.
+
+Update your experience bullets with specific outcomes. Refresh your LinkedIn headline. Set your Open to Work status to Recruiters Only if you're not comfortable with the public banner.
+
+Practice talking about your work out loud. The gap between how you describe your professional value in writing and how you describe it in a conversation is usually larger than people expect. Most people sound less sharp on their feet than they do on paper, and interviews are on your feet.
+
+## How Long It's Going to Take
+
+The median job search in the current market runs three to six months for most professional roles. That range is wider for senior positions and specialized functions. Planning for a four-month search and finishing in two is a good outcome. Planning for a six-week search and finishing in four months creates financial and psychological pressure that makes the search worse.
+
+Set a realistic timeline based on your runway, adjust your spending to extend that runway if needed, and then focus on doing the search well rather than doing it fast.
+
+## The Part People Skip
+
+Tell people. The majority of jobs, especially jobs that aren't posted publicly, get filled through someone knowing someone. Your former colleagues, your school network, and your industry connections are all potential paths to introductions.
+
+You don't have to send a mass announcement. A direct message to ten or fifteen people you have real relationships with, something simple like "I was recently laid off and I'm starting to explore what's next. I'd love to catch up if you have 20 minutes," is enough. Most people are willing to help and many will forward your name somewhere useful.
+    `,
+  },
+  {
+    slug: "skills-ai-cannot-replace",
+    title: "The Skills That Still Matter When AI Can Do Most of the Grunt Work",
+    description:
+      "AI is good at producing outputs. It's not good at knowing which outputs matter, getting others to act on them, or taking responsibility for the outcome. Here's where human value is concentrating.",
+    tag: "Career & AI",
+    tagColor: "#8B5CF6",
+    date: "April 20, 2026",
+    readTime: "5 min read",
+    content: `
+Here's what AI is good at: producing a first draft, summarizing a document, generating options, writing code that does what you described. The throughput is fast and the quality floor is higher than it used to be.
+
+Here's what it's not good at: knowing which problem to solve, reading the room, making the call when the data is incomplete, and taking responsibility for the answer.
+
+That distinction is where professional value is concentrating.
+
+## Judgment in Ambiguous Situations
+
+AI systems are good at answering well-defined questions. When the question itself is unclear, or when the right answer depends on context that isn't in any prompt, the model's output is a starting point, not a decision.
+
+The ability to operate confidently in ambiguous situations, to make a call with incomplete information and own it, is something organizations will pay for indefinitely. It's also something you can only develop by making calls and watching what happens. No amount of information consumption builds it. Experience does.
+
+## Communication That Changes What People Do
+
+Generating a report and getting people to act on it are different skills. AI can write the report. Getting someone skeptical to change their mind, getting a senior leader to prioritize something they've been ignoring, getting a cross-functional team to align on a direction they didn't agree on at the start. Those require something different.
+
+The ability to communicate in a way that actually moves people is durable precisely because it depends on the human reading the room in real time, adjusting based on what they're hearing, and building credibility that accumulates over interactions. These are capabilities that don't transfer between people, let alone to a model.
+
+This is also why being able to speak clearly about your own professional value matters more now than it did five years ago. Job markets are more competitive. Interviews are higher-stakes. Candidates who can articulate what they've done, why it mattered, and what they'd bring to the next role in concrete and specific terms have a measurable advantage over candidates who can't.
+
+## Building and Keeping Trust
+
+A lot of high-value work runs on relationships. Not networking in the abstract sense. Specific relationships with people who know you, know your judgment, and are willing to send something your way or go to bat for you.
+
+Trust is slow to build and hard to transfer. The person who has built real credibility with a client, a leadership team, or a set of institutional partners has something that can't be replicated from a prompt.
+
+## The Practical Takeaway
+
+The honest version of career resilience right now looks like two things happening in parallel.
+
+One is learning to use the tools well. People who figure out how to get 10x the output using AI systems are harder to cut than people who produce the same output they always did.
+
+The other is doubling down on the skills that are hardest to automate. Verbal communication. Judgment. Trust. The ability to operate when the situation is unclear and the stakes are real.
+
+Both of these require practice in conditions that approximate the real thing. Reading about communication doesn't build communication skill. Practicing it under pressure, getting feedback, and adjusting does.
+    `,
+  },
+  {
     slug: "tell-me-about-yourself-interview-answer",
     title: "How to Answer 'Tell Me About Yourself' Without Rambling",
     description:
