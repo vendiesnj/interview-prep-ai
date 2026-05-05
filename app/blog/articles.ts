@@ -11,6 +11,251 @@ export interface Article {
 
 export const articles: Article[] = [
   {
+    slug: "tell-me-about-yourself-interview-answer",
+    title: "How to Answer 'Tell Me About Yourself' Without Rambling",
+    description:
+      "This question opens almost every interview, and most people answer it worse than any other question. Here's a structure that works and a common mistake that kills the opener.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "May 3, 2026",
+    readTime: "5 min read",
+    content: `
+"Tell me about yourself" is the most predictable question in every interview. It's also the one most people answer worst.
+
+The two failure modes show up constantly. The first is the resume recitation: candidates start in college, work chronologically through every job, and end somewhere around their current role five minutes later. The interviewer already has the resume. Reading it back does not tell them anything new.
+
+The second failure is the vague overview: "I'm a people person who loves solving problems and working collaboratively across teams." That sentence contains no information.
+
+## A Structure That Actually Works
+
+The strongest "tell me about yourself" answers follow a present, past, future shape.
+
+**Present:** What are you doing right now, and what's the headline of your role or focus? One or two sentences. If you're currently employed, what's the most relevant thing about your current work?
+
+**Past:** What's the through-line of your background that explains why you're good at what you do now? This isn't every job. It's the two or three experiences that built the skills most relevant to this conversation.
+
+**Future:** What are you looking for, and why does this role fit that? This is where you connect your answer to the specific opportunity. It should be brief and direct.
+
+The whole thing should take 60 to 90 seconds. If you're going past two minutes, you've included too much.
+
+## What to Cut
+
+Cut the origin story. Starting with "I've always been passionate about..." tells the interviewer about your childhood, not your professional value.
+
+Cut the apology openings. "So, where do I even begin..." is filler. Start with your present role.
+
+Cut the adjectives about yourself. Words like "driven," "results-oriented," and "team player" don't land without evidence. Replace every adjective with a concrete example or just leave it out.
+
+## What a Strong Opener Does
+
+A good answer to this question does three things. It tells the interviewer something they couldn't get from scanning the resume. It connects your background to this specific role. And it signals that you communicate clearly and don't waste their time.
+
+That last one matters more than people realize. Interviewers form impressions in the first two minutes. A tight, direct opener signals confidence and preparation. A meandering one raises questions that the rest of the interview has to work to undo.
+
+Practice this one out loud at least ten times before any interview. Record yourself. If you hear any filler words or long pauses in the first 30 seconds, that's the thing to fix first.
+    `,
+  },
+  {
+    slug: "greatest-weakness-interview-answer",
+    title: "How to Answer 'What's Your Greatest Weakness?' and Actually Sound Credible",
+    description:
+      "The fake weakness answer is one of the most recognized interview clichés in existence. Here's what a genuine, smart answer looks like and why it works better than what most candidates say.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "April 30, 2026",
+    readTime: "4 min read",
+    content: `
+"I'm a perfectionist." "I work too hard." "I care too much about doing a good job."
+
+Interviewers have heard these answers thousands of times. Every recruiter knows what they are: a tactic to avoid the question while appearing to answer it. And every time a candidate uses one, something happens that they don't intend. The interviewer notes that this person won't give a real answer under mild pressure.
+
+That observation follows you through the rest of the interview.
+
+## Why the Question Exists
+
+The weakness question isn't a trap designed to catch you admitting something disqualifying. It's a test of self-awareness and honesty.
+
+Interviewers know you have weaknesses. Everyone does. What they're trying to find out is whether you know what yours are, whether you're working on them, and whether you're honest when the stakes are low. Candidates who can't answer this question honestly raise a flag: if they can't be direct about something this benign, how will they handle harder conversations on the job?
+
+## What a Real Answer Looks Like
+
+Pick a genuine weakness that meets two criteria: it's real and observable, and it's not central to the core requirements of the role you're applying for.
+
+Then structure your answer in three parts:
+
+**Name it clearly.** "I have a tendency to over-communicate on projects I'm worried about. I'll check in more than necessary, which can slow things down and signals a lack of trust in the team."
+
+**Show what you've done about it.** "I started using shared project trackers so the status is always visible without me asking for it. It's reduced the check-in frequency significantly."
+
+**Acknowledge where you still are.** "I still catch myself reaching for Slack sometimes when I should wait. I'm aware of it and I'm getting better, but it's not fully resolved."
+
+That's an honest answer. It names a real pattern, shows self-awareness, and demonstrates that you've taken initiative to address it.
+
+## The Category of Weakness That Works Best
+
+Weaknesses related to process, communication style, or working habits tend to land well. Weaknesses related to core technical skills for the job tend to raise concerns. And weaknesses that are transparently strategic, like perfectionism, just make the interviewer trust you less.
+
+The goal is to demonstrate that you know yourself. A candidate who says "I have trouble delegating when I'm under pressure" and then explains exactly how they've handled that tells an interviewer much more about their character than a candidate who claims their only flaw is caring too deeply about outcomes.
+    `,
+  },
+  {
+    slug: "why-do-you-want-to-work-here-answer",
+    title: "How to Answer 'Why Do You Want to Work Here?' Without Sounding Like You Read the Website",
+    description:
+      "The version of this answer that fails is a summary of the company About page. The version that works shows you actually thought about the role. Here's the difference.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "April 22, 2026",
+    readTime: "4 min read",
+    content: `
+There's a version of this answer that shows up in almost every interview. It goes something like: "I've been really impressed by your company's mission and the culture here. I love that you're focused on innovation and I think this would be a great place to grow."
+
+That answer contains nothing specific to the company. It could be given to any employer in any industry and it would be equally true, which means it's equally meaningless.
+
+Interviewers hear it constantly. It tells them you did not spend serious time thinking about the role.
+
+## What the Question Is Actually Asking
+
+The question has two parts, even though it sounds like one. Why this company? And why this role?
+
+Most candidates answer only the first part, and even then, they answer it with information that took them thirty seconds to find. Mission statements and culture pages are public. Citing them doesn't signal genuine research.
+
+## How to Actually Research
+
+Before your interview, go further than the company website.
+
+Look at what the company has shipped or announced in the last six months. If it's a public company, read the most recent earnings call transcript. Search for the hiring manager on LinkedIn and read what they've posted or written. If there are employee reviews on Glassdoor, look for patterns across reviews, specifically what kinds of people seem to thrive there.
+
+Look at the job description itself with fresh eyes. The skills they list, the problems they describe, the type of scope they're offering. What specifically about this role is different from similar roles at other companies?
+
+## Building the Answer
+
+A strong answer has three components.
+
+**Something specific about the company that you found through real research.** A product decision that impressed you. A strategic shift that makes sense given the market. A piece of writing from someone on the leadership team that resonated.
+
+**Something specific about the role.** What about the scope or the problem set draws you in? Be concrete.
+
+**A connection between both of those things and your background.** Why are you the right person for this specific opportunity, not just someone looking for a job?
+
+The whole answer should be 60 to 90 seconds. The goal is to communicate that you made a genuine choice to pursue this company and this role. That specificity is rare enough in interviews that it stands out immediately.
+
+## One More Thing
+
+If you genuinely can't answer this question with specifics after researching the company, that's worth paying attention to. Sometimes the honest answer is that you're applying broadly and this company isn't particularly differentiated for you. That's okay as a job search strategy, but it's worth knowing before the interview so you can decide how to handle the question with integrity.
+    `,
+  },
+  {
+    slug: "how-to-follow-up-after-interview",
+    title: "How to Follow Up After an Interview Without Being Annoying",
+    description:
+      "Most advice on following up is either too passive or too aggressive. Here's the actual timeline, what to say, and when to accept that you have your answer.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 15, 2026",
+    readTime: "4 min read",
+    content: `
+The thank-you email after an interview is the most universally recommended piece of job search advice and also the most misunderstood. Most candidates treat it as a courtesy. The ones who use it well treat it as a second chance to land a point.
+
+## The Thank-You Email
+
+Send it the same day, within a few hours of the interview ending. If you interviewed with multiple people, send individual emails to each of them.
+
+The mistake most candidates make is writing a generic note: "Thank you for your time today. I really enjoyed learning about the role and the team."
+
+That version does nothing. It confirms that you know how to type but doesn't add any information.
+
+A better structure:
+
+Open by naming one specific thing from the conversation that you found compelling or that changed how you think about the role. If the interviewer mentioned a challenge the team is working through, you can reference it. If they described something about the culture that resonated, name it specifically.
+
+Then restate one thing from the conversation that made you more confident this is the right fit, from your perspective.
+
+Close with something brief and direct. "I'm genuinely excited about this and I'm looking forward to next steps."
+
+The whole email should be four to six sentences. If it's longer, cut it.
+
+## If They Gave You a Timeline
+
+If the interviewer told you they'd be back to you by a certain date and that date has passed, you can follow up once.
+
+Keep it short: "Hi [Name], I wanted to follow up on our conversation from [date]. I'm still very interested in the role and happy to answer any additional questions. Looking forward to hearing from you."
+
+Send that one. Then wait. If another week passes with no response, you can send one more. After two follow-ups with no reply, you have your answer. Companies that go dark on candidates after an interview are communicating something about how they operate.
+
+## What Not to Do
+
+Don't apologize for following up. "I'm sorry to bother you, but..." weakens your message before the interviewer has even read it. You're not bothering them. You're a candidate they're evaluating.
+
+Don't follow up through every possible channel. One email is right. Adding a LinkedIn message, a call to the front desk, and another email three days later is not persistence, it's pressure.
+
+Don't make your follow-up about your timeline. "I have another offer and need to know by Friday" may be true, but leading with it puts the company in an adversarial position. If you have a competing offer, you can mention it once in a calm, factual way. Make it a data point, not an ultimatum.
+
+## Reading the Silence
+
+Most candidates treat a delayed response as a bad sign. Sometimes it is. More often, it just means the hiring process is slower than the company expected, someone is out sick, or a decision-maker is traveling.
+
+What you can control is the quality of your follow-up and the professionalism of your presence throughout the process. What you can't control is their timeline. Following up twice is appropriate. Beyond that, put your energy toward the next opportunity.
+    `,
+  },
+  {
+    slug: "linkedin-profile-tips-job-search",
+    title: "Your LinkedIn Profile Is Probably Hurting Your Job Search",
+    description:
+      "Recruiters check LinkedIn before they read your resume. Most profiles fail at the exact things recruiters are looking for. Here's what to fix and why it matters.",
+    tag: "Resume & Job Search",
+    tagColor: "#F59E0B",
+    date: "April 12, 2026",
+    readTime: "5 min read",
+    content: `
+Most job seekers treat LinkedIn as a place to park their resume. They upload their work history, connect with former colleagues, and leave it alone until they need it.
+
+Recruiters see this. The profiles that get messages are the ones that look active and specific. Here's what actually moves the needle.
+
+## The Headline
+
+The default headline LinkedIn creates is your current job title and company. That's the bare minimum and it's what the majority of profiles show.
+
+A stronger headline uses the same character limit to communicate more: your specialty, the kind of problems you solve, or the type of work you do best. You're not rewriting your title. You're giving someone who hasn't met you a reason to click.
+
+For someone in operations: "Operations Manager" is fine. "Operations Manager focused on process efficiency and supply chain cost reduction" tells a recruiter in five seconds whether to keep reading.
+
+## The About Section
+
+Only the first two or three lines of the About section show before someone clicks "see more." Most people write their About section as a paragraph about their career journey. By the time they've gotten to something interesting, the recruiter has moved on.
+
+Write the first sentence of your About section as if it's a headline. What's the thing you most want someone to know about your professional value? Start there.
+
+Then use the rest of the section to back it up with two or three specific examples: industries you've worked in, problems you've solved, or outcomes you've produced. Keep it to three or four short paragraphs. Long About sections rarely get read.
+
+## Experience Bullets
+
+The same rules that apply to resume bullets apply here, with one difference: LinkedIn is slightly more conversational, so you have more room to explain context.
+
+But the core failure is the same on both. Vague claims with no outcomes. "Managed a team of analysts" is not interesting. "Managed a team of six analysts, reduced report delivery time from three days to same-day, and reduced error rates by building a shared QA checklist" is a profile that gets sent to a hiring manager.
+
+Every job in your recent history should have at least two or three bullets with a concrete outcome. If you can't remember the outcome, look at your old performance reviews. If you genuinely don't have numbers, describe a before-and-after state.
+
+## Open to Work
+
+If you're actively searching and you're not worried about your current employer finding out, turn on the "Open to Work" green banner. Recruiters filter by this. The social awkwardness of the banner is less expensive than being invisible in searches.
+
+If you want to signal availability without the banner, set your Open to Work status to "Recruiters only" in the privacy settings. You won't get the banner, but you'll appear in recruiter searches.
+
+## Skills and Recommendations
+
+The Skills section matters for search ranking. Add the ten to fifteen skills most relevant to the roles you're targeting. Ask two or three people you've worked with for a specific recommendation, meaning a recommendation that names a project or outcome, not a general character reference.
+
+"Great to work with, highly recommend" helps no one. "Led the implementation of our new procurement system and reduced vendor onboarding time by 40%" helps everyone reading your profile.
+
+## Activity
+
+Recruiters look at how active a profile is. Liking posts occasionally is enough to signal that the account is real. If you're comfortable writing, a short post about something you've learned or worked on in your field reaches people you're not connected to and surfaces your profile in ways that passive activity doesn't.
+
+You don't need a content strategy. You need to exist on the platform in a way that signals engagement.
+    `,
+  },
+  {
     slug: "star-method-interview-answers",
     title: "The STAR Method Actually Works, But Not the Way Most People Use It",
     description:
