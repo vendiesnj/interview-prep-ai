@@ -193,6 +193,157 @@ Signal measures all four of these signals on every spoken answer and trends them
     `,
   },
   {
+    slug: "job-search-budget-runway",
+    title: "How Long Can You Actually Afford to Job Search?",
+    description:
+      "Most job seekers underestimate their monthly burn rate by 20-30%. Here's how to calculate your real runway and make smarter decisions about which offers to take seriously.",
+    tag: "Career & Money",
+    tagColor: "#10B981",
+    date: "May 1, 2026",
+    readTime: "5 min read",
+    content: `
+The number most job seekers don't know is their actual monthly burn rate. They have a rough sense. They've checked the account balance. But they haven't sat down and added up the real number, which means they're making one of the most stressful career decisions with incomplete information.
+
+If you're currently in a search, or about to start one, your first priority is figuring out exactly how long you can sustain it.
+
+## Calculate Your Real Monthly Number
+
+Take your fixed monthly expenses and add them up: rent or mortgage, utilities, groceries, health insurance (often more expensive once you leave employer coverage), loan minimums, and transportation.
+
+Then add your variable spending. This is where people get fuzzy. The honest approach is to go back three months in your bank statements and average what you actually spent, not what you planned to spend.
+
+Signal's free <a href="/career-guide/budget" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">budget calculator</a> lets you map this out in about five minutes. Plug in your real numbers and you'll get your monthly burn rate split by needs, wants, and savings, plus a rough sense of how far your current savings will take you.
+
+## The Things People Forget
+
+**Annual subscriptions.** Adobe, domain renewals, car registration, streaming services billed annually. These don't appear every month but they will appear.
+
+**Healthcare without employer coverage.** COBRA is expensive. Marketplace plans have deductibles. If you're used to low-cost employer coverage, this one surprises people.
+
+**The irregular category.** Car repairs. A flight for an in-person interview. A suit that needs replacing. Add a flat 10% buffer on top of your calculated number and you'll be close to reality.
+
+## How to Stretch Runway Without Making Yourself Miserable
+
+The easiest cuts are in the wants category. Subscriptions you forgot you had. Dining out frequency. Streaming services you haven't used in a month. These feel small individually but they add up.
+
+The harder question is about savings contributions. If you have a 401k set to auto-contribute, pausing it temporarily increases your liquid runway. That's a real tradeoff, and only you can weigh it. But a four-month search that ends badly because of financial pressure is worse than a six-month search that ends with the right offer.
+
+## The Psychological Part
+
+Knowing your runway number changes how you search. It converts open-ended financial dread into a concrete timeline you can actually plan around.
+
+When people don't know their runway, they feel urgency constantly. That urgency pushes them to apply too broadly, take early interviews seriously that they shouldn't, and sometimes accept offers that aren't right just because something feels like it needs to happen.
+
+When you know you have five months, you can make better decisions. You can pass on the company that feels off. You can take an extra week to prepare for the role you actually want.
+
+Figure out the number first. Then decide how to use it.
+    `,
+  },
+  {
+    slug: "ai-resume-problem-2026",
+    title: "Your AI-Polished Resume Sounds Like Everyone Else's",
+    description:
+      "Recruiters are reading hundreds of applications that all use the same language, the same bullet structure, and the same keywords. Here's what actually makes a resume stand out now.",
+    tag: "Resume & Job Search",
+    tagColor: "#F59E0B",
+    date: "April 25, 2026",
+    readTime: "4 min read",
+    content: `
+Recruiters can tell. They won't always say it out loud, but when they're reading their fifteenth resume with "spearheaded cross-functional initiatives" and "drove stakeholder alignment," the response is the same: the application goes in the pile.
+
+AI resume tools have gotten very good at one thing: making everyone sound the same. That's not a product flaw. It's a math problem. When everyone uses the same tools trained on the same data, the output converges toward an average.
+
+## What Happens When Everyone Optimizes
+
+ATS keyword optimization is real and it matters for getting through automated filters. But the candidates who get calls are the ones who sound like a person wrote their resume.
+
+The resume that stands out right now has a few things in common.
+
+## Specific Numbers Over Vague Impact Claims
+
+"Improved team efficiency" is not a result. "Reduced reporting time from 6 hours to 45 minutes by automating the weekly export" is a result.
+
+If you don't have a clean number, describe a state change. Before the process required three people and two days. After, one person, half a day. Concrete before-and-after reads as real. Vague impact language reads as filler.
+
+## Ownership Language Throughout
+
+Passive voice is the tell. "Was responsible for leading" is weaker than "Led." "Helped to facilitate" is weaker than "Ran."
+
+Go through every bullet and cut phrases that dilute ownership. If you made the decision, say you made it. If you built something, say you built it. If you were one of five contributors, find the specific piece you owned and lead with that.
+
+## The Specific Details That Feel Too Small to Mention
+
+Candidates who get interviews are often the ones who included something they thought was too niche or too small.
+
+A two-person project where you owned the entire customer-facing side. A risk you flagged that saved the company a significant amount. A process you redesigned that nobody asked you to redesign. These details are the opposite of generic. They're the ones that make a recruiter actually stop scrolling.
+
+## What a Strong Resume Can't Fix
+
+Getting into the room is one problem. What happens in the room is a different one. Candidates with polished resumes regularly bomb interviews because the verbal story doesn't match the written one, or because they've never practiced articulating their work out loud under any kind of pressure.
+
+The goal is for the resume and the interview answer to tell the same story, with the same level of specificity and ownership. That second part takes practice.
+    `,
+  },
+  {
+    slug: "salary-negotiation-how-to",
+    title: "How to Negotiate Salary Without Feeling Like a Jerk",
+    description:
+      "Most people leave money on the table not because they don't know they should negotiate, but because they freeze when the conversation gets real. Here's what to actually say.",
+    tag: "Career & Money",
+    tagColor: "#10B981",
+    date: "April 18, 2026",
+    readTime: "6 min read",
+    content: `
+Most people know they should negotiate. They've read the statistics. They understand that candidates who push back earn meaningfully more over the course of a career. And then the offer comes in and they say thank you and accept it.
+
+The knowledge problem and the execution problem are different. You can know you should negotiate and still freeze when a real person on the phone is waiting for your response.
+
+Here's what to actually say.
+
+## When They Ask About Your Salary Expectations Early
+
+This question shows up before an offer and it's designed to anchor the negotiation in the company's favor. If you answer first, you've given up information before you know what they're willing to pay.
+
+A response that works: "I'd rather wait until we both feel like there's a strong mutual fit before getting into compensation. Do you have a budgeted range for the role you can share?"
+
+Most companies have a range. They may not share it, but asking is not aggressive. It's professional. If they press, give a range with your actual target at the lower end.
+
+## When the Offer Comes In
+
+You do not have to respond on the spot. You should not respond on the spot.
+
+Say this: "I'm genuinely excited about this role and the team. Can I have a few days to review the full package?"
+
+That request is standard. A company that pulls an offer because you asked for two days to think is one you should not work for.
+
+Use that time to get a real number. Check Glassdoor, Levels.fyi if you're in tech, and LinkedIn Salary. Talk to people in similar roles at similar companies. Know the specific number you're asking for before you pick up the phone.
+
+## The Negotiation Conversation Itself
+
+When you call back, keep it simple:
+
+"I've had a chance to review everything and I'm still really excited. Based on my research and the scope of the role, I was hoping we could get to [specific number]. Is there flexibility there?"
+
+Then stop. Let them respond. The silence is uncomfortable. That's okay. Fill it and you'll undercut yourself.
+
+If they say the salary is fixed, ask about other parts of the package. Signing bonus. Extra PTO. A remote work arrangement. An earlier first performance review. Compensation has more levers than the base salary number, and companies often have more flexibility in those areas.
+
+## The Lines That Hurt You
+
+Bringing up personal expenses: "I need to be able to afford my rent." Your personal costs are not a reason they should pay you more. Negotiate on market value.
+
+Preemptively conceding: "I totally understand if this isn't possible." Let them tell you it's not possible. Sometimes it is.
+
+Asking for the maximum: "What's the most you could offer?" This frames the conversation as adversarial. A softer version: "Is there any room to move toward [number]?"
+
+## One Thing Worth Saying Plainly
+
+Negotiating an offer is not a hostile act. The person who made you the offer knows candidates negotiate. They expect it. A well-framed ask does not damage the relationship. It signals that you know your value and that you communicate directly, which are qualities they were presumably trying to hire for.
+
+The ask rarely goes wrong. Staying quiet always costs you something.
+    `,
+  },
+  {
     slug: "mock-interview-preparation-guide",
     title: "How to Actually Prepare for a Mock Interview So It Transfers to the Real Thing",
     description:
