@@ -43,9 +43,10 @@ export default async function ArticlePage({ params }: Props) {
     description: article.description,
     datePublished: article.date,
     author: {
-      "@type": "Organization",
-      name: "Signal HQ",
-      url: "https://signalhq.us",
+      "@type": "Person",
+      name: article.author,
+      jobTitle: article.authorTitle,
+      worksFor: { "@type": "Organization", name: "Signal HQ", url: "https://signalhq.us" },
     },
     publisher: {
       "@type": "Organization",
@@ -115,6 +116,20 @@ export default async function ArticlePage({ params }: Props) {
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{article.date}</span>
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>·</span>
             <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{article.readTime}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: "50%",
+              background: "linear-gradient(135deg, #2563EB, #0EA5E9)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 13, fontWeight: 800, color: "#fff", flexShrink: 0,
+            }}>
+              {article.author.split(" ").map((w: string) => w[0]).slice(0, 2).join("")}
+            </div>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>{article.author}</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{article.authorTitle}</div>
+            </div>
           </div>
           <h1 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px", color: "#F1F5F9" }}>
             {article.title}

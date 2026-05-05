@@ -6,10 +6,1047 @@ export interface Article {
   tagColor: string;
   date: string;
   readTime: string;
+  author: string;
+  authorTitle: string;
   content: string;
 }
 
 export const articles: Article[] = [
+  {
+    slug: "nonverbal-cues-interview",
+    title: "The Nonverbal Signals That Are Costing You Interview Scores",
+    description:
+      "Interviewers form impressions from eye contact, posture, and gesture before your answer is half finished. Here's what Signal's webcam data shows about which signals matter most and what to do about them.",
+    tag: "Research & Data",
+    tagColor: "#6366F1",
+    date: "May 5, 2026",
+    readTime: "6 min read",
+    author: "Signal Research Team",
+    authorTitle: "Platform Data and Coaching Analytics",
+    content: `
+Most interview coaching focuses entirely on what you say. Interviewers are also constantly processing how you say it — and a significant portion of that processing happens through signals you're probably not managing at all.
+
+Signal measures nonverbal delivery on every webcam session across six distinct dimensions. The patterns in that data are consistent enough to be useful.
+
+## Eye Contact: The Highest-Weight Signal
+
+Eye contact rate, measured as the percentage of frames where your gaze is directed at the camera, is the single strongest nonverbal predictor of perceived confidence in Signal's scoring data.
+
+Candidates with eye contact rates above 65% consistently score higher on the Presence and Confidence dimension than candidates with identical verbal content but lower eye contact. The threshold isn't arbitrary: research in social psychology has consistently linked sustained eye contact with perceived competence and trustworthiness. A <a href="https://hbr.org" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Harvard Business Review</a> analysis of executive presence factors ranked eye contact as the most consistently cited nonverbal component across hiring managers in structured interviews.
+
+The practical problem in video interviews is that looking at the interviewer's face on screen and looking at the camera are different things. Eye contact in a video call requires looking at the lens, not the screen. Most candidates look at the interviewer's face, which means they appear to be looking slightly downward from the interviewer's perspective.
+
+**The fix:** Put a small sticky note or arrow directly next to your camera lens. When you're making a point or delivering a result, look at the lens. You can look at the screen when you're listening.
+
+## Blink Rate: The Anxiety Tell Most People Don't Know About
+
+Normal blink rate is 12 to 22 blinks per minute. Signal's data shows that candidates under interview stress frequently blink at rates above 28 to 35 per minute — a measurable signal of elevated anxiety that interviewers register unconsciously without being able to name it.
+
+Elevated blink rate tends to cluster at specific moments: right before answering, during the opening of an answer (the part where people are most nervous), and during silences.
+
+You can't directly control blink rate, but you can control the conditions that drive it. Slowing your breathing before the interview and in the pauses between answers reduces physiological arousal and brings blink rate down as a byproduct. The technique is simple: four counts in, hold for four, six counts out. Do it for two minutes before you go on camera.
+
+## Gesture Expressiveness: The Signal Most Candidates Suppress
+
+Signal scores gesture expressiveness on a 0 to 100 scale based on hand visibility rate and open gesture frequency. The consistent finding: candidates score higher on perceived engagement and enthusiasm when their hands are visible and moving.
+
+The instinct in high-stakes situations is to suppress gesture — to keep hands still, folded, or out of frame. This instinct works against you. Stillness reads as either rigidity or low energy, and both affect how interviewers perceive the enthusiasm behind your words.
+
+Open palm gestures in particular, where the hands are visible with palms facing upward or outward, correlate with higher trust ratings across interview contexts. Closed gestures, crossed arms, or hands hidden below frame correlate with lower ratings.
+
+**The fix:** In video interviews, position your camera so your hands are naturally in frame when you gesture normally. Don't force gesture — just stop suppressing it.
+
+## Fidgeting and Face Touching: The Credibility Drains
+
+Signal's fidget score (0 to 100, where lower is better) and face touch count are two of the clearest anxiety indicators in the nonverbal dataset.
+
+Face touching — touching your nose, mouth, chin, or cheeks during an answer — occurs unconsciously and correlates with self-soothing behavior under stress. Candidates with more than four face touch events per session show measurably lower Presence and Confidence scores, independent of their verbal content.
+
+Fidget score captures restless movement: shifting weight, tapping, moving the camera or chair. High fidget scores (above 45) signal nervous energy in the same way elevated blink rate does.
+
+Both of these respond to the same intervention: physical grounding before the interview. Sitting with both feet flat on the floor, hands resting open on the desk, and deliberately slowing your breathing for two minutes before the call reduces the fidget and touch behaviors that accumulate when anxiety isn't managed.
+
+## What to Actually Measure
+
+If you're preparing with Signal's mock interview or public speaking sessions, review your webcam metrics after each session. The numbers that matter most, in order: eye contact rate, fidget score, and face touch count. These three move the Presence and Confidence dimension most directly and are the most responsive to targeted practice.
+    `,
+  },
+  {
+    slug: "video-interview-tips",
+    title: "How to Interview Well on Video (Most Candidates Get the Basics Wrong)",
+    description:
+      "Remote interviews have their own failure modes. Camera position, lighting, audio quality, and eye contact mechanics all affect how you're perceived before you've finished your first answer.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "May 4, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Remote interviews are now a standard part of almost every hiring process. They're also an environment where candidates routinely make avoidable mistakes that have nothing to do with their answers.
+
+The setup problems are fixable in an afternoon. The delivery problems take more practice but follow predictable patterns.
+
+## Camera Position
+
+The camera should be at eye level or just slightly above. Most laptop users put their computer on a desk and end up with the camera pointed up at their chin and ceiling. This angle is unflattering and makes sustained eye contact feel unnatural.
+
+Fix it by stacking books or a laptop stand under your computer until the camera lens is level with your eyes. It takes five minutes and it changes how you look on screen more than any other single adjustment.
+
+Keep the camera close enough that your face and upper shoulders fill most of the frame. Being too far back makes you look small and harder to read. Being too close is claustrophobic. A distance of two to three feet from the lens tends to work for most setups.
+
+## Lighting
+
+The most common lighting mistake is sitting with a window behind you. This puts your face in shadow and blows out the background, making you look like a silhouette.
+
+Light should come from in front of you, ideally from a window facing your face or a desk lamp positioned at eye level slightly off to one side. If you're on a call in a dark room with only overhead lighting, your face will have harsh downward shadows that read as low energy.
+
+A simple ring light positioned just behind your monitor and aimed at your face is the fastest upgrade with the most visible impact. They're inexpensive and they solve the lighting problem entirely.
+
+## Audio Quality
+
+Audio quality affects how interviewers perceive your credibility, even when they can't articulate why. Studies on audio quality and perceived competence consistently show that poor audio (compressed, echoing, or cutting out) reduces listener confidence in the speaker's content.
+
+Your laptop's built-in microphone picks up keyboard noise, room echo, and background sound. A basic USB microphone or wired earbuds with an inline microphone is a meaningful upgrade. Position the microphone close to your mouth and make sure your room has soft surfaces (a rug, curtains, or even a blanket behind you) that absorb echo.
+
+Test your audio before every interview. Record a 30-second clip and listen back. If you can hear echo, keyboard noise, or HVAC hum, address it before the call.
+
+## Eye Contact in Video
+
+In a video call, looking at the interviewer's face on screen and looking at the camera are two different things. Most candidates look at the screen, which means from the interviewer's perspective, your gaze is consistently directed slightly downward.
+
+Eye contact in a video interview means looking at the lens. The practical trick: put a small sticky note with a dot or arrow directly next to your camera. When you want to make direct eye contact, look at the dot. You can look at the screen when you're listening or thinking.
+
+You don't need to maintain constant camera eye contact. Looking away while thinking is natural. The moments that matter most are when you're delivering a key point or result — that's when looking at the lens registers as conviction.
+
+## The Specific Delivery Problems Video Amplifies
+
+Two delivery issues are measurably worse on video than in person.
+
+**Filler words.** On video, without the social cues that help people manage turn-taking in real conversations, filler words increase. The lag in perceiving silence triggers more "um" and "uh" as candidates try to hold the floor. Practice pausing deliberately rather than filling silence.
+
+**Energy flatness.** Video compresses vocal dynamics. Enthusiasm that reads as appropriate in person can come across as flat on screen. Slightly more energy than feels natural is usually closer to what lands well over video. Record yourself and watch it back — most people are surprised by how subdued they look on camera compared to how they felt.
+
+## The Five-Minute Setup Check
+
+Before every video interview, run through this list: camera at eye level, light in front of your face, microphone tested, background clean and neutral, phone on silent, notifications off, water nearby. Five minutes of setup prevents the most common and most avoidable video interview problems.
+    `,
+  },
+  {
+    slug: "questions-to-ask-interviewer",
+    title: "The Best Questions to Ask at the End of an Interview",
+    description:
+      "The questions you ask say as much about your judgment as the answers you give. Here's a complete list organized by what you're trying to find out, including the ones that consistently land well.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "May 2, 2026",
+    readTime: "6 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most candidates treat the "do you have any questions for me?" moment as a formality. Strong candidates treat it as one more chance to demonstrate the quality of their thinking.
+
+The questions you ask signal what you care about, how you think about work, and whether you've done serious research. Asking nothing — or asking questions that could be answered by reading the company website — is a missed opportunity that interviewers notice.
+
+Here's a list organized by what you're actually trying to find out.
+
+## Questions About the Role Itself
+
+These questions signal that you've thought seriously about the day-to-day reality of the job, not just the title.
+
+- What does success in this role look like at 90 days? At one year?
+- What's the biggest challenge the person in this role will face in the first six months?
+- How has this role evolved over the past two years?
+- What's the most important thing the previous person in this role did well — and where did they struggle?
+- What would you want someone coming into this role to know that isn't in the job description?
+
+The last question in particular tends to get candid, useful answers. Interviewers often share things here that reveal a lot about the role's real demands.
+
+## Questions About the Team
+
+These questions signal that you care about the environment you'd be working in and the people you'd be working with.
+
+- How would you describe the team's working style?
+- What's the dynamic like between this team and [adjacent function]?
+- How does the team handle disagreement when it comes to priorities or approach?
+- What do people on this team tend to have in common?
+
+The disagreement question is particularly useful. How a team handles conflict tells you a lot about whether feedback is direct, whether decisions get revisited, and whether the culture is psychologically safe.
+
+## Questions About the Manager
+
+If you're interviewing with your potential direct manager, these questions reveal a great deal about what working for them will actually be like.
+
+- How do you typically give feedback to people on your team?
+- What's your preferred way of working with someone new — more hands-on early, or do you prefer to give people space to figure things out?
+- What do people who have worked for you tend to say about the experience?
+- What's something you've changed about how you manage based on feedback you've received?
+
+The last question is a gentle probe for self-awareness. A manager who can answer it specifically is almost always worth working for.
+
+## Questions About the Company
+
+These questions signal strategic thinking and genuine interest in the organization's direction.
+
+- What's the most significant strategic challenge the company is working through right now?
+- How does this team's work connect to the company's top priorities this year?
+- What's been the biggest shift in how the company operates in the past two years?
+
+Avoid questions about things that are publicly available. Asking what the company does, or what products they sell, signals you didn't prepare. If you want to demonstrate that you read their recent earnings call or a specific press release, build it into the question: "I saw you launched X last quarter — how has that affected how this team works?"
+
+## Questions to Avoid
+
+**"What does the day-to-day look like?"** Too vague and signals you didn't research the role.
+
+**"What are the growth opportunities here?"** This question is about you, not the work. It can come across as jumping ahead when you haven't started yet. Save it for later rounds or after an offer.
+
+**"What's the salary range?"** This belongs in a separate compensation conversation, not the closing of a first interview.
+
+**"How am I doing?"** Asking for feedback mid-process puts the interviewer in an awkward position. You'll know from the next steps.
+
+## How Many to Ask
+
+Prepare five to seven questions and expect to use three or four. Some of your questions will be answered during the interview before you get to ask them, which is actually a good sign — it means the conversation went deep enough to cover the territory naturally.
+
+If you genuinely have no questions left by the end because everything was addressed, say so directly: "You've actually answered everything I had prepared, which tells me the conversation went really well." That's a stronger close than scrambling for something to ask.
+    `,
+  },
+  {
+    slug: "phone-screen-interview-tips",
+    title: "How to Pass a Phone Screen: The First Interview Most Candidates Lose",
+    description:
+      "Phone screens eliminate more candidates than any other interview stage. They're shorter, faster, and less forgiving than full interviews. Here's what they're actually evaluating and how to get through.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 27, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The phone screen is where most candidates are eliminated, and it's the stage most candidates prepare for least. They save their preparation energy for the "real" interview. By then, they're already out.
+
+A phone screen typically runs 20 to 30 minutes with a recruiter. The recruiter is not trying to find reasons to hire you. They are trying to find reasons to move you forward — and they're equally willing to find reasons not to.
+
+## What Phone Screens Are Actually Evaluating
+
+Recruiters in phone screens are checking for a small number of things. Understanding what they are makes it easy to prepare specifically for them.
+
+**Basic fit.** Does your background match what the job requires? Can you explain your experience clearly in the first two minutes? This is where candidates who can't describe their own work concisely get cut.
+
+**Compensation alignment.** Many recruiters ask about salary expectations early to filter out mismatches before the process goes further. Know your number before the call and be prepared to give a range.
+
+**Communication quality.** A phone screen is all audio. There's no face, no body language, no visual warmth. Clarity, pace, and how you handle silence are the only signals the recruiter has. Candidates who sound flat, rushed, or disorganized on the phone rarely make it to the next round regardless of their qualifications.
+
+**Genuine interest.** Recruiters can tell when a candidate is going through the motions. A specific, prepared answer to "why are you interested in this role?" signals that you chose to apply rather than spray-and-prayed.
+
+## The Questions You Will Almost Certainly Be Asked
+
+Every phone screen covers the same territory with minor variation.
+
+- Tell me about yourself and your background.
+- Why are you interested in this role / company?
+- What are you looking for in your next position?
+- What is your current compensation / what are your expectations?
+- What is your availability and timeline?
+- Do you have any questions for me?
+
+Prepare a 90-second answer to the first question. Prepare a specific, one-paragraph answer to the second. Know your compensation range and deliver it without hesitation. Hesitating on the compensation question reads as uncertainty about your own value.
+
+## How to Handle Audio-Only Communication
+
+Without visual cues, your voice carries everything. Three things make the biggest difference on phone calls.
+
+**Pace.** Slow down by about 15% from your normal speaking speed. The absence of visual feedback tends to make people talk faster without realizing it. Slower delivery sounds more confident and gives the recruiter time to take notes.
+
+**Pausing.** Pauses before answering are fine on a phone call. They signal that you're thinking, not that you're lost. A one to two second pause before answering a question reads as deliberate. Jumping in immediately with a filler-heavy answer reads as anxious.
+
+**Energy.** Smile while you talk. It sounds like a cliché but it works. Smiling changes the shape of your mouth and the tone of your voice in ways that are perceptible to listeners even without video. Recruiters who do phone screens all day can tell within the first minute whether a candidate is engaged.
+
+## The Setup That Matters
+
+Take the call somewhere quiet with good cell signal or use a landline. Background noise, dropped audio, and interruptions are disproportionately disruptive on a phone call because there's nothing else for the recruiter to focus on.
+
+Have the job description open in front of you. Have your resume open. Have two or three specific things you know about the company written down. Recruiters can't see you on a phone screen, so looking at notes is allowed and smart.
+
+## Closing the Call
+
+At the end of the screen, ask one specific question. Not "what are the next steps" (you can ask this, but don't make it your only question). Ask something about the role or the team that shows you were paying attention during the call.
+
+Then ask about next steps. Ask when you can expect to hear back and in what format. This is expected, it's professional, and it gives you a timeline to follow up against.
+    `,
+  },
+  {
+    slug: "how-to-handle-interview-nerves",
+    title: "How to Handle Interview Nerves Without Pretending You're Not Nervous",
+    description:
+      "Telling yourself to calm down doesn't work. Here's what actually reduces anxiety before and during an interview, based on how your nervous system actually responds to stress.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 24, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most advice about interview nerves tells you to calm down, breathe deeply, and remember that the interviewer is rooting for you. This advice is not wrong, but it doesn't address what's actually happening in your nervous system when the stakes feel high.
+
+Understanding the mechanism makes the interventions more useful.
+
+## What's Actually Happening
+
+The physiological response to high-stakes situations, elevated heart rate, shallow breathing, heightened alertness, is the same response that evolved to handle physical threats. Your body doesn't distinguish between "lion in the grass" and "behavioral interview in 20 minutes." The threat-detection system fires the same way.
+
+The cognitive consequences are predictable: working memory becomes less accessible (which is why your mind goes blank), attention narrows (which is why you can't remember details you know perfectly well in low-stakes settings), and self-monitoring increases (which is why you start evaluating yourself mid-answer instead of just answering).
+
+Knowing this helps because the interventions that work are the ones that address the physiology, not the ones that try to talk you out of the feeling.
+
+## What Actually Works Before the Interview
+
+**Physiological sigh.** A double inhale through the nose followed by a long, slow exhale is the fastest way to activate the parasympathetic nervous system and reduce physiological arousal. Research from <a href="https://www.stanford.edu" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Stanford's lab on stress and emotion</a> found this specific breath pattern more effective at rapid stress reduction than extended slow breathing. Do it three to five times in the five minutes before an interview starts.
+
+**Physical movement.** Light exercise in the hour before an interview — a 15-minute walk, not a workout — metabolizes stress hormones and reduces baseline arousal going into the interview. Candidates who sit still and try to prepare in the 30 minutes immediately before an interview often feel more anxious, not less.
+
+**Reappraisal.** The physical sensations of anxiety and excitement are nearly identical. Research by psychologist Alison Wood Brooks at Harvard Business School found that telling yourself "I am excited" before a high-stakes performance consistently outperformed attempts to calm down. The reappraisal shifts the interpretation of arousal rather than trying to eliminate it.
+
+## What Actually Works During the Interview
+
+**Slow your pace deliberately.** Anxiety speeds up speech. Faster speech increases filler density and reduces the clarity of your answers. Consciously slowing down by 15 to 20 percent makes answers land better and reduces the feedback loop where you hear yourself rushing and get more anxious as a result.
+
+**Use pauses as a tool.** Pausing for one or two seconds before answering a question is professional, not weak. It signals that you're thinking. Rushing to answer because silence feels unbearable is where most nervous candidates create their own problems.
+
+**Prepare until the content is automatic.** The deeper cause of interview anxiety is uncertainty about what you're going to say. Candidates who have practiced answers out loud enough times that the content flows without effort have cognitive bandwidth left over to manage delivery. Candidates who are still constructing their answers in real time are using all available resources just to produce the words.
+
+This is why Signal's approach of practicing answers out loud repeatedly, not just reviewing them mentally, reduces interview anxiety as a side effect. When the content is automatic, the performance layer becomes manageable.
+
+## The Part Nobody Mentions
+
+Some level of physiological activation before an important interview is useful. Completely calm candidates often underperform because they're not alert enough. The goal isn't to eliminate nerves. It's to keep arousal in the range where it sharpens performance rather than disrupting it.
+
+If you've prepared thoroughly and you're still nervous on the day of the interview, that's information about how much the opportunity matters to you. That's not a problem to solve. It's evidence that you care, and interviewers can generally tell the difference between anxious candidates who are unprepared and anxious candidates who are well-prepared and care about getting it right.
+    `,
+  },
+  {
+    slug: "how-to-research-company-before-interview",
+    title: "How to Research a Company Before an Interview (Beyond the About Page)",
+    description:
+      "Most candidates read the company website and call it research. Here's where to actually look, what to do with what you find, and how to use it in the interview without sounding like you memorized a fact sheet.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 21, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The About page and the mission statement are the floor of research, not the ceiling. Every candidate who gets an interview reads the website. The ones who stand out know things that aren't on the website.
+
+Here's where to actually look and what to do with what you find.
+
+## Start With Recent News and Activity
+
+Search the company name in Google News filtered to the past six months. Look for product launches, leadership changes, funding announcements, acquisitions, layoffs, regulatory issues, or strategic pivots. Any significant event in the past six months is fair game to reference in the interview.
+
+If the company is public, read the most recent earnings call transcript. These are available on the investor relations section of the company website or on <a href="https://seekingalpha.com" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Seeking Alpha</a> for free. Executives speak plainly on earnings calls about what's working and what's not. The "risks and challenges" section in particular tells you more about the real state of the business than any marketing copy.
+
+If the company is private, look for recent press coverage, their blog, and any executive interviews or podcast appearances in the past year.
+
+## Research the People You're Meeting
+
+Look up your interviewers on LinkedIn before the call. Note where they've worked before, how long they've been at this company, and what they've posted or written. A shared former employer, a shared interest in a specific domain, or a piece of writing they published that you can reference creates connection and signals you did the work.
+
+If the hiring manager has given any talks, interviews, or written anything public, read it. Understanding how they think about the work gives you a significant advantage in framing your own experience in terms that resonate with them specifically.
+
+## Understand the Competitive Landscape
+
+Know who the company's main competitors are and have a rough sense of how they're positioned. This matters because interview questions about the industry, the company's strategy, or why you want to work there specifically all become easier when you have context about where the company sits relative to alternatives.
+
+If you're interviewing at a startup, understand what problem they're solving and for whom. If you're interviewing at a larger company, understand which division or business unit is most relevant to your role and what that unit's priorities are.
+
+## Look at the Product as a User
+
+If the company has a product you can actually use, use it before the interview. Sign up for a trial. Read recent reviews on G2, Capterra, or the App Store. Understanding the product from a user's perspective makes your answers to questions about the company's challenges more specific and credible.
+
+Even for products you can't directly use, spending 30 minutes on demo videos, help documentation, or customer case studies gives you a level of fluency that almost no other candidate will have.
+
+## Talk to Someone Who Works or Has Worked There
+
+A 20-minute conversation with a current or former employee tells you more than three hours of online research. Use LinkedIn to find people with connections to the company. A message like "I have an interview at [company] next week for [role] and would love 15 minutes to hear your perspective on the team" gets a response more often than people expect.
+
+What to ask: what do people who thrive there have in common? What's the thing that surprises people about working there? What's the biggest challenge the team is working on?
+
+## How to Use Research in the Interview
+
+The goal of research isn't to recite facts. It's to ask better questions and give more specific answers.
+
+When they ask why you want to work there, reference something specific you found. "I read the CEO's interview from March about the shift toward enterprise customers — that direction is actually what draws me to this role" is more credible than "I'm impressed by your growth trajectory."
+
+When they ask about your interest in the problem space, connect it to something real about the company's current situation. Show that you chose this company with information, not just enthusiasm.
+
+Use Signal's job profile feature to store notes from your research before each interview. Having the key facts organized and accessible means you're not trying to recall them under pressure when the interview starts.
+    `,
+  },
+  {
+    slug: "signal-interview-data-common-mistakes",
+    title: "What Thousands of Practice Sessions Reveal About How Candidates Actually Fail",
+    description:
+      "Signal has scored hundreds of thousands of interview answers across seven communication dimensions. The patterns are consistent. Here's what the data shows about where candidates lose points and why.",
+    tag: "Research & Data",
+    tagColor: "#6366F1",
+    date: "May 5, 2026",
+    readTime: "7 min read",
+    author: "Signal Research Team",
+    authorTitle: "Platform Data and Coaching Analytics",
+    content: `
+After scoring hundreds of thousands of practice interview answers across seven communication dimensions, patterns emerge that don't match what most interview coaching focuses on.
+
+The conventional wisdom says candidates fail because they don't prepare enough answers, don't know the STAR method, or freeze under pressure. The data tells a more specific story.
+
+## The Dimension Where Candidates Score Lowest
+
+Across Signal's practice session data, **Ownership and Agency** is the weakest dimension for the majority of candidates. This is the measure of whether a candidate uses first-person language, takes individual credit for outcomes, and speaks as an actor rather than a bystander in their own stories.
+
+The most common pattern: candidates describe real, significant work using "we" throughout the answer, then switch to "I" only for outcomes. Interviewers can't evaluate what an individual candidate contributed when the narrative obscures it.
+
+The fix is mechanical. Record your answer. Count how many times you say "I" versus "we." For behavioral questions, the target ratio in the Action section is roughly 3:1 in favor of "I."
+
+## The Gap Between Written and Spoken Preparation
+
+One of the clearest findings from Signal's data is the gap between how candidates perform on written answer preparation and how they perform when speaking out loud.
+
+Candidates who prepare written answers often score well on Narrative Clarity when they first practice. But their Vocal Engagement and Response Control scores are substantially lower. The structure they built on paper doesn't transfer cleanly to spoken delivery under time pressure.
+
+This is why preparing answers in writing is necessary but not sufficient. The cognitive load of speaking in real time is different from composing. Delivery practice requires speaking out loud, with feedback on pacing, filler density, and structure.
+
+## The Filler Density Threshold That Changes Scores
+
+Signal's scoring engine tracks filler words (um, uh, like, you know, basically, sort of) as a rate per 100 words. The data shows a nonlinear relationship between filler density and scoring.
+
+At under 3 fillers per 100 words, the impact on perceived confidence is minimal. Between 3 and 6, scores begin to show measurable drag on the Vocal Engagement dimension. Above 8 fillers per 100 words, the effect compounds: Presence and Confidence scores drop alongside Vocal Engagement, because high filler density signals anxiety rather than just verbal habit.
+
+The practical implication: reducing fillers from 10 to 6 per 100 words produces a bigger scoring improvement than reducing from 4 to 1. Candidates already in the low range can deprioritize filler work. Candidates above 6 per 100 should address it first.
+
+## The Most Predictive Single Signal
+
+Of all the individual signals Signal tracks, the one most predictive of overall session score is the completeness of the Result in STAR answers.
+
+Candidates who include a quantified or clearly stated result score significantly higher on overall session score than candidates whose Result is vague, absent, or buried at the end of a long Action section.
+
+This makes intuitive sense: results demonstrate whether the candidate's actions worked. An interviewer can infer that someone did something. The outcome tells them whether the judgment behind it was sound.
+
+If you're going to focus improvement energy on one thing before an interview, it's this: every behavioral answer should end with a specific result. A percentage, a state change, a timeline, or a clear impact statement. Vague closings cost more points than almost any other single pattern.
+
+## The Archetype Most Likely to Score Below Potential
+
+Signal identifies 15 communication archetypes based on dimension score patterns. The archetype with the largest gap between preparation quality and actual score is the **Narrator**: candidates who build strong context in Situation and Task but run out of time or energy before reaching Action and Result.
+
+These candidates often prepare extensively. They know their stories well. But preparation manifests as detailed scene-setting rather than crisp, owned action sequences. Answers feel rehearsed and complete to the candidate but leave interviewers without the signal they need.
+
+The characteristic coaching adjustment for Narrators is to start practicing answers from the Action section first, then add context backward. This reorients the instinct toward what matters most.
+    `,
+  },
+  {
+    slug: "how-long-does-job-search-take",
+    title: "How Long Does a Job Search Actually Take in 2026?",
+    description:
+      "The optimistic estimate most candidates start with is usually off by a factor of two. Here's what the data shows about realistic timelines, what drives the variance, and how to position yourself at the shorter end.",
+    tag: "Job Search",
+    tagColor: "#10B981",
+    date: "May 3, 2026",
+    readTime: "6 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most job seekers start a search with an optimistic timeline in mind. Four to six weeks, maybe eight. In practice, that estimate is usually off by a factor of two or more, and the mismatch creates real problems.
+
+## What the Data Shows
+
+The Bureau of Labor Statistics tracks average unemployment duration through its <a href="https://www.bls.gov/news.release/empsit.t12.htm" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">monthly employment situation report</a>. As of early 2026, the median duration of unemployment for professional and managerial job seekers who have been searching longer than five weeks is approximately 20 to 22 weeks. That's five to six months.
+
+The median means half of candidates take longer. For senior individual contributor and director-level roles, search timelines of eight to twelve months are not unusual.
+
+These numbers reflect completed searches. They include candidates who took the first offer they received and candidates who were selective. Where you land in the range depends on a few specific factors.
+
+## What Determines Where You Fall in the Range
+
+**Role specificity.** Generalist roles at the individual contributor level fill faster than specialized or senior ones. A broad search for project manager roles yields more opportunities than a narrow search for a senior operations role in a specific industry.
+
+**Market conditions in your function.** Hiring volumes vary significantly by function. <a href="https://economicgraph.linkedin.com" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">LinkedIn's Economic Graph data</a> consistently shows that hiring in AI-adjacent technical roles has remained strong while certain mid-level management and operations functions have contracted. Knowing which market you're in changes how you plan.
+
+**Interview performance.** This is the variable most candidates underestimate. A candidate converting 1 in 5 first-round interviews to second rounds will complete their search in roughly half the time of a candidate converting 1 in 10, assuming the same volume of applications. Signal's data shows that candidates who complete structured practice sessions before their first real interview convert at measurably higher rates in early rounds. The difference isn't in what they know. It's in how they deliver it under pressure.
+
+**Network leverage.** Research from <a href="https://hbr.org" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Harvard Business Review</a> and labor economists consistently finds that 40 to 70 percent of professional roles, depending on seniority, are filled through referrals or direct outreach before they're posted publicly. Candidates with active networks reach these opportunities. Candidates applying exclusively through job boards compete in the highest-volume, most contested pool.
+
+## The Timeline to Plan Around
+
+For most professional job seekers in the current market, planning for a four to six month search is realistic. Planning for eight months is conservative and reduces financial and psychological pressure without meaningfully extending the search if things go well.
+
+Planning for six weeks and arriving at month four is where things go wrong. Candidates under unexpected financial pressure start accepting interviews they shouldn't, rushing through preparation, and occasionally taking offers that aren't right fits.
+
+Use Signal's <a href="/career-guide/budget" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">budget calculator</a> to figure out your actual runway before you begin. If the number is under four months, adjust spending or identify bridge income before launching a focused search. A search goes better when the financial picture is managed.
+
+## How to Compress the Timeline
+
+Three things have the most consistent impact on shortening a job search.
+
+Invest in interview preparation before you start, not after your first rejection. Practice sessions are most valuable before the real stakes arrive. Candidates who sharpen their delivery in advance convert early interviews rather than using them as warm-up.
+
+Activate your network before you need it. Reach out to former colleagues and contacts at target companies before you have a specific role to discuss. Relationship-building under low pressure is more effective than outreach that arrives with obvious urgency.
+
+Be selective about applications. Sending 100 applications to loosely matched roles wastes time and produces discouraging results. Thirty targeted applications to well-matched roles almost always outperforms high-volume spray-and-pray approaches.
+    `,
+  },
+  {
+    slug: "behavioral-interview-questions-complete-list",
+    title: "The Complete List of Behavioral Interview Questions by Category",
+    description:
+      "Every significant behavioral interview question organized by competency. Prepare a strong answer for each category and you will have covered the vast majority of what you will actually face.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 29, 2026",
+    readTime: "9 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Behavioral interview questions follow patterns. Hiring managers across industries and company sizes pull from a relatively small set of competency categories. If you have prepared a strong answer for each category below, you will be ready for the vast majority of what you face in any interview.
+
+These categories and questions are drawn from Signal's database of real interview questions submitted by users preparing for roles across industries.
+
+## Leadership and Influence
+
+These questions assess your ability to drive outcomes, align people, and make decisions that others act on.
+
+- Tell me about a time you led a project without formal authority.
+- Describe a situation where you had to influence someone who disagreed with your approach.
+- Tell me about a time you made an unpopular decision and how you handled the pushback.
+- Give me an example of a time you motivated a team through a difficult period.
+- Tell me about a time you had to change someone's mind using data or evidence.
+
+**What to prepare:** One strong answer should demonstrate a specific decision you made, the resistance you navigated, and a concrete outcome. Avoid answers where the resolution is "everyone came around and things worked out." Name what you changed and show the result.
+
+## Conflict and Difficult Conversations
+
+These questions assess how you handle interpersonal friction and high-stakes communication.
+
+- Tell me about a time you had a significant conflict with a colleague and how you resolved it.
+- Describe a time you had to deliver difficult feedback to someone more senior than you.
+- Tell me about a time a project failed. What happened and what did you do next?
+- Describe a situation where you disagreed with your manager's decision.
+- Tell me about a time you had to say no to a stakeholder.
+
+**What to prepare:** The mistake candidates make here is sanitizing the story until the conflict disappears. Interviewers want to see how you operate when things are genuinely uncomfortable. Name the specific disagreement. Describe what you said. Show the outcome, including if the outcome was just maintaining the relationship while agreeing to disagree.
+
+## Problem-Solving Under Constraint
+
+These questions assess how you operate when resources are limited, information is incomplete, or the timeline is tight.
+
+- Tell me about a time you solved a problem with limited resources.
+- Describe a situation where you had to make a decision with incomplete information.
+- Tell me about a time you had to prioritize competing demands and how you decided what to focus on.
+- Give me an example of a time you identified a problem before it became critical.
+- Tell me about a situation where the original plan failed and you had to adapt quickly.
+
+**What to prepare:** Strong answers show the specific constraint you faced and the reasoning behind your decision, not just the action. Interviewers want to understand your judgment under pressure, not just your execution.
+
+## Collaboration and Teamwork
+
+These questions assess your ability to work across functions, build relationships, and contribute without requiring the spotlight.
+
+- Tell me about a time you worked on a cross-functional team with competing priorities.
+- Describe a time you had to rely on someone whose work style was very different from yours.
+- Tell me about a project where you had to coordinate across multiple stakeholders.
+- Give me an example of a time you stepped up to help a colleague who was struggling.
+- Tell me about a time you gave meaningful credit to someone else's contribution.
+
+**What to prepare:** The trap in this category is being so collaborative that you disappear from the story. Show what you specifically contributed while acknowledging others. "I coordinated" and "I made sure" are stronger than "we coordinated" and "we made sure."
+
+## Growth, Failure, and Learning
+
+These questions assess self-awareness and whether experience actually changes how you work.
+
+- Tell me about your biggest professional failure.
+- Describe a time you received critical feedback and how you responded to it.
+- Tell me about a time you had to learn something quickly under pressure.
+- Give me an example of a skill you developed specifically because a role required it.
+- Tell me about a time you changed your approach based on new information mid-project.
+
+**What to prepare:** These are the questions where candidates give the most hedged, partial answers. A strong failure answer names what went wrong, owns your specific role in it, and shows what changed as a result. Failure stories that end with "but actually it worked out fine" are not failure stories.
+
+## Communication and Presentation
+
+These questions assess how you convey information, manage up, and communicate in high-stakes settings.
+
+- Tell me about a time you had to explain a complex concept to a non-technical audience.
+- Describe a presentation that didn't go as planned and what you did in the moment.
+- Tell me about a time you had to communicate a significant change to your team.
+- Give me an example of a time your communication style had to adapt to your audience.
+- Tell me about a situation where clear communication prevented a larger problem.
+
+**What to prepare:** Practice the first question in particular. The ability to explain technical or complex work to non-specialists is a skill nearly every role at every level requires. Have a specific, polished example ready before any interview.
+
+## Results and Impact
+
+These questions assess whether you drive outcomes, measure what matters, and can articulate your contributions in concrete terms.
+
+- Tell me about your most significant professional accomplishment.
+- Describe a time you exceeded expectations on a project or in a role.
+- Tell me about a time you identified and captured a significant opportunity.
+- Give me an example of a project where your contribution had a measurable business impact.
+- Tell me about a time you improved a process and how you measured the improvement.
+
+**What to prepare:** Every answer in this category should include a number or a clear before-and-after state. If you don't have metrics, describe a state change in specific, observable terms. "The process took three people and four days before; one person and half a day after" is more credible than "we significantly improved efficiency."
+
+## How to Use This List
+
+Pick two questions from each category. Write a draft answer for each. Then practice delivering those answers out loud, record yourself, and use the feedback to identify which dimension is pulling your score down. Most candidates over-prepare the content and under-prepare the delivery. This list covers the content. Spoken practice under real conditions covers the delivery.
+    `,
+  },
+  {
+    slug: "will-ai-take-my-job",
+    title: "Will AI Take Your Job? The Honest Answer Is More Complicated Than You've Been Told",
+    description:
+      "The question everyone is asking right now. Here's what the actual research shows, which jobs are most exposed, and what makes people genuinely harder to replace.",
+    tag: "Career & AI",
+    tagColor: "#8B5CF6",
+    date: "May 4, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The question isn't paranoid. Real jobs are disappearing. The more useful question is which ones, on what timeline, and what you can do about it.
+
+The short version: AI is better at eliminating tasks than eliminating jobs. But tasks make up jobs, and when enough tasks get automated, the headcount math changes. That's already happening in certain roles and it's going to keep happening.
+
+## Where the Exposure Is Highest
+
+The roles most at risk share a few characteristics. The outputs are well-defined. The inputs are largely digital. The work is repetitive across cases. And the judgment required is narrow enough that a well-prompted model can replicate it.
+
+Data entry, basic research and summarization, first-draft writing, routine customer support, simple code review, and templated financial analysis all fall into this category. These aren't bad jobs. But the volume of humans needed to do them is contracting.
+
+The roles that are harder to automate share a different profile. The inputs are messy and human. The judgment calls depend on context that isn't in any document. The work requires building trust with real people in real time. And the consequences of being wrong are high enough that someone accountable needs to own the outcome.
+
+Senior strategy work, complex sales, clinical judgment, skilled trades, therapy, and leadership all fit here. Not because AI can't generate output in these areas. It can. But because the value isn't just in the output. It's in the person who produced it taking responsibility for it.
+
+## The Part Most Predictions Miss
+
+Most AI job displacement conversations focus on what models can generate. They underestimate what organizations are willing to trust a model to decide.
+
+There's a large category of work where AI can produce a draft, a plan, or an analysis that's 80% of the way there. But the 20% that remains requires someone who understands the politics of the room, the history of the relationship, or the regulatory risk that isn't in any training dataset. That person still has a job. Their job just looks different now.
+
+## What You Can Actually Do
+
+Two things are genuinely useful here.
+
+The first is becoming the person on your team who uses the tools well. The people who get cut in AI-driven restructuring are usually the ones who resisted the tools. The ones who get promoted or reassigned are the ones who figured out how to multiply their output using them.
+
+The second is strengthening the skills that are harder to replicate. Judgment under ambiguity. Communication that moves people. The ability to synthesize information from conflicting sources and make a call. These capabilities have always mattered. They matter more now because they're increasingly what's left after automation takes everything else.
+
+Being able to articulate your professional value clearly and specifically is one of those skills. If you can't explain what you do and why it matters in a way that lands with someone who doesn't already know your work, that's a liability that compounds as hiring gets more competitive.
+    `,
+  },
+  {
+    slug: "how-to-explain-layoff-in-interview",
+    title: "How to Explain a Layoff in an Interview Without It Becoming the Whole Story",
+    description:
+      "Layoffs are common enough now that most interviewers won't hold one against you. What they're evaluating is how you handle it. Here's the structure that works.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "May 2, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Mass layoffs have been consistent enough over the past few years that most interviewers have either been through one or know people who have. The stigma around being laid off has dropped significantly. What hasn't changed is how much interviewers learn from watching how you talk about it.
+
+## What the Interviewer Is Actually Evaluating
+
+They're not trying to figure out if you were laid off because you were bad at your job. They're watching for three things.
+
+**Composure.** Can you talk about something difficult without becoming defensive, bitter, or visibly uncomfortable? Losing a job is stressful. That's understood. But if the topic derails you, it raises questions about how you handle harder conversations.
+
+**Honesty.** Does the explanation make sense? Large-scale layoffs are easy to verify and the details usually check out. Vague or evasive answers about a small company's layoff are more likely to be questioned.
+
+**Forward momentum.** What have you done with the time since? Candidates who treated the gap purposefully, whether through skill development, freelance work, caregiving, or a genuine search with thought behind it, come across differently from candidates who clearly just waited.
+
+## The Structure That Works
+
+The answer to "what happened at your last role?" should take about 30 to 45 seconds.
+
+**The factual sentence.** One sentence describing what happened without editorializing. "The company did a company-wide reduction that affected my department" or "The role was eliminated as part of a restructuring." Keep it clean and don't over-explain.
+
+**What you did with the time.** One or two sentences. "I used the first few weeks to decompress and then started a structured search. I've also been doing some consulting work and completed a certification in X." If you've been doing Signal sessions to sharpen your interview skills, that counts too.
+
+**What you're looking for.** One sentence that pivots the conversation forward. "I'm specifically targeting roles where I can do X, which is why this opportunity stood out."
+
+## What to Avoid
+
+Do not apologize for being laid off. You don't owe anyone an apology for a business decision that was made above your level.
+
+Do not trash the company, the leadership, or the decision-making that led to it. Even if the layoff was handled badly and the criticism would be fair, this is not the place. It raises questions about how you'll talk about the new employer if things go wrong.
+
+Do not spend more than a minute on it. Once you've given the factual summary and pivoted to where you are now, move on. Candidates who over-explain tend to seem like they're working to convince the interviewer of something. That creates doubt where there wasn't any.
+
+## When There's a Longer Gap
+
+If significant time has passed since the layoff, the interviewer will want more context. The same principles apply, but you'll need to give more detail on how you spent the time. Be specific. Vague answers about "exploring options" sound like you're covering something up, even when you're not.
+
+A gap with specific activities, a project you took on, a skill you developed, a family situation you were managing, is a gap you can explain. A gap with no accounting is harder to defend.
+    `,
+  },
+  {
+    slug: "what-to-do-when-laid-off",
+    title: "What to Actually Do in the First 30 Days After a Layoff",
+    description:
+      "The first month after losing a job is where most people either set themselves up for a solid search or create problems they'll deal with for months. Here's what matters and in what order.",
+    tag: "Job Search",
+    tagColor: "#10B981",
+    date: "April 28, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The day you're laid off is a bad day. That's allowed. Give yourself a few days to process it before you try to be productive about it. Then get organized, because what you do in the first month sets the shape of the entire search.
+
+## The Logistics That Have Hard Deadlines
+
+Some things need to happen fast because there are deadlines attached to them.
+
+**File for unemployment immediately.** Many states have a waiting period before benefits begin, and the clock starts when you file. There's no benefit to waiting. File the day you're laid off or the next business day.
+
+**Understand your COBRA window.** You typically have 60 days from your coverage loss date to elect COBRA continuation coverage. Missing that window means losing the option. COBRA is expensive, but it's your existing coverage with no new enrollment paperwork. Compare it against marketplace plans before deciding.
+
+**Clarify your severance terms.** If you received a severance agreement, read it carefully before signing. Most include a release of claims against the employer. Some have non-disparagement clauses. A few restrict your ability to take jobs at competitors. If the agreement has a signing deadline, you usually have at least 21 days. Use them.
+
+## The Financial Picture
+
+Before you start applying anywhere, figure out your actual runway. How much do you have in liquid savings, and what does your monthly burn rate look like?
+
+Most people estimate this and get it wrong by 15 to 25 percent because they forget irregular expenses: annual subscriptions, car maintenance, medical bills, the seasonal stuff. Signal's <a href="/career-guide/budget" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">budget calculator</a> walks you through the full picture in about five minutes.
+
+Knowing your runway changes how you search. If you have four months of savings, you can be selective. If you have six weeks, you need a different strategy.
+
+## What to Update Before You Start Applying
+
+Your resume and your LinkedIn profile should reflect your most recent role before you send a single application. Applying with an outdated profile is a waste of the application and the attention it might have gotten.
+
+Update your experience bullets with specific outcomes. Refresh your LinkedIn headline. Set your Open to Work status to Recruiters Only if you're not comfortable with the public banner.
+
+Practice talking about your work out loud. The gap between how you describe your professional value in writing and how you describe it in a conversation is usually larger than people expect. Most people sound less sharp on their feet than they do on paper, and interviews are on your feet.
+
+## How Long It's Going to Take
+
+The median job search in the current market runs three to six months for most professional roles. That range is wider for senior positions and specialized functions. Planning for a four-month search and finishing in two is a good outcome. Planning for a six-week search and finishing in four months creates financial and psychological pressure that makes the search worse.
+
+Set a realistic timeline based on your runway, adjust your spending to extend that runway if needed, and then focus on doing the search well rather than doing it fast.
+
+## The Part People Skip
+
+Tell people. The majority of jobs, especially jobs that aren't posted publicly, get filled through someone knowing someone. Your former colleagues, your school network, and your industry connections are all potential paths to introductions.
+
+You don't have to send a mass announcement. A direct message to ten or fifteen people you have real relationships with, something simple like "I was recently laid off and I'm starting to explore what's next. I'd love to catch up if you have 20 minutes," is enough. Most people are willing to help and many will forward your name somewhere useful.
+    `,
+  },
+  {
+    slug: "skills-ai-cannot-replace",
+    title: "The Skills That Still Matter When AI Can Do Most of the Grunt Work",
+    description:
+      "AI is good at producing outputs. It's not good at knowing which outputs matter, getting others to act on them, or taking responsibility for the outcome. Here's where human value is concentrating.",
+    tag: "Career & AI",
+    tagColor: "#8B5CF6",
+    date: "April 20, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Here's what AI is good at: producing a first draft, summarizing a document, generating options, writing code that does what you described. The throughput is fast and the quality floor is higher than it used to be.
+
+Here's what it's not good at: knowing which problem to solve, reading the room, making the call when the data is incomplete, and taking responsibility for the answer.
+
+That distinction is where professional value is concentrating.
+
+## Judgment in Ambiguous Situations
+
+AI systems are good at answering well-defined questions. When the question itself is unclear, or when the right answer depends on context that isn't in any prompt, the model's output is a starting point, not a decision.
+
+The ability to operate confidently in ambiguous situations, to make a call with incomplete information and own it, is something organizations will pay for indefinitely. It's also something you can only develop by making calls and watching what happens. No amount of information consumption builds it. Experience does.
+
+## Communication That Changes What People Do
+
+Generating a report and getting people to act on it are different skills. AI can write the report. Getting someone skeptical to change their mind, getting a senior leader to prioritize something they've been ignoring, getting a cross-functional team to align on a direction they didn't agree on at the start. Those require something different.
+
+The ability to communicate in a way that actually moves people is durable precisely because it depends on the human reading the room in real time, adjusting based on what they're hearing, and building credibility that accumulates over interactions. These are capabilities that don't transfer between people, let alone to a model.
+
+This is also why being able to speak clearly about your own professional value matters more now than it did five years ago. Job markets are more competitive. Interviews are higher-stakes. Candidates who can articulate what they've done, why it mattered, and what they'd bring to the next role in concrete and specific terms have a measurable advantage over candidates who can't.
+
+## Building and Keeping Trust
+
+A lot of high-value work runs on relationships. Not networking in the abstract sense. Specific relationships with people who know you, know your judgment, and are willing to send something your way or go to bat for you.
+
+Trust is slow to build and hard to transfer. The person who has built real credibility with a client, a leadership team, or a set of institutional partners has something that can't be replicated from a prompt.
+
+## The Practical Takeaway
+
+The honest version of career resilience right now looks like two things happening in parallel.
+
+One is learning to use the tools well. People who figure out how to get 10x the output using AI systems are harder to cut than people who produce the same output they always did.
+
+The other is doubling down on the skills that are hardest to automate. Verbal communication. Judgment. Trust. The ability to operate when the situation is unclear and the stakes are real.
+
+Both of these require practice in conditions that approximate the real thing. Reading about communication doesn't build communication skill. Practicing it under pressure, getting feedback, and adjusting does.
+    `,
+  },
+  {
+    slug: "tell-me-about-yourself-interview-answer",
+    title: "How to Answer 'Tell Me About Yourself' Without Rambling",
+    description:
+      "This question opens almost every interview, and most people answer it worse than any other question. Here's a structure that works and a common mistake that kills the opener.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "May 3, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+"Tell me about yourself" is the most predictable question in every interview. It's also the one most people answer worst.
+
+The two failure modes show up constantly. The first is the resume recitation: candidates start in college, work chronologically through every job, and end somewhere around their current role five minutes later. The interviewer already has the resume. Reading it back does not tell them anything new.
+
+The second failure is the vague overview: "I'm a people person who loves solving problems and working collaboratively across teams." That sentence contains no information.
+
+## A Structure That Actually Works
+
+The strongest "tell me about yourself" answers follow a present, past, future shape.
+
+**Present:** What are you doing right now, and what's the headline of your role or focus? One or two sentences. If you're currently employed, what's the most relevant thing about your current work?
+
+**Past:** What's the through-line of your background that explains why you're good at what you do now? This isn't every job. It's the two or three experiences that built the skills most relevant to this conversation.
+
+**Future:** What are you looking for, and why does this role fit that? This is where you connect your answer to the specific opportunity. It should be brief and direct.
+
+The whole thing should take 60 to 90 seconds. If you're going past two minutes, you've included too much.
+
+## What to Cut
+
+Cut the origin story. Starting with "I've always been passionate about..." tells the interviewer about your childhood, not your professional value.
+
+Cut the apology openings. "So, where do I even begin..." is filler. Start with your present role.
+
+Cut the adjectives about yourself. Words like "driven," "results-oriented," and "team player" don't land without evidence. Replace every adjective with a concrete example or just leave it out.
+
+## What a Strong Opener Does
+
+A good answer to this question does three things. It tells the interviewer something they couldn't get from scanning the resume. It connects your background to this specific role. And it signals that you communicate clearly and don't waste their time.
+
+That last one matters more than people realize. Interviewers form impressions in the first two minutes. A tight, direct opener signals confidence and preparation. A meandering one raises questions that the rest of the interview has to work to undo.
+
+Practice this one out loud at least ten times before any interview. Record yourself. If you hear any filler words or long pauses in the first 30 seconds, that's the thing to fix first.
+    `,
+  },
+  {
+    slug: "greatest-weakness-interview-answer",
+    title: "How to Answer 'What's Your Greatest Weakness?' and Actually Sound Credible",
+    description:
+      "The fake weakness answer is one of the most recognized interview clichés in existence. Here's what a genuine, smart answer looks like and why it works better than what most candidates say.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "April 30, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+"I'm a perfectionist." "I work too hard." "I care too much about doing a good job."
+
+Interviewers have heard these answers thousands of times. Every recruiter knows what they are: a tactic to avoid the question while appearing to answer it. And every time a candidate uses one, something happens that they don't intend. The interviewer notes that this person won't give a real answer under mild pressure.
+
+That observation follows you through the rest of the interview.
+
+## Why the Question Exists
+
+The weakness question isn't a trap designed to catch you admitting something disqualifying. It's a test of self-awareness and honesty.
+
+Interviewers know you have weaknesses. Everyone does. What they're trying to find out is whether you know what yours are, whether you're working on them, and whether you're honest when the stakes are low. Candidates who can't answer this question honestly raise a flag: if they can't be direct about something this benign, how will they handle harder conversations on the job?
+
+## What a Real Answer Looks Like
+
+Pick a genuine weakness that meets two criteria: it's real and observable, and it's not central to the core requirements of the role you're applying for.
+
+Then structure your answer in three parts:
+
+**Name it clearly.** "I have a tendency to over-communicate on projects I'm worried about. I'll check in more than necessary, which can slow things down and signals a lack of trust in the team."
+
+**Show what you've done about it.** "I started using shared project trackers so the status is always visible without me asking for it. It's reduced the check-in frequency significantly."
+
+**Acknowledge where you still are.** "I still catch myself reaching for Slack sometimes when I should wait. I'm aware of it and I'm getting better, but it's not fully resolved."
+
+That's an honest answer. It names a real pattern, shows self-awareness, and demonstrates that you've taken initiative to address it.
+
+## The Category of Weakness That Works Best
+
+Weaknesses related to process, communication style, or working habits tend to land well. Weaknesses related to core technical skills for the job tend to raise concerns. And weaknesses that are transparently strategic, like perfectionism, just make the interviewer trust you less.
+
+The goal is to demonstrate that you know yourself. A candidate who says "I have trouble delegating when I'm under pressure" and then explains exactly how they've handled that tells an interviewer much more about their character than a candidate who claims their only flaw is caring too deeply about outcomes.
+    `,
+  },
+  {
+    slug: "why-do-you-want-to-work-here-answer",
+    title: "How to Answer 'Why Do You Want to Work Here?' Without Sounding Like You Read the Website",
+    description:
+      "The version of this answer that fails is a summary of the company About page. The version that works shows you actually thought about the role. Here's the difference.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "April 22, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+There's a version of this answer that shows up in almost every interview. It goes something like: "I've been really impressed by your company's mission and the culture here. I love that you're focused on innovation and I think this would be a great place to grow."
+
+That answer contains nothing specific to the company. It could be given to any employer in any industry and it would be equally true, which means it's equally meaningless.
+
+Interviewers hear it constantly. It tells them you did not spend serious time thinking about the role.
+
+## What the Question Is Actually Asking
+
+The question has two parts, even though it sounds like one. Why this company? And why this role?
+
+Most candidates answer only the first part, and even then, they answer it with information that took them thirty seconds to find. Mission statements and culture pages are public. Citing them doesn't signal genuine research.
+
+## How to Actually Research
+
+Before your interview, go further than the company website.
+
+Look at what the company has shipped or announced in the last six months. If it's a public company, read the most recent earnings call transcript. Search for the hiring manager on LinkedIn and read what they've posted or written. If there are employee reviews on Glassdoor, look for patterns across reviews, specifically what kinds of people seem to thrive there.
+
+Look at the job description itself with fresh eyes. The skills they list, the problems they describe, the type of scope they're offering. What specifically about this role is different from similar roles at other companies?
+
+## Building the Answer
+
+A strong answer has three components.
+
+**Something specific about the company that you found through real research.** A product decision that impressed you. A strategic shift that makes sense given the market. A piece of writing from someone on the leadership team that resonated.
+
+**Something specific about the role.** What about the scope or the problem set draws you in? Be concrete.
+
+**A connection between both of those things and your background.** Why are you the right person for this specific opportunity, not just someone looking for a job?
+
+The whole answer should be 60 to 90 seconds. The goal is to communicate that you made a genuine choice to pursue this company and this role. That specificity is rare enough in interviews that it stands out immediately.
+
+## One More Thing
+
+If you genuinely can't answer this question with specifics after researching the company, that's worth paying attention to. Sometimes the honest answer is that you're applying broadly and this company isn't particularly differentiated for you. That's okay as a job search strategy, but it's worth knowing before the interview so you can decide how to handle the question with integrity.
+    `,
+  },
+  {
+    slug: "how-to-follow-up-after-interview",
+    title: "How to Follow Up After an Interview Without Being Annoying",
+    description:
+      "Most advice on following up is either too passive or too aggressive. Here's the actual timeline, what to say, and when to accept that you have your answer.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 15, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The thank-you email after an interview is the most universally recommended piece of job search advice and also the most misunderstood. Most candidates treat it as a courtesy. The ones who use it well treat it as a second chance to land a point.
+
+## The Thank-You Email
+
+Send it the same day, within a few hours of the interview ending. If you interviewed with multiple people, send individual emails to each of them.
+
+The mistake most candidates make is writing a generic note: "Thank you for your time today. I really enjoyed learning about the role and the team."
+
+That version does nothing. It confirms that you know how to type but doesn't add any information.
+
+A better structure:
+
+Open by naming one specific thing from the conversation that you found compelling or that changed how you think about the role. If the interviewer mentioned a challenge the team is working through, you can reference it. If they described something about the culture that resonated, name it specifically.
+
+Then restate one thing from the conversation that made you more confident this is the right fit, from your perspective.
+
+Close with something brief and direct. "I'm genuinely excited about this and I'm looking forward to next steps."
+
+The whole email should be four to six sentences. If it's longer, cut it.
+
+## If They Gave You a Timeline
+
+If the interviewer told you they'd be back to you by a certain date and that date has passed, you can follow up once.
+
+Keep it short: "Hi [Name], I wanted to follow up on our conversation from [date]. I'm still very interested in the role and happy to answer any additional questions. Looking forward to hearing from you."
+
+Send that one. Then wait. If another week passes with no response, you can send one more. After two follow-ups with no reply, you have your answer. Companies that go dark on candidates after an interview are communicating something about how they operate.
+
+## What Not to Do
+
+Don't apologize for following up. "I'm sorry to bother you, but..." weakens your message before the interviewer has even read it. You're not bothering them. You're a candidate they're evaluating.
+
+Don't follow up through every possible channel. One email is right. Adding a LinkedIn message, a call to the front desk, and another email three days later is not persistence, it's pressure.
+
+Don't make your follow-up about your timeline. "I have another offer and need to know by Friday" may be true, but leading with it puts the company in an adversarial position. If you have a competing offer, you can mention it once in a calm, factual way. Make it a data point, not an ultimatum.
+
+## Reading the Silence
+
+Most candidates treat a delayed response as a bad sign. Sometimes it is. More often, it just means the hiring process is slower than the company expected, someone is out sick, or a decision-maker is traveling.
+
+What you can control is the quality of your follow-up and the professionalism of your presence throughout the process. What you can't control is their timeline. Following up twice is appropriate. Beyond that, put your energy toward the next opportunity.
+    `,
+  },
+  {
+    slug: "linkedin-profile-tips-job-search",
+    title: "Your LinkedIn Profile Is Probably Hurting Your Job Search",
+    description:
+      "Recruiters check LinkedIn before they read your resume. Most profiles fail at the exact things recruiters are looking for. Here's what to fix and why it matters.",
+    tag: "Resume & Job Search",
+    tagColor: "#F59E0B",
+    date: "April 12, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most job seekers treat LinkedIn as a place to park their resume. They upload their work history, connect with former colleagues, and leave it alone until they need it.
+
+Recruiters see this. The profiles that get messages are the ones that look active and specific. Here's what actually moves the needle.
+
+## The Headline
+
+The default headline LinkedIn creates is your current job title and company. That's the bare minimum and it's what the majority of profiles show.
+
+A stronger headline uses the same character limit to communicate more: your specialty, the kind of problems you solve, or the type of work you do best. You're not rewriting your title. You're giving someone who hasn't met you a reason to click.
+
+For someone in operations: "Operations Manager" is fine. "Operations Manager focused on process efficiency and supply chain cost reduction" tells a recruiter in five seconds whether to keep reading.
+
+## The About Section
+
+Only the first two or three lines of the About section show before someone clicks "see more." Most people write their About section as a paragraph about their career journey. By the time they've gotten to something interesting, the recruiter has moved on.
+
+Write the first sentence of your About section as if it's a headline. What's the thing you most want someone to know about your professional value? Start there.
+
+Then use the rest of the section to back it up with two or three specific examples: industries you've worked in, problems you've solved, or outcomes you've produced. Keep it to three or four short paragraphs. Long About sections rarely get read.
+
+## Experience Bullets
+
+The same rules that apply to resume bullets apply here, with one difference: LinkedIn is slightly more conversational, so you have more room to explain context.
+
+But the core failure is the same on both. Vague claims with no outcomes. "Managed a team of analysts" is not interesting. "Managed a team of six analysts, reduced report delivery time from three days to same-day, and reduced error rates by building a shared QA checklist" is a profile that gets sent to a hiring manager.
+
+Every job in your recent history should have at least two or three bullets with a concrete outcome. If you can't remember the outcome, look at your old performance reviews. If you genuinely don't have numbers, describe a before-and-after state.
+
+## Open to Work
+
+If you're actively searching and you're not worried about your current employer finding out, turn on the "Open to Work" green banner. Recruiters filter by this. The social awkwardness of the banner is less expensive than being invisible in searches.
+
+If you want to signal availability without the banner, set your Open to Work status to "Recruiters only" in the privacy settings. You won't get the banner, but you'll appear in recruiter searches.
+
+## Skills and Recommendations
+
+The Skills section matters for search ranking. Add the ten to fifteen skills most relevant to the roles you're targeting. Ask two or three people you've worked with for a specific recommendation, meaning a recommendation that names a project or outcome, not a general character reference.
+
+"Great to work with, highly recommend" helps no one. "Led the implementation of our new procurement system and reduced vendor onboarding time by 40%" helps everyone reading your profile.
+
+## Activity
+
+Recruiters look at how active a profile is. Liking posts occasionally is enough to signal that the account is real. If you're comfortable writing, a short post about something you've learned or worked on in your field reaches people you're not connected to and surfaces your profile in ways that passive activity doesn't.
+
+You don't need a content strategy. You need to exist on the platform in a way that signals engagement.
+    `,
+  },
   {
     slug: "star-method-interview-answers",
     title: "The STAR Method Actually Works, But Not the Way Most People Use It",
@@ -18,7 +1055,9 @@ export const articles: Article[] = [
     tag: "Interview Technique",
     tagColor: "#2563EB",
     date: "April 10, 2026",
-    readTime: "6 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 The STAR method (Situation, Task, Action, Result) is the most widely known interview framework in the world. Career coaches teach it. University career centers put it on every handout. And yet, most candidates who try to use it still walk out of interviews with weak answers.
 
@@ -66,7 +1105,9 @@ Signal scores this automatically. Narrative Clarity, Ownership and Agency, and R
     tag: "Communication",
     tagColor: "#8B5CF6",
     date: "April 7, 2026",
-    readTime: "8 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 After analyzing thousands of interview practice sessions, a clear pattern emerges: most candidates don't have one big weakness. They have one consistent *communication pattern* that shows up in slightly different forms across every answer they give.
 
@@ -145,7 +1186,9 @@ Signal identifies your archetype automatically after enough sessions, with targe
     tag: "Vocal Delivery",
     tagColor: "#0EA5E9",
     date: "April 3, 2026",
-    readTime: "5 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Most interview coaching focuses on what you say. Almost none of it addresses how your voice is actually landing.
 
@@ -193,6 +1236,163 @@ Signal measures all four of these signals on every spoken answer and trends them
     `,
   },
   {
+    slug: "job-search-budget-runway",
+    title: "How Long Can You Actually Afford to Job Search?",
+    description:
+      "Most job seekers underestimate their monthly burn rate by 20-30%. Here's how to calculate your real runway and make smarter decisions about which offers to take seriously.",
+    tag: "Career & Money",
+    tagColor: "#10B981",
+    date: "May 1, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The number most job seekers don't know is their actual monthly burn rate. They have a rough sense. They've checked the account balance. But they haven't sat down and added up the real number, which means they're making one of the most stressful career decisions with incomplete information.
+
+If you're currently in a search, or about to start one, your first priority is figuring out exactly how long you can sustain it.
+
+## Calculate Your Real Monthly Number
+
+Take your fixed monthly expenses and add them up: rent or mortgage, utilities, groceries, health insurance (often more expensive once you leave employer coverage), loan minimums, and transportation.
+
+Then add your variable spending. This is where people get fuzzy. The honest approach is to go back three months in your bank statements and average what you actually spent, not what you planned to spend.
+
+Signal's free <a href="/career-guide/budget" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">budget calculator</a> lets you map this out in about five minutes. Plug in your real numbers and you'll get your monthly burn rate split by needs, wants, and savings, plus a rough sense of how far your current savings will take you.
+
+## The Things People Forget
+
+**Annual subscriptions.** Adobe, domain renewals, car registration, streaming services billed annually. These don't appear every month but they will appear.
+
+**Healthcare without employer coverage.** COBRA is expensive. Marketplace plans have deductibles. If you're used to low-cost employer coverage, this one surprises people.
+
+**The irregular category.** Car repairs. A flight for an in-person interview. A suit that needs replacing. Add a flat 10% buffer on top of your calculated number and you'll be close to reality.
+
+## How to Stretch Runway Without Making Yourself Miserable
+
+The easiest cuts are in the wants category. Subscriptions you forgot you had. Dining out frequency. Streaming services you haven't used in a month. These feel small individually but they add up.
+
+The harder question is about savings contributions. If you have a 401k set to auto-contribute, pausing it temporarily increases your liquid runway. That's a real tradeoff, and only you can weigh it. But a four-month search that ends badly because of financial pressure is worse than a six-month search that ends with the right offer.
+
+## The Psychological Part
+
+Knowing your runway number changes how you search. It converts open-ended financial dread into a concrete timeline you can actually plan around.
+
+When people don't know their runway, they feel urgency constantly. That urgency pushes them to apply too broadly, take early interviews seriously that they shouldn't, and sometimes accept offers that aren't right just because something feels like it needs to happen.
+
+When you know you have five months, you can make better decisions. You can pass on the company that feels off. You can take an extra week to prepare for the role you actually want.
+
+Figure out the number first. Then decide how to use it.
+    `,
+  },
+  {
+    slug: "ai-resume-problem-2026",
+    title: "Your AI-Polished Resume Sounds Like Everyone Else's",
+    description:
+      "Recruiters are reading hundreds of applications that all use the same language, the same bullet structure, and the same keywords. Here's what actually makes a resume stand out now.",
+    tag: "Resume & Job Search",
+    tagColor: "#F59E0B",
+    date: "April 25, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Recruiters can tell. They won't always say it out loud, but when they're reading their fifteenth resume with "spearheaded cross-functional initiatives" and "drove stakeholder alignment," the response is the same: the application goes in the pile.
+
+AI resume tools have gotten very good at one thing: making everyone sound the same. That's not a product flaw. It's a math problem. When everyone uses the same tools trained on the same data, the output converges toward an average.
+
+## What Happens When Everyone Optimizes
+
+ATS keyword optimization is real and it matters for getting through automated filters. But the candidates who get calls are the ones who sound like a person wrote their resume.
+
+The resume that stands out right now has a few things in common.
+
+## Specific Numbers Over Vague Impact Claims
+
+"Improved team efficiency" is not a result. "Reduced reporting time from 6 hours to 45 minutes by automating the weekly export" is a result.
+
+If you don't have a clean number, describe a state change. Before the process required three people and two days. After, one person, half a day. Concrete before-and-after reads as real. Vague impact language reads as filler.
+
+## Ownership Language Throughout
+
+Passive voice is the tell. "Was responsible for leading" is weaker than "Led." "Helped to facilitate" is weaker than "Ran."
+
+Go through every bullet and cut phrases that dilute ownership. If you made the decision, say you made it. If you built something, say you built it. If you were one of five contributors, find the specific piece you owned and lead with that.
+
+## The Specific Details That Feel Too Small to Mention
+
+Candidates who get interviews are often the ones who included something they thought was too niche or too small.
+
+A two-person project where you owned the entire customer-facing side. A risk you flagged that saved the company a significant amount. A process you redesigned that nobody asked you to redesign. These details are the opposite of generic. They're the ones that make a recruiter actually stop scrolling.
+
+## What a Strong Resume Can't Fix
+
+Getting into the room is one problem. What happens in the room is a different one. Candidates with polished resumes regularly bomb interviews because the verbal story doesn't match the written one, or because they've never practiced articulating their work out loud under any kind of pressure.
+
+The goal is for the resume and the interview answer to tell the same story, with the same level of specificity and ownership. That second part takes practice.
+    `,
+  },
+  {
+    slug: "salary-negotiation-how-to",
+    title: "How to Negotiate Salary Without Feeling Like a Jerk",
+    description:
+      "Most people leave money on the table not because they don't know they should negotiate, but because they freeze when the conversation gets real. Here's what to actually say.",
+    tag: "Career & Money",
+    tagColor: "#10B981",
+    date: "April 18, 2026",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most people know they should negotiate. They've read the statistics. They understand that candidates who push back earn meaningfully more over the course of a career. And then the offer comes in and they say thank you and accept it.
+
+The knowledge problem and the execution problem are different. You can know you should negotiate and still freeze when a real person on the phone is waiting for your response.
+
+Here's what to actually say.
+
+## When They Ask About Your Salary Expectations Early
+
+This question shows up before an offer and it's designed to anchor the negotiation in the company's favor. If you answer first, you've given up information before you know what they're willing to pay.
+
+A response that works: "I'd rather wait until we both feel like there's a strong mutual fit before getting into compensation. Do you have a budgeted range for the role you can share?"
+
+Most companies have a range. They may not share it, but asking is not aggressive. It's professional. If they press, give a range with your actual target at the lower end.
+
+## When the Offer Comes In
+
+You do not have to respond on the spot. You should not respond on the spot.
+
+Say this: "I'm genuinely excited about this role and the team. Can I have a few days to review the full package?"
+
+That request is standard. A company that pulls an offer because you asked for two days to think is one you should not work for.
+
+Use that time to get a real number. Check Glassdoor, Levels.fyi if you're in tech, and LinkedIn Salary. Talk to people in similar roles at similar companies. Know the specific number you're asking for before you pick up the phone.
+
+## The Negotiation Conversation Itself
+
+When you call back, keep it simple:
+
+"I've had a chance to review everything and I'm still really excited. Based on my research and the scope of the role, I was hoping we could get to [specific number]. Is there flexibility there?"
+
+Then stop. Let them respond. The silence is uncomfortable. That's okay. Fill it and you'll undercut yourself.
+
+If they say the salary is fixed, ask about other parts of the package. Signing bonus. Extra PTO. A remote work arrangement. An earlier first performance review. Compensation has more levers than the base salary number, and companies often have more flexibility in those areas.
+
+## The Lines That Hurt You
+
+Bringing up personal expenses: "I need to be able to afford my rent." Your personal costs are not a reason they should pay you more. Negotiate on market value.
+
+Preemptively conceding: "I totally understand if this isn't possible." Let them tell you it's not possible. Sometimes it is.
+
+Asking for the maximum: "What's the most you could offer?" This frames the conversation as adversarial. A softer version: "Is there any room to move toward [number]?"
+
+## One Thing Worth Saying Plainly
+
+Negotiating an offer is not a hostile act. The person who made you the offer knows candidates negotiate. They expect it. A well-framed ask does not damage the relationship. It signals that you know your value and that you communicate directly, which are qualities they were presumably trying to hire for.
+
+The ask rarely goes wrong. Staying quiet always costs you something.
+    `,
+  },
+  {
     slug: "mock-interview-preparation-guide",
     title: "How to Actually Prepare for a Mock Interview So It Transfers to the Real Thing",
     description:
@@ -200,7 +1400,9 @@ Signal measures all four of these signals on every spoken answer and trends them
     tag: "Interview Prep",
     tagColor: "#10B981",
     date: "March 28, 2026",
-    readTime: "7 min read",
+    readTime: "",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
     content: `
 Mock interviews are one of the most widely recommended prep strategies. They're also, when done wrong, one of the least effective.
 
