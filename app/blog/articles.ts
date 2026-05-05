@@ -13,6 +13,377 @@ export interface Article {
 
 export const articles: Article[] = [
   {
+    slug: "nonverbal-cues-interview",
+    title: "The Nonverbal Signals That Are Costing You Interview Scores",
+    description:
+      "Interviewers form impressions from eye contact, posture, and gesture before your answer is half finished. Here's what Signal's webcam data shows about which signals matter most and what to do about them.",
+    tag: "Research & Data",
+    tagColor: "#6366F1",
+    date: "May 5, 2026",
+    readTime: "6 min read",
+    author: "Signal Research Team",
+    authorTitle: "Platform Data and Coaching Analytics",
+    content: `
+Most interview coaching focuses entirely on what you say. Interviewers are also constantly processing how you say it — and a significant portion of that processing happens through signals you're probably not managing at all.
+
+Signal measures nonverbal delivery on every webcam session across six distinct dimensions. The patterns in that data are consistent enough to be useful.
+
+## Eye Contact: The Highest-Weight Signal
+
+Eye contact rate, measured as the percentage of frames where your gaze is directed at the camera, is the single strongest nonverbal predictor of perceived confidence in Signal's scoring data.
+
+Candidates with eye contact rates above 65% consistently score higher on the Presence and Confidence dimension than candidates with identical verbal content but lower eye contact. The threshold isn't arbitrary: research in social psychology has consistently linked sustained eye contact with perceived competence and trustworthiness. A <a href="https://hbr.org" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Harvard Business Review</a> analysis of executive presence factors ranked eye contact as the most consistently cited nonverbal component across hiring managers in structured interviews.
+
+The practical problem in video interviews is that looking at the interviewer's face on screen and looking at the camera are different things. Eye contact in a video call requires looking at the lens, not the screen. Most candidates look at the interviewer's face, which means they appear to be looking slightly downward from the interviewer's perspective.
+
+**The fix:** Put a small sticky note or arrow directly next to your camera lens. When you're making a point or delivering a result, look at the lens. You can look at the screen when you're listening.
+
+## Blink Rate: The Anxiety Tell Most People Don't Know About
+
+Normal blink rate is 12 to 22 blinks per minute. Signal's data shows that candidates under interview stress frequently blink at rates above 28 to 35 per minute — a measurable signal of elevated anxiety that interviewers register unconsciously without being able to name it.
+
+Elevated blink rate tends to cluster at specific moments: right before answering, during the opening of an answer (the part where people are most nervous), and during silences.
+
+You can't directly control blink rate, but you can control the conditions that drive it. Slowing your breathing before the interview and in the pauses between answers reduces physiological arousal and brings blink rate down as a byproduct. The technique is simple: four counts in, hold for four, six counts out. Do it for two minutes before you go on camera.
+
+## Gesture Expressiveness: The Signal Most Candidates Suppress
+
+Signal scores gesture expressiveness on a 0 to 100 scale based on hand visibility rate and open gesture frequency. The consistent finding: candidates score higher on perceived engagement and enthusiasm when their hands are visible and moving.
+
+The instinct in high-stakes situations is to suppress gesture — to keep hands still, folded, or out of frame. This instinct works against you. Stillness reads as either rigidity or low energy, and both affect how interviewers perceive the enthusiasm behind your words.
+
+Open palm gestures in particular, where the hands are visible with palms facing upward or outward, correlate with higher trust ratings across interview contexts. Closed gestures, crossed arms, or hands hidden below frame correlate with lower ratings.
+
+**The fix:** In video interviews, position your camera so your hands are naturally in frame when you gesture normally. Don't force gesture — just stop suppressing it.
+
+## Fidgeting and Face Touching: The Credibility Drains
+
+Signal's fidget score (0 to 100, where lower is better) and face touch count are two of the clearest anxiety indicators in the nonverbal dataset.
+
+Face touching — touching your nose, mouth, chin, or cheeks during an answer — occurs unconsciously and correlates with self-soothing behavior under stress. Candidates with more than four face touch events per session show measurably lower Presence and Confidence scores, independent of their verbal content.
+
+Fidget score captures restless movement: shifting weight, tapping, moving the camera or chair. High fidget scores (above 45) signal nervous energy in the same way elevated blink rate does.
+
+Both of these respond to the same intervention: physical grounding before the interview. Sitting with both feet flat on the floor, hands resting open on the desk, and deliberately slowing your breathing for two minutes before the call reduces the fidget and touch behaviors that accumulate when anxiety isn't managed.
+
+## What to Actually Measure
+
+If you're preparing with Signal's mock interview or public speaking sessions, review your webcam metrics after each session. The numbers that matter most, in order: eye contact rate, fidget score, and face touch count. These three move the Presence and Confidence dimension most directly and are the most responsive to targeted practice.
+    `,
+  },
+  {
+    slug: "video-interview-tips",
+    title: "How to Interview Well on Video (Most Candidates Get the Basics Wrong)",
+    description:
+      "Remote interviews have their own failure modes. Camera position, lighting, audio quality, and eye contact mechanics all affect how you're perceived before you've finished your first answer.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "May 4, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Remote interviews are now a standard part of almost every hiring process. They're also an environment where candidates routinely make avoidable mistakes that have nothing to do with their answers.
+
+The setup problems are fixable in an afternoon. The delivery problems take more practice but follow predictable patterns.
+
+## Camera Position
+
+The camera should be at eye level or just slightly above. Most laptop users put their computer on a desk and end up with the camera pointed up at their chin and ceiling. This angle is unflattering and makes sustained eye contact feel unnatural.
+
+Fix it by stacking books or a laptop stand under your computer until the camera lens is level with your eyes. It takes five minutes and it changes how you look on screen more than any other single adjustment.
+
+Keep the camera close enough that your face and upper shoulders fill most of the frame. Being too far back makes you look small and harder to read. Being too close is claustrophobic. A distance of two to three feet from the lens tends to work for most setups.
+
+## Lighting
+
+The most common lighting mistake is sitting with a window behind you. This puts your face in shadow and blows out the background, making you look like a silhouette.
+
+Light should come from in front of you, ideally from a window facing your face or a desk lamp positioned at eye level slightly off to one side. If you're on a call in a dark room with only overhead lighting, your face will have harsh downward shadows that read as low energy.
+
+A simple ring light positioned just behind your monitor and aimed at your face is the fastest upgrade with the most visible impact. They're inexpensive and they solve the lighting problem entirely.
+
+## Audio Quality
+
+Audio quality affects how interviewers perceive your credibility, even when they can't articulate why. Studies on audio quality and perceived competence consistently show that poor audio (compressed, echoing, or cutting out) reduces listener confidence in the speaker's content.
+
+Your laptop's built-in microphone picks up keyboard noise, room echo, and background sound. A basic USB microphone or wired earbuds with an inline microphone is a meaningful upgrade. Position the microphone close to your mouth and make sure your room has soft surfaces (a rug, curtains, or even a blanket behind you) that absorb echo.
+
+Test your audio before every interview. Record a 30-second clip and listen back. If you can hear echo, keyboard noise, or HVAC hum, address it before the call.
+
+## Eye Contact in Video
+
+In a video call, looking at the interviewer's face on screen and looking at the camera are two different things. Most candidates look at the screen, which means from the interviewer's perspective, your gaze is consistently directed slightly downward.
+
+Eye contact in a video interview means looking at the lens. The practical trick: put a small sticky note with a dot or arrow directly next to your camera. When you want to make direct eye contact, look at the dot. You can look at the screen when you're listening or thinking.
+
+You don't need to maintain constant camera eye contact. Looking away while thinking is natural. The moments that matter most are when you're delivering a key point or result — that's when looking at the lens registers as conviction.
+
+## The Specific Delivery Problems Video Amplifies
+
+Two delivery issues are measurably worse on video than in person.
+
+**Filler words.** On video, without the social cues that help people manage turn-taking in real conversations, filler words increase. The lag in perceiving silence triggers more "um" and "uh" as candidates try to hold the floor. Practice pausing deliberately rather than filling silence.
+
+**Energy flatness.** Video compresses vocal dynamics. Enthusiasm that reads as appropriate in person can come across as flat on screen. Slightly more energy than feels natural is usually closer to what lands well over video. Record yourself and watch it back — most people are surprised by how subdued they look on camera compared to how they felt.
+
+## The Five-Minute Setup Check
+
+Before every video interview, run through this list: camera at eye level, light in front of your face, microphone tested, background clean and neutral, phone on silent, notifications off, water nearby. Five minutes of setup prevents the most common and most avoidable video interview problems.
+    `,
+  },
+  {
+    slug: "questions-to-ask-interviewer",
+    title: "The Best Questions to Ask at the End of an Interview",
+    description:
+      "The questions you ask say as much about your judgment as the answers you give. Here's a complete list organized by what you're trying to find out, including the ones that consistently land well.",
+    tag: "Interview Technique",
+    tagColor: "#2563EB",
+    date: "May 2, 2026",
+    readTime: "6 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most candidates treat the "do you have any questions for me?" moment as a formality. Strong candidates treat it as one more chance to demonstrate the quality of their thinking.
+
+The questions you ask signal what you care about, how you think about work, and whether you've done serious research. Asking nothing — or asking questions that could be answered by reading the company website — is a missed opportunity that interviewers notice.
+
+Here's a list organized by what you're actually trying to find out.
+
+## Questions About the Role Itself
+
+These questions signal that you've thought seriously about the day-to-day reality of the job, not just the title.
+
+- What does success in this role look like at 90 days? At one year?
+- What's the biggest challenge the person in this role will face in the first six months?
+- How has this role evolved over the past two years?
+- What's the most important thing the previous person in this role did well — and where did they struggle?
+- What would you want someone coming into this role to know that isn't in the job description?
+
+The last question in particular tends to get candid, useful answers. Interviewers often share things here that reveal a lot about the role's real demands.
+
+## Questions About the Team
+
+These questions signal that you care about the environment you'd be working in and the people you'd be working with.
+
+- How would you describe the team's working style?
+- What's the dynamic like between this team and [adjacent function]?
+- How does the team handle disagreement when it comes to priorities or approach?
+- What do people on this team tend to have in common?
+
+The disagreement question is particularly useful. How a team handles conflict tells you a lot about whether feedback is direct, whether decisions get revisited, and whether the culture is psychologically safe.
+
+## Questions About the Manager
+
+If you're interviewing with your potential direct manager, these questions reveal a great deal about what working for them will actually be like.
+
+- How do you typically give feedback to people on your team?
+- What's your preferred way of working with someone new — more hands-on early, or do you prefer to give people space to figure things out?
+- What do people who have worked for you tend to say about the experience?
+- What's something you've changed about how you manage based on feedback you've received?
+
+The last question is a gentle probe for self-awareness. A manager who can answer it specifically is almost always worth working for.
+
+## Questions About the Company
+
+These questions signal strategic thinking and genuine interest in the organization's direction.
+
+- What's the most significant strategic challenge the company is working through right now?
+- How does this team's work connect to the company's top priorities this year?
+- What's been the biggest shift in how the company operates in the past two years?
+
+Avoid questions about things that are publicly available. Asking what the company does, or what products they sell, signals you didn't prepare. If you want to demonstrate that you read their recent earnings call or a specific press release, build it into the question: "I saw you launched X last quarter — how has that affected how this team works?"
+
+## Questions to Avoid
+
+**"What does the day-to-day look like?"** Too vague and signals you didn't research the role.
+
+**"What are the growth opportunities here?"** This question is about you, not the work. It can come across as jumping ahead when you haven't started yet. Save it for later rounds or after an offer.
+
+**"What's the salary range?"** This belongs in a separate compensation conversation, not the closing of a first interview.
+
+**"How am I doing?"** Asking for feedback mid-process puts the interviewer in an awkward position. You'll know from the next steps.
+
+## How Many to Ask
+
+Prepare five to seven questions and expect to use three or four. Some of your questions will be answered during the interview before you get to ask them, which is actually a good sign — it means the conversation went deep enough to cover the territory naturally.
+
+If you genuinely have no questions left by the end because everything was addressed, say so directly: "You've actually answered everything I had prepared, which tells me the conversation went really well." That's a stronger close than scrambling for something to ask.
+    `,
+  },
+  {
+    slug: "phone-screen-interview-tips",
+    title: "How to Pass a Phone Screen: The First Interview Most Candidates Lose",
+    description:
+      "Phone screens eliminate more candidates than any other interview stage. They're shorter, faster, and less forgiving than full interviews. Here's what they're actually evaluating and how to get through.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 27, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The phone screen is where most candidates are eliminated, and it's the stage most candidates prepare for least. They save their preparation energy for the "real" interview. By then, they're already out.
+
+A phone screen typically runs 20 to 30 minutes with a recruiter. The recruiter is not trying to find reasons to hire you. They are trying to find reasons to move you forward — and they're equally willing to find reasons not to.
+
+## What Phone Screens Are Actually Evaluating
+
+Recruiters in phone screens are checking for a small number of things. Understanding what they are makes it easy to prepare specifically for them.
+
+**Basic fit.** Does your background match what the job requires? Can you explain your experience clearly in the first two minutes? This is where candidates who can't describe their own work concisely get cut.
+
+**Compensation alignment.** Many recruiters ask about salary expectations early to filter out mismatches before the process goes further. Know your number before the call and be prepared to give a range.
+
+**Communication quality.** A phone screen is all audio. There's no face, no body language, no visual warmth. Clarity, pace, and how you handle silence are the only signals the recruiter has. Candidates who sound flat, rushed, or disorganized on the phone rarely make it to the next round regardless of their qualifications.
+
+**Genuine interest.** Recruiters can tell when a candidate is going through the motions. A specific, prepared answer to "why are you interested in this role?" signals that you chose to apply rather than spray-and-prayed.
+
+## The Questions You Will Almost Certainly Be Asked
+
+Every phone screen covers the same territory with minor variation.
+
+- Tell me about yourself and your background.
+- Why are you interested in this role / company?
+- What are you looking for in your next position?
+- What is your current compensation / what are your expectations?
+- What is your availability and timeline?
+- Do you have any questions for me?
+
+Prepare a 90-second answer to the first question. Prepare a specific, one-paragraph answer to the second. Know your compensation range and deliver it without hesitation. Hesitating on the compensation question reads as uncertainty about your own value.
+
+## How to Handle Audio-Only Communication
+
+Without visual cues, your voice carries everything. Three things make the biggest difference on phone calls.
+
+**Pace.** Slow down by about 15% from your normal speaking speed. The absence of visual feedback tends to make people talk faster without realizing it. Slower delivery sounds more confident and gives the recruiter time to take notes.
+
+**Pausing.** Pauses before answering are fine on a phone call. They signal that you're thinking, not that you're lost. A one to two second pause before answering a question reads as deliberate. Jumping in immediately with a filler-heavy answer reads as anxious.
+
+**Energy.** Smile while you talk. It sounds like a cliché but it works. Smiling changes the shape of your mouth and the tone of your voice in ways that are perceptible to listeners even without video. Recruiters who do phone screens all day can tell within the first minute whether a candidate is engaged.
+
+## The Setup That Matters
+
+Take the call somewhere quiet with good cell signal or use a landline. Background noise, dropped audio, and interruptions are disproportionately disruptive on a phone call because there's nothing else for the recruiter to focus on.
+
+Have the job description open in front of you. Have your resume open. Have two or three specific things you know about the company written down. Recruiters can't see you on a phone screen, so looking at notes is allowed and smart.
+
+## Closing the Call
+
+At the end of the screen, ask one specific question. Not "what are the next steps" (you can ask this, but don't make it your only question). Ask something about the role or the team that shows you were paying attention during the call.
+
+Then ask about next steps. Ask when you can expect to hear back and in what format. This is expected, it's professional, and it gives you a timeline to follow up against.
+    `,
+  },
+  {
+    slug: "how-to-handle-interview-nerves",
+    title: "How to Handle Interview Nerves Without Pretending You're Not Nervous",
+    description:
+      "Telling yourself to calm down doesn't work. Here's what actually reduces anxiety before and during an interview, based on how your nervous system actually responds to stress.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 24, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+Most advice about interview nerves tells you to calm down, breathe deeply, and remember that the interviewer is rooting for you. This advice is not wrong, but it doesn't address what's actually happening in your nervous system when the stakes feel high.
+
+Understanding the mechanism makes the interventions more useful.
+
+## What's Actually Happening
+
+The physiological response to high-stakes situations, elevated heart rate, shallow breathing, heightened alertness, is the same response that evolved to handle physical threats. Your body doesn't distinguish between "lion in the grass" and "behavioral interview in 20 minutes." The threat-detection system fires the same way.
+
+The cognitive consequences are predictable: working memory becomes less accessible (which is why your mind goes blank), attention narrows (which is why you can't remember details you know perfectly well in low-stakes settings), and self-monitoring increases (which is why you start evaluating yourself mid-answer instead of just answering).
+
+Knowing this helps because the interventions that work are the ones that address the physiology, not the ones that try to talk you out of the feeling.
+
+## What Actually Works Before the Interview
+
+**Physiological sigh.** A double inhale through the nose followed by a long, slow exhale is the fastest way to activate the parasympathetic nervous system and reduce physiological arousal. Research from <a href="https://www.stanford.edu" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Stanford's lab on stress and emotion</a> found this specific breath pattern more effective at rapid stress reduction than extended slow breathing. Do it three to five times in the five minutes before an interview starts.
+
+**Physical movement.** Light exercise in the hour before an interview — a 15-minute walk, not a workout — metabolizes stress hormones and reduces baseline arousal going into the interview. Candidates who sit still and try to prepare in the 30 minutes immediately before an interview often feel more anxious, not less.
+
+**Reappraisal.** The physical sensations of anxiety and excitement are nearly identical. Research by psychologist Alison Wood Brooks at Harvard Business School found that telling yourself "I am excited" before a high-stakes performance consistently outperformed attempts to calm down. The reappraisal shifts the interpretation of arousal rather than trying to eliminate it.
+
+## What Actually Works During the Interview
+
+**Slow your pace deliberately.** Anxiety speeds up speech. Faster speech increases filler density and reduces the clarity of your answers. Consciously slowing down by 15 to 20 percent makes answers land better and reduces the feedback loop where you hear yourself rushing and get more anxious as a result.
+
+**Use pauses as a tool.** Pausing for one or two seconds before answering a question is professional, not weak. It signals that you're thinking. Rushing to answer because silence feels unbearable is where most nervous candidates create their own problems.
+
+**Prepare until the content is automatic.** The deeper cause of interview anxiety is uncertainty about what you're going to say. Candidates who have practiced answers out loud enough times that the content flows without effort have cognitive bandwidth left over to manage delivery. Candidates who are still constructing their answers in real time are using all available resources just to produce the words.
+
+This is why Signal's approach of practicing answers out loud repeatedly, not just reviewing them mentally, reduces interview anxiety as a side effect. When the content is automatic, the performance layer becomes manageable.
+
+## The Part Nobody Mentions
+
+Some level of physiological activation before an important interview is useful. Completely calm candidates often underperform because they're not alert enough. The goal isn't to eliminate nerves. It's to keep arousal in the range where it sharpens performance rather than disrupting it.
+
+If you've prepared thoroughly and you're still nervous on the day of the interview, that's information about how much the opportunity matters to you. That's not a problem to solve. It's evidence that you care, and interviewers can generally tell the difference between anxious candidates who are unprepared and anxious candidates who are well-prepared and care about getting it right.
+    `,
+  },
+  {
+    slug: "how-to-research-company-before-interview",
+    title: "How to Research a Company Before an Interview (Beyond the About Page)",
+    description:
+      "Most candidates read the company website and call it research. Here's where to actually look, what to do with what you find, and how to use it in the interview without sounding like you memorized a fact sheet.",
+    tag: "Interview Prep",
+    tagColor: "#10B981",
+    date: "April 21, 2026",
+    readTime: "5 min read",
+    author: "Signal Coaching Team",
+    authorTitle: "Career Development Specialists",
+    content: `
+The About page and the mission statement are the floor of research, not the ceiling. Every candidate who gets an interview reads the website. The ones who stand out know things that aren't on the website.
+
+Here's where to actually look and what to do with what you find.
+
+## Start With Recent News and Activity
+
+Search the company name in Google News filtered to the past six months. Look for product launches, leadership changes, funding announcements, acquisitions, layoffs, regulatory issues, or strategic pivots. Any significant event in the past six months is fair game to reference in the interview.
+
+If the company is public, read the most recent earnings call transcript. These are available on the investor relations section of the company website or on <a href="https://seekingalpha.com" style="color:#34D399;text-decoration:underline;text-underline-offset:3px">Seeking Alpha</a> for free. Executives speak plainly on earnings calls about what's working and what's not. The "risks and challenges" section in particular tells you more about the real state of the business than any marketing copy.
+
+If the company is private, look for recent press coverage, their blog, and any executive interviews or podcast appearances in the past year.
+
+## Research the People You're Meeting
+
+Look up your interviewers on LinkedIn before the call. Note where they've worked before, how long they've been at this company, and what they've posted or written. A shared former employer, a shared interest in a specific domain, or a piece of writing they published that you can reference creates connection and signals you did the work.
+
+If the hiring manager has given any talks, interviews, or written anything public, read it. Understanding how they think about the work gives you a significant advantage in framing your own experience in terms that resonate with them specifically.
+
+## Understand the Competitive Landscape
+
+Know who the company's main competitors are and have a rough sense of how they're positioned. This matters because interview questions about the industry, the company's strategy, or why you want to work there specifically all become easier when you have context about where the company sits relative to alternatives.
+
+If you're interviewing at a startup, understand what problem they're solving and for whom. If you're interviewing at a larger company, understand which division or business unit is most relevant to your role and what that unit's priorities are.
+
+## Look at the Product as a User
+
+If the company has a product you can actually use, use it before the interview. Sign up for a trial. Read recent reviews on G2, Capterra, or the App Store. Understanding the product from a user's perspective makes your answers to questions about the company's challenges more specific and credible.
+
+Even for products you can't directly use, spending 30 minutes on demo videos, help documentation, or customer case studies gives you a level of fluency that almost no other candidate will have.
+
+## Talk to Someone Who Works or Has Worked There
+
+A 20-minute conversation with a current or former employee tells you more than three hours of online research. Use LinkedIn to find people with connections to the company. A message like "I have an interview at [company] next week for [role] and would love 15 minutes to hear your perspective on the team" gets a response more often than people expect.
+
+What to ask: what do people who thrive there have in common? What's the thing that surprises people about working there? What's the biggest challenge the team is working on?
+
+## How to Use Research in the Interview
+
+The goal of research isn't to recite facts. It's to ask better questions and give more specific answers.
+
+When they ask why you want to work there, reference something specific you found. "I read the CEO's interview from March about the shift toward enterprise customers — that direction is actually what draws me to this role" is more credible than "I'm impressed by your growth trajectory."
+
+When they ask about your interest in the problem space, connect it to something real about the company's current situation. Show that you chose this company with information, not just enthusiasm.
+
+Use Signal's job profile feature to store notes from your research before each interview. Having the key facts organized and accessible means you're not trying to recall them under pressure when the interview starts.
+    `,
+  },
+  {
     slug: "signal-interview-data-common-mistakes",
     title: "What Thousands of Practice Sessions Reveal About How Candidates Actually Fail",
     description:
