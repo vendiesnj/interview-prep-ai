@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { articles } from "./articles";
+import { articles, authors } from "./articles";
 
 export const metadata: Metadata = {
   title: "Blog — Interview Tips & Career Advice",
@@ -66,7 +66,7 @@ export default function BlogIndex() {
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
                 cursor: "pointer",
               }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
                   <span style={{
                     fontSize: 11, fontWeight: 600, color: article.tagColor,
                     padding: "3px 8px", borderRadius: 5,
@@ -76,6 +76,8 @@ export default function BlogIndex() {
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{article.date}</span>
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>·</span>
                   <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>{article.readTime}</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.25)" }}>·</span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", fontWeight: 600 }}>{authors[article.author].name}</span>
                 </div>
                 <h2 style={{ fontSize: "clamp(18px, 2.5vw, 22px)", fontWeight: 700, color: "#F1F5F9", margin: "0 0 10px", lineHeight: 1.35, letterSpacing: -0.2 }}>
                   {article.title}

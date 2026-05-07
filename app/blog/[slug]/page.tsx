@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { articles } from "../articles";
+import { articles, authors } from "../articles";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -36,6 +36,8 @@ export default async function ArticlePage({ params }: Props) {
   const article = articles.find((a) => a.slug === slug);
   if (!article) notFound();
 
+  const author = authors[article.author];
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -43,9 +45,9 @@ export default async function ArticlePage({ params }: Props) {
     description: article.description,
     datePublished: article.date,
     author: {
-      "@type": "Organization",
-      name: "Signal HQ",
-      url: "https://signalhq.us",
+      "@type": "Person",
+      name: author.name,
+      description: author.title,
     },
     publisher: {
       "@type": "Organization",
@@ -119,9 +121,26 @@ export default async function ArticlePage({ params }: Props) {
           <h1 style={{ fontSize: "clamp(26px, 3.5vw, 38px)", fontWeight: 700, lineHeight: 1.25, letterSpacing: -0.3, margin: "0 0 20px", color: "#F1F5F9" }}>
             {article.title}
           </h1>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: 0 }}>
+          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 28px" }}>
             {article.description}
           </p>
+
+          {/* Author byline */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{
+              width: 40, height: 40, borderRadius: "50%",
+              background: "linear-gradient(135deg, rgba(37,99,235,0.35), rgba(14,165,233,0.35))",
+              border: "1px solid rgba(37,99,235,0.3)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 15, fontWeight: 700, color: "#93C5FD", flexShrink: 0,
+            }}>
+              {author.name.charAt(0)}
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{author.name}</div>
+              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>{author.title}</div>
+            </div>
+          </div>
         </header>
 
         <hr style={{ border: "none", borderTop: "1px solid rgba(255,255,255,0.07)", marginBottom: 48 }} />
@@ -162,6 +181,33 @@ export default async function ArticlePage({ params }: Props) {
             );
           })}
         </article>
+
+        {/* Author bio */}
+        <div style={{
+          marginTop: 56,
+          padding: "24px 28px",
+          borderRadius: "var(--radius-xl)",
+          border: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(255,255,255,0.03)",
+          display: "flex",
+          gap: 18,
+          alignItems: "flex-start",
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
+            background: "linear-gradient(135deg, rgba(37,99,235,0.4), rgba(14,165,233,0.4))",
+            border: "1px solid rgba(37,99,235,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 18, fontWeight: 700, color: "#93C5FD",
+          }}>
+            {author.name.charAt(0)}
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>{author.name}</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{author.title}</div>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.65, margin: 0 }}>{author.bio}</p>
+          </div>
+        </div>
 
         {/* CTA */}
         <div style={{
